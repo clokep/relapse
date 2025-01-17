@@ -96,7 +96,7 @@ module-name = "relapse.relapse_rust"
 
 [tool.poetry]
 name = "matrix-relapse"
-version = "1.99.0dev"
+version = "2.0.0dev"
 description = "Homeserver for the Matrix decentralised comms protocol"
 authors = ["Patrick Cloke"]
 license = "Apache-2.0"
