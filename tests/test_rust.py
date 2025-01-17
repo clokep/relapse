@@ -1,4 +1,4 @@
-from synapse.synapse_rust import sum_as_string
+from relapse.relapse_rust import sum_as_string
 
 from tests import unittest
 

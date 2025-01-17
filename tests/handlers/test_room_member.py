@@ -2,17 +2,17 @@ from unittest.mock import AsyncMock, patch
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import synapse.rest.admin
-import synapse.rest.client.login
-import synapse.rest.client.room
-from synapse.api.constants import EventTypes, Membership
-from synapse.api.errors import LimitExceededError, SynapseError
-from synapse.crypto.event_signing import add_hashes_and_signatures
-from synapse.events import FrozenEventV3
-from synapse.federation.federation_client import SendJoinResult
-from synapse.server import HomeServer
-from synapse.types import UserID, create_requester
-from synapse.util import Clock
+import relapse.rest.admin
+import relapse.rest.client.login
+import relapse.rest.client.room
+from relapse.api.constants import EventTypes, Membership
+from relapse.api.errors import LimitExceededError, RelapseError
+from relapse.crypto.event_signing import add_hashes_and_signatures
+from relapse.events import FrozenEventV3
+from relapse.federation.federation_client import SendJoinResult
+from relapse.server import HomeServer
+from relapse.types import UserID, create_requester
+from relapse.util import Clock
 
 from tests.replication._base import BaseMultiWorkerStreamTestCase
 from tests.server import make_request
@@ -25,9 +25,9 @@ from tests.unittest import (
 
 class TestJoinsLimitedByPerRoomRateLimiter(FederatingHomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
-        synapse.rest.client.login.register_servlets,
-        synapse.rest.client.room.register_servlets,
+        relapse.rest.admin.register_servlets,
+        relapse.rest.client.login.register_servlets,
+        relapse.rest.client.room.register_servlets,
     ]
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
@@ -180,10 +180,10 @@ class TestJoinsLimitedByPerRoomRateLimiter(FederatingHomeserverTestCase):
             "send_join",
             mock_send_join,
         ), patch(
-            "synapse.event_auth._is_membership_change_allowed",
+            "relapse.event_auth._is_membership_change_allowed",
             return_value=None,
         ), patch(
-            "synapse.handlers.federation_event.check_state_dependent_auth_rules",
+            "relapse.handlers.federation_event.check_state_dependent_auth_rules",
             return_value=None,
         ):
             self.get_success(
@@ -217,9 +217,9 @@ class TestJoinsLimitedByPerRoomRateLimiter(FederatingHomeserverTestCase):
 
 class TestReplicatedJoinsLimitedByPerRoomRateLimiter(BaseMultiWorkerStreamTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
-        synapse.rest.client.login.register_servlets,
-        synapse.rest.client.room.register_servlets,
+        relapse.rest.admin.register_servlets,
+        relapse.rest.client.login.register_servlets,
+        relapse.rest.client.room.register_servlets,
     ]
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
@@ -248,7 +248,7 @@ class TestReplicatedJoinsLimitedByPerRoomRateLimiter(BaseMultiWorkerStreamTestCa
 
         # Spawn another worker and have bob join via it.
         worker_app = self.make_worker_hs(
-            "synapse.app.generic_worker", extra_config={"worker_name": "other worker"}
+            "relapse.app.generic_worker", extra_config={"worker_name": "other worker"}
         )
         worker_site = self._hs_to_site[worker_app]
         channel = make_request(
@@ -290,9 +290,9 @@ class TestReplicatedJoinsLimitedByPerRoomRateLimiter(BaseMultiWorkerStreamTestCa
 
 class RoomMemberMasterHandlerTestCase(HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
-        synapse.rest.client.login.register_servlets,
-        synapse.rest.client.room.register_servlets,
+        relapse.rest.admin.register_servlets,
+        relapse.rest.client.login.register_servlets,
+        relapse.rest.client.room.register_servlets,
     ]
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
@@ -377,7 +377,7 @@ class RoomMemberMasterHandlerTestCase(HomeserverTestCase):
 
     def test_forget_when_not_left(self) -> None:
         """Tests that a user cannot not forgets a room that has not left."""
-        self.get_failure(self.handler.forget(self.alice_ID, self.room_id), SynapseError)
+        self.get_failure(self.handler.forget(self.alice_ID, self.room_id), RelapseError)
 
     def test_rejoin_forgotten_by_user(self) -> None:
         """Test that a user that has forgotten a room can do a re-join.

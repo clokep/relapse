@@ -17,18 +17,18 @@ from unittest.mock import AsyncMock, Mock
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.errors import FederationError
-from synapse.api.room_versions import RoomVersion, RoomVersions
-from synapse.events import EventBase, make_event_from_dict
-from synapse.events.snapshot import EventContext
-from synapse.federation.federation_base import event_from_pdu_json
-from synapse.handlers.device import DeviceListUpdater
-from synapse.http.types import QueryParams
-from synapse.logging.context import LoggingContext
-from synapse.server import HomeServer
-from synapse.types import JsonDict, UserID, create_requester
-from synapse.util import Clock
-from synapse.util.retryutils import NotRetryingDestination
+from relapse.api.errors import FederationError
+from relapse.api.room_versions import RoomVersion, RoomVersions
+from relapse.events import EventBase, make_event_from_dict
+from relapse.events.snapshot import EventContext
+from relapse.federation.federation_base import event_from_pdu_json
+from relapse.handlers.device import DeviceListUpdater
+from relapse.http.types import QueryParams
+from relapse.logging.context import LoggingContext
+from relapse.server import HomeServer
+from relapse.types import JsonDict, UserID, create_requester
+from relapse.util import Clock
+from relapse.util.retryutils import NotRetryingDestination
 
 from tests import unittest
 
@@ -233,7 +233,7 @@ class MessageAcceptTests(unittest.HomeserverTestCase):
         )
         self.assertIn(remote_user_id, need_resync)
 
-        # Check that waiting for 30 seconds caused Synapse to retry resyncing the device
+        # Check that waiting for 30 seconds caused Relapse to retry resyncing the device
         # list.
         self.reactor.advance(30)
         self.assertEqual(self.resync_attempts, 2)

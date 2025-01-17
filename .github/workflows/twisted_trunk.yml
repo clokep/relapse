@@ -22,17 +22,17 @@ concurrency:
 
 jobs:
   check_repo:
-    # Prevent this workflow from running on any fork of Synapse other than matrix-org/synapse, as it is
-    # only useful to the Synapse core team.
+    # Prevent this workflow from running on any fork of Relapse other than clokep/relapse, as it is
+    # only useful to the Relapse core team.
     # All other workflow steps depend on this one, thus if 'should_run_workflow' is not 'true', the rest
     # of the workflow will be skipped as well.
-    if: github.repository == 'matrix-org/synapse'
+    if: github.repository == 'clokep/relapse'
     runs-on: ubuntu-latest
     outputs:
       should_run_workflow: ${{ steps.check_condition.outputs.should_run_workflow }}
     steps:
       - id: check_condition
-        run: echo "should_run_workflow=${{ github.repository == 'matrix-org/synapse' }}" >> "$GITHUB_OUTPUT"
+        run: echo "should_run_workflow=${{ github.repository == 'clokep/relapse' }}" >> "$GITHUB_OUTPUT"
 
   mypy:
     needs: check_repo
@@ -103,7 +103,7 @@ jobs:
       # This job is a canary to warn us about unreleased twisted changes that would cause problems for us if
       # they were to be released immediately. For simplicity's sake (and to save CI runners) we use the oldest
       # version, assuming that any incompatibilities on newer versions would also be present on the oldest.
-      image: matrixdotorg/sytest-synapse:focal
+      image: matrixdotorg/sytest-relapse:focal
       volumes:
         - ${{ github.workspace }}:/src
 
@@ -116,7 +116,7 @@ jobs:
 
       - name: Patch dependencies
         # Note: The poetry commands want to create a virtualenv in /src/.venv/,
-        #       but the sytest-synapse container expects it to be in /venv/.
+        #       but the sytest-relapse container expects it to be in /venv/.
         #       We symlink it before running poetry so that poetry actually
         #       ends up installing to `/venv`.
         run: |
@@ -126,7 +126,7 @@ jobs:
           poetry install --no-interaction --extras "all test"
         working-directory: /src
       - name: Run SyTest
-        run: /bootstrap.sh synapse
+        run: /bootstrap.sh relapse
         working-directory: /src
         env:
           # Use offline mode to avoid reinstalling the pinned version of
@@ -163,13 +163,13 @@ jobs:
             database: Postgres
 
     steps:
-      - name: Run actions/checkout@v4 for synapse
+      - name: Run actions/checkout@v4 for relapse
         uses: actions/checkout@v4
         with:
-          path: synapse
+          path: relapse
 
       - name: Prepare Complement's Prerequisites
-        run: synapse/.ci/scripts/setup_complement_prerequisites.sh
+        run: relapse/.ci/scripts/setup_complement_prerequisites.sh
 
       - uses: actions/setup-go@v5
         with:
@@ -186,11 +186,11 @@ jobs:
           poetry remove -n twisted
           poetry add -n --extras tls git+https://github.com/twisted/twisted.git#trunk
           poetry lock --no-update
-        working-directory: synapse
+        working-directory: relapse
 
       - run: |
           set -o pipefail
-          TEST_ONLY_SKIP_DEP_HASH_VERIFICATION=1 POSTGRES=${{ (matrix.database == 'Postgres') && 1 || '' }} WORKERS=${{ (matrix.arrangement == 'workers') && 1 || '' }} COMPLEMENT_DIR=`pwd`/complement synapse/scripts-dev/complement.sh -json 2>&1 | synapse/.ci/scripts/gotestfmt
+          TEST_ONLY_SKIP_DEP_HASH_VERIFICATION=1 POSTGRES=${{ (matrix.database == 'Postgres') && 1 || '' }} WORKERS=${{ (matrix.arrangement == 'workers') && 1 || '' }} COMPLEMENT_DIR=`pwd`/complement relapse/scripts-dev/complement.sh -json 2>&1 | relapse/.ci/scripts/gotestfmt
         shell: bash
         name: Run Complement Tests
 

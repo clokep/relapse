@@ -20,9 +20,9 @@ from pkg_resources import parse_version
 from prometheus_client.core import Sample
 from typing_extensions import Protocol
 
-from synapse.app._base import _set_prometheus_client_use_created_metrics
-from synapse.metrics import REGISTRY, InFlightGauge, generate_latest
-from synapse.util.caches.deferred_cache import DeferredCache
+from relapse.app._base import _set_prometheus_client_use_created_metrics
+from relapse.metrics import REGISTRY, InFlightGauge, generate_latest
+from relapse.util.caches.deferred_cache import DeferredCache
 
 from tests import unittest
 
@@ -133,12 +133,12 @@ class TestMauLimit(unittest.TestCase):
 class BuildInfoTests(unittest.TestCase):
     def test_get_build(self) -> None:
         """
-        The synapse_build_info metric reports the OS version, Python version,
-        and Synapse version.
+        The relapse_build_info metric reports the OS version, Python version,
+        and Relapse version.
         """
         items = list(
             filter(
-                lambda x: b"synapse_build_info{" in x,
+                lambda x: b"relapse_build_info{" in x,
                 generate_latest(REGISTRY).split(b"\n"),
             )
         )
@@ -164,8 +164,8 @@ class CacheMetricsTests(unittest.HomeserverTestCase):
             )
         }
 
-        self.assertEqual(items["synapse_util_caches_cache_size"], "0.0")
-        self.assertEqual(items["synapse_util_caches_cache_max_size"], "777.0")
+        self.assertEqual(items["relapse_util_caches_cache_size"], "0.0")
+        self.assertEqual(items["relapse_util_caches_cache_max_size"], "777.0")
 
         cache.prefill("1", "hi")
 
@@ -177,8 +177,8 @@ class CacheMetricsTests(unittest.HomeserverTestCase):
             )
         }
 
-        self.assertEqual(items["synapse_util_caches_cache_size"], "1.0")
-        self.assertEqual(items["synapse_util_caches_cache_max_size"], "777.0")
+        self.assertEqual(items["relapse_util_caches_cache_size"], "1.0")
+        self.assertEqual(items["relapse_util_caches_cache_max_size"], "777.0")
 
 
 class PrometheusMetricsHackTestCase(unittest.HomeserverTestCase):

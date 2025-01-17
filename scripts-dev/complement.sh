@@ -2,8 +2,8 @@
 # This script is designed for developers who want to test their code
 # against Complement.
 #
-# It makes a Synapse image which represents the current checkout,
-# builds a synapse-complement image on top, then runs tests with it.
+# It makes a Relapse image which represents the current checkout,
+# builds a relapse-complement image on top, then runs tests with it.
 #
 # By default the script will fetch the latest Complement main branch and
 # run tests with that. This can be overridden to use a custom Complement
@@ -16,7 +16,7 @@
 #
 # PODMAN=1 ./complement.sh
 #
-# By default Synapse is run in monolith mode. This can be overridden by
+# By default Relapse is run in monolith mode. This can be overridden by
 # setting the WORKERS environment variable.
 #
 # You can optionally give a "-f" argument (for "fast") before any to skip
@@ -46,11 +46,11 @@ echo_if_github() {
 usage() {
     cat >&2 <<EOF
 Usage: $0 [-f] <go test arguments>...
-Run the complement test suite on Synapse.
+Run the complement test suite on Relapse.
 
   -f, --fast
         Skip rebuilding the docker images, and just use the most recent
-        'complement-synapse:latest' image.
+        'complement-relapse:latest' image.
         Conflicts with --build-only.
 
   --build-only
@@ -58,13 +58,13 @@ Run the complement test suite on Synapse.
         Conflicts with -f/--fast.
 
   -e, --editable
-        Use an editable build of Synapse, rebuilding the image if necessary.
+        Use an editable build of Relapse, rebuilding the image if necessary.
         This is suitable for use in development where a fast turn-around time
         is important.
         Not suitable for use in CI in case the editable environment is impure.
 
   --rebuild-editable
-        Force a rebuild of the editable build of Synapse.
+        Force a rebuild of the editable build of Relapse.
         This is occasionally useful if the built-in rebuild detection with
         --editable fails, e.g. when changing configure_workers_and_start.py.
 
@@ -89,10 +89,10 @@ while [ $# -ge 1 ]; do
             skip_complement_run=1
             ;;
         "-e"|"--editable")
-            use_editable_synapse=1
+            use_editable_relapse=1
             ;;
         "--rebuild-editable")
-            rebuild_editable_synapse=1
+            rebuild_editable_relapse=1
             ;;
         *)
             # unknown arg: presumably an argument to gotest. break the loop.
@@ -127,74 +127,74 @@ if [[ -z "$COMPLEMENT_DIR" ]]; then
   echo "Checkout available at 'complement-${COMPLEMENT_REF}'"
 fi
 
-if [ -n "$use_editable_synapse" ]; then
-    if [[ -e synapse/synapse_rust.abi3.so ]]; then
+if [ -n "$use_editable_relapse" ]; then
+    if [[ -e relapse/relapse_rust.abi3.so ]]; then
         # In an editable install, back up the host's compiled Rust module to prevent
         # inconvenience; the container will overwrite the module with its own copy.
-        mv -n synapse/synapse_rust.abi3.so synapse/synapse_rust.abi3.so~host
+        mv -n relapse/relapse_rust.abi3.so relapse/relapse_rust.abi3.so~host
         # And restore it on exit:
-        synapse_pkg=`realpath synapse`
-        trap "mv -f '$synapse_pkg/synapse_rust.abi3.so~host' '$synapse_pkg/synapse_rust.abi3.so'" EXIT
+        relapse_pkg=`realpath relapse`
+        trap "mv -f '$relapse_pkg/relapse_rust.abi3.so~host' '$relapse_pkg/relapse_rust.abi3.so'" EXIT
     fi
 
     editable_mount="$(realpath .):/editable-src:z"
-    if [ -n "$rebuild_editable_synapse" ]; then
+    if [ -n "$rebuild_editable_relapse" ]; then
         unset skip_docker_build
-    elif $CONTAINER_RUNTIME inspect complement-synapse-editable &>/dev/null; then
-        # complement-synapse-editable already exists: see if we can still use it:
+    elif $CONTAINER_RUNTIME inspect complement-relapse-editable &>/dev/null; then
+        # complement-relapse-editable already exists: see if we can still use it:
         # - The Rust module must still be importable; it will fail to import if the Rust source has changed.
         # - The Poetry lock file must be the same (otherwise we assume dependencies have changed)
 
         # First set up the module in the right place for an editable installation.
-        $CONTAINER_RUNTIME run --rm -v $editable_mount --entrypoint 'cp' complement-synapse-editable -- /synapse_rust.abi3.so.bak /editable-src/synapse/synapse_rust.abi3.so
+        $CONTAINER_RUNTIME run --rm -v $editable_mount --entrypoint 'cp' complement-relapse-editable -- /relapse_rust.abi3.so.bak /editable-src/relapse/relapse_rust.abi3.so
 
-        if ($CONTAINER_RUNTIME run --rm -v $editable_mount --entrypoint 'python' complement-synapse-editable -c 'import synapse.synapse_rust' \
-            && $CONTAINER_RUNTIME run --rm -v $editable_mount --entrypoint 'diff' complement-synapse-editable --brief /editable-src/poetry.lock /poetry.lock.bak); then
+        if ($CONTAINER_RUNTIME run --rm -v $editable_mount --entrypoint 'python' complement-relapse-editable -c 'import relapse.relapse_rust' \
+            && $CONTAINER_RUNTIME run --rm -v $editable_mount --entrypoint 'diff' complement-relapse-editable --brief /editable-src/poetry.lock /poetry.lock.bak); then
             skip_docker_build=1
         else
-            echo "Editable Synapse image is stale. Will rebuild."
+            echo "Editable Relapse image is stale. Will rebuild."
             unset skip_docker_build
         fi
     fi
 fi
 
 if [ -z "$skip_docker_build" ]; then
-    if [ -n "$use_editable_synapse" ]; then
+    if [ -n "$use_editable_relapse" ]; then
 
         # Build a special image designed for use in development with editable
         # installs.
-        $CONTAINER_RUNTIME build -t synapse-editable \
+        $CONTAINER_RUNTIME build -t relapse-editable \
             -f "docker/editable.Dockerfile" .
 
-        $CONTAINER_RUNTIME build -t synapse-workers-editable \
-            --build-arg FROM=synapse-editable \
+        $CONTAINER_RUNTIME build -t relapse-workers-editable \
+            --build-arg FROM=relapse-editable \
             -f "docker/Dockerfile-workers" .
 
-        $CONTAINER_RUNTIME build -t complement-synapse-editable \
-            --build-arg FROM=synapse-workers-editable \
+        $CONTAINER_RUNTIME build -t complement-relapse-editable \
+            --build-arg FROM=relapse-workers-editable \
             -f "docker/complement/Dockerfile" "docker/complement"
 
         # Prepare the Rust module
-        $CONTAINER_RUNTIME run --rm -v $editable_mount --entrypoint 'cp' complement-synapse-editable -- /synapse_rust.abi3.so.bak /editable-src/synapse/synapse_rust.abi3.so
+        $CONTAINER_RUNTIME run --rm -v $editable_mount --entrypoint 'cp' complement-relapse-editable -- /relapse_rust.abi3.so.bak /editable-src/relapse/relapse_rust.abi3.so
 
     else
 
-        # Build the base Synapse image from the local checkout
-        echo_if_github "::group::Build Docker image: matrixdotorg/synapse"
-        $CONTAINER_RUNTIME build -t matrixdotorg/synapse \
+        # Build the base Relapse image from the local checkout
+        echo_if_github "::group::Build Docker image: clokep/relapse"
+        $CONTAINER_RUNTIME build -t clokep/relapse \
         --build-arg TEST_ONLY_SKIP_DEP_HASH_VERIFICATION \
         --build-arg TEST_ONLY_IGNORE_POETRY_LOCKFILE \
         -f "docker/Dockerfile" .
         echo_if_github "::endgroup::"
 
-        # Build the workers docker image (from the base Synapse image we just built).
-        echo_if_github "::group::Build Docker image: matrixdotorg/synapse-workers"
-        $CONTAINER_RUNTIME build -t matrixdotorg/synapse-workers -f "docker/Dockerfile-workers" .
+        # Build the workers docker image (from the base Relapse image we just built).
+        echo_if_github "::group::Build Docker image: clokep/relapse-workers"
+        $CONTAINER_RUNTIME build -t clokep/relapse-workers -f "docker/Dockerfile-workers" .
         echo_if_github "::endgroup::"
 
-        # Build the unified Complement image (from the worker Synapse image we just built).
+        # Build the unified Complement image (from the worker Relapse image we just built).
         echo_if_github "::group::Build Docker image: complement/Dockerfile"
-        $CONTAINER_RUNTIME build -t complement-synapse \
+        $CONTAINER_RUNTIME build -t complement-relapse \
             -f "docker/complement/Dockerfile" "docker/complement"
         echo_if_github "::endgroup::"
 
@@ -206,9 +206,9 @@ if [ -n "$skip_complement_run" ]; then
     exit
 fi
 
-export COMPLEMENT_BASE_IMAGE=complement-synapse
-if [ -n "$use_editable_synapse" ]; then
-    export COMPLEMENT_BASE_IMAGE=complement-synapse-editable
+export COMPLEMENT_BASE_IMAGE=complement-relapse
+if [ -n "$use_editable_relapse" ]; then
+    export COMPLEMENT_BASE_IMAGE=complement-relapse-editable
     export COMPLEMENT_HOST_MOUNTS="$editable_mount"
 fi
 
@@ -229,56 +229,56 @@ extra_test_args+=("-timeout=60m")
 
 if [[ -n "$WORKERS" ]]; then
   # Use workers.
-  export PASS_SYNAPSE_COMPLEMENT_USE_WORKERS=true
+  export PASS_RELAPSE_COMPLEMENT_USE_WORKERS=true
 
   # Pass through the workers defined. If none, it will be an empty string
-  export PASS_SYNAPSE_WORKER_TYPES="$WORKER_TYPES"
+  export PASS_RELAPSE_WORKER_TYPES="$WORKER_TYPES"
 
   # Workers can only use Postgres as a database.
-  export PASS_SYNAPSE_COMPLEMENT_DATABASE=postgres
+  export PASS_RELAPSE_COMPLEMENT_DATABASE=postgres
 
   # And provide some more configuration to complement.
 
-  # It can take quite a while to spin up a worker-mode Synapse for the first
+  # It can take quite a while to spin up a worker-mode Relapse for the first
   # time (the main problem is that we start 14 python processes for each test,
   # and complement likes to do two of them in parallel).
   export COMPLEMENT_SPAWN_HS_TIMEOUT_SECS=120
 else
-  export PASS_SYNAPSE_COMPLEMENT_USE_WORKERS=
+  export PASS_RELAPSE_COMPLEMENT_USE_WORKERS=
   if [[ -n "$POSTGRES" ]]; then
-    export PASS_SYNAPSE_COMPLEMENT_DATABASE=postgres
+    export PASS_RELAPSE_COMPLEMENT_DATABASE=postgres
   else
-    export PASS_SYNAPSE_COMPLEMENT_DATABASE=sqlite
+    export PASS_RELAPSE_COMPLEMENT_DATABASE=sqlite
   fi
 fi
 
 if [[ -n "$ASYNCIO_REACTOR" ]]; then
   # Enable the Twisted asyncio reactor
-  export PASS_SYNAPSE_COMPLEMENT_USE_ASYNCIO_REACTOR=true
+  export PASS_RELAPSE_COMPLEMENT_USE_ASYNCIO_REACTOR=true
 fi
 
 if [[ -n "$UNIX_SOCKETS" ]]; then
-  # Enable full on Unix socket mode for Synapse, Redis and Postgresql
-  export PASS_SYNAPSE_USE_UNIX_SOCKET=1
+  # Enable full on Unix socket mode for Relapse, Redis and Postgresql
+  export PASS_RELAPSE_USE_UNIX_SOCKET=1
 fi
 
-if [[ -n "$SYNAPSE_TEST_LOG_LEVEL" ]]; then
+if [[ -n "$RELAPSE_TEST_LOG_LEVEL" ]]; then
   # Set the log level to what is desired
-  export PASS_SYNAPSE_LOG_LEVEL="$SYNAPSE_TEST_LOG_LEVEL"
+  export PASS_RELAPSE_LOG_LEVEL="$RELAPSE_TEST_LOG_LEVEL"
 
   # Allow logging sensitive things (currently SQL queries & parameters).
   # (This won't have any effect if we're not logging at DEBUG level overall.)
   # Since this is just a test suite, this is fine and won't reveal anyone's
   # personal information
-  export PASS_SYNAPSE_LOG_SENSITIVE=1
+  export PASS_RELAPSE_LOG_SENSITIVE=1
 fi
 
 # Log a few more useful things for a developer attempting to debug something
 # particularly tricky.
-export PASS_SYNAPSE_LOG_TESTING=1
+export PASS_RELAPSE_LOG_TESTING=1
 
 # Run the tests!
 echo "Images built; running complement with ${extra_test_args[@]} $@ $test_packages"
 cd "$COMPLEMENT_DIR"
 
-go test -v -tags "synapse_blacklist" -count=1 "${extra_test_args[@]}" "$@" $test_packages
+go test -v -tags "relapse_blacklist" -count=1 "${extra_test_args[@]}" "$@" $test_packages

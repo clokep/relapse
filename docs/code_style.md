@@ -2,7 +2,7 @@
 
 ## Formatting tools
 
-The Synapse codebase uses a number of code formatting tools in order to
+The Relapse codebase uses a number of code formatting tools in order to
 quickly and automatically check for formatting (and sometimes logical)
 errors in code.
 
@@ -40,7 +40,7 @@ on save as it takes a while and can be very resource intensive.
         Example:
 
         ```python
-        from synapse.types import UserID
+        from relapse.types import UserID
         ...
         user_id = UserID(local, server)
         ```
@@ -48,7 +48,7 @@ on save as it takes a while and can be very resource intensive.
         is preferred over:
 
         ```python
-        from synapse import types
+        from relapse import types
         ...
         user_id = types.UserID(local, server)
         ```
@@ -58,7 +58,7 @@ on save as it takes a while and can be very resource intensive.
         This goes against the advice in the Google style guide, but it
         means that errors in the name are caught early (at import time).
 
-    -   Avoid wildcard imports (`from synapse.types import *`) and
+    -   Avoid wildcard imports (`from relapse.types import *`) and
         relative imports (`from .types import UserID`).
 
 ## Configuration code and documentation format
@@ -67,7 +67,7 @@ When adding a configuration option to the code, if several settings are grouped 
 correctly handles the top-level option being set to `None` (as it will be if no sub-options are enabled).
 
 The [configuration manual](usage/configuration/config_documentation.md) acts as a
-reference to Synapse's configuration options for server administrators.
+reference to Relapse's configuration options for server administrators.
 Remember that many readers will be unfamiliar with YAML and server
 administration in general, so it is important that when you add
 a configuration option the documentation be as easy to understand as possible, which 
@@ -114,7 +114,7 @@ modules:
 ```
 ---
 
-Note that the sample configuration is generated from the synapse code
+Note that the sample configuration is generated from the relapse code
 and is maintained by a script, `scripts-dev/generate_sample_config.sh`.
 Making sure that the output from this script matches the desired format
 is left as an exercise for the reader!

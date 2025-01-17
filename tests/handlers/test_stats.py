@@ -16,11 +16,11 @@ from typing import Any, Dict, List, Optional, Tuple, cast
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.rest import admin
-from synapse.rest.client import login, room
-from synapse.server import HomeServer
-from synapse.storage.databases.main import stats
-from synapse.util import Clock
+from relapse.rest import admin
+from relapse.rest.client import login, room
+from relapse.server import HomeServer
+from relapse.storage.databases.main import stats
+from relapse.util import Clock
 
 from tests import unittest
 

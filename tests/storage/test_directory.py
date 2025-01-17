@@ -14,9 +14,9 @@
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.server import HomeServer
-from synapse.types import RoomAlias, RoomID
-from synapse.util import Clock
+from relapse.server import HomeServer
+from relapse.types import RoomAlias, RoomID
+from relapse.util import Clock
 
 from tests.unittest import HomeserverTestCase
 

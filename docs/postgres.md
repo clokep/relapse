@@ -5,7 +5,7 @@ Deprecation Policy](deprecation_policy.md).
 
 ## Install postgres client libraries
 
-Synapse will require the python postgres client library in order to
+Relapse will require the python postgres client library in order to
 connect to a postgres database.
 
 -   If you are using the [matrix.org debian/ubuntu
@@ -15,13 +15,13 @@ connect to a postgres database.
     `apt install libpq5`.
 -   For other pre-built packages, please consult the documentation from
     the relevant package.
--   If you installed synapse [in a
+-   If you installed relapse [in a
     virtualenv](setup/installation.md#installing-as-a-python-module-from-pypi), you can install
     the library with:
 
-        ~/synapse/env/bin/pip install "matrix-synapse[postgres]"
+        ~/relapse/env/bin/pip install "matrix-relapse[postgres]"
 
-    (substituting the path to your virtualenv for `~/synapse/env`, if
+    (substituting the path to your virtualenv for `~/relapse/env`, if
     you used a different path). You will require the postgres
     development files. These are in the `libpq-dev` package on
     Debian-derived distributions.
@@ -40,22 +40,22 @@ Then, create a postgres user and a database with:
 
 ```sh
 # this will prompt for a password for the new user
-createuser --pwprompt synapse_user
+createuser --pwprompt relapse_user
 
-createdb --encoding=UTF8 --locale=C --template=template0 --owner=synapse_user synapse
+createdb --encoding=UTF8 --locale=C --template=template0 --owner=relapse_user relapse
 ```
 
-The above will create a user called `synapse_user`, and a database called
-`synapse`.
+The above will create a user called `relapse_user`, and a database called
+`relapse`.
 
 Note that the PostgreSQL database *must* have the correct encoding set
 (as shown above), otherwise it will not be able to store UTF8 strings.
 
-You may need to enable password authentication so `synapse_user` can
+You may need to enable password authentication so `relapse_user` can
 connect to the database. See
 <https://www.postgresql.org/docs/current/auth-pg-hba-conf.html>.
 
-## Synapse config
+## Relapse config
 
 When you are ready to start using PostgreSQL, edit the `database`
 section in your config file to match the following lines:
@@ -79,7 +79,7 @@ documentation](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-
 for a list of options which can be passed.
 
 You should consider tuning the `args.keepalives_*` options if there is any danger of
-the connection between your homeserver and database dropping, otherwise Synapse
+the connection between your homeserver and database dropping, otherwise Relapse
 may block for an extended period while it waits for a response from the
 database server. Example values might be:
 
@@ -127,7 +127,7 @@ can read more about that [here](https://www.postgresql.org/docs/10/kernel-resour
 
 ### Overview
 
-The script `synapse_port_db` allows porting an existing synapse server
+The script `relapse_port_db` allows porting an existing relapse server
 backed by SQLite to using PostgreSQL. This is done in as a two phase
 process:
 
@@ -157,9 +157,9 @@ space on disk after porting to Postgres.
 
 ### Using the port script
 
-Firstly, shut down the currently running synapse server and copy its
+Firstly, shut down the currently running relapse server and copy its
 database file (typically `homeserver.db`) to another location. Once the
-copy is complete, restart synapse. For instance:
+copy is complete, restart relapse. For instance:
 
 ```sh
 synctl stop
@@ -173,12 +173,12 @@ Copy the old config file into a new config file:
 cp homeserver.yaml homeserver-postgres.yaml
 ```
 
-Edit the database section as described in the section *Synapse config*
+Edit the database section as described in the section *Relapse config*
 above and with the SQLite snapshot located at `homeserver.db.snapshot`
 simply run:
 
 ```sh
-synapse_port_db --sqlite-database homeserver.db.snapshot \
+relapse_port_db --sqlite-database homeserver.db.snapshot \
     --postgres-config homeserver-postgres.yaml
 ```
 
@@ -188,16 +188,16 @@ If the script took a long time to complete, or time has otherwise passed
 since the original snapshot was taken, repeat the previous steps with a
 newer snapshot.
 
-To complete the conversion shut down the synapse server and run the port
+To complete the conversion shut down the relapse server and run the port
 script one last time, e.g. if the SQLite database is at `homeserver.db`
 run:
 
 ```sh
-synapse_port_db --sqlite-database homeserver.db \
+relapse_port_db --sqlite-database homeserver.db \
     --postgres-config homeserver-postgres.yaml
 ```
 
-Once that has completed, change the synapse config to point at the
+Once that has completed, change the relapse config to point at the
 PostgreSQL database configuration file `homeserver-postgres.yaml`:
 
 ```sh
@@ -207,7 +207,7 @@ mv homeserver-postgres.yaml homeserver.yaml
 synctl start
 ```
 
-Synapse should now be running against PostgreSQL.
+Relapse should now be running against PostgreSQL.
 
 
 ## Troubleshooting
@@ -215,22 +215,22 @@ Synapse should now be running against PostgreSQL.
 ### Alternative auth methods
 
 If you get an error along the lines of `FATAL:  Ident authentication failed for
-user "synapse_user"`, you may need to use an authentication method other than
+user "relapse_user"`, you may need to use an authentication method other than
 `ident`:
 
-* If the `synapse_user` user has a password, add the password to the `database:`
+* If the `relapse_user` user has a password, add the password to the `database:`
   section of `homeserver.yaml`. Then add the following to `pg_hba.conf`:
 
   ```
-  host    synapse     synapse_user    ::1/128     md5  # or `scram-sha-256` instead of `md5` if you use that
+  host    relapse     relapse_user    ::1/128     md5  # or `scram-sha-256` instead of `md5` if you use that
   ```
 
-* If the `synapse_user` user does not have a password, then a password doesn't
+* If the `relapse_user` user does not have a password, then a password doesn't
   have to be added to `homeserver.yaml`. But the following does need to be added
   to `pg_hba.conf`:
 
   ```
-  host    synapse     synapse_user    ::1/128     trust
+  host    relapse     relapse_user    ::1/128     trust
   ```
 
 Note that line order matters in `pg_hba.conf`, so make sure that if you do add a
@@ -242,8 +242,8 @@ host    all         all             ::1/128     ident
 
 ### Fixing incorrect `COLLATE` or `CTYPE`
 
-Synapse will refuse to set up a new database if it has the wrong values of
-`COLLATE` and `CTYPE` set. Synapse will also refuse to start an existing database with incorrect values
+Relapse will refuse to set up a new database if it has the wrong values of
+`COLLATE` and `CTYPE` set. Relapse will also refuse to start an existing database with incorrect values
 of `COLLATE` and `CTYPE` unless the config flag `allow_unsafe_locale`, found in the 
 `database` section of the config, is set to true. Using different locales can cause issues if the locale library is updated from
 underneath the database, or if a different version of the locale is used on any
@@ -259,10 +259,10 @@ has already occurred, and such duplicate rows will need to be manually removed.
 
 ### Fixing inconsistent sequences error
 
-Synapse uses Postgres sequences to generate IDs for various tables. A sequence
-and associated table can get out of sync if, for example, Synapse has been
+Relapse uses Postgres sequences to generate IDs for various tables. A sequence
+and associated table can get out of sync if, for example, Relapse has been
 downgraded and then upgraded again.
 
-To fix the issue shut down Synapse (including any and all workers) and run the
-SQL command included in the error message. Once done Synapse should start
+To fix the issue shut down Relapse (including any and all workers) and run the
+SQL command included in the error message. Once done Relapse should start
 successfully.

@@ -1,6 +1,6 @@
 # How do State Groups work?
 
-As a general rule, I encourage people who want to understand the deepest darkest secrets of the database schema to drop by #synapse-dev:matrix.org and ask questions.
+As a general rule, I encourage people who want to understand the deepest darkest secrets of the database schema to drop by #relapse:matrix.org and ask questions.
 
 However, one question that comes up frequently is that of how "state groups" work, and why the `state_groups_state` table gets so big, so here's an attempt to answer that question.
 
@@ -18,8 +18,8 @@ A full state group just records the event id for each piece of state in the room
 
 ## Known bugs with state groups
 
-There are various reasons that we can end up creating many more state groups than we need: see https://github.com/matrix-org/synapse/issues/3364 for more details.
+There are various reasons that we can end up creating many more state groups than we need: see https://github.com/clokep/relapse/issues/3364 for more details.
 
 ## Compression tool
 
-There is a tool at https://github.com/matrix-org/rust-synapse-compress-state which can compress the `state_groups_state` on a room by-room basis (essentially, it reduces the number of "full" state groups). This can result in dramatic reductions of the storage used.
+There is a tool at https://github.com/matrix-org/rust-relapse-compress-state which can compress the `state_groups_state` on a room by-room basis (essentially, it reduces the number of "full" state groups). This can result in dramatic reductions of the storage used.

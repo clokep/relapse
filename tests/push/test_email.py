@@ -23,13 +23,13 @@ from parameterized import parameterized
 from twisted.internet.defer import Deferred
 from twisted.test.proto_helpers import MemoryReactor
 
-import synapse.rest.admin
-from synapse.api.errors import Codes, SynapseError
-from synapse.push.emailpusher import EmailPusher
-from synapse.rest.client import login, room
-from synapse.rest.synapse.client.unsubscribe import UnsubscribeResource
-from synapse.server import HomeServer
-from synapse.util import Clock
+import relapse.rest.admin
+from relapse.api.errors import Codes, RelapseError
+from relapse.push.emailpusher import EmailPusher
+from relapse.rest.client import login, room
+from relapse.rest.relapse.client.unsubscribe import UnsubscribeResource
+from relapse.server import HomeServer
+from relapse.util import Clock
 
 from tests.server import FakeSite, make_request
 from tests.unittest import HomeserverTestCase
@@ -44,7 +44,7 @@ class _User:
 
 class EmailPusherTests(HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        relapse.rest.admin.register_servlets_for_client_rest_resource,
         room.register_servlets,
         login.register_servlets,
     ]
@@ -55,7 +55,7 @@ class EmailPusherTests(HomeserverTestCase):
         config["email"] = {
             "enable_notifs": True,
             "template_dir": os.path.abspath(
-                pkg_resources.resource_filename("synapse", "res/templates")
+                pkg_resources.resource_filename("relapse", "res/templates")
             ),
             "expiry_template_html": "notice_expiry.html",
             "expiry_template_text": "notice_expiry.txt",
@@ -78,7 +78,7 @@ class EmailPusherTests(HomeserverTestCase):
         self.email_attempts: List[Tuple[Deferred, Sequence, Dict]] = []
 
         def sendmail(*args: Any, **kwargs: Any) -> Deferred:
-            # This mocks out synapse.reactor.send_email._sendmail.
+            # This mocks out relapse.reactor.send_email._sendmail.
             d: Deferred = Deferred()
             self.email_attempts.append((d, args, kwargs))
             return d
@@ -141,7 +141,7 @@ class EmailPusherTests(HomeserverTestCase):
         """Test that we can only add an email pusher if the user has validated
         their email.
         """
-        with self.assertRaises(SynapseError) as cm:
+        with self.assertRaises(RelapseError) as cm:
             self.get_success_or_raise(
                 self.hs.get_pusherpool().add_or_update_pusher(
                     user_id=self.user_id,
@@ -201,8 +201,8 @@ class EmailPusherTests(HomeserverTestCase):
         multipart_msg = email.message_from_bytes(msg)
         txt = multipart_msg.get_payload()[0].get_payload(decode=True).decode()
         html = multipart_msg.get_payload()[1].get_payload(decode=True).decode()
-        self.assertIn("/_synapse/client/unsubscribe", txt)
-        self.assertIn("/_synapse/client/unsubscribe", html)
+        self.assertIn("/_relapse/client/unsubscribe", txt)
+        self.assertIn("/_relapse/client/unsubscribe", html)
 
         # The unsubscribe headers should exist.
         assert multipart_msg.get("List-Unsubscribe") is not None
@@ -482,10 +482,10 @@ class EmailPusherTests(HomeserverTestCase):
 
     def _check_for_mail(self) -> Tuple[Sequence, Dict]:
         """
-        Assert that synapse sent off exactly one email notification.
+        Assert that relapse sent off exactly one email notification.
 
         Returns:
-            args and kwargs passed to synapse.reactor.send_email._sendmail for
+            args and kwargs passed to relapse.reactor.send_email._sendmail for
             that notification.
         """
         # Get the stream ordering before it gets sent

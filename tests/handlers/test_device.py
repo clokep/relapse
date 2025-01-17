@@ -20,17 +20,17 @@ from unittest import mock
 from twisted.internet.defer import ensureDeferred
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.constants import RoomEncryptionAlgorithms
-from synapse.api.errors import NotFoundError, SynapseError
-from synapse.appservice import ApplicationService
-from synapse.handlers.device import MAX_DEVICE_DISPLAY_NAME_LEN, DeviceHandler
-from synapse.rest import admin
-from synapse.rest.client import devices, login, register
-from synapse.server import HomeServer
-from synapse.storage.databases.main.appservice import _make_exclusive_regex
-from synapse.types import JsonDict, create_requester
-from synapse.util import Clock
-from synapse.util.task_scheduler import TaskScheduler
+from relapse.api.constants import RoomEncryptionAlgorithms
+from relapse.api.errors import NotFoundError, RelapseError
+from relapse.appservice import ApplicationService
+from relapse.handlers.device import MAX_DEVICE_DISPLAY_NAME_LEN, DeviceHandler
+from relapse.rest import admin
+from relapse.rest.client import devices, login, register
+from relapse.server import HomeServer
+from relapse.storage.databases.main.appservice import _make_exclusive_regex
+from relapse.types import JsonDict, create_requester
+from relapse.util import Clock
+from relapse.util.task_scheduler import TaskScheduler
 
 from tests import unittest
 from tests.unittest import override_config
@@ -64,7 +64,7 @@ class DeviceTestCase(unittest.HomeserverTestCase):
                 device_id="foo",
                 initial_device_display_name="a" * (MAX_DEVICE_DISPLAY_NAME_LEN + 1),
             ),
-            SynapseError,
+            RelapseError,
         )
 
     def test_device_is_created_if_doesnt_exist(self) -> None:
@@ -275,7 +275,7 @@ class DeviceTestCase(unittest.HomeserverTestCase):
         update = {"display_name": "a" * (MAX_DEVICE_DISPLAY_NAME_LEN + 1)}
         self.get_failure(
             self.handler.update_device(user1, "abc", update),
-            SynapseError,
+            RelapseError,
         )
 
         # Ensure the display name was not updated.
@@ -591,7 +591,7 @@ class DehydrationTestCase(unittest.HomeserverTestCase):
                 since_token=None,
                 limit=10,
             ),
-            SynapseError,
+            RelapseError,
         )
 
         # Send a message to the dehydrated device

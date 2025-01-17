@@ -13,7 +13,7 @@
 # limitations under the License.
 import sys
 
-from synapse.logging.formatter import LogFormatter
+from relapse.logging.formatter import LogFormatter
 
 from tests import unittest
 

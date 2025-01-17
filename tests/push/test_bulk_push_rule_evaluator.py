@@ -19,14 +19,14 @@ from parameterized import parameterized
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.constants import EventContentFields, RelationTypes
-from synapse.api.room_versions import RoomVersions
-from synapse.push.bulk_push_rule_evaluator import BulkPushRuleEvaluator
-from synapse.rest import admin
-from synapse.rest.client import login, register, room
-from synapse.server import HomeServer
-from synapse.types import JsonDict, create_requester
-from synapse.util import Clock
+from relapse.api.constants import EventContentFields, RelationTypes
+from relapse.api.room_versions import RoomVersions
+from relapse.push.bulk_push_rule_evaluator import BulkPushRuleEvaluator
+from relapse.rest import admin
+from relapse.rest.client import login, register, room
+from relapse.server import HomeServer
+from relapse.types import JsonDict, create_requester
+from relapse.util import Clock
 
 from tests.unittest import HomeserverTestCase, override_config
 
@@ -113,9 +113,9 @@ class TestBulkPushRuleEvaluator(HomeserverTestCase):
         #
         # We have seen stringy and null values for "room" in the wild, so presumably
         # some of this validation was missing in the past.
-        with patch("synapse.events.validator.validate_canonicaljson"), patch(
-            "synapse.events.validator.jsonschema.validate"
-        ), patch("synapse.handlers.event_auth.check_state_dependent_auth_rules"):
+        with patch("relapse.events.validator.validate_canonicaljson"), patch(
+            "relapse.events.validator.jsonschema.validate"
+        ), patch("relapse.handlers.event_auth.check_state_dependent_auth_rules"):
             pl_event_id = self.helper.send_state(
                 self.room_id,
                 "m.room.power_levels",
@@ -242,7 +242,7 @@ class TestBulkPushRuleEvaluator(HomeserverTestCase):
         #
         # Avoid C-S validation as these aren't expected.
         with patch(
-            "synapse.events.validator.EventValidator.validate_new",
+            "relapse.events.validator.EventValidator.validate_new",
             new=lambda s, event, config: True,
         ):
             mentions: Any
@@ -292,7 +292,7 @@ class TestBulkPushRuleEvaluator(HomeserverTestCase):
         #
         # Avoid C-S validation as these aren't expected.
         with patch(
-            "synapse.events.validator.EventValidator.validate_new",
+            "relapse.events.validator.EventValidator.validate_new",
             new=lambda s, event, config: True,
         ):
             self.assertFalse(
@@ -357,7 +357,7 @@ class TestBulkPushRuleEvaluator(HomeserverTestCase):
         #
         # Avoid C-S validation as these aren't expected.
         with patch(
-            "synapse.events.validator.EventValidator.validate_new",
+            "relapse.events.validator.EventValidator.validate_new",
             new=lambda s, event, config: True,
         ):
             mentions: Any

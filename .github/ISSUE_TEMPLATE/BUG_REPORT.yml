@@ -5,7 +5,7 @@ body:
     attributes:
       value: |
         **THIS IS NOT A SUPPORT CHANNEL!**
-        **IF YOU HAVE SUPPORT QUESTIONS ABOUT RUNNING OR CONFIGURING YOUR OWN HOME SERVER**, please ask in **[#synapse:matrix.org](https://matrix.to/#/#synapse:matrix.org)** (using a matrix.org account if necessary).
+        **IF YOU HAVE SUPPORT QUESTIONS ABOUT RUNNING OR CONFIGURING YOUR OWN HOME SERVER**, please ask in **[#relapse:matrix.org](https://matrix.to/#/#relapse:matrix.org)** (using a matrix.org account if necessary).
 
         If you want to report a security issue, please see https://matrix.org/security-disclosure-policy/
 
@@ -50,19 +50,19 @@ body:
   - type: input
     id: version
     attributes:
-      label: Synapse Version
+      label: Relapse Version
       description: |
-        What version of Synapse is this homeserver running?
+        What version of Relapse is this homeserver running?
 
-        You can find the Synapse version by visiting https://yourserver.example.com/_matrix/federation/v1/version
+        You can find the Relapse version by visiting https://yourserver.example.com/_matrix/federation/v1/version
 
         or with this command:
 
         ```
-        $ curl http://localhost:8008/_synapse/admin/v1/server_version
+        $ curl http://localhost:8008/_relapse/admin/v1/server_version
         ```
 
-        (You may need to replace `localhost:8008` if Synapse is not configured to listen on that port.)
+        (You may need to replace `localhost:8008` if Relapse is not configured to listen on that port.)
     validations:
       required: true
   - type: dropdown
@@ -70,7 +70,7 @@ body:
     attributes:
       label: Installation Method
       options:
-        - Docker (matrixdotorg/synapse)
+        - Docker (matrixdotorg/relapse)
         - Debian packages from packages.matrix.org
         - pip (from PyPI)
         - Other (please mention below)
@@ -86,8 +86,8 @@ body:
 
         If PostgreSQL, please also answer the following:
          - are you using a single PostgreSQL server
-        or [separate servers for `main` and `state`](https://matrix-org.github.io/synapse/latest/usage/configuration/config_documentation.html#databases)?
-         - have you previously ported from SQLite using the Synapse "portdb" script?
+        or [separate servers for `main` and `state`](https://clokep.github.io/relapse/latest/usage/configuration/config_documentation.html#databases)?
+         - have you previously ported from SQLite using the Relapse "portdb" script?
          - have you previously restored from a backup?
     validations:
       required: true
@@ -96,8 +96,8 @@ body:
     attributes:
       label: Workers
       description: |
-        Are you running a single Synapse process, or are you running
-        [2 or more workers](https://matrix-org.github.io/synapse/latest/workers.html)?
+        Are you running a single Relapse process, or are you running
+        [2 or more workers](https://clokep.github.io/relapse/latest/workers.html)?
       options:
         - Single process
         - Multiple workers
@@ -121,9 +121,9 @@ body:
         Do you have any unusual config options turned on? If so, please provide details.
 
         - Experimental or undocumented features
-        - [Presence](https://matrix-org.github.io/synapse/latest/usage/configuration/config_documentation.html#presence)
-        - [Message retention](https://matrix-org.github.io/synapse/latest/message_retention_policies.html)
-        - [Synapse modules](https://matrix-org.github.io/synapse/latest/modules/index.html)
+        - [Presence](https://clokep.github.io/relapse/latest/usage/configuration/config_documentation.html#presence)
+        - [Message retention](https://clokep.github.io/relapse/latest/message_retention_policies.html)
+        - [Relapse modules](https://clokep.github.io/relapse/latest/modules/index.html)
   - type: textarea
     id: logs
     attributes:

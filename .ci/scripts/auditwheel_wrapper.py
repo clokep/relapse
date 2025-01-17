@@ -78,8 +78,8 @@ def main(wheel_file: str, dest_dir: str, archs: Optional[str]) -> None:
     """Entry point"""
 
     # Parse the wheel file name into its parts. Note that `parse_wheel_filename`
-    # normalizes the package name (i.e. it converts matrix_synapse ->
-    # matrix-synapse), which is not what we want.
+    # normalizes the package name (i.e. it converts matrix_relapse ->
+    # matrix-relapse), which is not what we want.
     _, version, build, tags = parse_wheel_filename(os.path.basename(wheel_file))
     name = os.path.basename(wheel_file).split("-")[0]
 
@@ -90,7 +90,7 @@ def main(wheel_file: str, dest_dir: str, archs: Optional[str]) -> None:
     tag = next(iter(tags))
 
     if build:
-        # We don't use build tags in Synapse
+        # We don't use build tags in Relapse
         raise Exception(f"Unexpected build tag: {build}")
 
     # If the wheel is for cpython then convert it into an abi3 wheel.

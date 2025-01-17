@@ -17,13 +17,13 @@ from typing import Tuple
 
 from twisted.web.server import Request
 
-from synapse.api.errors import Codes
-from synapse.http.server import JsonResource
-from synapse.replication.http import REPLICATION_PREFIX
-from synapse.replication.http._base import ReplicationEndpoint
-from synapse.server import HomeServer
-from synapse.types import JsonDict
-from synapse.util.cancellation import cancellable
+from relapse.api.errors import Codes
+from relapse.http.server import JsonResource
+from relapse.replication.http import REPLICATION_PREFIX
+from relapse.replication.http._base import ReplicationEndpoint
+from relapse.server import HomeServer
+from relapse.types import JsonDict
+from relapse.util.cancellation import cancellable
 
 from tests import unittest
 from tests.http.server._base import test_disconnect

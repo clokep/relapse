@@ -1,4 +1,4 @@
-## Some useful SQL queries for Synapse Admins
+## Some useful SQL queries for Relapse Admins
 
 ## Size of full matrix db
 ```sql
@@ -158,7 +158,7 @@ SELECT e.room_id, r.name, e.event_id, e.type, e.content, j.json
 **Sort and order with bash**
 ```bash
 echo "SELECT event_json.room_id, room_stats_state.name FROM event_json, room_stats_state \
-WHERE room_stats_state.room_id = event_json.room_id" | psql -d synapse -h localhost -U synapse_user -t \
+WHERE room_stats_state.room_id = event_json.room_id" | psql -d relapse -h localhost -U relapse_user -t \
 | sort | uniq -c | sort -n
 ```
 Documentation for `psql` command line parameters: https://www.postgresql.org/docs/current/app-psql.html

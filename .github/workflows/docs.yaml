@@ -61,7 +61,7 @@ jobs:
           mdbook-version: '0.4.17'
 
       - name: Set version of docs
-        run: echo 'window.SYNAPSE_VERSION = "${{ needs.pre.outputs.branch-version }}";' > ./docs/website_files/version.js
+        run: echo 'window.RELAPSE_VERSION = "${{ needs.pre.outputs.branch-version }}";' > ./docs/website_files/version.js
 
       - name: Setup python
         uses: actions/setup-python@v5

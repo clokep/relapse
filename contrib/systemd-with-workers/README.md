@@ -1,3 +1,3 @@
-The documentation for using systemd to manage synapse workers is now part of
-the main synapse distribution. See
-[docs/systemd-with-workers](https://matrix-org.github.io/synapse/latest/systemd-with-workers/index.html).
+The documentation for using systemd to manage relapse workers is now part of
+the main relapse distribution. See
+[docs/systemd-with-workers](https://clokep.github.io/relapse/latest/systemd-with-workers/index.html).

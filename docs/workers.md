@@ -1,41 +1,41 @@
-# Scaling synapse via workers
+# Scaling relapse via workers
 
-For small instances it is recommended to run Synapse in the default monolith mode.
+For small instances it is recommended to run Relapse in the default monolith mode.
 For larger instances where performance is a concern it can be helpful to split
 out functionality into multiple separate python processes. These processes are
 called 'workers', and are (eventually) intended to scale horizontally
 independently.
 
-Synapse's worker support is under active development and subject to change as
-we attempt to rapidly scale ever larger Synapse instances. However we are
-documenting it here to help admins needing a highly scalable Synapse instance
+Relapse's worker support is under active development and subject to change as
+we attempt to rapidly scale ever larger Relapse instances. However we are
+documenting it here to help admins needing a highly scalable Relapse instance
 similar to the one running `matrix.org`.
 
 All processes continue to share the same database instance, and as such,
-workers only work with PostgreSQL-based Synapse deployments. SQLite should only
+workers only work with PostgreSQL-based Relapse deployments. SQLite should only
 be used for demo purposes and any admin considering workers should already be
 running PostgreSQL.
 
-See also [Matrix.org blog post](https://matrix.org/blog/2020/11/03/how-we-fixed-synapses-scalability)
+See also [Matrix.org blog post](https://matrix.org/blog/2020/11/03/how-we-fixed-relapses-scalability)
 for a higher level overview.
 
 ## Main process/worker communication
 
-The processes communicate with each other via a Synapse-specific protocol called
+The processes communicate with each other via a Relapse-specific protocol called
 'replication' (analogous to MySQL- or Postgres-style database replication) which
 feeds streams of newly written data between processes so they can be kept in
 sync with the database state.
 
-When configured to do so, Synapse uses a
+When configured to do so, Relapse uses a
 [Redis pub/sub channel](https://redis.io/docs/manual/pubsub/) to send the replication
-stream between all configured Synapse processes. Additionally, processes may
+stream between all configured Relapse processes. Additionally, processes may
 make HTTP requests to each other, primarily for operations which need to wait
 for a reply ─ such as sending an event.
 
 All the workers and the main process connect to Redis, which relays replication
 commands between processes.
 
-If Redis support is enabled Synapse will use it as a shared cache, as well as a
+If Redis support is enabled Relapse will use it as a shared cache, as well as a
 pub/sub mechanism.
 
 See the [Architectural diagram](#architectural-diagram) section at the end for
@@ -50,24 +50,24 @@ distribution (e.g. `apt install redis-server` on Debian). It is safe to use an
 existing Redis deployment if you have one.
 
 Once installed, check that Redis is running and accessible from the host running
-Synapse, for example by executing `echo PING | nc -q1 localhost 6379` and seeing
+Relapse, for example by executing `echo PING | nc -q1 localhost 6379` and seeing
 a response of `+PONG`.
 
-The appropriate dependencies must also be installed for Synapse. If using a
+The appropriate dependencies must also be installed for Relapse. If using a
 virtualenv, these can be installed with:
 
 ```sh
-pip install "matrix-synapse[redis]"
+pip install "matrix-relapse[redis]"
 ```
 
-Note that these dependencies are included when synapse is installed with `pip
-install matrix-synapse[all]`. They are also included in the debian packages from
+Note that these dependencies are included when relapse is installed with `pip
+install matrix-relapse[all]`. They are also included in the debian packages from
 `matrix.org` and in the docker images at
-https://hub.docker.com/r/matrixdotorg/synapse/.
+https://hub.docker.com/r/matrixdotorg/relapse/.
 
 To make effective use of the workers, you will need to configure an HTTP
 reverse-proxy such as nginx or haproxy, which will direct incoming requests to
-the correct worker, or to the main synapse instance. See
+the correct worker, or to the main relapse instance. See
 [the reverse proxy documentation](reverse_proxy.md) for information on setting up a reverse
 proxy.
 
@@ -146,8 +146,8 @@ In the config file for each worker, you must specify:
  * A unique name for the worker ([`worker_name`](usage/configuration/config_documentation.md#worker_name)).
  * If handling HTTP requests, a [`worker_listeners`](usage/configuration/config_documentation.md#worker_listeners) option
    with an `http` listener.
- * **Synapse 1.72 and older:** if handling the `^/_matrix/client/v3/keys/upload` endpoint, the HTTP URI for
-   the main process (`worker_main_http_uri`). This config option is no longer required and is ignored when running Synapse 1.73 and newer.
+ * **Relapse 1.72 and older:** if handling the `^/_matrix/client/v3/keys/upload` endpoint, the HTTP URI for
+   the main process (`worker_main_http_uri`). This config option is no longer required and is ignored when running Relapse 1.73 and newer.
 
 For example:
 
@@ -162,30 +162,30 @@ plain HTTP endpoint on port 8083 separately serving various endpoints, e.g.
 Obviously you should configure your reverse-proxy to route the relevant
 endpoints to the worker (`localhost:8083` in the above example).
 
-### Running Synapse with workers
+### Running Relapse with workers
 
 Finally, you need to start your worker processes. This can be done with either
 `synctl` or your distribution's preferred service manager such as `systemd`. We
 recommend the use of `systemd` where available: for information on setting up
-`systemd` to start synapse workers, see
+`systemd` to start relapse workers, see
 [Systemd with Workers](systemd-with-workers/). To use `synctl`, see
 [Using synctl with Workers](synctl_workers.md).
 
-## Start Synapse with Poetry
+## Start Relapse with Poetry
 
-The following applies to Synapse installations that have been installed from source using `poetry`.
+The following applies to Relapse installations that have been installed from source using `poetry`.
 
-You can start the main Synapse process with Poetry by running the following command:
+You can start the main Relapse process with Poetry by running the following command:
 ```console
-poetry run synapse_homeserver --config-file [your homeserver.yaml]
+poetry run relapse_homeserver --config-file [your homeserver.yaml]
 ```
 For worker setups, you can run the following command
 ```console
-poetry run synapse_worker --config-file [your homeserver.yaml] --config-file [your worker.yaml]
+poetry run relapse_worker --config-file [your homeserver.yaml] --config-file [your worker.yaml]
 ```
 ## Available worker applications
 
-### `synapse.app.generic_worker`
+### `relapse.app.generic_worker`
 
 This worker can handle API requests matching the following regular expressions.
 These endpoints can be routed to any worker. If a worker is set up to handle a
@@ -296,30 +296,30 @@ for the room are in flight:
 
     ^/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/messages$
 
-Additionally, the following endpoints should be included if Synapse is configured
+Additionally, the following endpoints should be included if Relapse is configured
 to use SSO (you only need to include the ones for whichever SSO provider you're
 using):
 
     # for all SSO providers
     ^/_matrix/client/(api/v1|r0|v3|unstable)/login/sso/redirect
-    ^/_synapse/client/pick_idp$
-    ^/_synapse/client/pick_username
-    ^/_synapse/client/new_user_consent$
-    ^/_synapse/client/sso_register$
+    ^/_relapse/client/pick_idp$
+    ^/_relapse/client/pick_username
+    ^/_relapse/client/new_user_consent$
+    ^/_relapse/client/sso_register$
 
     # OpenID Connect requests.
-    ^/_synapse/client/oidc/callback$
+    ^/_relapse/client/oidc/callback$
 
     # SAML requests.
-    ^/_synapse/client/saml2/authn_response$
+    ^/_relapse/client/saml2/authn_response$
 
     # CAS requests.
     ^/_matrix/client/(api/v1|r0|v3|unstable)/login/cas/ticket$
 
 Ensure that all SSO logins go to a single process.
 For multiple workers not handling the SSO endpoints properly, see
-[#7530](https://github.com/matrix-org/synapse/issues/7530) and
-[#9427](https://github.com/matrix-org/synapse/issues/9427).
+[#7530](https://github.com/clokep/relapse/issues/7530) and
+[#9427](https://github.com/clokep/relapse/issues/9427).
 
 Note that a [HTTP listener](usage/configuration/config_documentation.md#listeners)
 with `client` and `federation` `resources` must be configured in the
@@ -351,8 +351,8 @@ example and probably requires some changes according to your particular setup:
 ```nginx
 # Choose sync worker based on the existence of "since" query parameter
 map $arg_since $sync {
-    default synapse_sync;
-    '' synapse_initial_sync;
+    default relapse_sync;
+    '' relapse_initial_sync;
 }
 
 # Extract username from access token passed as URL parameter
@@ -373,14 +373,14 @@ map $http_authorization $mxid_localpart {
     ""                                   $accesstoken_from_urlparam;
 }
 
-upstream synapse_initial_sync {
+upstream relapse_initial_sync {
     # Use the username mapper result for hash key
     hash $mxid_localpart consistent;
     server 127.0.0.1:8016;
     server 127.0.0.1:8036;
 }
 
-upstream synapse_sync {
+upstream relapse_sync {
     # Use the username mapper result for hash key
     hash $mxid_localpart consistent;
     server 127.0.0.1:8013;
@@ -396,15 +396,15 @@ location ~ ^/_matrix/client/(r0|v3)/sync$ {
 
 # Normal sync
 location ~ ^/_matrix/client/(api/v1|r0|v3)/events$ {
-	proxy_pass http://synapse_sync;
+	proxy_pass http://relapse_sync;
 }
 
 # Initial_sync
 location ~ ^/_matrix/client/(api/v1|r0|v3)/initialSync$ {
-	proxy_pass http://synapse_initial_sync;
+	proxy_pass http://relapse_initial_sync;
 }
 location ~ ^/_matrix/client/(api/v1|r0|v3)/rooms/[^/]+/initialSync$ {
-	proxy_pass http://synapse_initial_sync;
+	proxy_pass http://relapse_initial_sync;
 }
 ```
 
@@ -483,7 +483,7 @@ so. It will then pass those events over HTTP replication to any configured event
 persisters (or the main process if none are configured).
 
 Note that `event_creator`s and `event_persister`s are implemented using the same
-[`synapse.app.generic_worker`](#synapseappgeneric_worker).
+[`relapse.app.generic_worker`](#relapseappgeneric_worker).
 
 An example [`stream_writers`](usage/configuration/config_documentation.md#stream_writers)
 configuration with multiple writers:
@@ -560,7 +560,7 @@ worker_replication_secret: "secret_secret"
 
 There is also support for moving background tasks to a separate
 worker. Background tasks are run periodically or started via replication. Exactly
-which tasks are configured to run depends on your Synapse configuration (e.g. if
+which tasks are configured to run depends on your Relapse configuration (e.g. if
 stats is enabled). This worker doesn't handle any REST endpoints itself.
 
 To enable this, the worker must have a unique
@@ -574,7 +574,7 @@ run_background_tasks_on: background_worker
 
 You might also wish to investigate the
 [`update_user_directory_from_worker`](#updating-the-user-directory) and
-[`media_instance_running_background_jobs`](#synapseappmedia_repository) settings.
+[`media_instance_running_background_jobs`](#relapseappmedia_repository) settings.
 
 An example for a dedicated background worker instance:
 
@@ -604,7 +604,7 @@ expressions to work:
 The above endpoints can be routed to any worker, though you may choose to route
 it to the chosen user directory worker.
 
-This style of configuration supersedes the legacy `synapse.app.user_dir`
+This style of configuration supersedes the legacy `relapse.app.user_dir`
 worker application type.
 
 
@@ -622,7 +622,7 @@ notify_appservices_from_worker: worker_name
 This work cannot be load-balanced; please ensure the main process is restarted
 after setting this option in the shared configuration!
 
-This style of configuration supersedes the legacy `synapse.app.appservice`
+This style of configuration supersedes the legacy `relapse.app.appservice`
 worker application type.
 
 #### Push Notifications
@@ -650,18 +650,18 @@ this option.
 These workers don't need to accept incoming HTTP requests to send push notifications,
 so no additional reverse proxy configuration is required for pusher workers.
 
-This style of configuration supersedes the legacy `synapse.app.pusher`
+This style of configuration supersedes the legacy `relapse.app.pusher`
 worker application type.
 
-### `synapse.app.pusher`
+### `relapse.app.pusher`
 
 It is likely this option will be deprecated in the future and is not recommended for new
-installations. Instead, [use `synapse.app.generic_worker` with the `pusher_instances`](#push-notifications).
+installations. Instead, [use `relapse.app.generic_worker` with the `pusher_instances`](#push-notifications).
 
 Handles sending push notifications to sygnal and email. Doesn't handle any
 REST endpoints itself, but you should set
 [`start_pushers: false`](usage/configuration/config_documentation.md#start_pushers) in the
-shared configuration file to stop the main synapse sending push notifications.
+shared configuration file to stop the main relapse sending push notifications.
 
 To run multiple instances at once the
 [`pusher_instances`](usage/configuration/config_documentation.md#pusher_instances)
@@ -682,27 +682,27 @@ An example for a pusher instance:
 ```
 
 
-### `synapse.app.appservice`
+### `relapse.app.appservice`
 
-**Deprecated as of Synapse v1.59.** [Use `synapse.app.generic_worker` with the
+**Deprecated as of Relapse v1.59.** [Use `relapse.app.generic_worker` with the
 `notify_appservices_from_worker` option instead.](#notifying-application-services)
 
 Handles sending output traffic to Application Services. Doesn't handle any
 REST endpoints itself, but you should set `notify_appservices: False` in the
-shared configuration file to stop the main synapse sending appservice notifications.
+shared configuration file to stop the main relapse sending appservice notifications.
 
 Note this worker cannot be load-balanced: only one instance should be active.
 
 
-### `synapse.app.federation_sender`
+### `relapse.app.federation_sender`
 
 It is likely this option will be deprecated in the future and not recommended for
-new installations. Instead, [use `synapse.app.generic_worker` with the `federation_sender_instances`](usage/configuration/config_documentation.md#federation_sender_instances).
+new installations. Instead, [use `relapse.app.generic_worker` with the `federation_sender_instances`](usage/configuration/config_documentation.md#federation_sender_instances).
 
 Handles sending federation traffic to other servers. Doesn't handle any
 REST endpoints itself, but you should set
 [`send_federation: false`](usage/configuration/config_documentation.md#send_federation)
-in the shared configuration file to stop the main synapse sending this traffic.
+in the shared configuration file to stop the main relapse sending this traffic.
 
 If running multiple federation senders then you must list each
 instance in the
@@ -725,7 +725,7 @@ An example for a federation sender instance:
 {{#include systemd-with-workers/workers/federation_sender.yaml}}
 ```
 
-### `synapse.app.media_repository`
+### `relapse.app.media_repository`
 
 Handles the media repository. It can handle all endpoints starting with:
 
@@ -733,17 +733,17 @@ Handles the media repository. It can handle all endpoints starting with:
 
 ... and the following regular expressions matching media-specific administration APIs:
 
-    ^/_synapse/admin/v1/purge_media_cache$
-    ^/_synapse/admin/v1/room/.*/media.*$
-    ^/_synapse/admin/v1/user/.*/media.*$
-    ^/_synapse/admin/v1/media/.*$
-    ^/_synapse/admin/v1/quarantine_media/.*$
-    ^/_synapse/admin/v1/users/.*/media$
+    ^/_relapse/admin/v1/purge_media_cache$
+    ^/_relapse/admin/v1/room/.*/media.*$
+    ^/_relapse/admin/v1/user/.*/media.*$
+    ^/_relapse/admin/v1/media/.*$
+    ^/_relapse/admin/v1/quarantine_media/.*$
+    ^/_relapse/admin/v1/users/.*/media$
 
 You should also set
 [`enable_media_repo: False`](usage/configuration/config_documentation.md#enable_media_repo)
 in the shared configuration
-file to stop the main synapse running background jobs related to managing the
+file to stop the main relapse running background jobs related to managing the
 media repository. Note that doing so will prevent the main process from being
 able to handle the above endpoints.
 
@@ -766,9 +766,9 @@ media_instance_running_background_jobs: "media-repository-1"
 
 Note that if a reverse proxy is used , then `/_matrix/media/` must be routed for both inbound client and federation requests (if they are handled separately).
 
-### `synapse.app.user_dir`
+### `relapse.app.user_dir`
 
-**Deprecated as of Synapse v1.59.** [Use `synapse.app.generic_worker` with the
+**Deprecated as of Relapse v1.59.** [Use `relapse.app.generic_worker` with the
 `update_user_directory_from_worker` option instead.](#updating-the-user-directory)
 
 Handles searches in the user directory. It can handle REST endpoints matching
@@ -777,7 +777,7 @@ the following regular expressions:
     ^/_matrix/client/(r0|v3|unstable)/user_directory/search$
 
 When using this worker you must also set `update_user_directory: false` in the
-shared configuration file to stop the main synapse running background
+shared configuration file to stop the main relapse running background
 jobs related to updating the user directory.
 
 Above endpoint is not *required* to be routed to this worker. By default,
@@ -792,24 +792,24 @@ the above endpoint may give outdated results.
 ### Historical apps
 
 The following used to be separate worker application types, but are now
-equivalent to `synapse.app.generic_worker`:
+equivalent to `relapse.app.generic_worker`:
 
- * `synapse.app.client_reader`
- * `synapse.app.event_creator`
- * `synapse.app.federation_reader`
- * `synapse.app.federation_sender`
- * `synapse.app.frontend_proxy`
- * `synapse.app.pusher`
- * `synapse.app.synchrotron`
+ * `relapse.app.client_reader`
+ * `relapse.app.event_creator`
+ * `relapse.app.federation_reader`
+ * `relapse.app.federation_sender`
+ * `relapse.app.frontend_proxy`
+ * `relapse.app.pusher`
+ * `relapse.app.synchrotron`
 
 
 ## Migration from old config
 
 A main change that has occurred is the merging of worker apps into
-`synapse.app.generic_worker`. This change is backwards compatible and so no
+`relapse.app.generic_worker`. This change is backwards compatible and so no
 changes to the config are required.
 
-To migrate apps to use `synapse.app.generic_worker` simply update the
+To migrate apps to use `relapse.app.generic_worker` simply update the
 `worker_app` option in the worker configs, and where worker are started (e.g.
 in systemd service files, but not required for synctl).
 

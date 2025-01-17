@@ -14,10 +14,10 @@
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.errors import NotFoundError, SynapseError
-from synapse.rest.client import room
-from synapse.server import HomeServer
-from synapse.util import Clock
+from relapse.api.errors import NotFoundError, RelapseError
+from relapse.rest.client import room
+from relapse.server import HomeServer
+from relapse.util import Clock
 
 from tests.unittest import HomeserverTestCase
 
@@ -88,7 +88,7 @@ class PurgeTests(HomeserverTestCase):
             self._storage_controllers.purge_events.purge_history(
                 self.room_id, event, True
             ),
-            SynapseError,
+            RelapseError,
         )
         self.assertIn("greater than forward", f.value.args[0])
 

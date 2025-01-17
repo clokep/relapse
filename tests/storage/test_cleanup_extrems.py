@@ -17,14 +17,14 @@ from unittest.mock import Mock, patch
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import synapse.rest.admin
-from synapse.api.constants import EventTypes
-from synapse.rest.client import login, room
-from synapse.server import HomeServer
-from synapse.storage import prepare_database
-from synapse.storage.types import Cursor
-from synapse.types import UserID, create_requester
-from synapse.util import Clock
+import relapse.rest.admin
+from relapse.api.constants import EventTypes
+from relapse.rest.client import login, room
+from relapse.server import HomeServer
+from relapse.storage import prepare_database
+from relapse.storage.types import Cursor
+from relapse.types import UserID, create_requester
+from relapse.util import Clock
 
 from tests.unittest import HomeserverTestCase
 
@@ -255,7 +255,7 @@ class CleanupExtremDummyEventsTestCase(HomeserverTestCase):
     CONSENT_VERSION = "1"
     EXTREMITIES_COUNT = 50
     servlets = [
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        relapse.rest.admin.register_servlets_for_client_rest_resource,
         login.register_servlets,
         room.register_servlets,
     ]
@@ -294,7 +294,7 @@ class CleanupExtremDummyEventsTestCase(HomeserverTestCase):
         )
         self.assertTrue(len(latest_event_ids) < 10, len(latest_event_ids))
 
-    @patch("synapse.handlers.message._DUMMY_EVENT_ROOM_EXCLUSION_EXPIRY", new=0)
+    @patch("relapse.handlers.message._DUMMY_EVENT_ROOM_EXCLUSION_EXPIRY", new=0)
     def test_send_dummy_events_when_insufficient_power(self) -> None:
         self._create_extremity_rich_graph()
         # Criple power levels
@@ -325,7 +325,7 @@ class CleanupExtremDummyEventsTestCase(HomeserverTestCase):
         )
         self.assertTrue(len(latest_event_ids) < 10, len(latest_event_ids))
 
-    @patch("synapse.handlers.message._DUMMY_EVENT_ROOM_EXCLUSION_EXPIRY", new=250)
+    @patch("relapse.handlers.message._DUMMY_EVENT_ROOM_EXCLUSION_EXPIRY", new=250)
     def test_expiry_logic(self) -> None:
         """Simple test to ensure that _expire_rooms_to_exclude_from_dummy_event_insertion()
         expires old entries correctly.

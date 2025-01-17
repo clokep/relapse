@@ -20,17 +20,17 @@ import yaml
 from twisted.internet.defer import Deferred, ensureDeferred
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.server import HomeServer
-from synapse.storage.background_updates import (
+from relapse.server import HomeServer
+from relapse.storage.background_updates import (
     BackgroundUpdater,
     ForeignKeyConstraint,
     NotNullConstraint,
     run_validate_constraint_and_delete_rows_schema_delta,
 )
-from synapse.storage.database import LoggingTransaction
-from synapse.storage.engines import PostgresEngine, Sqlite3Engine
-from synapse.types import JsonDict
-from synapse.util import Clock
+from relapse.storage.database import LoggingTransaction
+from relapse.storage.engines import PostgresEngine, Sqlite3Engine
+from relapse.types import JsonDict
+from relapse.util import Clock
 
 from tests import unittest
 from tests.unittest import override_config

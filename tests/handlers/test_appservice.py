@@ -20,25 +20,25 @@ from parameterized import parameterized
 from twisted.internet import defer
 from twisted.test.proto_helpers import MemoryReactor
 
-import synapse.rest.admin
-import synapse.storage
-from synapse.api.constants import EduTypes, EventTypes
-from synapse.appservice import (
+import relapse.rest.admin
+import relapse.storage
+from relapse.api.constants import EduTypes, EventTypes
+from relapse.appservice import (
     ApplicationService,
     TransactionOneTimeKeysCount,
     TransactionUnusedFallbackKeys,
 )
-from synapse.handlers.appservice import ApplicationServicesHandler
-from synapse.rest.client import login, receipts, register, room, sendtodevice
-from synapse.server import HomeServer
-from synapse.types import (
+from relapse.handlers.appservice import ApplicationServicesHandler
+from relapse.rest.client import login, receipts, register, room, sendtodevice
+from relapse.server import HomeServer
+from relapse.types import (
     JsonDict,
     MultiWriterStreamToken,
     RoomStreamToken,
     StreamKeyType,
 )
-from synapse.util import Clock
-from synapse.util.stringutils import random_string
+from relapse.util import Clock
+from relapse.util.stringutils import random_string
 
 from tests import unittest
 from tests.test_utils import event_injection
@@ -398,7 +398,7 @@ class ApplicationServicesHandlerSendEventsTestCase(unittest.HomeserverTestCase):
     """
 
     servlets = [
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        relapse.rest.admin.register_servlets_for_client_rest_resource,
         login.register_servlets,
         room.register_servlets,
         sendtodevice.register_servlets,
@@ -1021,7 +1021,7 @@ class ApplicationServicesHandlerDeviceListsTestCase(unittest.HomeserverTestCase)
     """
 
     servlets = [
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        relapse.rest.admin.register_servlets_for_client_rest_resource,
         login.register_servlets,
         room.register_servlets,
     ]
@@ -1092,7 +1092,7 @@ class ApplicationServicesHandlerDeviceListsTestCase(unittest.HomeserverTestCase)
             },
             supports_ephemeral=True,
             msc3202_transaction_extensions=as_supports_txn_extensions,
-            # Must be set for Synapse to try pushing data to the AS
+            # Must be set for Relapse to try pushing data to the AS
             hs_token="abcde",
             url="some_url",
         )
@@ -1127,7 +1127,7 @@ class ApplicationServicesHandlerOtkCountsTestCase(unittest.HomeserverTestCase):
     ARG_FALLBACK_KEYS = 5
 
     servlets = [
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        relapse.rest.admin.register_servlets_for_client_rest_resource,
         login.register_servlets,
         register.register_servlets,
         room.register_servlets,

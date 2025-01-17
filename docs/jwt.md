@@ -1,6 +1,6 @@
 # JWT Login Type
 
-Synapse comes with a non-standard login type to support
+Relapse comes with a non-standard login type to support
 [JSON Web Tokens](https://en.wikipedia.org/wiki/JSON_Web_Token). In general the
 documentation for
 [the login endpoint](https://matrix.org/docs/spec/client_server/r0.6.1#login)
@@ -34,17 +34,17 @@ In the case that the token is not valid, the homeserver must respond with
 As with other login types, there are additional fields (e.g. `device_id` and
 `initial_device_display_name`) which can be included in the above request.
 
-## Preparing Synapse
+## Preparing Relapse
 
-The JSON Web Token integration in Synapse uses the
+The JSON Web Token integration in Relapse uses the
 [`Authlib`](https://docs.authlib.org/en/latest/index.html) library, which must be installed
 as follows:
 
 * The relevant libraries are included in the Docker images and Debian packages
   provided by `matrix.org` so no further action is needed.
 
-* If you installed Synapse into a virtualenv, run `/path/to/env/bin/pip
-  install synapse[jwt]` to install the necessary dependencies.
+* If you installed Relapse into a virtualenv, run `/path/to/env/bin/pip
+  install relapse[jwt]` to install the necessary dependencies.
 
 * For other installation mechanisms, see the documentation provided by the
   maintainer.
@@ -58,7 +58,7 @@ sample settings.
 Although JSON Web Tokens are typically generated from an external server, the
 example below uses a locally generated JWT.
 
-1.  Configure Synapse with JWT logins, note that this example uses a pre-shared
+1.  Configure Relapse with JWT logins, note that this example uses a pre-shared
     secret and an algorithm of HS256:
 
     ```yaml

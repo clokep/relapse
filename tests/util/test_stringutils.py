@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from synapse.api.errors import SynapseError
-from synapse.util.stringutils import assert_valid_client_secret, base62_encode
+from relapse.api.errors import RelapseError
+from relapse.util.stringutils import assert_valid_client_secret, base62_encode
 
 from .. import unittest
 
@@ -43,7 +43,7 @@ class StringUtilsTestCase(unittest.TestCase):
             assert_valid_client_secret(client_secret)
 
         for client_secret in bad:
-            with self.assertRaises(SynapseError):
+            with self.assertRaises(RelapseError):
                 assert_valid_client_secret(client_secret)
 
     def test_base62_encode(self) -> None:

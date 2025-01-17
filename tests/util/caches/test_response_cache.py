@@ -18,7 +18,7 @@ from parameterized import parameterized
 
 from twisted.internet import defer
 
-from synapse.util.caches.response_cache import ResponseCache, ResponseCacheContext
+from relapse.util.caches.response_cache import ResponseCache, ResponseCacheContext
 
 from tests.server import get_clock
 from tests.unittest import TestCase

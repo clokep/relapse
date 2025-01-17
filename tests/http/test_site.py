@@ -15,16 +15,16 @@
 from twisted.internet.address import IPv6Address
 from twisted.test.proto_helpers import MemoryReactor, StringTransport
 
-from synapse.app.homeserver import SynapseHomeServer
-from synapse.server import HomeServer
-from synapse.util import Clock
+from relapse.app.homeserver import RelapseHomeServer
+from relapse.server import HomeServer
+from relapse.util import Clock
 
 from tests.unittest import HomeserverTestCase
 
 
-class SynapseRequestTestCase(HomeserverTestCase):
+class RelapseRequestTestCase(HomeserverTestCase):
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
-        return self.setup_test_homeserver(homeserver_to_use=SynapseHomeServer)
+        return self.setup_test_homeserver(homeserver_to_use=RelapseHomeServer)
 
     def test_large_request(self) -> None:
         """overlarge HTTP requests should be rejected"""

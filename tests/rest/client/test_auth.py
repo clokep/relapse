@@ -20,16 +20,16 @@ from twisted.internet.defer import succeed
 from twisted.test.proto_helpers import MemoryReactor
 from twisted.web.resource import Resource
 
-import synapse.rest.admin
-from synapse.api.constants import ApprovalNoticeMedium, LoginType
-from synapse.api.errors import Codes, SynapseError
-from synapse.handlers.ui_auth.checkers import UserInteractiveAuthChecker
-from synapse.rest.client import account, auth, devices, login, logout, register
-from synapse.rest.synapse.client import build_synapse_client_resource_tree
-from synapse.server import HomeServer
-from synapse.storage.database import LoggingTransaction
-from synapse.types import JsonDict, UserID
-from synapse.util import Clock
+import relapse.rest.admin
+from relapse.api.constants import ApprovalNoticeMedium, LoginType
+from relapse.api.errors import Codes, RelapseError
+from relapse.handlers.ui_auth.checkers import UserInteractiveAuthChecker
+from relapse.rest.client import account, auth, devices, login, logout, register
+from relapse.rest.relapse.client import build_relapse_client_resource_tree
+from relapse.server import HomeServer
+from relapse.storage.database import LoggingTransaction
+from relapse.types import JsonDict, UserID
+from relapse.util import Clock
 
 from tests import unittest
 from tests.handlers.test_oidc import HAS_OIDC
@@ -168,7 +168,7 @@ class UIAuthTests(unittest.HomeserverTestCase):
         auth.register_servlets,
         devices.register_servlets,
         login.register_servlets,
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        relapse.rest.admin.register_servlets_for_client_rest_resource,
         register.register_servlets,
     ]
 
@@ -176,9 +176,9 @@ class UIAuthTests(unittest.HomeserverTestCase):
         config = super().default_config()
 
         # public_baseurl uses an http:// scheme because FakeChannel.isSecure() returns
-        # False, so synapse will see the requested uri as http://..., so using http in
-        # the public_baseurl stops Synapse trying to redirect to https.
-        config["public_baseurl"] = "http://synapse.test"
+        # False, so relapse will see the requested uri as http://..., so using http in
+        # the public_baseurl stops Relapse trying to redirect to https.
+        config["public_baseurl"] = "http://relapse.test"
 
         if HAS_OIDC:
             # we enable OIDC as a way of testing SSO flows
@@ -191,7 +191,7 @@ class UIAuthTests(unittest.HomeserverTestCase):
 
     def create_resource_dict(self) -> Dict[str, Resource]:
         resource_dict = super().create_resource_dict()
-        resource_dict.update(build_synapse_client_resource_tree(self.hs))
+        resource_dict.update(build_relapse_client_resource_tree(self.hs))
         return resource_dict
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
@@ -310,7 +310,7 @@ class UIAuthTests(unittest.HomeserverTestCase):
     def test_grandfathered_identifier(self) -> None:
         """Check behaviour without "identifier" dict
 
-        Synapse used to require clients to submit a "user" field for m.login.password
+        Relapse used to require clients to submit a "user" field for m.login.password
         UIA - check that still works.
         """
 
@@ -341,7 +341,7 @@ class UIAuthTests(unittest.HomeserverTestCase):
         Note that it is not spec compliant to modify the client dict during a
         user interactive authentication session, but many clients currently do.
 
-        When Synapse is updated to be spec compliant, the call to re-use the
+        When Relapse is updated to be spec compliant, the call to re-use the
         session ID should be rejected.
         """
         # Create a second login.
@@ -463,7 +463,7 @@ class UIAuthTests(unittest.HomeserverTestCase):
         This includes:
           * hitting the UIA SSO redirect endpoint
           * checking it serves a confirmation page which links to the OIDC provider
-          * calling back to the synapse oidc callback
+          * calling back to the relapse oidc callback
           * checking that the original operation succeeds
         """
 
@@ -621,7 +621,7 @@ class RefreshAuthTests(unittest.HomeserverTestCase):
         account.register_servlets,
         login.register_servlets,
         logout.register_servlets,
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        relapse.rest.admin.register_servlets_for_client_rest_resource,
         register.register_servlets,
     ]
     hijack_auth = False
@@ -1211,21 +1211,21 @@ class OidcBackchannelLogoutTests(unittest.HomeserverTestCase):
         config = super().default_config()
 
         # public_baseurl uses an http:// scheme because FakeChannel.isSecure() returns
-        # False, so synapse will see the requested uri as http://..., so using http in
-        # the public_baseurl stops Synapse trying to redirect to https.
-        config["public_baseurl"] = "http://synapse.test"
+        # False, so relapse will see the requested uri as http://..., so using http in
+        # the public_baseurl stops Relapse trying to redirect to https.
+        config["public_baseurl"] = "http://relapse.test"
 
         return config
 
     def create_resource_dict(self) -> Dict[str, Resource]:
         resource_dict = super().create_resource_dict()
-        resource_dict.update(build_synapse_client_resource_tree(self.hs))
+        resource_dict.update(build_relapse_client_resource_tree(self.hs))
         return resource_dict
 
     def submit_logout_token(self, logout_token: str) -> FakeChannel:
         return self.make_request(
             "POST",
-            "/_synapse/client/oidc/backchannel_logout",
+            "/_relapse/client/oidc/backchannel_logout",
             content=f"logout_token={logout_token}",
             content_is_form=True,
         )
@@ -1374,7 +1374,7 @@ class OidcBackchannelLogoutTests(unittest.HomeserverTestCase):
         self.assertEqual(channel.code, 200)
 
         # Now it should raise
-        with self.assertRaises(SynapseError):
+        with self.assertRaises(RelapseError):
             self.hs.get_sso_handler().get_mapping_session(user_mapping_session_id)
 
     @override_config(

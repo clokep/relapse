@@ -16,16 +16,16 @@ from unittest.mock import AsyncMock, Mock, patch
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.constants import EventTypes, JoinRules
-from synapse.api.errors import Codes, ResourceLimitError
-from synapse.api.filtering import Filtering
-from synapse.api.room_versions import RoomVersions
-from synapse.handlers.sync import SyncConfig, SyncResult
-from synapse.rest import admin
-from synapse.rest.client import knock, login, room
-from synapse.server import HomeServer
-from synapse.types import UserID, create_requester
-from synapse.util import Clock
+from relapse.api.constants import EventTypes, JoinRules
+from relapse.api.errors import Codes, ResourceLimitError
+from relapse.api.filtering import Filtering
+from relapse.api.room_versions import RoomVersions
+from relapse.handlers.sync import SyncConfig, SyncResult
+from relapse.rest import admin
+from relapse.rest.client import knock, login, room
+from relapse.server import HomeServer
+from relapse.types import UserID, create_requester
+from relapse.util import Clock
 
 import tests.unittest
 import tests.utils

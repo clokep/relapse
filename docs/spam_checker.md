@@ -1,25 +1,25 @@
 <h2 style="color:red">
-This page of the Synapse documentation is now deprecated. For up to date
+This page of the Relapse documentation is now deprecated. For up to date
 documentation on setting up or writing a spam checker module, please see
 <a href="modules.md">this page</a>.
 </h2>
 
-# Handling spam in Synapse
+# Handling spam in Relapse
 
-Synapse has support to customize spam checking behavior. It can plug into a
+Relapse has support to customize spam checking behavior. It can plug into a
 variety of events and affect how they are presented to users on your homeserver.
 
 The spam checking behavior is implemented as a Python class, which must be
-able to be imported by the running Synapse.
+able to be imported by the running Relapse.
 
 ## Python spam checker class
 
 The Python class is instantiated with two objects:
 
 * Any configuration (see below).
-* An instance of `synapse.module_api.ModuleApi`.
+* An instance of `relapse.module_api.ModuleApi`.
 
-It then implements methods which return a boolean to alter behavior in Synapse.
+It then implements methods which return a boolean to alter behavior in Relapse.
 All the methods must be defined.
 
 There's a generic method for checking every event (`check_event_for_spam`), as
@@ -34,7 +34,7 @@ well as some specific methods:
 * `check_media_file_for_spam`
 
 The details of each of these methods (as well as their inputs and outputs)
-are documented in the `synapse.events.spamcheck.SpamChecker` class.
+are documented in the `relapse.events.spamcheck.SpamChecker` class.
 
 The `ModuleApi` class provides a way for the custom spam checker class to
 call back into the homeserver internals.
@@ -46,7 +46,7 @@ passed to `__init__` later.
 ### Example
 
 ```python
-from synapse.spam_checker_api import RegistrationBehaviour
+from relapse.spam_checker_api import RegistrationBehaviour
 
 class ExampleSpamChecker:
     def __init__(self, config, api):
@@ -118,5 +118,5 @@ action is blocked when at least one of the configured spam checkers flags it.
 ## Examples
 
 The [Mjolnir](https://github.com/matrix-org/mjolnir) project is a full fledged
-example using the Synapse spam checking API, including a bot for dynamic
+example using the Relapse spam checking API, including a bot for dynamic
 configuration.

@@ -1,24 +1,24 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: synapse
-Source: https://github.com/matrix-org/synapse
+Upstream-Name: relapse
+Source: https://github.com/clokep/relapse
 
 Files: *
 Copyright: 2014-2017, OpenMarket Ltd, 2017-2018 New Vector Ltd
 License: Apache-2.0
 
-Files: synapse/config/saml2.py
+Files: relapse/config/saml2.py
 Copyright: 2015, Ericsson
 License: Apache-2.0
 
-Files: synapse/config/jwt.py
+Files: relapse/config/jwt.py
 Copyright: 2015, Niklas Riekenbrauck
 License: Apache-2.0
 
-Files: synapse/config/workers.py
+Files: relapse/config/workers.py
 Copyright: 2016, matrix.org
 License: Apache-2.0
 
-Files: synapse/config/repository.py
+Files: relapse/config/repository.py
 Copyright: 2014-2015, matrix.org
 License: Apache-2.0
 

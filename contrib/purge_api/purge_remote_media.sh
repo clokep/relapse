@@ -21,7 +21,7 @@ sql (){
   # for sqlite3:
   #sqlite3 homeserver.db "pragma busy_timeout=20000;$1" | awk '{print $2}'
   # for postgres:
-  psql -A -t --dbname=synapse -c "$1" | grep -v 'Pager'
+  psql -A -t --dbname=relapse -c "$1" | grep -v 'Pager'
 }
 
 ###############################################################################
@@ -45,7 +45,7 @@ TOKEN=$(sql "SELECT token FROM access_tokens WHERE user_id='$ADMIN' ORDER BY id 
 # optional check size before
 ###############################################################################
 # echo calculate used storage before ...
-# du -shc ../.synapse/media_store/*
+# du -shc ../.relapse/media_store/*
 
 ###############################################################################
 # finally start pruning media:

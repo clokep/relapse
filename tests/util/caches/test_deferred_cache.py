@@ -17,7 +17,7 @@ from typing import List, Tuple
 
 from twisted.internet import defer
 
-from synapse.util.caches.deferred_cache import DeferredCache
+from relapse.util.caches.deferred_cache import DeferredCache
 
 from tests.unittest import TestCase
 

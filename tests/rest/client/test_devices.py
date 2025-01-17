@@ -16,12 +16,12 @@ from http import HTTPStatus
 from twisted.internet.defer import ensureDeferred
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.errors import NotFoundError
-from synapse.rest import admin, devices, room, sync
-from synapse.rest.client import account, keys, login, register
-from synapse.server import HomeServer
-from synapse.types import JsonDict, UserID, create_requester
-from synapse.util import Clock
+from relapse.api.errors import NotFoundError
+from relapse.rest import admin, devices, room, sync
+from relapse.rest.client import account, keys, login, register
+from relapse.server import HomeServer
+from relapse.types import JsonDict, UserID, create_requester
+from relapse.util import Clock
 
 from tests import unittest
 

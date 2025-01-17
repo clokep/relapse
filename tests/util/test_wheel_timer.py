@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from synapse.util.wheel_timer import WheelTimer
+from relapse.util.wheel_timer import WheelTimer
 
 from .. import unittest
 

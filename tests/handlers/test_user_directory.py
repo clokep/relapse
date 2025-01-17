@@ -17,16 +17,16 @@ from urllib.parse import quote
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import synapse.rest.admin
-from synapse.api.constants import UserTypes
-from synapse.api.errors import SynapseError
-from synapse.api.room_versions import RoomVersion, RoomVersions
-from synapse.appservice import ApplicationService
-from synapse.rest.client import login, register, room, user_directory
-from synapse.server import HomeServer
-from synapse.storage.roommember import ProfileInfo
-from synapse.types import JsonDict, UserProfile, create_requester
-from synapse.util import Clock
+import relapse.rest.admin
+from relapse.api.constants import UserTypes
+from relapse.api.errors import RelapseError
+from relapse.api.room_versions import RoomVersion, RoomVersions
+from relapse.appservice import ApplicationService
+from relapse.rest.client import login, register, room, user_directory
+from relapse.server import HomeServer
+from relapse.storage.roommember import ProfileInfo
+from relapse.types import JsonDict, UserProfile, create_requester
+from relapse.util import Clock
 
 from tests import unittest
 from tests.storage.test_user_directory import GetUserDirectoryTables
@@ -56,7 +56,7 @@ class UserDirectoryTestCase(unittest.HomeserverTestCase):
 
     servlets = [
         login.register_servlets,
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         register.register_servlets,
         room.register_servlets,
     ]
@@ -77,7 +77,7 @@ class UserDirectoryTestCase(unittest.HomeserverTestCase):
 
         mock_load_appservices = Mock(return_value=[self.appservice])
         with patch(
-            "synapse.storage.databases.main.appservice.load_appservices",
+            "relapse.storage.databases.main.appservice.load_appservices",
             mock_load_appservices,
         ):
             hs = self.setup_test_homeserver(config=config)
@@ -158,7 +158,7 @@ class UserDirectoryTestCase(unittest.HomeserverTestCase):
         # Deactivate the user.
         channel = self.make_request(
             "PUT",
-            f"/_synapse/admin/v2/users/{user}",
+            f"/_relapse/admin/v2/users/{user}",
             access_token=admin_token,
             content={"deactivated": True},
         )
@@ -503,7 +503,7 @@ class UserDirectoryTestCase(unittest.HomeserverTestCase):
         # Reactivate the user
         channel = self.make_request(
             "PUT",
-            f"/_synapse/admin/v2/users/{quote(user)}",
+            f"/_relapse/admin/v2/users/{quote(user)}",
             access_token=admin_token,
             content={"deactivated": False, "password": "pass"},
         )
@@ -594,8 +594,8 @@ class UserDirectoryTestCase(unittest.HomeserverTestCase):
         is too). It's about preserving the invariant that we only show a user's public
         profile in the user directory results.
 
-        I made this a Synapse test case rather than a Complement one because
-        I think this is (strictly speaking) an implementation choice. Synapse
+        I made this a Relapse test case rather than a Complement one because
+        I think this is (strictly speaking) an implementation choice. Relapse
         has chosen to only ever use the public profile when responding to a user
         directory search. There's no privacy leak here, because making the room
         public discloses the per-room name.
@@ -941,7 +941,7 @@ class UserDirectoryTestCase(unittest.HomeserverTestCase):
         )["results"]
         received_user_id_ordering = [result["user_id"] for result in results]
 
-        # Typically we'd expect Synapse to return users in lexicographical order,
+        # Typically we'd expect Relapse to return users in lexicographical order,
         # assuming they have similar User IDs/display names, and profile information.
 
         # Check that the order of returned results using our module is as we expect,
@@ -1061,7 +1061,7 @@ class TestUserDirSearchDisabled(unittest.HomeserverTestCase):
         user_directory.register_servlets,
         room.register_servlets,
         login.register_servlets,
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        relapse.rest.admin.register_servlets_for_client_rest_resource,
     ]
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
@@ -1112,7 +1112,7 @@ class TestUserDirSearchDisabled(unittest.HomeserverTestCase):
 class UserDirectoryRemoteProfileTestCase(unittest.HomeserverTestCase):
     servlets = [
         login.register_servlets,
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         register.register_servlets,
         room.register_servlets,
     ]
@@ -1248,7 +1248,7 @@ class UserDirectoryRemoteProfileTestCase(unittest.HomeserverTestCase):
             if user_id == "@bruce:remote":
                 if not has_failed_once:
                     has_failed_once = True
-                    raise SynapseError(502, "temporary network problem")
+                    raise RelapseError(502, "temporary network problem")
 
                 return {
                     "displayname": "Sir Bruce Bruceson",

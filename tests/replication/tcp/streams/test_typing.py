@@ -13,9 +13,9 @@
 # limitations under the License.
 from unittest.mock import Mock
 
-from synapse.handlers.typing import RoomMember, TypingWriterHandler
-from synapse.replication.tcp.streams import TypingStream
-from synapse.util.caches.stream_change_cache import StreamChangeCache
+from relapse.handlers.typing import RoomMember, TypingWriterHandler
+from relapse.replication.tcp.streams import TypingStream
+from relapse.util.caches.stream_change_cache import StreamChangeCache
 
 from tests.replication._base import BaseStreamTestCase
 

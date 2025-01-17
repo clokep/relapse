@@ -19,20 +19,20 @@ from parameterized import parameterized
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.constants import ReceiptTypes
-from synapse.api.room_versions import RoomVersions
-from synapse.events import EventBase, make_event_from_dict
-from synapse.events.snapshot import EventContext
-from synapse.handlers.room import RoomEventSource
-from synapse.server import HomeServer
-from synapse.storage.databases.main.event_push_actions import (
+from relapse.api.constants import ReceiptTypes
+from relapse.api.room_versions import RoomVersions
+from relapse.events import EventBase, make_event_from_dict
+from relapse.events.snapshot import EventContext
+from relapse.handlers.room import RoomEventSource
+from relapse.server import HomeServer
+from relapse.storage.databases.main.event_push_actions import (
     NotifCounts,
     RoomNotifCounts,
 )
-from synapse.storage.databases.main.events_worker import EventsWorkerStore
-from synapse.storage.roommember import GetRoomsForUserWithStreamOrdering, RoomsForUser
-from synapse.types import PersistedEventPosition
-from synapse.util import Clock
+from relapse.storage.databases.main.events_worker import EventsWorkerStore
+from relapse.storage.roommember import GetRoomsForUserWithStreamOrdering, RoomsForUser
+from relapse.types import PersistedEventPosition
+from relapse.util import Clock
 
 from tests.server import FakeTransport
 

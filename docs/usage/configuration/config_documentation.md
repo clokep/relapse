@@ -1,6 +1,6 @@
-# Configuring Synapse
+# Configuring Relapse
 
-This is intended as a guide to the Synapse configuration. The behavior of a Synapse instance can be modified
+This is intended as a guide to the Relapse configuration. The behavior of a Relapse instance can be modified
 through the many configuration settings documented here — each config option is explained,
 including what the default is, how to change the default and what sort of behaviour the setting governs.
 Also included is an example configuration for each setting. If you don't want to spend a lot of time
@@ -30,31 +30,31 @@ In addition, configuration options referring to size use the following suffixes:
 * `G` = GiB, or 1,073,741,824 bytes
 * `T` = TiB, or 1,099,511,627,776 bytes
 
-For example, setting `max_avatar_size: 10M` means that Synapse will not accept files larger than 10,485,760 bytes
+For example, setting `max_avatar_size: 10M` means that Relapse will not accept files larger than 10,485,760 bytes
 for a user avatar.
 
 ## Config Validation
 
 The configuration file can be validated with the following command:
 ```bash
-python -m synapse.config read <config key to print> -c <path to config>
+python -m relapse.config read <config key to print> -c <path to config>
 ```
 
 To validate the entire file, omit `read <config key to print>`:
 ```bash
-python -m synapse.config -c <path to config>
+python -m relapse.config -c <path to config>
 ```
 
 To see how to set other options, check the help reference:
 ```bash
-python -m synapse.config --help
+python -m relapse.config --help
 ```
 
 ### YAML
 The configuration file is a [YAML](https://yaml.org/) file, which means that certain syntax rules
 apply if you want your config file to be read properly. A few helpful things to know:
 * `#` before any option in the config will comment out that setting and either a default (if available) will
-   be applied or Synapse will ignore the setting. Thus, in example #1 below, the setting will be read and
+   be applied or Relapse will ignore the setting. Thus, in example #1 below, the setting will be read and
    applied, but in example #2 the setting will not be read and a default will be applied.
 
    Example #1:
@@ -71,9 +71,9 @@ apply if you want your config file to be read properly. A few helpful things to 
   is read as a sub-option of the `presence` setting, and will be properly applied.
 
   However, the lack of indentation before the `enabled` setting in example #2 means
-  that when reading the config, Synapse will consider both `presence` and `enabled` as
+  that when reading the config, Relapse will consider both `presence` and `enabled` as
   different settings. In this case, `presence` has no value, and thus a default applied, and `enabled`
-  is an option that Synapse doesn't recognize and thus ignores.
+  is an option that Relapse doesn't recognize and thus ignores.
 
   Example #1:
   ```yaml
@@ -93,10 +93,10 @@ apply if you want your config file to be read properly. A few helpful things to 
 
 ## Modules
 
-Server admins can expand Synapse's functionality with external modules.
+Server admins can expand Relapse's functionality with external modules.
 
 See [here](../../modules/index.md) for more
-documentation on how to configure or create custom modules for Synapse.
+documentation on how to configure or create custom modules for Relapse.
 
 
 ---
@@ -132,14 +132,14 @@ created on your server. For example if the `server_name` was example.com,
 usernames on your server would be in the format `@user:example.com`
 
 In most cases you should avoid using a matrix specific subdomain such as
-matrix.example.com or synapse.example.com as the `server_name` for the same
+matrix.example.com or relapse.example.com as the `server_name` for the same
 reasons you wouldn't use user@email.example.com as your email address.
 See [here](../../delegate.md)
-for information on how to host Synapse on a subdomain while preserving
+for information on how to host Relapse on a subdomain while preserving
 a clean `server_name`.
 
 The `server_name` cannot be changed later so it is important to
-configure this correctly before you start Synapse. It should be all
+configure this correctly before you start Relapse. It should be all
 lowercase and may contain an explicit port.
 
 There is no default for this option.
@@ -155,7 +155,7 @@ server_name: localhost:8080
 ---
 ### `pid_file`
 
-When running Synapse as a daemon, the file to store the pid in. Defaults to none.
+When running Relapse as a daemon, the file to store the pid in. Defaults to none.
 
 Example configuration:
 ```yaml
@@ -175,9 +175,9 @@ web_client_location: https://riot.example.com/
 
 The public-facing base URL that clients use to access this Homeserver (not
 including _matrix/...). This is the same URL a user might enter into the
-'Custom Homeserver URL' field on their client. If you use Synapse with a
-reverse proxy, this should be the URL to reach Synapse via the proxy.
-Otherwise, it should be the URL to reach Synapse's client HTTP listener (see
+'Custom Homeserver URL' field on their client. If you use Relapse with a
+reverse proxy, this should be the URL to reach Relapse via the proxy.
+Otherwise, it should be the URL to reach Relapse's client HTTP listener (see
 ['listeners'](#listeners) below).
 
 Defaults to `https://<server_name>/`.
@@ -192,8 +192,8 @@ public_baseurl: https://example.com/
 By default, other servers will try to reach our server on port 8448, which can
 be inconvenient in some environments.
 
-Provided `https://<server_name>/` on port 443 is routed to Synapse, this
-option configures Synapse to serve a file at `https://<server_name>/.well-known/matrix/server`.
+Provided `https://<server_name>/` on port 443 is routed to Relapse, this
+option configures Relapse to serve a file at `https://<server_name>/.well-known/matrix/server`.
 This will tell other servers to send traffic to port 443 instead.
 
 This option currently defaults to false.
@@ -209,13 +209,13 @@ serve_server_wellknown: true
 ### `extra_well_known_client_content `
 
 This option allows server runners to add arbitrary key-value pairs to the [client-facing `.well-known` response](https://spec.matrix.org/latest/client-server-api/#well-known-uri).
-Note that the `public_baseurl` config option must be provided for Synapse to serve a response to `/.well-known/matrix/client` at all.
+Note that the `public_baseurl` config option must be provided for Relapse to serve a response to `/.well-known/matrix/client` at all.
 
 If this option is provided, it parses the given yaml to json and
 serves it on `/.well-known/matrix/client` endpoint
 alongside the standard properties.
 
-*Added in Synapse 1.62.0.*
+*Added in Relapse 1.62.0.*
 
 Example configuration:
 ```yaml
@@ -226,8 +226,8 @@ extra_well_known_client_content :
 ---
 ### `soft_file_limit`
 
-Set the soft limit on the number of file descriptors synapse can use.
-Zero is used to indicate synapse should set the soft limit to the hard limit.
+Set the soft limit on the number of file descriptors relapse can use.
+Zero is used to indicate relapse should set the soft limit to the hard limit.
 Defaults to 0.
 
 Example configuration:
@@ -252,7 +252,7 @@ presence:
 received via clients and federation, while still accepting updates from the
 [module API](../../modules/index.md).
 
-*The "untracked" option was added in Synapse 1.96.0.*
+*The "untracked" option was added in Relapse 1.96.0.*
 
 ---
 ### `require_auth_for_profile_requests`
@@ -323,7 +323,7 @@ to "1".
 
 Currently defaults to ["10"](https://spec.matrix.org/v1.5/rooms/v10/).
 
-_Changed in Synapse 1.76:_ the default version room version was increased from [9](https://spec.matrix.org/v1.5/rooms/v9/) to [10](https://spec.matrix.org/v1.5/rooms/v10/).
+_Changed in Relapse 1.76:_ the default version room version was increased from [9](https://spec.matrix.org/v1.5/rooms/v9/) to [10](https://spec.matrix.org/v1.5/rooms/v10/).
 
 Example configuration:
 ```yaml
@@ -396,7 +396,7 @@ push servers, and for checking key validity for third-party invite events.
 (0.0.0.0 and :: are always blacklisted, whether or not they are explicitly
 listed here, since they correspond to unroutable addresses.)
 
-This option replaces `federation_ip_range_blacklist` in Synapse v1.25.0.
+This option replaces `federation_ip_range_blacklist` in Relapse v1.25.0.
 
 Note: The value is ignored when an HTTP proxy is in use.
 
@@ -443,7 +443,7 @@ ip_range_whitelist:
 ---
 ### `listeners`
 
-List of ports that Synapse should listen on, their purpose and their
+List of ports that Relapse should listen on, their purpose and their
 configuration.
 
 Sub-options for each listener include:
@@ -465,17 +465,17 @@ See the docs [request log format](../administration/request_log.md).
 
 * `tls`: set to true to enable TLS for this listener. Will use the TLS key/cert specified in tls_private_key_path / tls_certificate_path.
 
-* `x_forwarded`: Only valid for an 'http' listener. Set to true to use the X-Forwarded-For header as the client IP. Useful when Synapse is
+* `x_forwarded`: Only valid for an 'http' listener. Set to true to use the X-Forwarded-For header as the client IP. Useful when Relapse is
    behind a [reverse-proxy](../../reverse_proxy.md).
 
 * `request_id_header`: The header extracted from each incoming request that is
    used as the basis for the request ID. The request ID is used in
    [logs](../administration/request_log.md#request-log-format) and tracing to
-   correlate and match up requests. When unset, Synapse will automatically
-   generate sequential request IDs. This option is useful when Synapse is behind
+   correlate and match up requests. When unset, Relapse will automatically
+   generate sequential request IDs. This option is useful when Relapse is behind
    a [reverse-proxy](../../reverse_proxy.md).
 
-   _Added in Synapse 1.68.0._
+   _Added in Relapse 1.68.0._
 
 * `resources`: Only valid for an 'http' listener. A list of resources to host
    on this port. Sub-options for each resource are:
@@ -488,7 +488,7 @@ See the docs [request log format](../administration/request_log.md).
 * `additional_resources`: Only valid for an 'http' listener. A map of
    additional endpoints which should be loaded via dynamic modules.
 
-Unix socket support (_Added in Synapse 1.89.0_):
+Unix socket support (_Added in Relapse 1.89.0_):
 * `path`: A path and filename for a Unix socket. Make sure it is located in a
   directory with read and write permissions, and that it already exists (the directory
   will not be created). Defaults to `None`.
@@ -504,7 +504,7 @@ Unix socket support (_Added in Synapse 1.89.0_):
 
 Valid resource names are:
 
-* `client`: the client-server API (/_matrix/client), and the synapse admin API (/_synapse/admin). Also implies `media` and `static`.
+* `client`: the client-server API (/_matrix/client), and the relapse admin API (/_relapse/admin). Also implies `media` and `static`.
 
 * `consent`: user consent forms (/_matrix/consent). See [here](../../consent_tracking.md) for more.
 
@@ -518,9 +518,9 @@ Valid resource names are:
 
 * `openid`: OpenID authentication. See [here](../../openid.md).
 
-* `replication`: the HTTP replication API (/_synapse/replication). See [here](../../workers.md).
+* `replication`: the HTTP replication API (/_relapse/replication). See [here](../../workers.md).
 
-* `static`: static resources under synapse/static (/_matrix/static). (Mostly useful for 'fallback authentication'.)
+* `static`: static resources under relapse/static (/_matrix/static). (Mostly useful for 'fallback authentication'.)
 
 * `health`: the [health check endpoint](../../reverse_proxy.md#health-check-endpoint). This endpoint
   is by default active for all other resources and does not have to be activated separately.
@@ -531,9 +531,9 @@ Valid resource names are:
 Example configuration #1:
 ```yaml
 listeners:
-  # TLS-enabled listener: for when matrix traffic is sent directly to synapse.
+  # TLS-enabled listener: for when matrix traffic is sent directly to relapse.
   #
-  # (Note that you will also need to give Synapse a TLS key and certificate: see the TLS section
+  # (Note that you will also need to give Relapse a TLS key and certificate: see the TLS section
   # below.)
   #
   - port: 8448
@@ -549,7 +549,7 @@ listeners:
   # that unwraps TLS.
   #
   # If you plan to use a reverse proxy, please see
-  # https://matrix-org.github.io/synapse/latest/reverse_proxy.html.
+  # https://clokep.github.io/relapse/latest/reverse_proxy.html.
   #
   - port: 8008
     tls: false
@@ -576,14 +576,14 @@ listeners:
 Example configuration #3:
 ```yaml
 listeners:
-  # Unix socket listener: Ideal for Synapse deployments behind a reverse proxy, offering
+  # Unix socket listener: Ideal for Relapse deployments behind a reverse proxy, offering
   # lightweight interprocess communication without TCP/IP overhead, avoid port
   # conflicts, and providing enhanced security through system file permissions.
   #
   # Note that x_forwarded will default to true, when using a UNIX socket. Please see
-  # https://matrix-org.github.io/synapse/latest/reverse_proxy.html.
+  # https://clokep.github.io/relapse/latest/reverse_proxy.html.
   #
-  - path: /run/synapse/main_public.sock
+  - path: /run/relapse/main_public.sock
     type: http
     resources:
       - names: [client, federation]
@@ -614,7 +614,7 @@ manhole_settings:
 Forward extremities can build up in a room due to networking delays between
 homeservers. Once this happens in a large room, calculation of the state of
 that room can become quite expensive. To mitigate this, once the number of
-forward extremities reaches a given threshold, Synapse will send an
+forward extremities reaches a given threshold, Relapse will send an
 `org.matrix.dummy_event` event, which will reduce the forward extremities
 in the room.
 
@@ -628,7 +628,7 @@ dummy_events_threshold: 5
 ---
 ### `delete_stale_devices_after`
 
-An optional duration. If set, Synapse will run a daily background task to log out and
+An optional duration. If set, Relapse will run a daily background task to log out and
 delete any device that hasn't been accessed for more than the specified amount of time.
 
 Defaults to no duration, which means devices are never pruned.
@@ -644,7 +644,7 @@ delete_stale_devices_after: 1y
 ---
 ### `email`
 
-Configuration for sending emails from Synapse.
+Configuration for sending emails from Relapse.
 
 Server admins can configure custom templates for email content. See
 [here](../../templates.md) for more information.
@@ -653,19 +653,19 @@ This setting has the following sub-options:
 * `smtp_host`: The hostname of the outgoing SMTP server to use. Defaults to 'localhost'.
 * `smtp_port`: The port on the mail server for outgoing SMTP. Defaults to 465 if `force_tls` is true, else 25.
 
-  _Changed in Synapse 1.64.0:_ the default port is now aware of `force_tls`.
+  _Changed in Relapse 1.64.0:_ the default port is now aware of `force_tls`.
 * `smtp_user` and `smtp_pass`: Username/password for authentication to the SMTP server. By default, no
    authentication is attempted.
-* `force_tls`: By default, Synapse connects over plain text and then optionally upgrades
+* `force_tls`: By default, Relapse connects over plain text and then optionally upgrades
    to TLS via STARTTLS. If this option is set to true, TLS is used from the start (Implicit TLS),
    and the option `require_transport_security` is ignored.
    It is recommended to enable this if supported by your mail server.
 
-  _New in Synapse 1.64.0._
+  _New in Relapse 1.64.0._
 * `require_transport_security`: Set to true to require TLS transport security for SMTP.
-   By default, Synapse will connect over plain text, and will then switch to
+   By default, Relapse will connect over plain text, and will then switch to
    TLS via STARTTLS *if the SMTP server supports it*. If this option is set,
-   Synapse will refuse to connect unless the server supports STARTTLS.
+   Relapse will refuse to connect unless the server supports STARTTLS.
 * `enable_tls`: By default, if the server supports TLS, it will be used, and the server
    must present a certificate that is valid for 'smtp_host'. If this option
    is set to false, TLS will not be used.
@@ -684,7 +684,7 @@ This setting has the following sub-options:
   This gives the user a chance to view the message via push or an open client.
   Defaults to 10 minutes.
 
-  _New in Synapse 1.99.0._
+  _New in Relapse 1.99.0._
 * `client_base_url`: Custom URL for client links within the email notifications. By default
    links will be based on "https://matrix.to". (This setting used to be called `riot_base_url`;
    the old name is still supported for backwards-compatibility but is now deprecated.)
@@ -693,13 +693,13 @@ This setting has the following sub-options:
 * `invite_client_location`: The web client location to direct users to during an invite. This is passed
    to the identity server as the `org.matrix.web_client_location` key. Defaults
    to unset, giving no guidance to the identity server.
-* `subjects`: Subjects to use when sending emails from Synapse. The placeholder '%(app)s' will
+* `subjects`: Subjects to use when sending emails from Relapse. The placeholder '%(app)s' will
    be replaced with the value of the `app_name` setting, or by a value dictated by the Matrix client application.
    In addition, each subject can use the following placeholders: '%(person)s', which will be replaced by the displayname
    of the user(s) that sent the message(s), e.g. "Alice and Bob", and '%(room)s', which will be replaced by the name of the room the
    message(s) have been sent to, e.g. "My super room". In addition, emails related to account administration will
    can use the '%(server_name)s' placeholder, which will be replaced by the value of the
-   `server_name` setting in your Synapse configuration.
+   `server_name` setting in your Relapse configuration.
 
    Here is a list of subjects for notification emails that can be set:
      * `message_from_person_in_room`: Subject to use to notify about one message from one or more user(s) in a
@@ -757,7 +757,7 @@ email:
 ```
 
 ## Homeserver blocking
-Useful options for Synapse admins.
+Useful options for Relapse admins.
 
 ---
 
@@ -930,7 +930,7 @@ allow_per_room_profiles: false
 The largest permissible file size in bytes for a user avatar. Defaults to no restriction.
 Use M for MB and K for KB.
 
-Note that user avatar changes will not work if this is set without using Synapse's media repository.
+Note that user avatar changes will not work if this is set without using Relapse's media repository.
 
 Example configuration:
 ```yaml
@@ -942,7 +942,7 @@ max_avatar_size: 10M
 The MIME types allowed for user avatars. Defaults to no restriction.
 
 Note that user avatar changes will not work if this is set without
-using Synapse's media repository.
+using Relapse's media repository.
 
 Example configuration:
 ```yaml
@@ -954,8 +954,8 @@ allowed_avatar_mimetypes: ["image/png", "image/jpeg", "image/gif"]
 How long to keep redacted events in unredacted form in the database. After
 this period redacted events get replaced with their redacted form in the DB.
 
-Synapse will check whether the rentention period has concluded for redacted
-events every 5 minutes. Thus, even if this option is set to `0`, Synapse may
+Relapse will check whether the rentention period has concluded for redacted
+events every 5 minutes. Thus, even if this option is set to `0`, Relapse may
 still take up to 5 minutes to purge redacted events from the database.
 
 Defaults to `7d`. Set to `null` to disable.
@@ -1027,10 +1027,10 @@ next_link_domain_whitelist: ["matrix.org"]
 ### `templates` and `custom_template_directory`
 
 These options define templates to use when generating email or HTML page contents.
-The `custom_template_directory` determines which directory Synapse will try to
+The `custom_template_directory` determines which directory Relapse will try to
 find template files in to use to generate email or HTML page contents.
 If not set, or a file is not found within the template directory, a default
-template from within the Synapse package will be used.
+template from within the Relapse package will be used.
 
 See [here](../../templates.md) for more
 information about using custom templates.
@@ -1050,8 +1050,8 @@ Room admins and mods can define a retention period for their rooms using the
 `m.room.retention` state event, and server admins can cap this period by setting
 the `allowed_lifetime_min` and `allowed_lifetime_max` config options.
 
-If this feature is enabled, Synapse will regularly look for and purge events
-which are older than the room's maximum retention period. Synapse will also
+If this feature is enabled, Relapse will regularly look for and purge events
+which are older than the room's maximum retention period. Relapse will also
 filter events received over federation so that events that should have been
 purged are ignored and not stored again.
 
@@ -1059,15 +1059,15 @@ The message retention policies feature is disabled by default. You can read more
 about this feature [here](../../message_retention_policies.md).
 
 This setting has the following sub-options:
-* `default_policy`: Default retention policy. If set, Synapse will apply it to rooms that lack the
+* `default_policy`: Default retention policy. If set, Relapse will apply it to rooms that lack the
    'm.room.retention' state event. This option is further specified by the
    `min_lifetime` and `max_lifetime` sub-options associated with it. Note that the
-    value of `min_lifetime` doesn't matter much because Synapse doesn't take it into account yet.
+    value of `min_lifetime` doesn't matter much because Relapse doesn't take it into account yet.
 
 * `allowed_lifetime_min` and `allowed_lifetime_max`: Retention policy limits. If
    set, and the state of a room contains a `m.room.retention` event in its state
    which contains a `min_lifetime` or a `max_lifetime` that's out of these bounds,
-   Synapse will cap the room's policy to these limits when running purge jobs.
+   Relapse will cap the room's policy to these limits when running purge jobs.
 
 * `purge_jobs` and the associated `shortest_max_lifetime` and `longest_max_lifetime` sub-options:
    Server admins can define the settings of the background jobs purging the
@@ -1097,7 +1097,7 @@ This setting has the following sub-options:
   `longest_max_lifetime` set. Otherwise some rooms might be ignored, even if
   `allowed_lifetime_min` and `allowed_lifetime_max` are set, because capping a
   room's policy to these values is done after the policies are retrieved from
-  Synapse's database (which is done using the range specified in a purge job's
+  Relapse's database (which is done using the range specified in a purge job's
   configuration).
 
 Example configuration:
@@ -1124,7 +1124,7 @@ Options related to TLS.
 ### `tls_certificate_path`
 
 This option specifies a PEM-encoded X509 certificate for TLS.
-This certificate, as of Synapse 1.0, will need to be a valid and verifiable
+This certificate, as of Relapse 1.0, will need to be a valid and verifiable
 certificate, signed by a recognised Certificate Authority. Defaults to none.
 
 Be sure to use a `.pem` file that includes the full certificate chain including
@@ -1327,7 +1327,7 @@ event_cache_size: 15K
 ### `caches` and associated values
 
 A cache 'factor' is a multiplier that can be applied to each of
-Synapse's caches in order to increase or decrease the maximum
+Relapse's caches in order to increase or decrease the maximum
 number of entries that can be stored.
 
 `caches` can be configured through the following sub-options:
@@ -1336,7 +1336,7 @@ number of entries that can be stored.
   for all caches if a specific factor for that cache is not otherwise
   set.
 
-  This can also be set by the `SYNAPSE_CACHE_FACTOR` environment
+  This can also be set by the `RELAPSE_CACHE_FACTOR` environment
   variable. Setting by environment variable takes priority over
   setting through the config file.
 
@@ -1346,16 +1346,16 @@ number of entries that can be stored.
    cache. Overrides the global cache factor for a given cache.
 
    These can also be set through environment variables comprised
-   of `SYNAPSE_CACHE_FACTOR_` + the name of the cache in capital
+   of `RELAPSE_CACHE_FACTOR_` + the name of the cache in capital
    letters and underscores. Setting by environment variable
    takes priority over setting through the config file.
-   Ex. `SYNAPSE_CACHE_FACTOR_GET_USERS_WHO_SHARE_ROOM_WITH_USER=2.0`
+   Ex. `RELAPSE_CACHE_FACTOR_GET_USERS_WHO_SHARE_ROOM_WITH_USER=2.0`
 
    Some caches have '*' and other characters that are not
    alphanumeric or underscores. These caches can be named with or
    without the special characters stripped. For example, to specify
    the cache factor for `*stateGroupCache*` via an environment
-   variable would be `SYNAPSE_CACHE_FACTOR_STATEGROUPCACHE=2.0`.
+   variable would be `RELAPSE_CACHE_FACTOR_STATEGROUPCACHE=2.0`.
 
 * `expire_caches`: Controls whether cache entries are evicted after a specified time
    period. Defaults to true. Set to false to disable this feature. Note that never expiring
@@ -1371,11 +1371,11 @@ number of entries that can be stored.
   A value of zero means that sync responses are not cached.
   Defaults to 2m.
 
-  *Changed in Synapse 1.62.0*: The default was changed from 0 to 2m.
+  *Changed in Relapse 1.62.0*: The default was changed from 0 to 2m.
 
 * `cache_autotuning` and its sub-options `max_cache_memory_usage`, `target_cache_memory_usage`, and
    `min_cache_ttl` work in conjunction with each other to maintain a balance between cache memory
-   usage and cache entry availability. You must be using [jemalloc](../administration/admin_faq.md#help-synapse-is-slow-and-eats-all-my-ramcpu)
+   usage and cache entry availability. You must be using [jemalloc](../administration/admin_faq.md#help-relapse-is-slow-and-eats-all-my-ramcpu)
    to utilize this option, and all three of the options must be specified for this feature to work. This option
    defaults to off, enable it by providing values for the sub-options listed below. Please note that the feature will not work
    and may cause unstable behavior (such as excessive emptying of caches or exceptions) if all of the values are not provided.
@@ -1388,7 +1388,7 @@ number of entries that can be stored.
         for this option.
      * `min_cache_ttl` sets a limit under which newer cache entries are not evicted and is only applied when
         caches are actively being evicted/`max_cache_memory_usage` has been exceeded. This is to protect hot caches
-        from being emptied while Synapse is evicting due to memory. There is no default value for this option.
+        from being emptied while Relapse is evicting due to memory. There is no default value for this option.
 
 Example configuration:
 ```yaml
@@ -1407,18 +1407,18 @@ caches:
 ### Reloading cache factors
 
 The cache factors (i.e. `caches.global_factor` and `caches.per_cache_factors`)  may be reloaded at any time by sending a
-[`SIGHUP`](https://en.wikipedia.org/wiki/SIGHUP) signal to Synapse using e.g.
+[`SIGHUP`](https://en.wikipedia.org/wiki/SIGHUP) signal to Relapse using e.g.
 
 ```commandline
-kill -HUP [PID_OF_SYNAPSE_PROCESS]
+kill -HUP [PID_OF_RELAPSE_PROCESS]
 ```
 
 If you are running multiple workers, you must individually update the worker
 config file and send this signal to each worker process.
 
-If you're using the [example systemd service](https://github.com/matrix-org/synapse/blob/develop/contrib/systemd/matrix-synapse.service)
-file in Synapse's `contrib` directory, you can send a `SIGHUP` signal by using
-`systemctl reload matrix-synapse`.
+If you're using the [example systemd service](https://github.com/clokep/relapse/blob/develop/contrib/systemd/matrix-relapse.service)
+file in Relapse's `contrib` directory, you can send a `SIGHUP` signal by using
+`systemctl reload matrix-relapse`.
 
 ---
 ## Database
@@ -1427,18 +1427,18 @@ Config options related to database settings.
 ---
 ### `database`
 
-The `database` setting defines the database that synapse uses to store all of
+The `database` setting defines the database that relapse uses to store all of
 its data.
 
 Associated sub-options:
 
 * `name`: this option specifies the database engine to use: either `sqlite3` (for SQLite)
-  or `psycopg2` (for PostgreSQL). If no name is specified Synapse will default to SQLite.
+  or `psycopg2` (for PostgreSQL). If no name is specified Relapse will default to SQLite.
 
 * `txn_limit` gives the maximum number of transactions to run per connection
   before reconnecting. Defaults to 0, which means no limit.
 
-* `allow_unsafe_locale` is an option specific to Postgres. Under the default behavior, Synapse will refuse to
+* `allow_unsafe_locale` is an option specific to Postgres. Under the default behavior, Relapse will refuse to
   start if the postgres db is set to a non-C locale. You can override this behavior (which is *not* recommended)
   by setting `allow_unsafe_locale` to true. Note that doing so may corrupt your database. You can find more information
   [here](../../postgres.md#fixing-incorrect-collate-or-ctype) and [here](https://wiki.postgresql.org/wiki/Locale_data_changes).
@@ -1450,7 +1450,7 @@ Associated sub-options:
     * for [postgres](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-PARAMKEYWORDS)
     * for [the connection pool](https://docs.twistedmatrix.com/en/stable/api/twisted.enterprise.adbapi.ConnectionPool.html#__init__)
 
-For more information on using Synapse with Postgres,
+For more information on using Relapse with Postgres,
 see [here](../../postgres.md).
 
 Example SQLite configuration:
@@ -1467,9 +1467,9 @@ database:
   name: psycopg2
   txn_limit: 10000
   args:
-    user: synapse_user
+    user: relapse_user
     password: secretpassword
-    dbname: synapse
+    dbname: relapse
     host: localhost
     port: 5432
     cp_min: 5
@@ -1479,7 +1479,7 @@ database:
 ### `databases`
 
 The `databases` option allows specifying a mapping between certain database tables and
-database host details, spreading the load of a single Synapse instance across multiple
+database host details, spreading the load of a single Relapse instance across multiple
 database backends. This is often referred to as "database sharding". This option is only
 supported for PostgreSQL database backends.
 
@@ -1507,7 +1507,7 @@ The currently defined values for `data_stores` are:
 * `"main"`: All other database tables and sequences.
 
 All databases will end up with additional tables used for tracking database schema migrations
-and any pending background updates. Synapse will create these automatically on startup when checking for
+and any pending background updates. Relapse will create these automatically on startup when checking for
 and/or performing database schema migrations.
 
 To migrate an existing database configuration (e.g. all tables on a single database) to a different
@@ -1515,10 +1515,10 @@ configuration (e.g. the "main" data store on one database, and "state" on anothe
 
 1. Take a backup of your existing database. Things can and do go wrong and database corruption is no joke!
 2. Ensure all pending database migrations have been applied and background updates have run. The simplest
-   way to do this is to use the `update_synapse_database` script supplied with your Synapse installation.
+   way to do this is to use the `update_relapse_database` script supplied with your Relapse installation.
 
    ```sh
-   update_synapse_database --database-config homeserver.yaml --run-background-updates
+   update_relapse_database --database-config homeserver.yaml --run-background-updates
    ```
 
 3. Copy over the necessary tables and sequences from one database to the other. Tables relating to database
@@ -1529,10 +1529,10 @@ configuration (e.g. the "main" data store on one database, and "state" on anothe
 
    Simply copy the tables and sequences defined above for the "state" datastore from the existing database
    to the secondary database. As noted above, additional tables will be created in the secondary database
-   when Synapse is started.
+   when Relapse is started.
 
 4. Modify/create the `databases` option in your `homeserver.yaml` to match the desired database configuration.
-5. Start Synapse. Check that it starts up successfully and that things generally seem to be working.
+5. Start Relapse. Check that it starts up successfully and that things generally seem to be working.
 6. Drop the old tables that were copied in step 3.
 
 Only one of the options `database` or `databases` may be specified in your config, but not both.
@@ -1546,9 +1546,9 @@ databases:
     txn_limit: 10000
     data_stores: ["main"]
     args:
-      user: synapse_user
+      user: relapse_user
       password: secretpassword
-      dbname: synapse_main
+      dbname: relapse_main
       host: localhost
       port: 5432
       cp_min: 5
@@ -1559,9 +1559,9 @@ databases:
     txn_limit: 10000
     data_stores: ["state"]
     args:
-      user: synapse_user
+      user: relapse_user
       password: secretpassword
-      dbname: synapse_state
+      dbname: relapse_state
       host: localhost
       port: 5432
       cp_min: 5
@@ -1583,7 +1583,7 @@ log_config: "CONFDIR/SERVERNAME.log.config"
 ```
 ---
 ## Ratelimiting
-Options related to ratelimiting in Synapse.
+Options related to ratelimiting in Relapse.
 
 Each ratelimiting configuration is made of two parameters:
    - `per_second`: number of requests a client can send per second.
@@ -1708,7 +1708,7 @@ rc_joins_per_room:
   burst_count: 10
 ```
 
-_Added in Synapse 1.64.0._
+_Added in Relapse 1.64.0._
 
 ---
 ### `rc_3pid_validation`
@@ -1737,7 +1737,7 @@ room](https://spec.matrix.org/v1.2/client-server-api/#post_matrixclientv3roomsro
 will count against both the `rc_invites.per_user` and `rc_invites.per_room` limits.
 
 Federation requests to invite a user will count against the `rc_invites.per_user`
-limit only, as Synapse presumes ratelimiting by room will be done by the sending server.
+limit only, as Relapse presumes ratelimiting by room will be done by the sending server.
 
 The `rc_invites.per_user` limit applies to the *receiver* of the invite, rather than the
 sender, meaning that a `rc_invite.per_user.burst_count` of 5 mandates that a single user
@@ -1827,12 +1827,12 @@ federation_rr_transactions_per_room_per_second: 40
 ```
 ---
 ## Media Store
-Config options related to Synapse's media store.
+Config options related to Relapse's media store.
 
 ---
 ### `enable_media_repo`
 
-Enable the media store service in the Synapse master. Defaults to true.
+Enable the media store service in the Relapse master. Defaults to true.
 Set to false if you are using a separate media store worker.
 
 Example configuration:
@@ -1897,7 +1897,7 @@ The largest allowed upload size in bytes.
 
 If you are using a reverse proxy you may also need to set this value in
 your reverse proxy's config. Defaults to 50M. Notably Nginx has a small max body size by default.
-See [here](../../reverse_proxy.md) for more on using a reverse proxy with Synapse.
+See [here](../../reverse_proxy.md) for more on using a reverse proxy with Relapse.
 
 Example configuration:
 ```yaml
@@ -2025,9 +2025,9 @@ url_preview_enabled: true
 List of IP address CIDR ranges that the URL preview spider is denied
 from accessing.  There are no defaults: you must explicitly
 specify a list for URL previewing to work.  You should specify any
-internal services in your network that you do not want synapse to try
+internal services in your network that you do not want relapse to try
 to connect to, otherwise anyone in any Matrix room could cause your
-synapse to issue arbitrary GET requests to your internal services,
+relapse to issue arbitrary GET requests to your internal services,
 causing serious security issues.
 
 (0.0.0.0 and :: are always blacklisted, whether or not they are explicitly
@@ -2083,7 +2083,7 @@ denied from accessing.  You should use `url_preview_ip_range_blacklist`
 in preference to this, otherwise someone could define a public DNS
 entry that points to a private IP address and circumvent the blacklist.
 This is more useful if you know there is an entire shape of URL that
-you know that will never want synapse to try to spider.
+you know that will never want relapse to try to spider.
 
 Each list entry is a dictionary of url component attributes as returned
 by urlparse.urlsplit as applied to the absolute form of the URL.  See
@@ -2135,7 +2135,7 @@ max_spider_size: 8M
 
 A list of values for the Accept-Language HTTP header used when
 downloading webpages during URL preview generation. This allows
-Synapse to specify the preferred languages that URL previews should
+Relapse to specify the preferred languages that URL previews should
 be in when communicating with remote servers.
 
 Each value is a IETF language tag; a 2-3 letter identifier for a
@@ -2160,7 +2160,7 @@ Example configuration:
 
 oEmbed allows for easier embedding content from a website. It can be
 used for generating URLs previews of services which support it. A default list of oEmbed providers
-is included with Synapse. Set `disable_default_providers` to true to disable using
+is included with Relapse. Set `disable_default_providers` to true to disable using
 these default oEmbed URLs. Use `additional_providers` to specify additional files with oEmbed configuration (each
 should be in the form of providers.json). By default this list is empty.
 
@@ -2222,7 +2222,7 @@ recaptcha_siteverify_api: "https://my.recaptcha.site"
 ```
 ---
 ## TURN
-Options related to adding a TURN server to Synapse.
+Options related to adding a TURN server to Relapse.
 
 ---
 ### `turn_uris`
@@ -2400,7 +2400,7 @@ allows the shared secret to be specified in an external file.
 
 The file should be a plain text file, containing only the shared secret.
 
-If this file does not exist, Synapse will create a new shared
+If this file does not exist, Relapse will create a new shared
 secret on startup and store it in this file.
 
 Example configuration:
@@ -2408,7 +2408,7 @@ Example configuration:
 registration_shared_secret_path: /path/to/secrets/file
 ```
 
-_Added in Synapse 1.67.0._
+_Added in Relapse 1.67.0._
 
 ---
 ### `bcrypt_rounds`
@@ -2453,21 +2453,21 @@ Delegate verification of phone numbers to an identity server.
 
 When a user wishes to add a phone number to their account, we need to verify that they
 actually own that phone number, which requires sending them a text message (SMS).
-Currently Synapse does not support sending those texts itself and instead delegates the
+Currently Relapse does not support sending those texts itself and instead delegates the
 task to an identity server. The base URI for the identity server to be used is
 specified by the `account_threepid_delegates.msisdn` option.
 
-If this is left unspecified, Synapse will not allow users to add phone numbers to
+If this is left unspecified, Relapse will not allow users to add phone numbers to
 their account.
 
 (Servers handling the these requests must answer the `/requestToken` endpoints defined
 by the Matrix Identity Service API
 [specification](https://matrix.org/docs/spec/identity_service/latest).)
 
-*Deprecated in Synapse 1.64.0*: The `email` option is deprecated.
+*Deprecated in Relapse 1.64.0*: The `email` option is deprecated.
 
-*Removed in Synapse 1.66.0*: The `email` option has been removed.
-If present, Synapse will report a configuration error on startup.
+*Removed in Relapse 1.66.0*: The `email` option has been removed.
+If present, Relapse will report a configuration error on startup.
 
 Example configuration:
 ```yaml
@@ -2633,8 +2633,8 @@ auto_join_rooms_for_guests: false
 
 Whether to inhibit errors raised when registering a new account if the user ID
 already exists. If turned on, requests to `/register/available` will always
-show a user ID as available, and Synapse won't raise an error when starting
-a registration with a user ID that already exists. However, Synapse will still
+show a user ID as available, and Relapse won't raise an error when starting
+a registration with a user ID that already exists. However, Relapse will still
 raise an error if the registration completes and the username conflicts.
 
 Defaults to false.
@@ -2743,7 +2743,7 @@ ui_auth:
 Matrix supports the ability of an existing session to mint a login token for
 another client.
 
-Synapse disables this by default as it has security ramifications -- a malicious
+Relapse disables this by default as it has security ramifications -- a malicious
 client could use the mechanism to spawn more than one session.
 
 The duration of time the generated token is valid for can be configured with the
@@ -2801,7 +2801,7 @@ sentry:
 Flags to enable Prometheus metrics which are not suitable to be
 enabled by default, either for performance reasons or limited use.
 Currently the only option is `known_servers`, which publishes
-`synapse_federation_known_servers`, a gauge of the number of
+`relapse_federation_known_servers`, a gauge of the number of
 servers this homeserver knows about, including itself. May cause
 performance problems on large homeservers.
 
@@ -2819,7 +2819,7 @@ behavior. See
 [Reporting Homeserver Usage Statistics](../administration/monitoring/reporting_homeserver_usage_statistics.md)
 for information on what data is reported.
 
-Statistics will be reported 5 minutes after Synapse starts, and then every 3 hours
+Statistics will be reported 5 minutes after Relapse starts, and then every 3 hours
 after that.
 
 Example configuration:
@@ -2887,7 +2887,7 @@ room_prejoin_state:
      - ["org.example.custom.event.typeC", "baz"]
 ```
 
-*Changed in Synapse 1.74:* admins can filter the events in prejoin state based
+*Changed in Relapse 1.74:* admins can filter the events in prejoin state based
 on their state key.
 
 ---
@@ -2980,7 +2980,7 @@ Config options relating to signing keys
 
 Path to the signing key to sign events and federation requests with.
 
-*New in Synapse 1.67*: If this file does not exist, Synapse will create a new signing
+*New in Relapse 1.67*: If this file does not exist, Relapse will create a new signing
 key on startup and store it in this file.
 
 Example configuration:
@@ -2996,7 +2996,7 @@ to sign new messages. For each key, `key` should be the base64-encoded public ke
 it was last used.
 
 It is possible to build an entry from an old `signing.key` file using the
-`export_signing_key` script which is provided with synapse.
+`export_signing_key` script which is provided with relapse.
 
 Example configuration:
 ```yaml
@@ -3024,7 +3024,7 @@ When we need to fetch a signing key, each server is tried in parallel.
 
 Normally, the connection to the key server is validated via TLS certificates.
 Additional security can be provided by configuring a `verify key`, which
-will make synapse check that the response is signed by that key.
+will make relapse check that the response is signed by that key.
 
 This setting supersedes an older setting named `perspectives`. The old format
 is still supported for backwards-compatibility, but it is deprecated.
@@ -3035,8 +3035,8 @@ warning on start-up. To suppress this warning, set
 
 If the use of a trusted key server has to be deactivated, e.g. in a private
 federation or for privacy reasons, this can be realised by setting
-an empty array (`trusted_key_servers: []`). Then Synapse will request the keys
-directly from the server that owns the keys. If Synapse does not get keys directly
+an empty array (`trusted_key_servers: []`). Then Relapse will request the keys
+directly from the server that owns the keys. If Relapse does not get keys directly
 from the server, the events of this server will be rejected.
 
 Options for each entry in the list include:
@@ -3045,7 +3045,7 @@ Options for each entry in the list include:
    If specified, we will check that the response is signed by at least
    one of the given keys.
 * `accept_keys_insecurely`: a boolean. Normally, if `verify_keys` is unset,
-   and `federation_verify_certificates` is not `true`, synapse will refuse
+   and `federation_verify_certificates` is not `true`, relapse will refuse
    to start, because this would allow anyone who can spoof DNS responses
    to masquerade as the trusted key server. If you know what you are doing
    and are sure that your network environment provides a secure connection
@@ -3089,7 +3089,7 @@ key_server_signing_keys_path: "key_server_signing_keys.key"
 ---
 ## Single sign-on integration
 
-The following settings can be used to make Synapse use a single sign-on
+The following settings can be used to make Relapse use a single sign-on
 provider for authentication, instead of its internal password database.
 
 You will probably also want to set the following options to `false` to
@@ -3111,7 +3111,7 @@ This setting has the following sub-options:
 * `idp_name`: A user-facing name for this identity provider, which is used to
    offer the user a choice of login mechanisms.
 * `idp_icon`: An optional icon for this identity provider, which is presented
-   by clients and Synapse's own IdP picker page. If given, must be an
+   by clients and Relapse's own IdP picker page. If given, must be an
    MXC URI of the format `mxc://<server-name>/<media-id>`. (An easy way to
    obtain such an MXC URI is to upload an image to an (unencrypted) room
    and then copy the "url" from the source of the event.)
@@ -3151,12 +3151,12 @@ This setting has the following sub-options:
          and `dotreplace` (which replaces unpermitted characters with '.').
          The default is `hexencode`. Note: This used to be configured by the
          `saml2_config.mxid_mapping option`. If that is still defined, its value will be used instead.
-* `grandfathered_mxid_source_attribute`: In previous versions of synapse, the mapping from SAML attribute to
+* `grandfathered_mxid_source_attribute`: In previous versions of relapse, the mapping from SAML attribute to
    MXID was always calculated dynamically rather than stored in a table. For backwards- compatibility, we will look for `user_ids`
    matching such a pattern before creating a new account. This setting controls the SAML attribute which will be used for this
    backwards-compatibility lookup. Typically it should be 'uid', but if the attribute maps are changed, it may be necessary to change it.
    The default is 'uid'.
-* `attribute_requirements`: It is possible to configure Synapse to only allow logins if SAML attributes
+* `attribute_requirements`: It is possible to configure Relapse to only allow logins if SAML attributes
     match particular values. The requirements can be listed under
    `attribute_requirements` as shown in the example. All of the listed attributes must
     match for the login to be permitted.
@@ -3166,10 +3166,10 @@ This setting has the following sub-options:
 
 
 Once SAML support is enabled, a metadata file will be exposed at
-`https://<server>:<port>/_synapse/client/saml2/metadata.xml`, which you may be able to
+`https://<server>:<port>/_relapse/client/saml2/metadata.xml`, which you may be able to
 use to configure your SAML IdP with. Alternatively, you can manually configure
 the IdP to use an ACS location of
-`https://<server>:<port>/_synapse/client/saml2/authn_response`.
+`https://<server>:<port>/_relapse/client/saml2/authn_response`.
 
 Example configuration:
 ```yaml
@@ -3259,7 +3259,7 @@ recognised.)
 
 Options for each entry include:
 * `idp_id`: a unique identifier for this identity provider. Used internally
-   by Synapse; should be a single word such as 'github'.
+   by Relapse; should be a single word such as 'github'.
    Note that, if this is changed, users authenticating via that provider
    will no longer be recognised as the same user!
    (Use "oidc" here if you are migrating from an old `oidc_config` configuration.)
@@ -3268,7 +3268,7 @@ Options for each entry include:
    offer the user a choice of login mechanisms.
 
 * `idp_icon`: An optional icon for this identity provider, which is presented
-   by clients and Synapse's own IdP picker page. If given, must be an
+   by clients and Relapse's own IdP picker page. If given, must be an
    MXC URI of the format `mxc://<server-name>/<media-id>`. (An easy way to
    obtain such an MXC URI is to upload an image to an (unencrypted) room
    and then copy the "url" from the source of the event.)
@@ -3294,7 +3294,7 @@ Options for each entry include:
    Mutually exclusive with `client_secret`. Can be omitted if
    `client_secret_jwt_key` is specified.
 
-   *Added in Synapse 1.91.0.*
+   *Added in Relapse 1.91.0.*
 
 * `client_secret_jwt_key`: Alternative to client_secret: details of a key used
    to create a JSON Web Token to be used as an OAuth2 client secret. If
@@ -3363,7 +3363,7 @@ Options for each entry include:
    sub-properties:
 
      * `module`: The class name of a custom mapping module. Default is
-       `synapse.handlers.oidc.JinjaOidcMappingProvider`.
+       `relapse.handlers.oidc.JinjaOidcMappingProvider`.
         See [OpenID Mapping Providers](../../sso_mapping_providers.md#openid-mapping-providers)
         for information on implementing a custom mapping provider.
 
@@ -3382,7 +3382,7 @@ Options for each entry include:
          for the user. Defaults to 'sub', which OpenID Connect
          compliant providers should provide.
 
-         *Deprecated in Synapse v1.75.0.*
+         *Deprecated in Relapse v1.75.0.*
 
        * `picture_template`: Jinja2 template for an url for the user's profile picture.
          Defaults to `{{ user.picture }}`, which OpenID Connect compliant providers should
@@ -3391,16 +3391,16 @@ Options for each entry include:
          This replaces and overrides `picture_claim`.
 
          Currently only supported in monolithic (single-process) server configurations
-         where the media repository runs within the Synapse process.
+         where the media repository runs within the Relapse process.
 
        * `picture_claim`: name of the claim containing an url for the user's profile picture.
          Defaults to 'picture', which OpenID Connect compliant providers should provide
          and has to refer to a direct image file such as PNG, JPEG, or GIF image file.
 
          Currently only supported in monolithic (single-process) server configurations
-         where the media repository runs within the Synapse process.
+         where the media repository runs within the Relapse process.
 
-         *Deprecated in Synapse v1.75.0.*
+         *Deprecated in Relapse v1.75.0.*
 
        * `localpart_template`: Jinja2 template for the localpart of the MXID.
           If this is not set, the user will be prompted to choose their
@@ -3427,7 +3427,7 @@ Options for each entry include:
      in the ID Token.
 
 * `backchannel_logout_enabled`: set to `true` to process OIDC Back-Channel Logout notifications.
-  Those notifications are expected to be received on `/_synapse/client/oidc/backchannel_logout`.
+  Those notifications are expected to be received on `/_relapse/client/oidc/backchannel_logout`.
   Defaults to `false`.
 
 * `backchannel_logout_ignore_sub`: by default, the OIDC Back-Channel Logout feature checks that the
@@ -3436,7 +3436,7 @@ Options for each entry include:
 
   You might want to disable this if the `subject_claim` returned by the mapping provider is not `sub`.
 
-It is possible to configure Synapse to only allow logins if certain attributes
+It is possible to configure Relapse to only allow logins if certain attributes
 match particular values in the OIDC userinfo. The requirements can be listed under
 `attribute_requirements` as shown here:
 ```yaml
@@ -3483,7 +3483,7 @@ oidc_providers:
         email_template: "{{ user.email }}"
     attribute_requirements:
       - attribute: userGroup
-        value: "synapseUsers"
+        value: "relapseUsers"
 ```
 ---
 ### `cas_config`
@@ -3495,7 +3495,7 @@ Has the following sub-options:
 * `idp_name`: A user-facing name for this identity provider, which is used to
    offer the user a choice of login mechanisms.
 * `idp_icon`: An optional icon for this identity provider, which is presented
-   by clients and Synapse's own IdP picker page. If given, must be an
+   by clients and Relapse's own IdP picker page. If given, must be an
    MXC URI of the format `mxc://<server-name>/<media-id>`. (An easy way to
    obtain such an MXC URI is to upload an image to an (unencrypted) room
    and then copy the "url" from the source of the event.)
@@ -3506,7 +3506,7 @@ Has the following sub-options:
 * `protocol_version`: The CAS protocol version, defaults to none (version 3 is required if you want to use "required_attributes").
 * `displayname_attribute`: The attribute of the CAS response to use as the display name.
    If no name is given here, no displayname will be set.
-* `required_attributes`:  It is possible to configure Synapse to only allow logins if CAS attributes
+* `required_attributes`:  It is possible to configure Relapse to only allow logins if CAS attributes
    match particular values. All of the keys given below must exist
    and the values must match the given value. Alternately if the given value
    is `None` then any value is allowed (the attribute just must exist).
@@ -3516,7 +3516,7 @@ Has the following sub-options:
    automatically registering users that have a valid SSO login but do not have
    a pre-registered account. Defaults to true.
 
-   *Added in Synapse 1.93.0.*
+   *Added in Relapse 1.93.0.*
 
 Example configuration:
 ```yaml
@@ -3571,7 +3571,7 @@ sso:
 ### `jwt_config`
 
 JSON web token integration. The following settings can be used to make
-Synapse JSON web tokens for authentication, instead of its internal
+Relapse JSON web tokens for authentication, instead of its internal
 password database.
 
 Each JSON Web Token needs to contain a "sub" (subject) claim, which is
@@ -3690,7 +3690,7 @@ This option has a number of sub-options. They are as follows:
    of unread messages.
 * `jitter_delay`: Delays push notifications by a random amount up to the given
   duration. Useful for mitigating timing attacks. Optional, defaults to no
-  delay. _Added in Synapse 1.84.0._
+  delay. _Added in Relapse 1.84.0._
 
 Example configuration:
 ```yaml
@@ -3740,10 +3740,10 @@ This option has the following sub-options:
     Defaults to false.
 
     NB. If you set this to true, and the last time the user_directory search
-    indexes were (re)built was before Synapse 1.44, you'll have to
+    indexes were (re)built was before Relapse 1.44, you'll have to
     rebuild the indexes in order to search through all known users.
 
-    These indexes are built the first time Synapse starts; admins can
+    These indexes are built the first time Relapse starts; admins can
     manually trigger a rebuild via the API following the instructions
     [for running background updates](../administration/admin_api/background_updates.md#run),
     set to true to return search results containing all known users, even if that
@@ -3842,10 +3842,10 @@ Sub-options for this setting include:
 * `system_mxid_display_name`: set the display name of the "notices" user
 * `system_mxid_avatar_url`: set the avatar for the "notices" user
 * `room_name`: set the room name of the server notices room
-* `room_avatar_url`: optional string. The room avatar to use for server notice rooms. If set to the empty string `""`, notice rooms will not be given an avatar. Defaults to the empty string. _Added in Synapse 1.99.0._
-* `room_topic`: optional string. The topic to use for server notice rooms. If set to the empty string `""`, notice rooms will not be given a topic. Defaults to the empty string.  _Added in Synapse 1.99.0._
+* `room_avatar_url`: optional string. The room avatar to use for server notice rooms. If set to the empty string `""`, notice rooms will not be given an avatar. Defaults to the empty string. _Added in Relapse 1.99.0._
+* `room_topic`: optional string. The topic to use for server notice rooms. If set to the empty string `""`, notice rooms will not be given a topic. Defaults to the empty string.  _Added in Relapse 1.99.0._
 * `auto_join`: boolean. If true, the user will be automatically joined to the room instead of being invited.
-  Defaults to false. _Added in Synapse 1.98.0._
+  Defaults to false. _Added in Relapse 1.98.0._
 
 Note that the name, topic and avatar of existing server notice rooms will only be updated when a new notice event is sent.
 
@@ -4088,7 +4088,7 @@ Configuration options related to Opentracing support.
 These settings enable and configure opentracing, which implements distributed tracing.
 This allows you to observe the causal chains of events across servers
 including requests, key lookups etc., across any server running
-synapse or any other services which support opentracing
+relapse or any other services which support opentracing
 (specifically those implemented with Jaeger).
 
 Sub-options include:
@@ -4125,7 +4125,7 @@ opentracing:
 ## Coordinating workers
 Configuration options related to workers which belong in the main config file
 (usually called `homeserver.yaml`).
-A Synapse deployment can scale horizontally by running multiple Synapse processes
+A Relapse deployment can scale horizontally by running multiple Relapse processes
 called _workers_. Incoming requests are distributed between workers to handle higher
 loads. Some workers are privileged and can accept requests from other workers.
 
@@ -4155,10 +4155,10 @@ worker_replication_secret: "secret_secret"
 ---
 ### `start_pushers`
 
-Unnecessary to set if using [`pusher_instances`](#pusher_instances) with [`generic_workers`](../../workers.md#synapseappgeneric_worker).
+Unnecessary to set if using [`pusher_instances`](#pusher_instances) with [`generic_workers`](../../workers.md#relapseappgeneric_worker).
 
 Controls sending of push notifications on the main process. Set to `false`
-if using a [pusher worker](../../workers.md#synapseapppusher). Defaults to `true`.
+if using a [pusher worker](../../workers.md#relapseapppusher). Defaults to `true`.
 
 Example configuration:
 ```yaml
@@ -4168,7 +4168,7 @@ start_pushers: false
 ### `pusher_instances`
 
 It is possible to scale the processes that handle sending push notifications to [sygnal](https://github.com/matrix-org/sygnal)
-and email by running a [`generic_worker`](../../workers.md#synapseappgeneric_worker) and adding it's [`worker_name`](#worker_name) to
+and email by running a [`generic_worker`](../../workers.md#relapseappgeneric_worker) and adding it's [`worker_name`](#worker_name) to
 a `pusher_instances` map. Doing so will remove handling of this function from the main
 process. Multiple workers can be added to this map, in which case the work is balanced
 across them. Ensure the main process and all pusher workers are restarted after changing
@@ -4189,10 +4189,10 @@ pusher_instances:
 ---
 ### `send_federation`
 
-Unnecessary to set if using [`federation_sender_instances`](#federation_sender_instances) with [`generic_workers`](../../workers.md#synapseappgeneric_worker).
+Unnecessary to set if using [`federation_sender_instances`](#federation_sender_instances) with [`generic_workers`](../../workers.md#relapseappgeneric_worker).
 
 Controls sending of outbound federation transactions on the main process.
-Set to `false` if using a [federation sender worker](../../workers.md#synapseappfederation_sender).
+Set to `false` if using a [federation sender worker](../../workers.md#relapseappfederation_sender).
 Defaults to `true`.
 
 Example configuration:
@@ -4203,7 +4203,7 @@ send_federation: false
 ### `federation_sender_instances`
 
 It is possible to scale the processes that handle sending outbound federation requests
-by running a [`generic_worker`](../../workers.md#synapseappgeneric_worker) and adding it's [`worker_name`](#worker_name) to
+by running a [`generic_worker`](../../workers.md#relapseappgeneric_worker) and adding it's [`worker_name`](#worker_name) to
 a `federation_sender_instances` map. Doing so will remove handling of this function from
 the main process. Multiple workers can be added to this map, in which case the work is
 balanced across them.
@@ -4251,9 +4251,9 @@ Example configuration(#2, for UNIX sockets):
 ```yaml
 instance_map:
   main:
-    path: /run/synapse/main_replication.sock
+    path: /run/relapse/main_replication.sock
   worker1:
-    path: /run/synapse/worker1_replication.sock
+    path: /run/relapse/worker1_replication.sock
 ```
 ---
 ### `stream_writers`
@@ -4290,7 +4290,7 @@ Also see the [worker
 documentation](../../workers.md#restrict-outbound-federation-traffic-to-a-specific-set-of-workers)
 for more info.
 
-_Added in Synapse 1.89.0._
+_Added in Relapse 1.89.0._
 
 ---
 ### `run_background_tasks_on`
@@ -4314,7 +4314,7 @@ Example configuration:
 update_user_directory_from_worker: worker1
 ```
 
-_Added in Synapse 1.59.0._
+_Added in Relapse 1.59.0._
 
 ---
 ### `notify_appservices_from_worker`
@@ -4328,12 +4328,12 @@ Example configuration:
 notify_appservices_from_worker: worker1
 ```
 
-_Added in Synapse 1.59.0._
+_Added in Relapse 1.59.0._
 
 ---
 ### `media_instance_running_background_jobs`
 
-The [worker](../../workers.md#synapseappmedia_repository) that is used to run
+The [worker](../../workers.md#relapseappmedia_repository) that is used to run
 background tasks for media repository. If running multiple media repositories
 you must configure a single instance to run the background tasks. If not provided
 this defaults to the main process or your single `media_repository` worker.
@@ -4343,7 +4343,7 @@ Example configuration:
 media_instance_running_background_jobs: worker1
 ```
 
-_Added in Synapse 1.16.0._
+_Added in Relapse 1.16.0._
 
 ---
 ### `redis`
@@ -4363,11 +4363,11 @@ This setting has the following sub-options:
 * `ca_file`: Optional path to the CA certificate file. Use this one or:
 * `ca_path`: Optional path to the folder containing the CA certificate file
 
-  _Added in Synapse 1.78.0._
+  _Added in Relapse 1.78.0._
 
-  _Changed in Synapse 1.84.0: Added use\_tls, certificate\_file, private\_key\_file, ca\_file and ca\_path attributes_
+  _Changed in Relapse 1.84.0: Added use\_tls, certificate\_file, private\_key\_file, ca\_file and ca\_path attributes_
 
-  _Changed in Synapse 1.85.0: Added path option to use a local Unix socket_
+  _Changed in Relapse 1.85.0: Added path option to use a local Unix socket_
 
 Example configuration:
 ```yaml
@@ -4399,11 +4399,11 @@ The type of worker. The currently available worker applications are listed
 in [worker documentation](../../workers.md#available-worker-applications).
 
 The most common worker is the
-[`synapse.app.generic_worker`](../../workers.md#synapseappgeneric_worker).
+[`relapse.app.generic_worker`](../../workers.md#relapseappgeneric_worker).
 
 Example configuration:
 ```yaml
-worker_app: synapse.app.generic_worker
+worker_app: relapse.app.generic_worker
 ```
 ---
 ### `worker_name`
@@ -4439,11 +4439,11 @@ Example configuration(#2, using UNIX sockets with a `replication` listener):
 ```yaml
 worker_listeners:
   - type: http
-    path: /run/synapse/worker_replication.sock
+    path: /run/relapse/worker_replication.sock
     resources:
       - names: [replication]
   - type: http
-    path: /run/synapse/worker_public.sock
+    path: /run/relapse/worker_public.sock
     resources:
       - names: [client, federation]
 ```
@@ -4472,7 +4472,7 @@ It needs also an additional [`manhole_settings`](#manhole_settings) configuratio
 ### `worker_daemonize`
 
 Specifies whether the worker should be started as a daemon process.
-If Synapse is being managed by [systemd](../../systemd-with-workers/), this option
+If Relapse is being managed by [systemd](../../systemd-with-workers/), this option
 must be omitted or set to `false`.
 
 Defaults to `false`.
@@ -4491,7 +4491,7 @@ This option defines the location of that "pid file".
 This option is required if `worker_daemonize` is `true` and ignored
 otherwise. It has no default.
 
-See also the [`pid_file` option](#pid_file) option for the main Synapse process.
+See also the [`pid_file` option](#pid_file) option for the main Relapse process.
 
 Example configuration:
 ```yaml
@@ -4502,11 +4502,11 @@ worker_pid_file: DATADIR/generic_worker1.pid
 
 This option specifies a yaml python logging config file as described
 [here](https://docs.python.org/3/library/logging.config.html#configuration-dictionary-schema).
-See also the [`log_config` option](#log_config) option for the main Synapse process.
+See also the [`log_config` option](#log_config) option for the main Relapse process.
 
 Example configuration:
 ```yaml
-worker_log_config: /etc/matrix-synapse/generic-worker-log.yaml
+worker_log_config: /etc/matrix-relapse/generic-worker-log.yaml
 ```
 ---
 ## Background Updates

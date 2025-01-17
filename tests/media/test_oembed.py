@@ -18,10 +18,10 @@ from parameterized import parameterized
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.media.oembed import OEmbedProvider, OEmbedResult
-from synapse.server import HomeServer
-from synapse.types import JsonDict
-from synapse.util import Clock
+from relapse.media.oembed import OEmbedProvider, OEmbedResult
+from relapse.server import HomeServer
+from relapse.types import JsonDict
+from relapse.util import Clock
 
 from tests.unittest import HomeserverTestCase
 

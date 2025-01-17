@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from synapse.config.__main__ import main
+from relapse.config.__main__ import main
 
 from tests.config.utils import ConfigFileTestCase
 

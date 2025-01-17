@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # runs dh_virtualenv to build the virtualenv in the build directory,
-# and then runs the trial tests against the installed synapse.
+# and then runs the trial tests against the installed relapse.
 
 set -e
 
@@ -11,7 +11,7 @@ export DH_VIRTUALENV_INSTALL_ROOT=/opt/venvs
 # dereferencing the python3 symlink.
 #
 # Otherwise, if somebody tries to install (say) the stretch package on buster,
-# they will get a confusing error about "No module named 'synapse'", because
+# they will get a confusing error about "No module named 'relapse'", because
 # python won't look in the right directory. At least this way, the error will
 # be a *bit* more obvious.
 #
@@ -47,7 +47,7 @@ rm -rf "$TEMP_VENV"
 # Use --no-deps to only install pinned versions in exported_requirements.txt,
 # and to avoid https://github.com/pypa/pip/issues/9644
 dh_virtualenv \
-    --install-suffix "matrix-synapse" \
+    --install-suffix "matrix-relapse" \
     --builtin-venv \
     --python "$SNAKE" \
     --upgrade-pip \
@@ -60,8 +60,8 @@ dh_virtualenv \
     --extras="all,systemd,test" \
     --requirements="exported_requirements.txt"
 
-PACKAGE_BUILD_DIR="$(pwd)/debian/matrix-synapse-py3"
-VIRTUALENV_DIR="${PACKAGE_BUILD_DIR}${DH_VIRTUALENV_INSTALL_ROOT}/matrix-synapse"
+PACKAGE_BUILD_DIR="$(pwd)/debian/matrix-relapse-py3"
+VIRTUALENV_DIR="${PACKAGE_BUILD_DIR}${DH_VIRTUALENV_INSTALL_ROOT}/matrix-relapse"
 TARGET_PYTHON="${VIRTUALENV_DIR}/bin/python"
 
 case "$DEB_BUILD_OPTIONS" in
@@ -71,13 +71,13 @@ case "$DEB_BUILD_OPTIONS" in
 
     *)
         # Copy tests to a temporary directory so that we can put them on the
-        # PYTHONPATH without putting the uninstalled synapse on the pythonpath.
+        # PYTHONPATH without putting the uninstalled relapse on the pythonpath.
         tmpdir=$(mktemp -d)
         trap 'rm -r $tmpdir' EXIT
 
         cp -r tests "$tmpdir"
 
-        # To avoid pulling in the unbuilt Synapse in the local directory
+        # To avoid pulling in the unbuilt Relapse in the local directory
         pushd /
 
         PYTHONPATH="$tmpdir" \
@@ -90,15 +90,15 @@ esac
 
 # build the config file
 "${TARGET_PYTHON}" "${VIRTUALENV_DIR}/bin/generate_config" \
-        --config-dir="/etc/matrix-synapse" \
-        --data-dir="/var/lib/matrix-synapse" |
+        --config-dir="/etc/matrix-relapse" \
+        --data-dir="/var/lib/matrix-relapse" |
     perl -pe '
 # tweak the paths to the tls certs and signing keys
 /^tls_.*_path:/ and s/SERVERNAME/homeserver/;
 /^signing_key_path:/ and s/SERVERNAME/homeserver/;
 
 # tweak the pid file location
-/^pid_file:/ and s#:.*#: "/var/run/matrix-synapse.pid"#;
+/^pid_file:/ and s#:.*#: "/var/run/matrix-relapse.pid"#;
 
 # tweak the path to the log config
 /^log_config:/ and s/SERVERNAME\.log\.config/log.yaml/;
@@ -107,20 +107,20 @@ esac
 /^media_store_path:/ and s#/media_store#/media#;
 
 # remove the server_name setting, which is set in a separate file
-/^server_name:/ and $_ = "#\n# This is set in /etc/matrix-synapse/conf.d/server_name.yaml for Debian installations.\n# $_";
+/^server_name:/ and $_ = "#\n# This is set in /etc/matrix-relapse/conf.d/server_name.yaml for Debian installations.\n# $_";
 
 # remove the report_stats setting, which is set in a separate file
 /^# report_stats:/ and $_ = "";
 
-' > "${PACKAGE_BUILD_DIR}/etc/matrix-synapse/homeserver.yaml"
+' > "${PACKAGE_BUILD_DIR}/etc/matrix-relapse/homeserver.yaml"
 
 # build the log config file
 "${TARGET_PYTHON}" "${VIRTUALENV_DIR}/bin/generate_log_config" \
-        --output-file="${PACKAGE_BUILD_DIR}/etc/matrix-synapse/log.yaml"
+        --output-file="${PACKAGE_BUILD_DIR}/etc/matrix-relapse/log.yaml"
 
 # add a dependency on the right version of python to substvars.
 PYPKG=$(basename "$SNAKE")
-echo "synapse:pydepends=$PYPKG" >> debian/matrix-synapse-py3.substvars
+echo "relapse:pydepends=$PYPKG" >> debian/matrix-relapse-py3.substvars
 
 
 # add a couple of triggers.  This is needed so that dh-virtualenv can rebuild
@@ -128,9 +128,9 @@ echo "synapse:pydepends=$PYPKG" >> debian/matrix-synapse-py3.substvars
 # https://dh-virtualenv.readthedocs.io/en/latest/tutorial.html#step-2-set-up-packaging-for-your-project)
 #
 # we do it here rather than the more conventional way of just adding it to
-# debian/matrix-synapse-py3.triggers, because we need to add a trigger on the
+# debian/matrix-relapse-py3.triggers, because we need to add a trigger on the
 # right version of python.
-cat >>"debian/.debhelper/generated/matrix-synapse-py3/triggers" <<EOF
+cat >>"debian/.debhelper/generated/matrix-relapse-py3/triggers" <<EOF
 # triggers for dh-virtualenv
 interest-noawait $SNAKE
 interest dh-virtualenv-interpreter-update

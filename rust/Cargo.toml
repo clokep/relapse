@@ -1,16 +1,16 @@
 [package]
-# We name the package `synapse` so that things like logging have the right
+# We name the package `relapse` so that things like logging have the right
 # logging target.
-name = "synapse"
+name = "relapse"
 
-# dummy version. See pyproject.toml for the Synapse's version number.
+# dummy version. See pyproject.toml for the relapse's version number.
 version = "0.1.0"
 
 edition = "2021"
 rust-version = "1.61.0"
 
 [lib]
-name = "synapse"
+name = "relapse"
 # We generate a `cdylib` for Python and a standard `lib` for running
 # tests/benchmarks.
 crate-type = ["lib", "cdylib"]
@@ -19,7 +19,7 @@ crate-type = ["lib", "cdylib"]
 # It is left here for compatibilty with maturin < 0.15.
 [package.metadata.maturin]
 # This is where we tell maturin where to place the built library.
-name = "synapse.synapse_rust"
+name = "relapse.relapse_rust"
 
 [dependencies]
 anyhow = "1.0.63"

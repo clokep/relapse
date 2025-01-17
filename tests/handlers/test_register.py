@@ -17,18 +17,18 @@ from unittest.mock import AsyncMock, Mock
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.auth.internal import InternalAuth
-from synapse.api.constants import UserTypes
-from synapse.api.errors import (
+from relapse.api.auth.internal import InternalAuth
+from relapse.api.constants import UserTypes
+from relapse.api.errors import (
     CodeMessageException,
     Codes,
+    RelapseError,
     ResourceLimitError,
-    SynapseError,
 )
-from synapse.module_api import ModuleApi
-from synapse.server import HomeServer
-from synapse.spam_checker_api import RegistrationBehaviour
-from synapse.types import (
+from relapse.module_api import ModuleApi
+from relapse.server import HomeServer
+from relapse.spam_checker_api import RegistrationBehaviour
+from relapse.types import (
     JsonDict,
     Requester,
     RoomAlias,
@@ -36,7 +36,7 @@ from synapse.types import (
     UserID,
     create_requester,
 )
-from synapse.util import Clock
+from relapse.util import Clock
 
 from tests.unittest import override_config
 from tests.utils import mock_getRawHeaders
@@ -293,7 +293,7 @@ class RegistrationTestCase(unittest.HomeserverTestCase):
         self.assertEqual(len(rooms), 0)
         directory_handler = self.hs.get_directory_handler()
         room_alias = RoomAlias.from_string(room_alias_str)
-        self.get_failure(directory_handler.get_association(room_alias), SynapseError)
+        self.get_failure(directory_handler.get_association(room_alias), RelapseError)
 
     @override_config({"auto_join_rooms": ["#room:test"]})
     def test_auto_create_auto_join_rooms_when_user_is_the_first_real_user(self) -> None:
@@ -584,7 +584,7 @@ class RegistrationTestCase(unittest.HomeserverTestCase):
     def test_invalid_user_id(self) -> None:
         invalid_user_id = "^abcd"
         self.get_failure(
-            self.handler.register_user(localpart=invalid_user_id), SynapseError
+            self.handler.register_user(localpart=invalid_user_id), RelapseError
         )
 
     def test_special_chars(self) -> None:
@@ -596,7 +596,7 @@ class RegistrationTestCase(unittest.HomeserverTestCase):
     def test_invalid_user_id_length(self) -> None:
         invalid_user_id = "x" * 256
         self.get_failure(
-            self.handler.register_user(localpart=invalid_user_id), SynapseError
+            self.handler.register_user(localpart=invalid_user_id), RelapseError
         )
 
     @override_config(
@@ -610,7 +610,7 @@ class RegistrationTestCase(unittest.HomeserverTestCase):
     )
     def test_spam_checker_deny(self) -> None:
         """A spam checker can deny registration, which results in an error."""
-        self.get_failure(self.handler.register_user(localpart="user"), SynapseError)
+        self.get_failure(self.handler.register_user(localpart="user"), RelapseError)
 
     @override_config(
         {
@@ -650,7 +650,7 @@ class RegistrationTestCase(unittest.HomeserverTestCase):
         call stack) and any success comes from the spam checker (and not because a
         misconfiguration prevented it from being loaded).
         """
-        self.get_failure(self.handler.register_user(localpart="user"), SynapseError)
+        self.get_failure(self.handler.register_user(localpart="user"), RelapseError)
 
     @override_config(
         {
@@ -695,12 +695,12 @@ class RegistrationTestCase(unittest.HomeserverTestCase):
         """Test rejecting registration based on SSO type"""
         f = self.get_failure(
             self.handler.register_user(localpart="bobflimflob", auth_provider_id="cas"),
-            SynapseError,
+            RelapseError,
         )
         exception = f.value
 
         # We return 429 from the spam checker for denied registrations
-        self.assertIsInstance(exception, SynapseError)
+        self.assertIsInstance(exception, RelapseError)
         self.assertEqual(exception.code, 429)
 
         # Check the same username can register using SAML
@@ -728,13 +728,13 @@ class RegistrationTestCase(unittest.HomeserverTestCase):
             A tuple of (user_id, access_token).
         """
         if localpart is None:
-            raise SynapseError(400, "Request must include user id")
+            raise RelapseError(400, "Request must include user id")
         await self.hs.get_auth_blocking().check_auth_blocking()
         need_register = True
 
         try:
             await self.handler.check_username(localpart)
-        except SynapseError as e:
+        except RelapseError as e:
             if e.errcode == Codes.USER_IN_USE:
                 need_register = False
             else:

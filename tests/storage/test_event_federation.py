@@ -32,20 +32,20 @@ from parameterized import parameterized
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.constants import EventTypes
-from synapse.api.room_versions import (
+from relapse.api.constants import EventTypes
+from relapse.api.room_versions import (
     KNOWN_ROOM_VERSIONS,
     EventFormatVersions,
     RoomVersion,
 )
-from synapse.events import EventBase, _EventInternalMetadata
-from synapse.rest import admin
-from synapse.rest.client import login, room
-from synapse.server import HomeServer
-from synapse.storage.database import LoggingTransaction
-from synapse.storage.types import Cursor
-from synapse.types import JsonDict
-from synapse.util import Clock, json_encoder
+from relapse.events import EventBase, _EventInternalMetadata
+from relapse.rest import admin
+from relapse.rest.client import login, room
+from relapse.server import HomeServer
+from relapse.storage.database import LoggingTransaction
+from relapse.storage.types import Cursor
+from relapse.types import JsonDict
+from relapse.util import Clock, json_encoder
 
 import tests.unittest
 import tests.utils

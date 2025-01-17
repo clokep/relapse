@@ -1,7 +1,7 @@
-from synapse.api.ratelimiting import LimitExceededError, Ratelimiter
-from synapse.appservice import ApplicationService
-from synapse.config.ratelimiting import RatelimitSettings
-from synapse.types import create_requester
+from relapse.api.ratelimiting import LimitExceededError, Ratelimiter
+from relapse.appservice import ApplicationService
+from relapse.config.ratelimiting import RatelimitSettings
+from relapse.types import create_requester
 
 from tests import unittest
 

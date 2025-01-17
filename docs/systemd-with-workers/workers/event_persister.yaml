@@ -1,4 +1,4 @@
-worker_app: synapse.app.generic_worker
+worker_app: relapse.app.generic_worker
 worker_name: event_persister1
 
 worker_listeners:
@@ -17,4 +17,4 @@ worker_listeners:
   #  resources:
   #    - names: [client]
 
-worker_log_config: /etc/matrix-synapse/event-persister-log.yaml
+worker_log_config: /etc/matrix-relapse/event-persister-log.yaml

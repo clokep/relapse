@@ -1,9 +1,9 @@
 # Shared-Secret Registration
 
-**Note:** This API is disabled when MSC3861 is enabled. [See #15582](https://github.com/matrix-org/synapse/pull/15582)
+**Note:** This API is disabled when MSC3861 is enabled. [See #15582](https://github.com/clokep/relapse/pull/15582)
 
 This API allows for the creation of users in an administrative and
-non-interactive way. This is generally used for bootstrapping a Synapse
+non-interactive way. This is generally used for bootstrapping a Relapse
 instance with administrator accounts.
 
 To authenticate yourself to the server, you will need both the shared secret
@@ -14,7 +14,7 @@ shared secret is not configured, this API is not enabled.
 To fetch the nonce, you need to request one from the API:
 
 ```
-> GET /_synapse/admin/v1/register
+> GET /_relapse/admin/v1/register
 
 < {"nonce": "thisisanonce"}
 ```
@@ -27,7 +27,7 @@ set the displayname (optional, `username` by default).
 As an example:
 
 ```
-> POST /_synapse/admin/v1/register
+> POST /_relapse/admin/v1/register
 > {
    "nonce": "thisisanonce",
    "username": "pepper_roni",

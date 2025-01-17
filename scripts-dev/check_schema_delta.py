@@ -8,7 +8,7 @@ from typing import Any, Dict, List
 import click
 import git
 
-SCHEMA_FILE_REGEX = re.compile(r"^synapse/storage/schema/(.*)/delta/(.*)/(.*)$")
+SCHEMA_FILE_REGEX = re.compile(r"^relapse/storage/schema/(.*)/delta/(.*)/(.*)$")
 
 
 @click.command()
@@ -34,7 +34,7 @@ def main(force_colors: bool) -> None:
 
     click.secho("Getting current schema version...")
 
-    r = repo.git.show("origin/develop:synapse/storage/schema/__init__.py")
+    r = repo.git.show("origin/develop:relapse/storage/schema/__init__.py")
 
     locals: Dict[str, Any] = {}
     exec(r, locals)
@@ -43,7 +43,7 @@ def main(force_colors: bool) -> None:
     diffs: List[git.Diff] = repo.remote().refs.develop.commit.diff(None)
 
     # Get the schema version of the local file to check against current schema on develop
-    with open("synapse/storage/schema/__init__.py") as file:
+    with open("relapse/storage/schema/__init__.py") as file:
         local_schema = file.read()
     new_locals: Dict[str, Any] = {}
     exec(local_schema, new_locals)

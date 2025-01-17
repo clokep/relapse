@@ -1,0 +1,21 @@
+[Unit]
+Description=Relapse Matrix homeserver
+
+[Service]
+Type=notify
+User=matrix-relapse
+WorkingDirectory=/var/lib/matrix-relapse
+ExecStartPre=/opt/venvs/matrix-relapse/bin/python -m relapse.app.homeserver --config-path=/etc/matrix-relapse/homeserver.yaml --config-path=/etc/matrix-relapse/conf.d/ --generate-keys
+ExecStart=/opt/venvs/matrix-relapse/bin/python -m relapse.app.homeserver --config-path=/etc/matrix-relapse/homeserver.yaml --config-path=/etc/matrix-relapse/conf.d/
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=3
+SyslogIdentifier=matrix-relapse
+
+# The environment file is not shipped by default anymore and the below directive
+# is for backwards compatibility only. Please use your homeserver.yaml if
+# possible.
+EnvironmentFile=-/etc/default/matrix-relapse
+
+[Install]
+WantedBy=multi-user.target

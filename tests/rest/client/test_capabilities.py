@@ -15,11 +15,11 @@ from http import HTTPStatus
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import synapse.rest.admin
-from synapse.api.room_versions import KNOWN_ROOM_VERSIONS
-from synapse.rest.client import capabilities, login
-from synapse.server import HomeServer
-from synapse.util import Clock
+import relapse.rest.admin
+from relapse.api.room_versions import KNOWN_ROOM_VERSIONS
+from relapse.rest.client import capabilities, login
+from relapse.server import HomeServer
+from relapse.util import Clock
 
 from tests import unittest
 from tests.unittest import override_config
@@ -27,7 +27,7 @@ from tests.unittest import override_config
 
 class CapabilitiesTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        relapse.rest.admin.register_servlets_for_client_rest_resource,
         capabilities.register_servlets,
         login.register_servlets,
     ]

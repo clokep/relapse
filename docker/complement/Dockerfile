@@ -1,23 +1,23 @@
 # syntax=docker/dockerfile:1
-# This dockerfile builds on top of 'docker/Dockerfile-workers' in matrix-org/synapse
+# This dockerfile builds on top of 'docker/Dockerfile-workers' in clokep/relapse
 # by including a built-in postgres instance, as well as setting up the homeserver so
 # that it is ready for testing via Complement.
 #
 # Instructions for building this image from those it depends on is detailed in this guide:
-# https://github.com/matrix-org/synapse/blob/develop/docker/README-testing.md#testing-with-postgresql-and-single-or-multi-process-synapse
+# https://github.com/clokep/relapse/blob/develop/docker/README-testing.md#testing-with-postgresql-and-single-or-multi-process-relapse
 
-ARG SYNAPSE_VERSION=latest
+ARG RELAPSE_VERSION=latest
 # This is an intermediate image, to be built locally (not pulled from a registry).
-ARG FROM=matrixdotorg/synapse-workers:$SYNAPSE_VERSION
+ARG FROM=clokep/relapse-workers:$RELAPSE_VERSION
 
 FROM $FROM
     # First of all, we copy postgres server from the official postgres image,
     # since for repeated rebuilds, this is much faster than apt installing
     # postgres each time.
 
-    # This trick only works because (a) the Synapse image happens to have all the
+    # This trick only works because (a) the Relapse image happens to have all the
     # shared libraries that postgres wants, (b) we use a postgres image based on
-    # the same debian version as Synapse's docker image (so the versions of the
+    # the same debian version as Relapse's docker image (so the versions of the
     # shared libraries match).
     RUN adduser --system --uid 999 postgres --home /var/lib/postgresql
     COPY --from=docker.io/library/postgres:13-bookworm /usr/lib/postgresql /usr/lib/postgresql
@@ -29,13 +29,13 @@ FROM $FROM
     # We also initialize the database at build time, rather than runtime, so that it's faster to spin up the image.
     RUN gosu postgres initdb --locale=C --encoding=UTF-8 --auth-host password
 
-    # Configure a password and create a database for Synapse
+    # Configure a password and create a database for Relapse
     RUN echo "ALTER USER postgres PASSWORD 'somesecret'" | gosu postgres postgres --single
-    RUN echo "CREATE DATABASE synapse" | gosu postgres postgres --single
+    RUN echo "CREATE DATABASE relapse" | gosu postgres postgres --single
 
     # Extend the shared homeserver config to disable rate-limiting,
     # set Complement's static shared secret, enable registration, amongst other
-    # tweaks to get Synapse ready for testing.
+    # tweaks to get Relapse ready for testing.
     # To do this, we copy the old template out of the way and then include it
     # with Jinja2.
     RUN mv /conf/shared.yaml.j2 /conf/shared-orig.yaml.j2

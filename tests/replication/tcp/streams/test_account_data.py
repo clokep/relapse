@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from synapse.replication.tcp.streams._base import (
+from relapse.replication.tcp.streams._base import (
     _STREAM_UPDATE_TARGET_ROW_COUNT,
     AccountDataStream,
 )

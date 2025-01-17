@@ -14,10 +14,10 @@
 
 from unittest.mock import AsyncMock
 
-from synapse.api.errors import Codes, SynapseError
-from synapse.rest import admin
-from synapse.rest.client import login, room
-from synapse.types import JsonDict, UserID, create_requester
+from relapse.api.errors import Codes, RelapseError
+from relapse.rest import admin
+from relapse.rest.client import login, room
+from relapse.types import JsonDict, UserID, create_requester
 
 from tests import unittest
 
@@ -89,9 +89,9 @@ class RoomComplexityTests(unittest.FederatingHomeserverTestCase):
 
         self.pump()
 
-        # The request failed with a SynapseError saying the resource limit was
+        # The request failed with a RelapseError saying the resource limit was
         # exceeded.
-        f = self.get_failure(d, SynapseError)
+        f = self.get_failure(d, RelapseError)
         self.assertEqual(f.value.code, 400, f.value)
         self.assertEqual(f.value.errcode, Codes.RESOURCE_LIMIT_EXCEEDED)
 
@@ -120,9 +120,9 @@ class RoomComplexityTests(unittest.FederatingHomeserverTestCase):
 
         self.pump()
 
-        # The request failed with a SynapseError saying the resource limit was
+        # The request failed with a RelapseError saying the resource limit was
         # exceeded.
-        f = self.get_failure(d, SynapseError)
+        f = self.get_failure(d, RelapseError)
         self.assertEqual(f.value.code, 400, f.value)
         self.assertEqual(f.value.errcode, Codes.RESOURCE_LIMIT_EXCEEDED)
 
@@ -163,9 +163,9 @@ class RoomComplexityTests(unittest.FederatingHomeserverTestCase):
 
         self.pump()
 
-        # The request failed with a SynapseError saying the resource limit was
+        # The request failed with a RelapseError saying the resource limit was
         # exceeded.
-        f = self.get_failure(d, SynapseError)
+        f = self.get_failure(d, RelapseError)
         self.assertEqual(f.value.code, 400)
         self.assertEqual(f.value.errcode, Codes.RESOURCE_LIMIT_EXCEEDED)
 
@@ -214,9 +214,9 @@ class RoomComplexityAdminTests(unittest.FederatingHomeserverTestCase):
 
         self.pump()
 
-        # The request failed with a SynapseError saying the resource limit was
+        # The request failed with a RelapseError saying the resource limit was
         # exceeded.
-        f = self.get_failure(d, SynapseError)
+        f = self.get_failure(d, RelapseError)
         self.assertEqual(f.value.code, 400, f.value)
         self.assertEqual(f.value.errcode, Codes.RESOURCE_LIMIT_EXCEEDED)
 

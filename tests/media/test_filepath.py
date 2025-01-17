@@ -15,7 +15,7 @@ import inspect
 import os
 from typing import Iterable
 
-from synapse.media.filepath import MediaFilePaths, _wrap_with_jail_check
+from relapse.media.filepath import MediaFilePaths, _wrap_with_jail_check
 
 from tests import unittest
 
@@ -561,7 +561,7 @@ class MediaFilePathsJailTestCase(unittest.TestCase):
         media_store_path = self.mktemp()
 
         # symlink the media store directory
-        os.symlink("/mnt/synapse/media_store", media_store_path)
+        os.symlink("/mnt/relapse/media_store", media_store_path)
 
         # Test that relative and absolute paths don't trip the check
         # NB: `media_store_path` is a relative path
@@ -580,7 +580,7 @@ class MediaFilePathsJailTestCase(unittest.TestCase):
 
         # symlink `url_cache/`
         os.symlink(
-            "/mnt/synapse/media_store_url_cache",
+            "/mnt/relapse/media_store_url_cache",
             os.path.join(media_store_path, "url_cache"),
         )
 

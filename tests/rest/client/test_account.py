@@ -23,17 +23,17 @@ import pkg_resources
 from twisted.internet.interfaces import IReactorTCP
 from twisted.test.proto_helpers import MemoryReactor
 
-import synapse.rest.admin
-from synapse.api.constants import LoginType, Membership
-from synapse.api.errors import Codes, HttpResponseException
-from synapse.appservice import ApplicationService
-from synapse.rest import admin
-from synapse.rest.client import account, login, register, room
-from synapse.rest.synapse.client.password_reset import PasswordResetSubmitTokenResource
-from synapse.server import HomeServer
-from synapse.storage._base import db_to_json
-from synapse.types import JsonDict, UserID
-from synapse.util import Clock
+import relapse.rest.admin
+from relapse.api.constants import LoginType, Membership
+from relapse.api.errors import Codes, HttpResponseException
+from relapse.appservice import ApplicationService
+from relapse.rest import admin
+from relapse.rest.client import account, login, register, room
+from relapse.rest.relapse.client.password_reset import PasswordResetSubmitTokenResource
+from relapse.server import HomeServer
+from relapse.storage._base import db_to_json
+from relapse.types import JsonDict, UserID
+from relapse.util import Clock
 
 from tests import unittest
 from tests.server import FakeSite, make_request
@@ -43,7 +43,7 @@ from tests.unittest import override_config
 class PasswordResetTestCase(unittest.HomeserverTestCase):
     servlets = [
         account.register_servlets,
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        relapse.rest.admin.register_servlets_for_client_rest_resource,
         register.register_servlets,
         login.register_servlets,
     ]
@@ -55,7 +55,7 @@ class PasswordResetTestCase(unittest.HomeserverTestCase):
         config["email"] = {
             "enable_notifs": False,
             "template_dir": os.path.abspath(
-                pkg_resources.resource_filename("synapse", "res/templates")
+                pkg_resources.resource_filename("relapse", "res/templates")
             ),
             "smtp_host": "127.0.0.1",
             "smtp_port": 20,
@@ -421,7 +421,7 @@ class PasswordResetTestCase(unittest.HomeserverTestCase):
 
 class DeactivateTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        relapse.rest.admin.register_servlets_for_client_rest_resource,
         login.register_servlets,
         account.register_servlets,
         room.register_servlets,
@@ -661,7 +661,7 @@ class DeactivateTestCase(unittest.HomeserverTestCase):
 
 class WhoamiTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        relapse.rest.admin.register_servlets_for_client_rest_resource,
         login.register_servlets,
         account.register_servlets,
         register.register_servlets,
@@ -737,7 +737,7 @@ class ThreepidEmailRestTestCase(unittest.HomeserverTestCase):
     servlets = [
         account.register_servlets,
         login.register_servlets,
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        relapse.rest.admin.register_servlets_for_client_rest_resource,
     ]
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
@@ -747,7 +747,7 @@ class ThreepidEmailRestTestCase(unittest.HomeserverTestCase):
         config["email"] = {
             "enable_notifs": False,
             "template_dir": os.path.abspath(
-                pkg_resources.resource_filename("synapse", "res/templates")
+                pkg_resources.resource_filename("relapse", "res/templates")
             ),
             "smtp_host": "127.0.0.1",
             "smtp_port": 20,
@@ -1342,7 +1342,7 @@ class AccountStatusTestCase(unittest.HomeserverTestCase):
                 }
             elif destination == "badremote":
                 # badremote tries to overwrite the status of a user that doesn't belong
-                # to it (i.e. users[1]) with false data, which Synapse is expected to
+                # to it (i.e. users[1]) with false data, which Relapse is expected to
                 # ignore.
                 return {
                     "account_statuses": {

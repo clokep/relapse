@@ -16,8 +16,8 @@ from typing import TYPE_CHECKING
 
 from typing_extensions import Literal
 
-from synapse._pydantic_compat import HAS_PYDANTIC_V2
-from synapse.rest.client.models import EmailRequestTokenBody
+from relapse._pydantic_compat import HAS_PYDANTIC_V2
+from relapse.rest.client.models import EmailRequestTokenBody
 
 if TYPE_CHECKING or HAS_PYDANTIC_V2:
     from pydantic.v1 import BaseModel, ValidationError

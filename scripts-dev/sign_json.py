@@ -22,9 +22,9 @@ import yaml
 from signedjson.key import read_signing_keys
 from signedjson.sign import sign_json
 
-from synapse.api.room_versions import KNOWN_ROOM_VERSIONS
-from synapse.crypto.event_signing import add_hashes_and_signatures
-from synapse.util import json_encoder
+from relapse.api.room_versions import KNOWN_ROOM_VERSIONS
+from relapse.crypto.event_signing import add_hashes_and_signatures
+from relapse.util import json_encoder
 
 
 def main() -> None:
@@ -64,7 +64,7 @@ Example usage:
         "--config",
         default="homeserver.yaml",
         help=(
-            "Path to synapse config file, from which the server name and/or signing "
+            "Path to relapse config file, from which the server name and/or signing "
             "key path will be read. Ignored if --server-name and --signing-key(-path) "
             "are both given."
         ),

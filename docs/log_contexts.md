@@ -1,6 +1,6 @@
 # Log Contexts
 
-To help track the processing of individual requests, synapse uses a
+To help track the processing of individual requests, relapse uses a
 '`log context`' to track which request it is handling at any given
 moment. This is done via a thread-local variable; a `logging.Filter` is
 then used to fish the information back out of the thread-local variable
@@ -10,7 +10,7 @@ Logcontexts are also used for CPU and database accounting, so that we
 can track which requests were responsible for high CPU use or database
 activity.
 
-The `synapse.logging.context` module provides facilities for managing
+The `relapse.logging.context` module provides facilities for managing
 the current log context (as well as providing the `LoggingContextFilter`
 class).
 
@@ -18,7 +18,7 @@ Asynchronous functions make the whole thing complicated, so this document descri
 how it all works, and how to write code which follows the rules.
 
 In this document, "awaitable" refers to any object which can be `await`ed. In the context of
-Synapse, that normally means either a coroutine or a Twisted 
+Relapse, that normally means either a coroutine or a Twisted 
 [`Deferred`](https://twistedmatrix.com/documents/current/api/twisted.internet.defer.Deferred.html).
 
 ## Logcontexts without asynchronous code
@@ -28,7 +28,7 @@ any code of this nature, the rule is that our function should leave
 things as it found them:
 
 ```python
-from synapse.logging import context         # omitted from future snippets
+from relapse.logging import context         # omitted from future snippets
 
 def handle_request(request_id):
     request_context = context.LoggingContext()
@@ -85,7 +85,7 @@ In the above flow:
 So we have stopped processing the request (and will probably go on to
 start processing the next), without clearing the logcontext.
 
-To circumvent this problem, synapse code assumes that, wherever you have
+To circumvent this problem, relapse code assumes that, wherever you have
 an awaitable, you will want to `await` it. To that end, wherever
 functions return awaitables, we adopt the following conventions:
 
@@ -157,7 +157,7 @@ Notes on implementing more complex patterns are in later sections.
 
 ## Where you create a new awaitable, make it follow the rules
 
-Most of the time, an awaitable comes from another synapse function.
+Most of the time, an awaitable comes from another relapse function.
 Sometimes, though, we need to make up a new awaitable, or we get an awaitable
 back from external code. We need to make it follow our rules.
 
@@ -247,7 +247,7 @@ The second option is to use `context.run_in_background`, which wraps a
 function so that it doesn't reset the logcontext even when it returns
 an incomplete awaitable, and adds a callback to the returned awaitable to
 reset the logcontext. In other words, it turns a function that follows
-the Synapse rules about logcontexts and awaitables into one which behaves
+the Relapse rules about logcontexts and awaitables into one which behaves
 more like an external function --- the opposite operation to that
 described in the previous section. It can be used like this:
 
@@ -261,7 +261,7 @@ async def do_request_handling():
     logger.debug("Request handling complete")
 ```
 
-## Passing synapse deferreds into third-party functions
+## Passing relapse deferreds into third-party functions
 
 A typical example of this is where we want to collect together two or
 more awaitables via `defer.gatherResults`:

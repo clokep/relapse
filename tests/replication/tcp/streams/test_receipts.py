@@ -16,7 +16,7 @@
 
 from unittest.mock import Mock
 
-from synapse.replication.tcp.streams._base import ReceiptsStream
+from relapse.replication.tcp.streams._base import ReceiptsStream
 
 from tests.replication._base import BaseStreamTestCase
 

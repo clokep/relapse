@@ -19,9 +19,9 @@ from unittest import mock
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.errors import SynapseError
-from synapse.server import HomeServer
-from synapse.util import Clock
+from relapse.api.errors import RelapseError
+from relapse.server import HomeServer
+from relapse.util import Clock
 
 from tests import unittest
 
@@ -55,7 +55,7 @@ class E2eRoomKeysHandlerTestCase(unittest.HomeserverTestCase):
         if there is no version.
         """
         e = self.get_failure(
-            self.handler.get_version_info(self.local_user), SynapseError
+            self.handler.get_version_info(self.local_user), RelapseError
         )
         res = e.value.code
         self.assertEqual(res, 404)
@@ -66,7 +66,7 @@ class E2eRoomKeysHandlerTestCase(unittest.HomeserverTestCase):
         """
         e = self.get_failure(
             self.handler.get_version_info(self.local_user, "bogus_version"),
-            SynapseError,
+            RelapseError,
         )
         res = e.value.code
         self.assertEqual(res, 404)
@@ -189,7 +189,7 @@ class E2eRoomKeysHandlerTestCase(unittest.HomeserverTestCase):
                     "version": "1",
                 },
             ),
-            SynapseError,
+            RelapseError,
         )
         res = e.value.code
         self.assertEqual(res, 404)
@@ -254,7 +254,7 @@ class E2eRoomKeysHandlerTestCase(unittest.HomeserverTestCase):
                     "version": "incorrect",
                 },
             ),
-            SynapseError,
+            RelapseError,
         )
         res = e.value.code
         self.assertEqual(res, 400)
@@ -262,14 +262,14 @@ class E2eRoomKeysHandlerTestCase(unittest.HomeserverTestCase):
     def test_delete_missing_version(self) -> None:
         """Check that we get a 404 on deleting nonexistent versions"""
         e = self.get_failure(
-            self.handler.delete_version(self.local_user, "1"), SynapseError
+            self.handler.delete_version(self.local_user, "1"), RelapseError
         )
         res = e.value.code
         self.assertEqual(res, 404)
 
     def test_delete_missing_current_version(self) -> None:
         """Check that we get a 404 on deleting nonexistent current version"""
-        e = self.get_failure(self.handler.delete_version(self.local_user), SynapseError)
+        e = self.get_failure(self.handler.delete_version(self.local_user), RelapseError)
         res = e.value.code
         self.assertEqual(res, 404)
 
@@ -291,7 +291,7 @@ class E2eRoomKeysHandlerTestCase(unittest.HomeserverTestCase):
 
         # check that it's gone
         e = self.get_failure(
-            self.handler.get_version_info(self.local_user, "1"), SynapseError
+            self.handler.get_version_info(self.local_user, "1"), RelapseError
         )
         res = e.value.code
         self.assertEqual(res, 404)
@@ -299,7 +299,7 @@ class E2eRoomKeysHandlerTestCase(unittest.HomeserverTestCase):
     def test_get_missing_backup(self) -> None:
         """Check that we get a 404 on querying missing backup"""
         e = self.get_failure(
-            self.handler.get_room_keys(self.local_user, "bogus_version"), SynapseError
+            self.handler.get_room_keys(self.local_user, "bogus_version"), RelapseError
         )
         res = e.value.code
         self.assertEqual(res, 404)
@@ -327,7 +327,7 @@ class E2eRoomKeysHandlerTestCase(unittest.HomeserverTestCase):
         """Check that we get a 404 on uploading keys when no versions are defined"""
         e = self.get_failure(
             self.handler.upload_room_keys(self.local_user, "no_version", room_keys),
-            SynapseError,
+            RelapseError,
         )
         res = e.value.code
         self.assertEqual(res, 404)
@@ -349,7 +349,7 @@ class E2eRoomKeysHandlerTestCase(unittest.HomeserverTestCase):
 
         e = self.get_failure(
             self.handler.upload_room_keys(self.local_user, "bogus_version", room_keys),
-            SynapseError,
+            RelapseError,
         )
         res = e.value.code
         self.assertEqual(res, 404)
@@ -379,7 +379,7 @@ class E2eRoomKeysHandlerTestCase(unittest.HomeserverTestCase):
         self.assertEqual(version, "2")
 
         e = self.get_failure(
-            self.handler.upload_room_keys(self.local_user, "1", room_keys), SynapseError
+            self.handler.upload_room_keys(self.local_user, "1", room_keys), RelapseError
         )
         res = e.value.code
         self.assertEqual(res, 403)

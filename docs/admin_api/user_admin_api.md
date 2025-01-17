@@ -10,7 +10,7 @@ This API returns information about a specific user account.
 The api is:
 
 ```
-GET /_synapse/admin/v2/users/<user_id>
+GET /_relapse/admin/v2/users/<user_id>
 ```
 
 It returns a JSON body like the following:
@@ -71,7 +71,7 @@ specific `user_id`.
 This api is:
 
 ```
-PUT /_synapse/admin/v2/users/<user_id>
+PUT /_relapse/admin/v2/users/<user_id>
 ```
 
 with a body of:
@@ -135,7 +135,7 @@ Body parameters:
   - `address` - **string**, required. The third-party ID itself, e.g. `alice@example.com` for `email` or
     `447470274584` (for a phone number with country code "44") and `19254857364` (for a phone number
     with country code "1") for `msisdn`.
-  Note: If a threepid is removed from a user via this option, Synapse will also attempt to remove
+  Note: If a threepid is removed from a user via this option, Relapse will also attempt to remove
   that threepid from any identity servers it is aware has a binding for it.
 - `external_ids` - **array**, optional. Allow setting the identifier of the external identity
   provider for SSO (Single sign-on). More details are in the configuration manual under the
@@ -168,7 +168,7 @@ This API returns all local user accounts.
 By default, the response is ordered by ascending user ID.
 
 ```
-GET /_synapse/admin/v2/users?from=0&limit=10&guests=false
+GET /_relapse/admin/v2/users?from=0&limit=10&guests=false
 ```
 
 A response body like the following is returned:
@@ -222,7 +222,7 @@ The following parameters should be set in the URL:
 - `name` - Is optional and filters to only return users with user ID localparts
   **or** displaynames that contain this value.
 - `guests` - string representing a bool - Is optional and if `false` will **exclude** guest users.
-  Defaults to `true` to include guest users. This parameter is not supported when MSC3861 is enabled. [See #15582](https://github.com/matrix-org/synapse/pull/15582)
+  Defaults to `true` to include guest users. This parameter is not supported when MSC3861 is enabled. [See #15582](https://github.com/clokep/relapse/pull/15582)
 - `admins` - Optional flag to filter admins. If `true`, only admins are queried. If `false`, admins are excluded from 
   the query. When the flag is absent (the default), **both** admins and non-admins are included in the search results.
 - `deactivated` - string representing a bool - Is optional and if `true` will **include** deactivated users.
@@ -284,7 +284,7 @@ The following fields are returned in the JSON response body:
 - `next_token`: string representing a positive integer - Indication for pagination. See above.
 - `total` - integer - Total number of media.
 
-*Added in Synapse 1.93:* the `locked` query parameter and response field.
+*Added in Relapse 1.93:* the `locked` query parameter and response field.
 
 ## Query current sessions for a user
 
@@ -293,7 +293,7 @@ This API returns information about the active sessions for a specific user.
 The endpoints are:
 
 ```
-GET /_synapse/admin/v1/whois/<user_id>
+GET /_relapse/admin/v1/whois/<user_id>
 ```
 
 and:
@@ -348,7 +348,7 @@ were sent, but hidden from users joining the room afterwards.
 The api is:
 
 ```
-POST /_synapse/admin/v1/deactivate/<user_id>
+POST /_relapse/admin/v1/deactivate/<user_id>
 ```
 
 with a body of:
@@ -399,14 +399,14 @@ The following actions are **NOT** performed. The list may be incomplete.
 
 ## Reset password
 
-**Note:** This API is disabled when MSC3861 is enabled. [See #15582](https://github.com/matrix-org/synapse/pull/15582)
+**Note:** This API is disabled when MSC3861 is enabled. [See #15582](https://github.com/clokep/relapse/pull/15582)
 
 Changes the password of another user. This will automatically log the user out of all their devices.
 
 The api is:
 
 ```
-POST /_synapse/admin/v1/reset_password/<user_id>
+POST /_relapse/admin/v1/reset_password/<user_id>
 ```
 
 with a body of:
@@ -424,12 +424,12 @@ The parameter `logout_devices` is optional and defaults to `true`.
 
 ## Get whether a user is a server administrator or not
 
-**Note:** This API is disabled when MSC3861 is enabled. [See #15582](https://github.com/matrix-org/synapse/pull/15582)
+**Note:** This API is disabled when MSC3861 is enabled. [See #15582](https://github.com/clokep/relapse/pull/15582)
 
 The api is:
 
 ```
-GET /_synapse/admin/v1/users/<user_id>/admin
+GET /_relapse/admin/v1/users/<user_id>/admin
 ```
 
 A response body like the following is returned:
@@ -443,14 +443,14 @@ A response body like the following is returned:
 
 ## Change whether a user is a server administrator or not
 
-**Note:** This API is disabled when MSC3861 is enabled. [See #15582](https://github.com/matrix-org/synapse/pull/15582)
+**Note:** This API is disabled when MSC3861 is enabled. [See #15582](https://github.com/clokep/relapse/pull/15582)
 
 Note that you cannot demote yourself.
 
 The api is:
 
 ```
-PUT /_synapse/admin/v1/users/<user_id>/admin
+PUT /_relapse/admin/v1/users/<user_id>/admin
 ```
 
 with a body of:
@@ -468,7 +468,7 @@ Gets a list of all `room_id` that a specific `user_id` is member.
 The API is:
 
 ```
-GET /_synapse/admin/v1/users/<user_id>/joined_rooms
+GET /_relapse/admin/v1/users/<user_id>/joined_rooms
 ```
 
 A response body like the following is returned:
@@ -506,7 +506,7 @@ Gets information about account data for a specific `user_id`.
 The API is:
 
 ```
-GET /_synapse/admin/v1/users/<user_id>/accountdata
+GET /_relapse/admin/v1/users/<user_id>/accountdata
 ```
 
 A response body like the following is returned:
@@ -591,7 +591,7 @@ The newest media is on top. You can change the order with parameters
 The API is:
 
 ```
-GET /_synapse/admin/v1/users/<user_id>/media
+GET /_relapse/admin/v1/users/<user_id>/media
 ```
 
 A response body like the following is returned:
@@ -718,7 +718,7 @@ The newest media is deleted first. You can change the order with parameters
 The API is:
 
 ```
-DELETE /_synapse/admin/v1/users/<user_id>/media
+DELETE /_relapse/admin/v1/users/<user_id>/media
 ```
 
 A response body like the following is returned:
@@ -749,7 +749,7 @@ delete largest/smallest or newest/oldest files first.
 
 ## Login as a user
 
-**Note:** This API is disabled when MSC3861 is enabled. [See #15582](https://github.com/matrix-org/synapse/pull/15582)
+**Note:** This API is disabled when MSC3861 is enabled. [See #15582](https://github.com/clokep/relapse/pull/15582)
 
 Get an access token that can be used to authenticate as that user. Useful for
 when admins wish to do actions on behalf of a user.
@@ -757,7 +757,7 @@ when admins wish to do actions on behalf of a user.
 The API is:
 
 ```
-POST /_synapse/admin/v1/users/<user_id>/login
+POST /_relapse/admin/v1/users/<user_id>/login
 {}
 ```
 
@@ -792,14 +792,14 @@ we describe it here for completeness.
 This API temporarily permits a user to replace their master cross-signing key
 without going through
 [user-interactive authentication](https://spec.matrix.org/v1.8/client-server-api/#user-interactive-authentication-api) (UIA).
-This is useful when Synapse has delegated its authentication to the
+This is useful when Relapse has delegated its authentication to the
 [Matrix Authentication Service](https://github.com/matrix-org/matrix-authentication-service/);
-as Synapse cannot perform UIA is not possible in these circumstances.
+as Relapse cannot perform UIA is not possible in these circumstances.
 
 The API is
 
 ```http request
-POST /_synapse/admin/v1/users/<user_id>/_allow_cross_signing_replacement_without_uia
+POST /_relapse/admin/v1/users/<user_id>/_allow_cross_signing_replacement_without_uia
 {}
 ```
 
@@ -820,7 +820,7 @@ The response body is a JSON object with a single field:
   before which the user is permitted to replace their cross-signing key without
   going through UIA.
 
-_Added in Synapse 1.97.0._
+_Added in Relapse 1.97.0._
 
 ## User devices
 
@@ -830,7 +830,7 @@ Gets information about all devices for a specific `user_id`.
 The API is:
 
 ```
-GET /_synapse/admin/v2/users/<user_id>/devices
+GET /_relapse/admin/v2/users/<user_id>/devices
 ```
 
 A response body like the following is returned:
@@ -893,7 +893,7 @@ exists already.
 The API is:
 
 ```
-POST /_synapse/admin/v2/users/<user_id>/devices
+POST /_relapse/admin/v2/users/<user_id>/devices
 
 {
   "device_id": "QBUAZIFURK"
@@ -919,7 +919,7 @@ any access token associated with them.
 The API is:
 
 ```
-POST /_synapse/admin/v2/users/<user_id>/delete_devices
+POST /_relapse/admin/v2/users/<user_id>/delete_devices
 
 {
   "devices": [
@@ -947,7 +947,7 @@ Gets information on a single device, by `device_id` for a specific `user_id`.
 The API is:
 
 ```
-GET /_synapse/admin/v2/users/<user_id>/devices/<device_id>
+GET /_relapse/admin/v2/users/<user_id>/devices/<device_id>
 ```
 
 A response body like the following is returned:
@@ -991,7 +991,7 @@ Updates the metadata on the given `device_id` for a specific `user_id`.
 The API is:
 
 ```
-PUT /_synapse/admin/v2/users/<user_id>/devices/<device_id>
+PUT /_relapse/admin/v2/users/<user_id>/devices/<device_id>
 
 {
   "display_name": "My other phone"
@@ -1019,7 +1019,7 @@ and invalidates any access token associated with it.
 The API is:
 
 ```
-DELETE /_synapse/admin/v2/users/<user_id>/devices/<device_id>
+DELETE /_relapse/admin/v2/users/<user_id>/devices/<device_id>
 
 {}
 ```
@@ -1039,7 +1039,7 @@ Gets information about all pushers for a specific `user_id`.
 The API is:
 
 ```
-GET /_synapse/admin/v1/users/<user_id>/pushers
+GET /_relapse/admin/v1/users/<user_id>/pushers
 ```
 
 A response body like the following is returned:
@@ -1127,13 +1127,13 @@ A shadow-banned user will be unable to contact anyone on the server.
 To shadow-ban a user the API is:
 
 ```
-POST /_synapse/admin/v1/users/<user_id>/shadow_ban
+POST /_relapse/admin/v1/users/<user_id>/shadow_ban
 ```
 
 To un-shadow-ban a user the API is:
 
 ```
-DELETE /_synapse/admin/v1/users/<user_id>/shadow_ban
+DELETE /_relapse/admin/v1/users/<user_id>/shadow_ban
 ```
 
 An empty JSON dict is returned in both cases.
@@ -1155,7 +1155,7 @@ There are specific APIs to set, get and delete a ratelimit.
 The API is:
 
 ```
-GET /_synapse/admin/v1/users/<user_id>/override_ratelimit
+GET /_relapse/admin/v1/users/<user_id>/override_ratelimit
 ```
 
 A response body like the following is returned:
@@ -1194,7 +1194,7 @@ If **no** custom ratelimit is set, an empty JSON dict is returned.
 The API is:
 
 ```
-POST /_synapse/admin/v1/users/<user_id>/override_ratelimit
+POST /_relapse/admin/v1/users/<user_id>/override_ratelimit
 ```
 
 A response body like the following is returned:
@@ -1236,7 +1236,7 @@ The following fields are returned in the JSON response body:
 The API is:
 
 ```
-DELETE /_synapse/admin/v1/users/<user_id>/override_ratelimit
+DELETE /_relapse/admin/v1/users/<user_id>/override_ratelimit
 ```
 
 An empty JSON dict is returned.
@@ -1264,7 +1264,7 @@ This endpoint will work even if registration is disabled on the server, unlike
 The API is:
 
 ```
-GET /_synapse/admin/v1/username_available?username=$localpart
+GET /_relapse/admin/v1/username_available?username=$localpart
 ```
 
 The request and response format is the same as the
@@ -1275,7 +1275,7 @@ The request and response format is the same as the
 The API is:
 
 ```
-GET /_synapse/admin/v1/auth_providers/$provider/users/$external_id
+GET /_relapse/admin/v1/auth_providers/$provider/users/$external_id
 ```
 
 When a user matched the given ID for the given provider, an HTTP code `200` with a response body like the following is returned:
@@ -1306,7 +1306,7 @@ Returns a `404` HTTP status code if no user was found, with a response body like
 }
 ```
 
-_Added in Synapse 1.68.0._
+_Added in Relapse 1.68.0._
 
 
 ## Find a user based on their Third Party ID (ThreePID or 3PID)
@@ -1314,7 +1314,7 @@ _Added in Synapse 1.68.0._
 The API is:
 
 ```
-GET /_synapse/admin/v1/threepid/$medium/users/$address
+GET /_relapse/admin/v1/threepid/$medium/users/$address
 ```
 
 When a user matched the given address for the given medium, an HTTP code `200` with a response body like the following is returned:
@@ -1345,4 +1345,4 @@ Returns a `404` HTTP status code if no user was found, with a response body like
 }
 ```
 
-_Added in Synapse 1.72.0._
+_Added in Relapse 1.72.0._

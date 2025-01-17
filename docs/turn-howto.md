@@ -3,7 +3,7 @@
 This document explains how to enable VoIP relaying on your homeserver with
 TURN.
 
-The synapse Matrix homeserver supports integration with TURN server via the
+The relapse Matrix homeserver supports integration with TURN server via the
 [TURN server REST API](<https://tools.ietf.org/html/draft-uberti-behave-turn-rest-00>). This
 allows the homeserver to generate credentials that are valid for use on the
 TURN server through the use of a secret shared between the homeserver and the
@@ -23,7 +23,7 @@ However, even with appropriate configuration, NAT is known to cause issues and t
 
 Afterwards, the homeserver needs some further configuration.
 
-## Synapse setup
+## Relapse setup
 
 Your homeserver configuration file needs the following extra keys:
 
@@ -40,17 +40,17 @@ As an example, here is the relevant section of the config file for `matrix.org`.
     turn_user_lifetime: 86400000
     turn_allow_guests: true
 
-After updating the homeserver configuration, you must restart synapse:
+After updating the homeserver configuration, you must restart relapse:
 
   * If you use synctl:
     ```sh
-    # Depending on how Synapse is installed, synctl may already be on
+    # Depending on how Relapse is installed, synctl may already be on
     # your PATH. If not, you may need to activate a virtual environment.
     synctl restart
     ```
   * If you use systemd:
     ```sh
-    systemctl restart matrix-synapse.service
+    systemctl restart matrix-relapse.service
     ```
 ... and then reload any clients (or wait an hour for them to refresh their
 settings).

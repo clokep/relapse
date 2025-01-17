@@ -16,21 +16,21 @@ from typing import Any, Dict, List, Optional, Union, cast
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import synapse.rest.admin
-from synapse.api.constants import EventTypes, HistoryVisibility, Membership
-from synapse.api.room_versions import RoomVersions
-from synapse.appservice import ApplicationService
-from synapse.events import FrozenEvent, make_event_from_dict
-from synapse.push.bulk_push_rule_evaluator import _flatten_dict
-from synapse.push.httppusher import tweaks_for_actions
-from synapse.rest import admin
-from synapse.rest.client import login, register, room
-from synapse.server import HomeServer
-from synapse.storage.databases.main.appservice import _make_exclusive_regex
-from synapse.synapse_rust.push import PushRuleEvaluator
-from synapse.types import JsonDict, JsonMapping, UserID
-from synapse.util import Clock
-from synapse.util.frozenutils import freeze
+import relapse.rest.admin
+from relapse.api.constants import EventTypes, HistoryVisibility, Membership
+from relapse.api.room_versions import RoomVersions
+from relapse.appservice import ApplicationService
+from relapse.events import FrozenEvent, make_event_from_dict
+from relapse.push.bulk_push_rule_evaluator import _flatten_dict
+from relapse.push.httppusher import tweaks_for_actions
+from relapse.relapse_rust.push import PushRuleEvaluator
+from relapse.rest import admin
+from relapse.rest.client import login, register, room
+from relapse.server import HomeServer
+from relapse.storage.databases.main.appservice import _make_exclusive_regex
+from relapse.types import JsonDict, JsonMapping, UserID
+from relapse.util import Clock
+from relapse.util.frozenutils import freeze
 
 from tests import unittest
 from tests.test_utils.event_injection import create_event, inject_member_event
@@ -800,7 +800,7 @@ class TestBulkPushRuleEvaluator(unittest.HomeserverTestCase):
     """Tests for the bulk push rule evaluator"""
 
     servlets = [
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        relapse.rest.admin.register_servlets_for_client_rest_resource,
         login.register_servlets,
         register.register_servlets,
         room.register_servlets,

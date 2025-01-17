@@ -19,25 +19,25 @@ from unittest.mock import AsyncMock, Mock, patch
 from twisted.internet.defer import Deferred
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.constants import EventTypes
-from synapse.api.errors import (
+from relapse.api.constants import EventTypes
+from relapse.api.errors import (
     AuthError,
     Codes,
     LimitExceededError,
     NotFoundError,
-    SynapseError,
+    RelapseError,
 )
-from synapse.api.room_versions import RoomVersions
-from synapse.events import EventBase, make_event_from_dict
-from synapse.federation.federation_base import event_from_pdu_json
-from synapse.federation.federation_client import SendJoinResult
-from synapse.logging.context import LoggingContext, run_in_background
-from synapse.rest import admin
-from synapse.rest.client import login, room
-from synapse.server import HomeServer
-from synapse.storage.databases.main.events_worker import EventCacheEntry
-from synapse.util import Clock
-from synapse.util.stringutils import random_string
+from relapse.api.room_versions import RoomVersions
+from relapse.events import EventBase, make_event_from_dict
+from relapse.federation.federation_base import event_from_pdu_json
+from relapse.federation.federation_client import SendJoinResult
+from relapse.logging.context import LoggingContext, run_in_background
+from relapse.rest import admin
+from relapse.rest.client import login, room
+from relapse.server import HomeServer
+from relapse.storage.databases.main.events_worker import EventCacheEntry
+from relapse.util import Clock
+from relapse.util.stringutils import random_string
 
 from tests import unittest
 from tests.test_utils import event_injection
@@ -531,7 +531,7 @@ class EventFromPduTestCase(TestCase):
             float("-inf"),
             float("nan"),
         ]:
-            with self.assertRaises(SynapseError):
+            with self.assertRaises(RelapseError):
                 event_from_pdu_json(
                     {
                         "type": EventTypes.Message,
@@ -548,7 +548,7 @@ class EventFromPduTestCase(TestCase):
 
     def test_invalid_nested(self) -> None:
         """List and dictionaries are recursively searched."""
-        with self.assertRaises(SynapseError):
+        with self.assertRaises(RelapseError):
             event_from_pdu_json(
                 {
                     "type": EventTypes.Message,
@@ -664,7 +664,7 @@ class PartialJoinTestCase(unittest.FederatingHomeserverTestCase):
             # (The join event is rejected because it doesn't have any signatures)
             join_exc = self.get_failure(
                 fed_handler.do_invite_join(["example.com"], room_id, "@alice:test", {}),
-                SynapseError,
+                RelapseError,
             )
         self.assertIn("Join event was rejected", str(join_exc))
 

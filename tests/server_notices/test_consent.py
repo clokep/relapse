@@ -16,10 +16,10 @@ import os
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import synapse.rest.admin
-from synapse.rest.client import login, room, sync
-from synapse.server import HomeServer
-from synapse.util import Clock
+import relapse.rest.admin
+from relapse.rest.client import login, room, sync
+from relapse.server import HomeServer
+from relapse.util import Clock
 
 from tests import unittest
 
@@ -27,7 +27,7 @@ from tests import unittest
 class ConsentNoticesTests(unittest.HomeserverTestCase):
     servlets = [
         sync.register_servlets,
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        relapse.rest.admin.register_servlets_for_client_rest_resource,
         login.register_servlets,
         room.register_servlets,
     ]

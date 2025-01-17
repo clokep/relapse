@@ -1,13 +1,13 @@
 # How to test SAML as a developer without a server
 
 https://fujifish.github.io/samling/samling.html (https://github.com/fujifish/samling) is a great resource for being able to tinker with the 
-SAML options within Synapse without needing to deploy and configure a complicated software stack.
+SAML options within Relapse without needing to deploy and configure a complicated software stack.
 
-To make Synapse (and therefore Element) use it:
+To make Relapse (and therefore Element) use it:
 
 1. Use the samling.html URL above or deploy your own and visit the IdP Metadata tab.
 2. Copy the XML to your clipboard.
-3. On your Synapse server, create a new file `samling.xml` next to your `homeserver.yaml` with
+3. On your Relapse server, create a new file `samling.xml` next to your `homeserver.yaml` with
    the XML from step 2 as the contents.
 4. Edit your `homeserver.yaml` to include:
    ```yaml
@@ -23,7 +23,7 @@ To make Synapse (and therefore Element) use it:
    ```
 6. Run `apt-get install xmlsec1` and `pip install --upgrade --force 'pysaml2>=4.5.0'` to ensure
    the dependencies are installed and ready to go.
-7. Restart Synapse.
+7. Restart Relapse.
 
 Then in Element:
 

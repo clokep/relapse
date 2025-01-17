@@ -18,10 +18,10 @@ from unittest.mock import Mock
 
 import ijson.common
 
-from synapse.api.room_versions import RoomVersions
-from synapse.federation.transport.client import SendJoinParser
-from synapse.types import JsonDict
-from synapse.util import ExceptionBundle
+from relapse.api.room_versions import RoomVersions
+from relapse.federation.transport.client import SendJoinParser
+from relapse.types import JsonDict
+from relapse.util import ExceptionBundle
 
 from tests.unittest import TestCase
 

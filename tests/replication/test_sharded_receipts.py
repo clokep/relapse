@@ -15,13 +15,13 @@ import logging
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.constants import ReceiptTypes
-from synapse.rest import admin
-from synapse.rest.client import login, receipts, room, sync
-from synapse.server import HomeServer
-from synapse.storage.util.id_generators import MultiWriterIdGenerator
-from synapse.types import StreamToken
-from synapse.util import Clock
+from relapse.api.constants import ReceiptTypes
+from relapse.rest import admin
+from relapse.rest.client import login, receipts, room, sync
+from relapse.server import HomeServer
+from relapse.storage.util.id_generators import MultiWriterIdGenerator
+from relapse.types import StreamToken
+from relapse.util import Clock
 
 from tests.replication._base import BaseMultiWorkerStreamTestCase
 from tests.server import make_request
@@ -64,13 +64,13 @@ class ReceiptsShardTestCase(BaseMultiWorkerStreamTestCase):
         """
 
         worker1 = self.make_worker_hs(
-            "synapse.app.generic_worker",
+            "relapse.app.generic_worker",
             {"worker_name": "worker1"},
         )
         worker1_site = self._hs_to_site[worker1]
 
         worker2 = self.make_worker_hs(
-            "synapse.app.generic_worker",
+            "relapse.app.generic_worker",
             {"worker_name": "worker2"},
         )
         worker2_site = self._hs_to_site[worker2]
@@ -120,19 +120,19 @@ class ReceiptsShardTestCase(BaseMultiWorkerStreamTestCase):
         """
 
         worker_hs1 = self.make_worker_hs(
-            "synapse.app.generic_worker",
+            "relapse.app.generic_worker",
             {"worker_name": "worker1"},
         )
         worker1_site = self._hs_to_site[worker_hs1]
 
         worker_hs2 = self.make_worker_hs(
-            "synapse.app.generic_worker",
+            "relapse.app.generic_worker",
             {"worker_name": "worker2"},
         )
         worker2_site = self._hs_to_site[worker_hs2]
 
         sync_hs = self.make_worker_hs(
-            "synapse.app.generic_worker",
+            "relapse.app.generic_worker",
             {"worker_name": "sync"},
         )
         sync_hs_site = self._hs_to_site[sync_hs]

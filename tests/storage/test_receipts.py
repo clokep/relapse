@@ -16,10 +16,10 @@ from typing import Collection, Optional
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.constants import ReceiptTypes
-from synapse.server import HomeServer
-from synapse.types import UserID, create_requester
-from synapse.util import Clock
+from relapse.api.constants import ReceiptTypes
+from relapse.server import HomeServer
+from relapse.types import UserID, create_requester
+from relapse.util import Clock
 
 from tests.test_utils.event_injection import create_event
 from tests.unittest import HomeserverTestCase

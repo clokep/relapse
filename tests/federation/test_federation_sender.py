@@ -20,14 +20,14 @@ from signedjson.types import BaseKey, SigningKey
 from twisted.internet import defer
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.constants import EduTypes, RoomEncryptionAlgorithms
-from synapse.federation.units import Transaction
-from synapse.handlers.device import DeviceHandler
-from synapse.rest import admin
-from synapse.rest.client import login
-from synapse.server import HomeServer
-from synapse.types import JsonDict, ReadReceipt
-from synapse.util import Clock
+from relapse.api.constants import EduTypes, RoomEncryptionAlgorithms
+from relapse.federation.units import Transaction
+from relapse.handlers.device import DeviceHandler
+from relapse.rest import admin
+from relapse.rest.client import login
+from relapse.server import HomeServer
+from relapse.types import JsonDict, ReadReceipt
+from relapse.util import Clock
 
 from tests.unittest import HomeserverTestCase
 
@@ -620,7 +620,7 @@ class FederationSenderDevicesTestCases(HomeserverTestCase):
         self.assertEqual(edu["edu_type"], EduTypes.DEVICE_LIST_UPDATE)
         c = edu["content"]
 
-        # synapse uses an empty prev_id list to indicate "needs a full resync".
+        # relapse uses an empty prev_id list to indicate "needs a full resync".
         self.assertEqual(c["prev_id"], [])
 
     def test_prune_outbound_device_pokes2(self) -> None:
@@ -677,7 +677,7 @@ class FederationSenderDevicesTestCases(HomeserverTestCase):
         self.assertEqual(edu["edu_type"], EduTypes.DEVICE_LIST_UPDATE)
         c = edu["content"]
 
-        # synapse uses an empty prev_id list to indicate "needs a full resync".
+        # relapse uses an empty prev_id list to indicate "needs a full resync".
         self.assertEqual(c["prev_id"], [])
 
     def check_device_update_edu(

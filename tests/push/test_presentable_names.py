@@ -14,11 +14,11 @@
 
 from typing import Iterable, List, Optional, Tuple, cast
 
-from synapse.api.constants import EventTypes, Membership
-from synapse.api.room_versions import RoomVersions
-from synapse.events import EventBase, FrozenEvent
-from synapse.push.presentable_names import calculate_room_name
-from synapse.types import StateKey, StateMap
+from relapse.api.constants import EventTypes, Membership
+from relapse.api.room_versions import RoomVersions
+from relapse.events import EventBase, FrozenEvent
+from relapse.push.presentable_names import calculate_room_name
+from relapse.types import StateKey, StateMap
 
 from tests import unittest
 

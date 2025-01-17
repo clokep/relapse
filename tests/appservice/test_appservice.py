@@ -17,7 +17,7 @@ from unittest.mock import AsyncMock, Mock
 
 from twisted.internet import defer
 
-from synapse.appservice import ApplicationService, Namespace
+from relapse.appservice import ApplicationService, Namespace
 
 from tests import unittest
 

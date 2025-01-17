@@ -1,8 +1,8 @@
 # Reporting Homeserver Usage Statistics
 
-When generating your Synapse configuration file, you are asked whether you
+When generating your Relapse configuration file, you are asked whether you
 would like to report usage statistics to Matrix.org. These statistics
-provide the foundation a glimpse into the number of Synapse homeservers
+provide the foundation a glimpse into the number of Relapse homeservers
 participating in the network, as well as statistics such as the number of
 rooms being created and messages being sent. This feature is sometimes
 affectionately called "phone home" stats. Reporting
@@ -65,7 +65,7 @@ will additionally be counted as a user (irrespective of `track_puppeted_user_ips
 
 ## Using a Custom Statistics Collection Server
 
-If statistics reporting is enabled, the endpoint that Synapse sends metrics to is configured by the
+If statistics reporting is enabled, the endpoint that Relapse sends metrics to is configured by the
 [`report_stats_endpoint`](../../configuration/config_documentation.md#report_stats_endpoint) config
 option. By default, statistics are sent to Matrix.org.
 

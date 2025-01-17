@@ -20,16 +20,16 @@ from parameterized import parameterized
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import synapse.rest.admin
-from synapse.http.site import XForwardedForRequest
-from synapse.rest.client import login
-from synapse.server import HomeServer
-from synapse.storage.databases.main.client_ips import (
+import relapse.rest.admin
+from relapse.http.site import XForwardedForRequest
+from relapse.rest.client import login
+from relapse.server import HomeServer
+from relapse.storage.databases.main.client_ips import (
     LAST_SEEN_GRANULARITY,
     DeviceLastConnectionInfo,
 )
-from synapse.types import UserID
-from synapse.util import Clock
+from relapse.types import UserID
+from relapse.util import Clock
 
 from tests import unittest
 from tests.server import make_request
@@ -712,7 +712,7 @@ class ClientIpStoreTestCase(unittest.HomeserverTestCase):
 
 class ClientIpAuthTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         login.register_servlets,
     ]
 
@@ -757,7 +757,7 @@ class ClientIpAuthTestCase(unittest.HomeserverTestCase):
             self.reactor,
             self.site,
             "GET",
-            "/_synapse/admin/v2/users/" + self.user_id,
+            "/_relapse/admin/v2/users/" + self.user_id,
             access_token=access_token,
             custom_headers=headers1.items(),
             **make_request_args,

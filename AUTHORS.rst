@@ -1,5 +1,5 @@
 The following is an incomplete list of people outside the core team who have
-contributed to Synapse. It is no longer maintained: more recent contributions
+contributed to Relapse. It is no longer maintained: more recent contributions
 are listed in the `changelog <CHANGES.md>`_.
 
 ----

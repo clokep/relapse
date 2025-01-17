@@ -16,23 +16,23 @@ from unittest import mock
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.errors import AuthError, StoreError
-from synapse.api.room_versions import RoomVersion
-from synapse.event_auth import (
+from relapse.api.errors import AuthError, StoreError
+from relapse.api.room_versions import RoomVersion
+from relapse.event_auth import (
     check_state_dependent_auth_rules,
     check_state_independent_auth_rules,
 )
-from synapse.events import make_event_from_dict
-from synapse.events.snapshot import EventContext
-from synapse.federation.transport.client import StateRequestResponse
-from synapse.logging.context import LoggingContext
-from synapse.rest import admin
-from synapse.rest.client import login, room
-from synapse.server import HomeServer
-from synapse.state import StateResolutionStore
-from synapse.state.v2 import _mainline_sort, _reverse_topological_power_sort
-from synapse.types import JsonDict
-from synapse.util import Clock
+from relapse.events import make_event_from_dict
+from relapse.events.snapshot import EventContext
+from relapse.federation.transport.client import StateRequestResponse
+from relapse.logging.context import LoggingContext
+from relapse.rest import admin
+from relapse.rest.client import login, room
+from relapse.server import HomeServer
+from relapse.state import StateResolutionStore
+from relapse.state.v2 import _mainline_sort, _reverse_topological_power_sort
+from relapse.types import JsonDict
+from relapse.util import Clock
 
 from tests import unittest
 from tests.test_utils import event_injection
@@ -273,7 +273,7 @@ class FederationEventHandlerTests(unittest.FederatingHomeserverTestCase):
         # We expect an outbound request to /state_ids, so stub that out
         self.mock_federation_transport_client.get_room_state_ids.return_value = {
             # Mimic the other server not knowing about the state at all.
-            # We want to cause Synapse to throw an error (`Unable to get
+            # We want to cause Relapse to throw an error (`Unable to get
             # missing prev_event $fake_prev_event`) and fail to backfill
             # the pulled event.
             "pdu_ids": [],
@@ -283,7 +283,7 @@ class FederationEventHandlerTests(unittest.FederatingHomeserverTestCase):
         # We also expect an outbound request to /state
         self.mock_federation_transport_client.get_room_state.return_value = StateRequestResponse(
             # Mimic the other server not knowing about the state at all.
-            # We want to cause Synapse to throw an error (`Unable to get
+            # We want to cause Relapse to throw an error (`Unable to get
             # missing prev_event $fake_prev_event`) and fail to backfill
             # the pulled event.
             auth_events=[],

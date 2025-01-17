@@ -16,12 +16,12 @@ from typing import Optional
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import synapse.rest.admin
-from synapse.api.constants import EduTypes, EventTypes, HistoryVisibility, ReceiptTypes
-from synapse.rest.client import login, receipts, room, sync
-from synapse.server import HomeServer
-from synapse.types import JsonDict
-from synapse.util import Clock
+import relapse.rest.admin
+from relapse.api.constants import EduTypes, EventTypes, HistoryVisibility, ReceiptTypes
+from relapse.rest.client import login, receipts, room, sync
+from relapse.server import HomeServer
+from relapse.types import JsonDict
+from relapse.util import Clock
 
 from tests import unittest
 
@@ -30,7 +30,7 @@ class ReceiptsTestCase(unittest.HomeserverTestCase):
     servlets = [
         login.register_servlets,
         receipts.register_servlets,
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         room.register_servlets,
         sync.register_servlets,
     ]

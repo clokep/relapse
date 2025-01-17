@@ -17,7 +17,7 @@ from unittest import mock
 from twisted.internet.defer import ensureDeferred
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.constants import (
+from relapse.api.constants import (
     EventContentFields,
     EventTypes,
     HistoryVisibility,
@@ -26,16 +26,16 @@ from synapse.api.constants import (
     RestrictedJoinRuleTypes,
     RoomTypes,
 )
-from synapse.api.errors import AuthError, NotFoundError, SynapseError
-from synapse.api.room_versions import RoomVersions
-from synapse.events import make_event_from_dict
-from synapse.federation.transport.client import TransportLayerClient
-from synapse.handlers.room_summary import _child_events_comparison_key, _RoomEntry
-from synapse.rest import admin
-from synapse.rest.client import login, room
-from synapse.server import HomeServer
-from synapse.types import JsonDict, UserID, create_requester
-from synapse.util import Clock
+from relapse.api.errors import AuthError, NotFoundError, RelapseError
+from relapse.api.room_versions import RoomVersions
+from relapse.events import make_event_from_dict
+from relapse.federation.transport.client import TransportLayerClient
+from relapse.handlers.room_summary import _child_events_comparison_key, _RoomEntry
+from relapse.rest import admin
+from relapse.rest.client import login, room
+from relapse.server import HomeServer
+from relapse.types import JsonDict, UserID, create_requester
+from relapse.util import Clock
 
 from tests import unittest
 
@@ -579,7 +579,7 @@ class SpaceSummaryTestCase(unittest.HomeserverTestCase):
             self.handler.get_room_hierarchy(
                 create_requester(self.user), self.room, from_token=result["next_batch"]
             ),
-            SynapseError,
+            RelapseError,
         )
         self.get_failure(
             self.handler.get_room_hierarchy(
@@ -588,7 +588,7 @@ class SpaceSummaryTestCase(unittest.HomeserverTestCase):
                 suggested_only=True,
                 from_token=result["next_batch"],
             ),
-            SynapseError,
+            RelapseError,
         )
         self.get_failure(
             self.handler.get_room_hierarchy(
@@ -597,7 +597,7 @@ class SpaceSummaryTestCase(unittest.HomeserverTestCase):
                 max_depth=0,
                 from_token=result["next_batch"],
             ),
-            SynapseError,
+            RelapseError,
         )
 
         # An invalid token is ignored.
@@ -605,7 +605,7 @@ class SpaceSummaryTestCase(unittest.HomeserverTestCase):
             self.handler.get_room_hierarchy(
                 create_requester(self.user), self.space, from_token="foo"
             ),
-            SynapseError,
+            RelapseError,
         )
 
     def test_max_depth(self) -> None:
@@ -742,7 +742,7 @@ class SpaceSummaryTestCase(unittest.HomeserverTestCase):
         ]
 
         with mock.patch(
-            "synapse.handlers.room_summary.RoomSummaryHandler._summarize_remote_room_hierarchy",
+            "relapse.handlers.room_summary.RoomSummaryHandler._summarize_remote_room_hierarchy",
             new=summarize_remote_room_hierarchy,
         ):
             result = self.get_success(
@@ -892,7 +892,7 @@ class SpaceSummaryTestCase(unittest.HomeserverTestCase):
         ]
 
         with mock.patch(
-            "synapse.handlers.room_summary.RoomSummaryHandler._summarize_remote_room_hierarchy",
+            "relapse.handlers.room_summary.RoomSummaryHandler._summarize_remote_room_hierarchy",
             new=summarize_remote_room_hierarchy,
         ):
             result = self.get_success(
@@ -938,7 +938,7 @@ class SpaceSummaryTestCase(unittest.HomeserverTestCase):
         ]
 
         with mock.patch(
-            "synapse.handlers.room_summary.RoomSummaryHandler._summarize_remote_room_hierarchy",
+            "relapse.handlers.room_summary.RoomSummaryHandler._summarize_remote_room_hierarchy",
             new=summarize_remote_room_hierarchy,
         ):
             result = self.get_success(
@@ -999,7 +999,7 @@ class SpaceSummaryTestCase(unittest.HomeserverTestCase):
         ]
 
         with mock.patch(
-            "synapse.federation.transport.client.TransportLayerClient.get_room_hierarchy",
+            "relapse.federation.transport.client.TransportLayerClient.get_room_hierarchy",
             new=get_room_hierarchy,
         ):
             result = self.get_success(
@@ -1121,7 +1121,7 @@ class RoomSummaryTestCase(unittest.HomeserverTestCase):
             return requested_room_entry, {}, set()
 
         with mock.patch(
-            "synapse.handlers.room_summary.RoomSummaryHandler._summarize_remote_room_hierarchy",
+            "relapse.handlers.room_summary.RoomSummaryHandler._summarize_remote_room_hierarchy",
             new=summarize_remote_room_hierarchy,
         ):
             result = self.get_success(

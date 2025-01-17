@@ -13,11 +13,11 @@
 # limitations under the License.
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.constants import UserTypes
-from synapse.api.errors import ThreepidValidationError
-from synapse.server import HomeServer
-from synapse.types import JsonDict, UserID, UserInfo
-from synapse.util import Clock
+from relapse.api.constants import UserTypes
+from relapse.api.errors import ThreepidValidationError
+from relapse.server import HomeServer
+from relapse.types import JsonDict, UserID, UserInfo
+from relapse.util import Clock
 
 from tests.unittest import HomeserverTestCase, override_config
 

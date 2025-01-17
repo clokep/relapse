@@ -22,10 +22,10 @@ from signedjson.key import (
 )
 from signedjson.sign import sign_json
 
-from synapse.api.errors import Codes
-from synapse.rest import admin
-from synapse.rest.client import keys, login
-from synapse.types import JsonDict, Requester, create_requester
+from relapse.api.errors import Codes
+from relapse.rest import admin
+from relapse.rest.client import keys, login
+from relapse.types import JsonDict, Requester, create_requester
 
 from tests import unittest
 from tests.http.server._base import make_request_with_cancellation_test
@@ -290,22 +290,22 @@ class SigningKeyUploadServletTestCase(unittest.HomeserverTestCase):
     )
     def test_master_cross_signing_key_replacement_msc3861(self) -> None:
         # Provision a user like MAS would, cribbing from
-        # https://github.com/matrix-org/matrix-authentication-service/blob/08d46a79a4adb22819ac9d55e15f8375dfe2c5c7/crates/matrix-synapse/src/lib.rs#L224-L229
+        # https://github.com/matrix-org/matrix-authentication-service/blob/08d46a79a4adb22819ac9d55e15f8375dfe2c5c7/crates/matrix-relapse/src/lib.rs#L224-L229
         alice = "@alice:test"
         channel = self.make_request(
             "PUT",
-            f"/_synapse/admin/v2/users/{urllib.parse.quote(alice)}",
+            f"/_relapse/admin/v2/users/{urllib.parse.quote(alice)}",
             access_token=self.OIDC_ADMIN_TOKEN,
             content={},
         )
         self.assertEqual(channel.code, HTTPStatus.CREATED, channel.json_body)
 
         # Provision a device like MAS would, cribbing from
-        # https://github.com/matrix-org/matrix-authentication-service/blob/08d46a79a4adb22819ac9d55e15f8375dfe2c5c7/crates/matrix-synapse/src/lib.rs#L260-L262
+        # https://github.com/matrix-org/matrix-authentication-service/blob/08d46a79a4adb22819ac9d55e15f8375dfe2c5c7/crates/matrix-relapse/src/lib.rs#L260-L262
         alice_device = "alice_device"
         channel = self.make_request(
             "POST",
-            f"/_synapse/admin/v2/users/{urllib.parse.quote(alice)}/devices",
+            f"/_relapse/admin/v2/users/{urllib.parse.quote(alice)}/devices",
             access_token=self.OIDC_ADMIN_TOKEN,
             content={"device_id": alice_device},
         )
@@ -380,7 +380,7 @@ class SigningKeyUploadServletTestCase(unittest.HomeserverTestCase):
         # Pretend that MAS did UIA and allowed us to replace the master key.
         channel = self.make_request(
             "POST",
-            f"/_synapse/admin/v1/users/{urllib.parse.quote(alice)}/_allow_cross_signing_replacement_without_uia",
+            f"/_relapse/admin/v1/users/{urllib.parse.quote(alice)}/_allow_cross_signing_replacement_without_uia",
             access_token=self.OIDC_ADMIN_TOKEN,
         )
         self.assertEqual(HTTPStatus.OK, channel.code, msg=channel.json_body)
@@ -414,7 +414,7 @@ class SigningKeyUploadServletTestCase(unittest.HomeserverTestCase):
         # Pretend that MAS did UIA and allowed us to replace the master key.
         channel = self.make_request(
             "POST",
-            f"/_synapse/admin/v1/users/{urllib.parse.quote(alice)}/_allow_cross_signing_replacement_without_uia",
+            f"/_relapse/admin/v1/users/{urllib.parse.quote(alice)}/_allow_cross_signing_replacement_without_uia",
             access_token=self.OIDC_ADMIN_TOKEN,
         )
         self.assertEqual(HTTPStatus.OK, channel.code, msg=channel.json_body)

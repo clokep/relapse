@@ -16,12 +16,12 @@ from typing import List, Optional, Tuple, cast
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.constants import Membership
-from synapse.rest.admin import register_servlets_for_client_rest_resource
-from synapse.rest.client import login, room
-from synapse.server import HomeServer
-from synapse.types import UserID, create_requester
-from synapse.util import Clock
+from relapse.api.constants import Membership
+from relapse.rest.admin import register_servlets_for_client_rest_resource
+from relapse.rest.client import login, room
+from relapse.server import HomeServer
+from relapse.types import UserID, create_requester
+from relapse.util import Clock
 
 from tests import unittest
 from tests.server import TestHomeServer

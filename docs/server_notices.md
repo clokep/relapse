@@ -1,13 +1,13 @@
 # Server Notices
 
-'Server Notices' are a new feature introduced in Synapse 0.30. They provide a
+'Server Notices' are a new feature introduced in Relapse 0.30. They provide a
 channel whereby server administrators can send messages to users on the server.
 
 They are used as part of communication of the server polices (see
 [Consent Tracking](consent_tracking.md)), however the intention is that
 they may also find a use for features such as "Message of the day".
 
-This is a feature specific to Synapse, but it uses standard Matrix
+This is a feature specific to Relapse, but it uses standard Matrix
 communication mechanisms, so should work with any Matrix client.
 
 ## User experience
@@ -27,7 +27,7 @@ levels.
 Having joined the room, the user can leave the room if they want. Subsequent
 server notices will then cause a new room to be created.
 
-## Synapse configuration
+## Relapse configuration
 
 Server notices come from a specific user id on the server. Server
 administrators are free to choose the user id - something like `server` is

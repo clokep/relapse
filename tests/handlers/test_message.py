@@ -16,15 +16,15 @@ from typing import Tuple
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.constants import EventTypes
-from synapse.events import EventBase
-from synapse.events.snapshot import EventContext, UnpersistedEventContextBase
-from synapse.rest import admin
-from synapse.rest.client import login, room
-from synapse.server import HomeServer
-from synapse.types import create_requester
-from synapse.util import Clock
-from synapse.util.stringutils import random_string
+from relapse.api.constants import EventTypes
+from relapse.events import EventBase
+from relapse.events.snapshot import EventContext, UnpersistedEventContextBase
+from relapse.rest import admin
+from relapse.rest.client import login, room
+from relapse.server import HomeServer
+from relapse.types import create_requester
+from relapse.util import Clock
+from relapse.util.stringutils import random_string
 
 from tests import unittest
 from tests.test_utils.event_injection import create_event

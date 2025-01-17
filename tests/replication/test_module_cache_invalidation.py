@@ -13,8 +13,8 @@
 # limitations under the License.
 import logging
 
-import synapse
-from synapse.module_api import cached
+import relapse
+from relapse.module_api import cached
 
 from tests.replication._base import BaseMultiWorkerStreamTestCase
 
@@ -36,14 +36,14 @@ class TestCache:
 
 class ModuleCacheInvalidationTestCase(BaseMultiWorkerStreamTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
     ]
 
     def test_module_cache_full_invalidation(self) -> None:
         main_cache = TestCache()
         self.hs.get_module_api().register_cached_function(main_cache.cached_function)
 
-        worker_hs = self.make_worker_hs("synapse.app.generic_worker")
+        worker_hs = self.make_worker_hs("relapse.app.generic_worker")
 
         worker_cache = TestCache()
         worker_hs.get_module_api().register_cached_function(

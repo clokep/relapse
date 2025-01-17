@@ -15,13 +15,13 @@ from http import HTTPStatus
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.appservice import ApplicationService
-from synapse.rest import admin
-from synapse.rest.client import directory, login, room
-from synapse.server import HomeServer
-from synapse.types import RoomAlias
-from synapse.util import Clock
-from synapse.util.stringutils import random_string
+from relapse.appservice import ApplicationService
+from relapse.rest import admin
+from relapse.rest.client import directory, login, room
+from relapse.server import HomeServer
+from relapse.types import RoomAlias
+from relapse.util import Clock
+from relapse.util.stringutils import random_string
 
 from tests import unittest
 from tests.unittest import override_config

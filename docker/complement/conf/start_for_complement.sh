@@ -1,12 +1,12 @@
 #!/bin/bash
 #
-# Default ENTRYPOINT for the docker image used for testing synapse with workers under complement
+# Default ENTRYPOINT for the docker image used for testing relapse with workers under complement
 
 set -e
 
-echo "Complement Synapse launcher"
+echo "Complement Relapse launcher"
 echo "  Args: $@"
-echo "  Env: SYNAPSE_COMPLEMENT_DATABASE=$SYNAPSE_COMPLEMENT_DATABASE SYNAPSE_COMPLEMENT_USE_WORKERS=$SYNAPSE_COMPLEMENT_USE_WORKERS SYNAPSE_COMPLEMENT_USE_ASYNCIO_REACTOR=$SYNAPSE_COMPLEMENT_USE_ASYNCIO_REACTOR"
+echo "  Env: RELAPSE_COMPLEMENT_DATABASE=$RELAPSE_COMPLEMENT_DATABASE RELAPSE_COMPLEMENT_USE_WORKERS=$RELAPSE_COMPLEMENT_USE_WORKERS RELAPSE_COMPLEMENT_USE_ASYNCIO_REACTOR=$RELAPSE_COMPLEMENT_USE_ASYNCIO_REACTOR"
 
 function log {
     d=$(date +"%Y-%m-%d %H:%M:%S,%3N")
@@ -14,13 +14,13 @@ function log {
 }
 
 # Set the server name of the homeserver
-export SYNAPSE_SERVER_NAME=${SERVER_NAME}
+export RELAPSE_SERVER_NAME=${SERVER_NAME}
 
 # No need to report stats here
-export SYNAPSE_REPORT_STATS=no
+export RELAPSE_REPORT_STATS=no
 
 
-case "$SYNAPSE_COMPLEMENT_DATABASE" in
+case "$RELAPSE_COMPLEMENT_DATABASE" in
   postgres)
     # Set postgres authentication details which will be placed in the homeserver config file
     export POSTGRES_PASSWORD=somesecret
@@ -37,20 +37,20 @@ case "$SYNAPSE_COMPLEMENT_DATABASE" in
     ;;
 
   *)
-    echo "Unknown Synapse database: SYNAPSE_COMPLEMENT_DATABASE=$SYNAPSE_COMPLEMENT_DATABASE" >&2
+    echo "Unknown Relapse database: RELAPSE_COMPLEMENT_DATABASE=$RELAPSE_COMPLEMENT_DATABASE" >&2
     exit 1
     ;;
 esac
 
 
-if [[ -n "$SYNAPSE_COMPLEMENT_USE_WORKERS" ]]; then
+if [[ -n "$RELAPSE_COMPLEMENT_USE_WORKERS" ]]; then
   # Specify the workers to test with
-  # Allow overriding by explicitly setting SYNAPSE_WORKER_TYPES outside, while still
+  # Allow overriding by explicitly setting RELAPSE_WORKER_TYPES outside, while still
   # utilizing WORKERS=1 for backwards compatibility.
   # -n True if the length of string is non-zero.
   # -z True if the length of string is zero.
-  if [[ -z "$SYNAPSE_WORKER_TYPES" ]]; then
-    export SYNAPSE_WORKER_TYPES="\
+  if [[ -z "$RELAPSE_WORKER_TYPES" ]]; then
+    export RELAPSE_WORKER_TYPES="\
       event_persister:2, \
       background_worker, \
       frontend_proxy, \
@@ -67,35 +67,35 @@ if [[ -n "$SYNAPSE_COMPLEMENT_USE_WORKERS" ]]; then
       stream_writers=account_data+presence+receipts+to_device+typing"
 
   fi
-  log "Workers requested: $SYNAPSE_WORKER_TYPES"
-  # adjust connection pool limits on worker mode as otherwise running lots of worker synapses
+  log "Workers requested: $RELAPSE_WORKER_TYPES"
+  # adjust connection pool limits on worker mode as otherwise running lots of worker relapses
   # can make docker unhappy (in GHA)
   export POSTGRES_CP_MIN=1
   export POSTGRES_CP_MAX=3
   echo "using reduced connection pool limits for worker mode"
   # Improve startup times by using a launcher based on fork()
-  export SYNAPSE_USE_EXPERIMENTAL_FORKING_LAUNCHER=1
+  export RELAPSE_USE_EXPERIMENTAL_FORKING_LAUNCHER=1
 else
   # Empty string here means 'main process only'
-  export SYNAPSE_WORKER_TYPES=""
+  export RELAPSE_WORKER_TYPES=""
 fi
 
 
-if [[ -n "$SYNAPSE_COMPLEMENT_USE_ASYNCIO_REACTOR" ]]; then
-  if [[ -n "$SYNAPSE_USE_EXPERIMENTAL_FORKING_LAUNCHER" ]]; then
-    export SYNAPSE_COMPLEMENT_FORKING_LAUNCHER_ASYNC_IO_REACTOR="1"
+if [[ -n "$RELAPSE_COMPLEMENT_USE_ASYNCIO_REACTOR" ]]; then
+  if [[ -n "$RELAPSE_USE_EXPERIMENTAL_FORKING_LAUNCHER" ]]; then
+    export RELAPSE_COMPLEMENT_FORKING_LAUNCHER_ASYNC_IO_REACTOR="1"
   else
-    export SYNAPSE_ASYNC_IO_REACTOR="1"
+    export RELAPSE_ASYNC_IO_REACTOR="1"
   fi
 else
-  export SYNAPSE_ASYNC_IO_REACTOR="0"
+  export RELAPSE_ASYNC_IO_REACTOR="0"
 fi
 
 
 # Add Complement's appservice registration directory, if there is one
 # (It can be absent when there are no application services in this test!)
 if [ -d /complement/appservice ]; then
-    export SYNAPSE_AS_REGISTRATION_DIR=/complement/appservice
+    export RELAPSE_AS_REGISTRATION_DIR=/complement/appservice
 fi
 
 # Generate a TLS key, then generate a certificate by having Complement's CA sign it
@@ -125,8 +125,8 @@ openssl x509 -req -in /conf/server.tls.csr \
 # (grep will exit with 1 here if there isn't a SAN in the certificate.)
 openssl x509 -in /conf/server.tls.crt -noout -text | grep DNS:
 
-export SYNAPSE_TLS_CERT=/conf/server.tls.crt
-export SYNAPSE_TLS_KEY=/conf/server.tls.key
+export RELAPSE_TLS_CERT=/conf/server.tls.crt
+export RELAPSE_TLS_KEY=/conf/server.tls.key
 
 # Run the script that writes the necessary config files and starts supervisord, which in turn
 # starts everything else

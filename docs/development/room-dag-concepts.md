@@ -3,7 +3,7 @@
 ## Edges
 
 The word "edge" comes from graph theory lingo. An edge is just a connection
-between two events. In Synapse, we connect events by specifying their
+between two events. In Relapse, we connect events by specifying their
 `prev_events`. A subsequent event points back at a previous event.
 
 ```
@@ -48,7 +48,7 @@ reason). Other things that make outliers different from regular events:
 
  * We don't have state for them, so there should be no entry in
    `event_to_state_groups` for an outlier. (In practice this isn't always
-   the case, though I'm not sure why: see https://github.com/matrix-org/synapse/issues/12201).
+   the case, though I'm not sure why: see https://github.com/clokep/relapse/issues/12201).
 
  * We don't record entries for them in the `event_edges`,
    `event_forward_extremeties` or `event_backward_extremities` tables.

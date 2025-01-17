@@ -17,10 +17,10 @@ from typing import Optional, Tuple
 from twisted.internet.task import deferLater
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.server import HomeServer
-from synapse.types import JsonMapping, ScheduledTask, TaskStatus
-from synapse.util import Clock
-from synapse.util.task_scheduler import TaskScheduler
+from relapse.server import HomeServer
+from relapse.types import JsonMapping, ScheduledTask, TaskStatus
+from relapse.util import Clock
+from relapse.util.task_scheduler import TaskScheduler
 
 from tests.replication._base import BaseMultiWorkerStreamTestCase
 from tests.unittest import HomeserverTestCase, override_config
@@ -160,14 +160,14 @@ class TestTaskScheduler(HomeserverTestCase):
             return TaskStatus.ACTIVE, None, None
 
     def test_schedule_resumable_task(self) -> None:
-        """Schedule a resumable task and check that it gets properly resumed and complete after simulating a synapse restart."""
+        """Schedule a resumable task and check that it gets properly resumed and complete after simulating a relapse restart."""
         task_id = self.get_success(self.task_scheduler.schedule_task("_resumable_task"))
 
         task = self.get_success(self.task_scheduler.get_task(task_id))
         assert task is not None
         self.assertEqual(task.status, TaskStatus.ACTIVE)
 
-        # Simulate a synapse restart by emptying the list of running tasks
+        # Simulate a relapse restart by emptying the list of running tasks
         self.task_scheduler._running_tasks = set()
         self.reactor.advance((TaskScheduler.SCHEDULE_INTERVAL_MS / 1000))
 
@@ -192,7 +192,7 @@ class TestTaskSchedulerWithBackgroundWorker(BaseMultiWorkerStreamTestCase):
     def test_schedule_task(self) -> None:
         """Check that a task scheduled to run now is launch right away on the background worker."""
         bg_worker_hs = self.make_worker_hs(
-            "synapse.app.generic_worker",
+            "relapse.app.generic_worker",
             extra_config={"worker_name": "worker1"},
         )
         bg_worker_hs.get_task_scheduler().register_action(self._test_task, "_test_task")

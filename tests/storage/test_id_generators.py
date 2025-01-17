@@ -15,16 +15,16 @@ from typing import List, Optional
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.server import HomeServer
-from synapse.storage.database import (
+from relapse.server import HomeServer
+from relapse.storage.database import (
     DatabasePool,
     LoggingDatabaseConnection,
     LoggingTransaction,
 )
-from synapse.storage.engines import IncorrectDatabaseSetup
-from synapse.storage.types import Cursor
-from synapse.storage.util.id_generators import MultiWriterIdGenerator, StreamIdGenerator
-from synapse.util import Clock
+from relapse.storage.engines import IncorrectDatabaseSetup
+from relapse.storage.types import Cursor
+from relapse.storage.util.id_generators import MultiWriterIdGenerator, StreamIdGenerator
+from relapse.util import Clock
 
 from tests.unittest import HomeserverTestCase
 from tests.utils import USE_POSTGRES_FOR_TESTS
@@ -609,7 +609,7 @@ class MultiWriterIdGeneratorTestCase(HomeserverTestCase):
         self.assertEqual(id_gen_3.get_persisted_upto_position(), 5)
 
         # For new writers we assume their initial position to be the current
-        # persisted up to position. This stops Synapse from doing a full table
+        # persisted up to position. This stops Relapse from doing a full table
         # scan when a new writer comes along.
         self.assertEqual(id_gen_3.get_current_token_for_writer("third"), 5)
 

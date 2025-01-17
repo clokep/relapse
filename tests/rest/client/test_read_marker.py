@@ -13,12 +13,12 @@
 # limitations under the License.
 from twisted.test.proto_helpers import MemoryReactor
 
-import synapse.rest.admin
-from synapse.api.constants import EventTypes
-from synapse.rest import admin
-from synapse.rest.client import login, read_marker, register, room
-from synapse.server import HomeServer
-from synapse.util import Clock
+import relapse.rest.admin
+from relapse.api.constants import EventTypes
+from relapse.rest import admin
+from relapse.rest.client import login, read_marker, register, room
+from relapse.server import HomeServer
+from relapse.util import Clock
 
 from tests import unittest
 
@@ -32,7 +32,7 @@ class ReadMarkerTestCase(unittest.HomeserverTestCase):
         register.register_servlets,
         read_marker.register_servlets,
         room.register_servlets,
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         admin.register_servlets,
     ]
 

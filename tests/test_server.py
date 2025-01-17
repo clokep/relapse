@@ -19,19 +19,19 @@ from typing import Awaitable, Callable, Dict, NoReturn, Optional, Tuple
 from twisted.internet.defer import Deferred
 from twisted.web.resource import Resource
 
-from synapse.api.errors import Codes, RedirectException, SynapseError
-from synapse.config.server import parse_listener_def
-from synapse.http.server import (
+from relapse.api.errors import Codes, RedirectException, RelapseError
+from relapse.config.server import parse_listener_def
+from relapse.http.server import (
     DirectServeHtmlResource,
     DirectServeJsonResource,
     JsonResource,
     OptionsResource,
 )
-from synapse.http.site import SynapseRequest, SynapseSite
-from synapse.logging.context import make_deferred_yieldable
-from synapse.types import JsonDict
-from synapse.util import Clock
-from synapse.util.cancellation import cancellable
+from relapse.http.site import RelapseRequest, RelapseSite
+from relapse.logging.context import make_deferred_yieldable
+from relapse.types import JsonDict
+from relapse.util import Clock
+from relapse.util.cancellation import cancellable
 
 from tests import unittest
 from tests.http.server._base import test_disconnect
@@ -63,7 +63,7 @@ class JsonResourceTests(unittest.TestCase):
         got_kwargs = {}
 
         def _callback(
-            request: SynapseRequest, **kwargs: object
+            request: RelapseRequest, **kwargs: object
         ) -> Tuple[int, Dict[str, object]]:
             got_kwargs.update(kwargs)
             return 200, kwargs
@@ -91,7 +91,7 @@ class JsonResourceTests(unittest.TestCase):
         into a 500.
         """
 
-        def _callback(request: SynapseRequest, **kwargs: object) -> NoReturn:
+        def _callback(request: RelapseRequest, **kwargs: object) -> NoReturn:
             raise Exception("boo")
 
         res = JsonResource(self.homeserver)
@@ -114,7 +114,7 @@ class JsonResourceTests(unittest.TestCase):
         def _throw(*args: object) -> NoReturn:
             raise Exception("boo")
 
-        def _callback(request: SynapseRequest, **kwargs: object) -> "Deferred[None]":
+        def _callback(request: RelapseRequest, **kwargs: object) -> "Deferred[None]":
             d: "Deferred[None]" = Deferred()
             d.addCallback(_throw)
             self.reactor.callLater(0.5, d.callback, True)
@@ -131,14 +131,14 @@ class JsonResourceTests(unittest.TestCase):
 
         self.assertEqual(channel.code, 500)
 
-    def test_callback_synapseerror(self) -> None:
+    def test_callback_relapseerror(self) -> None:
         """
-        If the web callback raises a SynapseError, it returns the appropriate
+        If the web callback raises a RelapseError, it returns the appropriate
         status code and message set in it.
         """
 
-        def _callback(request: SynapseRequest, **kwargs: object) -> NoReturn:
-            raise SynapseError(403, "Forbidden!!one!", Codes.FORBIDDEN)
+        def _callback(request: RelapseRequest, **kwargs: object) -> NoReturn:
+            raise RelapseError(403, "Forbidden!!one!", Codes.FORBIDDEN)
 
         res = JsonResource(self.homeserver)
         res.register_paths(
@@ -155,10 +155,10 @@ class JsonResourceTests(unittest.TestCase):
 
     def test_no_handler(self) -> None:
         """
-        If there is no handler to process the request, Synapse will return 400.
+        If there is no handler to process the request, Relapse will return 400.
         """
 
-        def _callback(request: SynapseRequest, **kwargs: object) -> None:
+        def _callback(request: RelapseRequest, **kwargs: object) -> None:
             """
             Not ever actually called!
             """
@@ -185,7 +185,7 @@ class JsonResourceTests(unittest.TestCase):
         """
 
         def _callback(
-            request: SynapseRequest, **kwargs: object
+            request: RelapseRequest, **kwargs: object
         ) -> Tuple[int, Dict[str, object]]:
             return 200, {"result": True}
 
@@ -219,7 +219,7 @@ class OptionsResourceTests(unittest.TestCase):
         class DummyResource(Resource):
             isLeaf = True
 
-            def render(self, request: SynapseRequest) -> bytes:
+            def render(self, request: RelapseRequest) -> bytes:
                 # Type-ignore: mypy thinks request.path is Optional[Any], not bytes.
                 return request.path  # type: ignore[return-value]
 
@@ -232,7 +232,7 @@ class OptionsResourceTests(unittest.TestCase):
     ) -> FakeChannel:
         """Create a request from the method/path and return a channel with the response."""
         # Create a site and query for the resource.
-        site = SynapseSite(
+        site = RelapseSite(
             "test",
             "site_tag",
             parse_listener_def(
@@ -274,7 +274,7 @@ class OptionsResourceTests(unittest.TestCase):
         )
         self.assertEqual(
             channel.headers.getRawHeaders(b"Access-Control-Expose-Headers"),
-            [b"Synapse-Trace-Id, Server"],
+            [b"Relapse-Trace-Id, Server"],
         )
 
     def _check_cors_msc3886_headers(self, channel: FakeChannel) -> None:
@@ -345,7 +345,7 @@ class WrapHtmlRequestHandlerTests(unittest.TestCase):
     class TestResource(DirectServeHtmlResource):
         callback: Optional[Callable[..., Awaitable[None]]]
 
-        async def _async_render_GET(self, request: SynapseRequest) -> None:
+        async def _async_render_GET(self, request: RelapseRequest) -> None:
             assert self.callback is not None
             await self.callback(request)
 
@@ -354,7 +354,7 @@ class WrapHtmlRequestHandlerTests(unittest.TestCase):
         self.reactor = reactor
 
     def test_good_response(self) -> None:
-        async def callback(request: SynapseRequest) -> None:
+        async def callback(request: RelapseRequest) -> None:
             request.write(b"response")
             request.finish()
 
@@ -375,7 +375,7 @@ class WrapHtmlRequestHandlerTests(unittest.TestCase):
         with the right location.
         """
 
-        async def callback(request: SynapseRequest, **kwargs: object) -> None:
+        async def callback(request: RelapseRequest, **kwargs: object) -> None:
             raise RedirectException(b"/look/an/eagle", 301)
 
         res = WrapHtmlRequestHandlerTests.TestResource()
@@ -396,7 +396,7 @@ class WrapHtmlRequestHandlerTests(unittest.TestCase):
         returned too
         """
 
-        async def callback(request: SynapseRequest, **kwargs: object) -> NoReturn:
+        async def callback(request: RelapseRequest, **kwargs: object) -> NoReturn:
             e = RedirectException(b"/no/over/there", 304)
             e.cookies.append(b"session=yespls")
             raise e
@@ -418,7 +418,7 @@ class WrapHtmlRequestHandlerTests(unittest.TestCase):
     def test_head_request(self) -> None:
         """A head request should work by being turned into a GET request."""
 
-        async def callback(request: SynapseRequest) -> None:
+        async def callback(request: RelapseRequest) -> None:
             request.write(b"response")
             request.finish()
 
@@ -439,11 +439,11 @@ class CancellableDirectServeJsonResource(DirectServeJsonResource):
         self.clock = clock
 
     @cancellable
-    async def _async_render_GET(self, request: SynapseRequest) -> Tuple[int, JsonDict]:
+    async def _async_render_GET(self, request: RelapseRequest) -> Tuple[int, JsonDict]:
         await self.clock.sleep(1.0)
         return HTTPStatus.OK, {"result": True}
 
-    async def _async_render_POST(self, request: SynapseRequest) -> Tuple[int, JsonDict]:
+    async def _async_render_POST(self, request: RelapseRequest) -> Tuple[int, JsonDict]:
         await self.clock.sleep(1.0)
         return HTTPStatus.OK, {"result": True}
 
@@ -456,11 +456,11 @@ class CancellableDirectServeHtmlResource(DirectServeHtmlResource):
         self.clock = clock
 
     @cancellable
-    async def _async_render_GET(self, request: SynapseRequest) -> Tuple[int, bytes]:
+    async def _async_render_GET(self, request: RelapseRequest) -> Tuple[int, bytes]:
         await self.clock.sleep(1.0)
         return HTTPStatus.OK, b"ok"
 
-    async def _async_render_POST(self, request: SynapseRequest) -> Tuple[int, bytes]:
+    async def _async_render_POST(self, request: RelapseRequest) -> Tuple[int, bytes]:
         await self.clock.sleep(1.0)
         return HTTPStatus.OK, b"ok"
 

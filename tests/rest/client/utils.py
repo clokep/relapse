@@ -39,10 +39,10 @@ from typing_extensions import Literal
 from twisted.test.proto_helpers import MemoryReactorClock
 from twisted.web.server import Site
 
-from synapse.api.constants import Membership
-from synapse.api.errors import Codes
-from synapse.server import HomeServer
-from synapse.types import JsonDict
+from relapse.api.constants import Membership
+from relapse.api.errors import Codes
+from relapse.server import HomeServer
+from relapse.types import JsonDict
 
 from tests.server import FakeChannel, make_request
 from tests.test_utils.html_parsers import TestHtmlParser
@@ -119,7 +119,7 @@ class RestHelper:
                 the CS API.
                 Defaults to public, since that is commonly needed in tests
                 for convenience where room privacy is not a problem.
-            room_version: The room version to create the room as. Defaults to Synapse's
+            room_version: The room version to create the room as. Defaults to Relapse's
                 default room version.
             tok: The access token to use in the request.
             expect_code: The expected HTTP response code.
@@ -717,7 +717,7 @@ class RestHelper:
 
         This can be used for either login or user-interactive auth.
 
-        Starts by making a request to the relevant synapse redirect endpoint, which is
+        Starts by making a request to the relevant relapse redirect endpoint, which is
         expected to serve a 302 to the OIDC provider. We then make a request to the
         OIDC callback endpoint, intercepting the HTTP requests that will get sent back
         to the OIDC provider.
@@ -760,9 +760,9 @@ class RestHelper:
                 )
 
         # we now have a URI for the OIDC IdP, but we skip that and go straight
-        # back to synapse's OIDC callback resource. However, we do need the "state"
-        # param that synapse passes to the IdP via query params, as well as the cookie
-        # that synapse passes to the client.
+        # back to relapse's OIDC callback resource. However, we do need the "state"
+        # param that relapse passes to the IdP via query params, as well as the cookie
+        # that relapse passes to the client.
 
         oauth_uri_path, _ = oauth_uri.split("?", 1)
         assert oauth_uri_path == fake_server.authorization_endpoint, (
@@ -784,16 +784,16 @@ class RestHelper:
 
         Assumes that an OIDC auth has been initiated by one of initiate_sso_login or
         initiate_sso_ui_auth; completes the OIDC bits of the flow by making a request to
-        Synapse's OIDC callback endpoint, intercepting the HTTP requests that will get
+        Relapse's OIDC callback endpoint, intercepting the HTTP requests that will get
         sent back to the OIDC provider.
 
         Requires the OIDC callback resource to be mounted at the normal place.
 
         Args:
             fake_server: the fake OIDC server with which the auth should be done
-            oauth_uri: the OIDC URI returned by synapse's redirect endpoint (ie,
+            oauth_uri: the OIDC URI returned by relapse's redirect endpoint (ie,
                from initiate_sso_login or initiate_sso_ui_auth).
-            cookies: the cookies set by synapse's redirect endpoint, which will be
+            cookies: the cookies set by relapse's redirect endpoint, which will be
                sent back to the callback endpoint.
             user_info_dict: the remote userinfo that the OIDC provider should present.
                 Typically this should be '{"sub": "<remote user id>"}'.
@@ -865,7 +865,7 @@ class RestHelper:
 
         # hit the redirect url (which should redirect back to the redirect url. This
         # is the easiest way of figuring out what the Host header ought to be set to
-        # to keep Synapse happy.
+        # to keep Relapse happy.
         channel = make_request(
             self.reactor,
             self.site,

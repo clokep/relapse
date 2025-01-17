@@ -19,7 +19,7 @@ The following parameters are available:
 ## Usage
 
 ```
-POST /_synapse/admin/v1/join/<room_id_or_alias>
+POST /_relapse/admin/v1/join/<room_id_or_alias>
 
 {
   "user_id": "@user:server.com"

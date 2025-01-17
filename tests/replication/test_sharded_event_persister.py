@@ -16,11 +16,11 @@ from unittest.mock import patch
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.rest import admin
-from synapse.rest.client import login, room, sync
-from synapse.server import HomeServer
-from synapse.storage.util.id_generators import MultiWriterIdGenerator
-from synapse.util import Clock
+from relapse.rest import admin
+from relapse.rest.client import login, room, sync
+from relapse.server import HomeServer
+from relapse.storage.util.id_generators import MultiWriterIdGenerator
+from relapse.util import Clock
 
 from tests.replication._base import BaseMultiWorkerStreamTestCase
 from tests.server import make_request
@@ -62,7 +62,7 @@ class EventPersisterShardTestCase(BaseMultiWorkerStreamTestCase):
         # We control the room ID generation by patching out the
         # `_generate_room_id` method
         with patch(
-            "synapse.handlers.room.RoomCreationHandler._generate_room_id"
+            "relapse.handlers.room.RoomCreationHandler._generate_room_id"
         ) as mock:
             mock.side_effect = lambda: room_id
             self.helper.create_room_as(user_id, tok=tok)
@@ -73,12 +73,12 @@ class EventPersisterShardTestCase(BaseMultiWorkerStreamTestCase):
         """
 
         self.make_worker_hs(
-            "synapse.app.generic_worker",
+            "relapse.app.generic_worker",
             {"worker_name": "worker1"},
         )
 
         self.make_worker_hs(
-            "synapse.app.generic_worker",
+            "relapse.app.generic_worker",
             {"worker_name": "worker2"},
         )
 
@@ -123,17 +123,17 @@ class EventPersisterShardTestCase(BaseMultiWorkerStreamTestCase):
         """
 
         self.make_worker_hs(
-            "synapse.app.generic_worker",
+            "relapse.app.generic_worker",
             {"worker_name": "worker1"},
         )
 
         worker_hs2 = self.make_worker_hs(
-            "synapse.app.generic_worker",
+            "relapse.app.generic_worker",
             {"worker_name": "worker2"},
         )
 
         sync_hs = self.make_worker_hs(
-            "synapse.app.generic_worker",
+            "relapse.app.generic_worker",
             {"worker_name": "sync"},
         )
         sync_hs_site = self._hs_to_site[sync_hs]

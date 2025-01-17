@@ -8,8 +8,8 @@ set -ex
 DIST=$(cut -d ':' -f2 <<< "${distro:?}")
 
 # we get a read-only copy of the source: make a writeable copy
-cp -aT /synapse/source /synapse/build
-cd /synapse/build
+cp -aT /relapse/source /relapse/build
+cd /relapse/build
 
 # if this is a prerelease, set the Section accordingly.
 #

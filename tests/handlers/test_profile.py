@@ -18,12 +18,12 @@ from parameterized import parameterized
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import synapse.types
-from synapse.api.errors import AuthError, SynapseError
-from synapse.rest import admin
-from synapse.server import HomeServer
-from synapse.types import JsonDict, UserID
-from synapse.util import Clock
+import relapse.types
+from relapse.api.errors import AuthError, RelapseError
+from relapse.rest import admin
+from relapse.server import HomeServer
+from relapse.types import JsonDict, UserID
+from relapse.util import Clock
 
 from tests import unittest
 
@@ -74,7 +74,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
     def test_set_my_name(self) -> None:
         self.get_success(
             self.handler.set_displayname(
-                self.frank, synapse.types.create_requester(self.frank), "Frank Jr."
+                self.frank, relapse.types.create_requester(self.frank), "Frank Jr."
             )
         )
 
@@ -86,7 +86,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
         # Set displayname again
         self.get_success(
             self.handler.set_displayname(
-                self.frank, synapse.types.create_requester(self.frank), "Frank"
+                self.frank, relapse.types.create_requester(self.frank), "Frank"
             )
         )
 
@@ -98,7 +98,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
         # Set displayname to an empty string
         self.get_success(
             self.handler.set_displayname(
-                self.frank, synapse.types.create_requester(self.frank), ""
+                self.frank, relapse.types.create_requester(self.frank), ""
             )
         )
 
@@ -120,15 +120,15 @@ class ProfileTestCase(unittest.HomeserverTestCase):
         # Setting displayname a second time is forbidden
         self.get_failure(
             self.handler.set_displayname(
-                self.frank, synapse.types.create_requester(self.frank), "Frank Jr."
+                self.frank, relapse.types.create_requester(self.frank), "Frank Jr."
             ),
-            SynapseError,
+            RelapseError,
         )
 
     def test_set_my_name_noauth(self) -> None:
         self.get_failure(
             self.handler.set_displayname(
-                self.frank, synapse.types.create_requester(self.bob), "Frank Jr."
+                self.frank, relapse.types.create_requester(self.bob), "Frank Jr."
             ),
             AuthError,
         )
@@ -190,7 +190,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
         self.get_success(
             self.handler.set_avatar_url(
                 self.frank,
-                synapse.types.create_requester(self.frank),
+                relapse.types.create_requester(self.frank),
                 "http://my.server/pic.gif",
             )
         )
@@ -204,7 +204,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
         self.get_success(
             self.handler.set_avatar_url(
                 self.frank,
-                synapse.types.create_requester(self.frank),
+                relapse.types.create_requester(self.frank),
                 "http://my.server/me.png",
             )
         )
@@ -218,7 +218,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
         self.get_success(
             self.handler.set_avatar_url(
                 self.frank,
-                synapse.types.create_requester(self.frank),
+                relapse.types.create_requester(self.frank),
                 "",
             )
         )
@@ -244,10 +244,10 @@ class ProfileTestCase(unittest.HomeserverTestCase):
         self.get_failure(
             self.handler.set_avatar_url(
                 self.frank,
-                synapse.types.create_requester(self.frank),
+                relapse.types.create_requester(self.frank),
                 "http://my.server/pic.gif",
             ),
-            SynapseError,
+            RelapseError,
         )
 
     def test_avatar_constraints_no_config(self) -> None:

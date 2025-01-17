@@ -13,9 +13,9 @@
 # limitations under the License.
 from unittest import mock
 
-from synapse.notifier import Notifier
-from synapse.replication.tcp.handler import ReplicationCommandHandler
-from synapse.util.retryutils import NotRetryingDestination, get_retry_limiter
+from relapse.notifier import Notifier
+from relapse.replication.tcp.handler import ReplicationCommandHandler
+from relapse.util.retryutils import NotRetryingDestination, get_retry_limiter
 
 from tests.unittest import HomeserverTestCase
 

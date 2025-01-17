@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # this script will use the api:
-#    https://matrix-org.github.io/synapse/latest/admin_api/purge_history_api.html
+#    https://clokep.github.io/relapse/latest/admin_api/purge_history_api.html
 # 
 # It will purge all messages in a list of rooms up to a cetrain event
 
@@ -56,7 +56,7 @@ UNIX_TIMESTAMP=$(date +%s%3N --date='TZ="UTC+2" '"$TIME")
 ###################################################################################################
 # make the admin user a server admin in the database with
 ###################################################################################################
-# psql -A -t --dbname=synapse -c "UPDATE users SET admin=1 WHERE name LIKE '$ADMIN'"
+# psql -A -t --dbname=relapse -c "UPDATE users SET admin=1 WHERE name LIKE '$ADMIN'"
 
 ###################################################################################################
 # database function
@@ -65,7 +65,7 @@ sql (){
   # for sqlite3:
   #sqlite3 homeserver.db "pragma busy_timeout=20000;$1" | awk '{print $2}'
   # for postgres:
-  psql -A -t --dbname=synapse -c "$1" | grep -v 'Pager'
+  psql -A -t --dbname=relapse -c "$1" | grep -v 'Pager'
 }
 
 ###################################################################################################

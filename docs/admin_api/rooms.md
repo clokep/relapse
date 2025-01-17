@@ -80,7 +80,7 @@ The API is:
 A standard request with no filtering:
 
 ```
-GET /_synapse/admin/v1/rooms
+GET /_relapse/admin/v1/rooms
 ```
 
 A response body like the following is returned:
@@ -132,7 +132,7 @@ A response body like the following is returned:
 Filtering by room name:
 
 ```
-GET /_synapse/admin/v1/rooms?search_term=TWIM
+GET /_relapse/admin/v1/rooms?search_term=TWIM
 ```
 
 A response body like the following is returned:
@@ -166,7 +166,7 @@ A response body like the following is returned:
 Paginating through a list of rooms:
 
 ```
-GET /_synapse/admin/v1/rooms?order_by=size
+GET /_relapse/admin/v1/rooms?order_by=size
 ```
 
 A response body like the following is returned:
@@ -222,7 +222,7 @@ To get the next batch of room results, we repeat our request, setting the `from`
 parameter to the value of `next_token`.
 
 ```
-GET /_synapse/admin/v1/rooms?order_by=size&from=100
+GET /_relapse/admin/v1/rooms?order_by=size&from=100
 ```
 
 A response body like the following is returned:
@@ -308,7 +308,7 @@ The following fields are possible in the JSON response body:
 The API is:
 
 ```
-GET /_synapse/admin/v1/rooms/<room_id>
+GET /_relapse/admin/v1/rooms/<room_id>
 ```
 
 A response body like the following is returned:
@@ -337,7 +337,7 @@ A response body like the following is returned:
 }
 ```
 
-_Changed in Synapse 1.66:_ Added the `forgotten` key to the response body.
+_Changed in Relapse 1.66:_ Added the `forgotten` key to the response body.
 
 # Room Members API
 
@@ -351,7 +351,7 @@ The response includes the following fields:
 The API is:
 
 ```
-GET /_synapse/admin/v1/rooms/<room_id>/members
+GET /_relapse/admin/v1/rooms/<room_id>/members
 ```
 
 A response body like the following is returned:
@@ -378,7 +378,7 @@ The response includes the following fields:
 The API is:
 
 ```
-GET /_synapse/admin/v1/rooms/<room_id>/state
+GET /_relapse/admin/v1/rooms/<room_id>/state
 ```
 
 A response body like the following is returned:
@@ -406,7 +406,7 @@ This endpoint mirrors the [Matrix Spec defined Messages API](https://spec.matrix
 
 The API is:
 ```
-GET /_synapse/admin/v1/rooms/<room_id>/messages
+GET /_relapse/admin/v1/rooms/<room_id>/messages
 ```
 
 **Parameters**
@@ -518,7 +518,7 @@ a given date in the archive.
 
 The API is:
 ```
-  GET /_synapse/admin/v1/rooms/<room_id>/timestamp_to_event
+  GET /_relapse/admin/v1/rooms/<room_id>/timestamp_to_event
 ```
 
 **Parameters**
@@ -550,7 +550,7 @@ homeserver. Users will be prevented from joining a blocked room.
 The API is:
 
 ```
-PUT /_synapse/admin/v1/rooms/<room_id>/block
+PUT /_relapse/admin/v1/rooms/<room_id>/block
 ```
 
 with a body of:
@@ -590,7 +590,7 @@ The following fields are possible in the JSON response body:
 The API is:
 
 ```
-GET /_synapse/admin/v1/rooms/<room_id>/block
+GET /_relapse/admin/v1/rooms/<room_id>/block
 ```
 
 A response body like the following is returned:
@@ -656,7 +656,7 @@ This API will become deprecated in the future.
 The API is:
 
 ```
-DELETE /_synapse/admin/v1/rooms/<room_id>
+DELETE /_relapse/admin/v1/rooms/<room_id>
 ```
 
 with a body of:
@@ -701,7 +701,7 @@ to check if it has completed.
 The API is:
 
 ```
-DELETE /_synapse/admin/v2/rooms/<room_id>
+DELETE /_relapse/admin/v2/rooms/<room_id>
 ```
 
 with a body of:
@@ -763,7 +763,7 @@ The JSON body must not be empty. The body must be at least `{}`.
 
 It is possible to query the status of the background task for deleting rooms.
 The status can be queried up to 24 hours after completion of the task,
-or until Synapse is restarted (whichever happens first).
+or until Relapse is restarted (whichever happens first).
 
 ### Query by `room_id`
 
@@ -773,7 +773,7 @@ for the given `room_id`.
 The API is:
 
 ```
-GET /_synapse/admin/v2/rooms/<room_id>/delete_status
+GET /_relapse/admin/v2/rooms/<room_id>/delete_status
 ```
 
 A response body like the following is returned:
@@ -823,7 +823,7 @@ With this API you can get the status of one specific task by `delete_id`.
 The API is:
 
 ```
-GET /_synapse/admin/v2/rooms/delete_status/<delete_id>
+GET /_relapse/admin/v2/rooms/delete_status/<delete_id>
 ```
 
 A response body like the following is returned:
@@ -895,11 +895,11 @@ With all that being said, if you still want to try and recover the room:
 1. If the room was `block`ed, you must unblock it on your server. This can be
    accomplished as follows:
 
-   1. For safety reasons, shut down Synapse.
+   1. For safety reasons, shut down Relapse.
    2. In the database, run `DELETE FROM blocked_rooms WHERE room_id = '!example:example.org';`
       * For caution: it's recommended to run this in a transaction: `BEGIN; DELETE ...;`, verify you got 1 result, then `COMMIT;`.
       * The room ID is the same one supplied to the delete room API, not the Content Violation room.
-   3. Restart Synapse.
+   3. Restart Relapse.
 
    This step is unnecessary if `block` was not set.
 
@@ -924,7 +924,7 @@ By default the server admin (the caller) is granted power, but another user can
 optionally be specified, e.g.:
 
 ```
-POST /_synapse/admin/v1/rooms/<room_id_or_alias>/make_room_admin
+POST /_relapse/admin/v1/rooms/<room_id_or_alias>/make_room_admin
 {
     "user_id": "@foo:example.com"
 }
@@ -934,14 +934,14 @@ POST /_synapse/admin/v1/rooms/<room_id_or_alias>/make_room_admin
 
 Enables querying and deleting forward extremities from rooms. When a lot of forward
 extremities accumulate in a room, performance can become degraded. For details, see
-[#1760](https://github.com/matrix-org/synapse/issues/1760).
+[#1760](https://github.com/clokep/relapse/issues/1760).
 
 ## Check for forward extremities
 
 To check the status of forward extremities for a room:
 
 ```
-GET /_synapse/admin/v1/rooms/<room_id_or_alias>/forward_extremities
+GET /_relapse/admin/v1/rooms/<room_id_or_alias>/forward_extremities
 ```
 
 A response as follows will be returned:
@@ -963,14 +963,14 @@ A response as follows will be returned:
 ## Deleting forward extremities
 
 **WARNING**: Please ensure you know what you're doing and have read
-the related issue [#1760](https://github.com/matrix-org/synapse/issues/1760).
+the related issue [#1760](https://github.com/clokep/relapse/issues/1760).
 Under no situations should this API be executed as an automated maintenance task!
 
 If a room has lots of forward extremities, the extra can be
 deleted as follows:
 
 ```
-DELETE /_synapse/admin/v1/rooms/<room_id_or_alias>/forward_extremities
+DELETE /_relapse/admin/v1/rooms/<room_id_or_alias>/forward_extremities
 ```
 
 A response as follows will be returned, indicating the amount of forward extremities
@@ -987,7 +987,7 @@ that were deleted.
 This API lets a client find the context of an event. This is designed primarily to investigate abuse reports.
 
 ```
-GET /_synapse/admin/v1/rooms/<room_id>/context/<event_id>
+GET /_relapse/admin/v1/rooms/<room_id>/context/<event_id>
 ```
 
 This API mimmicks [GET /_matrix/client/r0/rooms/{roomId}/context/{eventId}](https://matrix.org/docs/spec/client_server/r0.6.1#get-matrix-client-r0-rooms-roomid-context-eventid). Please refer to the link for all details on parameters and reseponse.

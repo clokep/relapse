@@ -18,12 +18,12 @@ import twisted.web.client
 from twisted.internet import defer
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.room_versions import RoomVersions
-from synapse.events import EventBase
-from synapse.rest import admin
-from synapse.rest.client import login, room
-from synapse.server import HomeServer
-from synapse.util import Clock
+from relapse.api.room_versions import RoomVersions
+from relapse.events import EventBase
+from relapse.rest import admin
+from relapse.rest.client import login, room
+from relapse.server import HomeServer
+from relapse.util import Clock
 
 from tests.test_utils import FakeResponse, event_injection
 from tests.unittest import FederatingHomeserverTestCase

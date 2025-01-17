@@ -19,12 +19,12 @@ from typing import Any, Dict, Optional
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.errors import Codes
-from synapse.rest import admin
-from synapse.rest.client import login, profile, room
-from synapse.server import HomeServer
-from synapse.types import UserID
-from synapse.util import Clock
+from relapse.api.errors import Codes
+from relapse.rest import admin
+from relapse.rest.client import login, profile, room
+from relapse.server import HomeServer
+from relapse.types import UserID
+from relapse.util import Clock
 
 from tests import unittest
 
@@ -169,7 +169,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
             "GET", "/profile/%s/displayname" % (name or self.owner,)
         )
         self.assertEqual(channel.code, 200, channel.result)
-        # FIXME: If a user has no displayname set, Synapse returns 200 and omits a
+        # FIXME: If a user has no displayname set, Relapse returns 200 and omits a
         # displayname from the response. This contradicts the spec, see
         # https://github.com/matrix-org/synapse/issues/13137.
         return channel.json_body.get("displayname")
@@ -179,7 +179,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
             "GET", "/profile/%s/avatar_url" % (name or self.owner,)
         )
         self.assertEqual(channel.code, 200, channel.result)
-        # FIXME: If a user has no avatar set, Synapse returns 200 and omits an
+        # FIXME: If a user has no avatar set, Relapse returns 200 and omits an
         # avatar_url from the response. This contradicts the spec, see
         # https://github.com/matrix-org/synapse/issues/13137.
         return channel.json_body.get("avatar_url")

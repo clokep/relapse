@@ -17,10 +17,10 @@ from typing import List
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.constants import EduTypes, ReceiptTypes
-from synapse.server import HomeServer
-from synapse.types import JsonDict
-from synapse.util import Clock
+from relapse.api.constants import EduTypes, ReceiptTypes
+from relapse.server import HomeServer
+from relapse.types import JsonDict
+from relapse.util import Clock
 
 from tests import unittest
 

@@ -75,23 +75,23 @@ from twisted.web.http_headers import Headers
 from twisted.web.resource import IResource
 from twisted.web.server import Request, Site
 
-from synapse.config.database import DatabaseConnectionConfig
-from synapse.config.homeserver import HomeServerConfig
-from synapse.events.presence_router import load_legacy_presence_router
-from synapse.handlers.auth import load_legacy_password_auth_providers
-from synapse.http.site import SynapseRequest
-from synapse.logging.context import ContextResourceUsage
-from synapse.module_api.callbacks.spamchecker_callbacks import load_legacy_spam_checkers
-from synapse.module_api.callbacks.third_party_event_rules_callbacks import (
+from relapse.config.database import DatabaseConnectionConfig
+from relapse.config.homeserver import HomeServerConfig
+from relapse.events.presence_router import load_legacy_presence_router
+from relapse.handlers.auth import load_legacy_password_auth_providers
+from relapse.http.site import RelapseRequest
+from relapse.logging.context import ContextResourceUsage
+from relapse.module_api.callbacks.spamchecker_callbacks import load_legacy_spam_checkers
+from relapse.module_api.callbacks.third_party_event_rules_callbacks import (
     load_legacy_third_party_event_rules,
 )
-from synapse.server import HomeServer
-from synapse.storage import DataStore
-from synapse.storage.database import LoggingDatabaseConnection
-from synapse.storage.engines import create_engine
-from synapse.storage.prepare_database import prepare_database
-from synapse.types import ISynapseReactor, JsonDict
-from synapse.util import Clock
+from relapse.server import HomeServer
+from relapse.storage import DataStore
+from relapse.storage.database import LoggingDatabaseConnection
+from relapse.storage.engines import create_engine
+from relapse.storage.prepare_database import prepare_database
+from relapse.types import IRelapseReactor, JsonDict
+from relapse.util import Clock
 
 from tests.utils import (
     LEAVE_DB,
@@ -252,7 +252,7 @@ class FakeChannel:
 
     def requestDone(self, _self: Request) -> None:
         self.result["done"] = True
-        if isinstance(_self, SynapseRequest):
+        if isinstance(_self, RelapseRequest):
             assert _self.logcontext is not None
             self.resource_usage = _self.logcontext.get_resource_usage()
 
@@ -307,12 +307,12 @@ class FakeChannel:
 class FakeSite:
     """
     A fake Twisted Web Site, with mocks of the extra things that
-    Synapse adds.
+    Relapse adds.
     """
 
     server_version_string = b"1"
     site_tag = "test"
-    access_logger = logging.getLogger("synapse.access.http.fake")
+    access_logger = logging.getLogger("relapse.access.http.fake")
 
     def __init__(
         self,
@@ -340,7 +340,7 @@ def make_request(
     path: Union[bytes, str],
     content: Union[bytes, str, JsonDict] = b"",
     access_token: Optional[str] = None,
-    request: Type[Request] = SynapseRequest,
+    request: Type[Request] = RelapseRequest,
     shorthand: bool = True,
     federation_auth_origin: Optional[bytes] = None,
     content_is_form: bool = False,
@@ -387,7 +387,7 @@ def make_request(
     if (
         shorthand
         and not path.startswith(b"/_matrix")
-        and not path.startswith(b"/_synapse")
+        and not path.startswith(b"/_relapse")
     ):
         if path.startswith(b"/"):
             path = path[1:]
@@ -449,9 +449,9 @@ def make_request(
     return channel
 
 
-# ISynapseReactor implies IReactorPluggableNameResolver, but explicitly
+# IRelapseReactor implies IReactorPluggableNameResolver, but explicitly
 # marking this as an implementer of the latter seems to keep mypy-zope happier.
-@implementer(IReactorPluggableNameResolver, ISynapseReactor)
+@implementer(IReactorPluggableNameResolver, IRelapseReactor)
 class ThreadedMemoryReactorClock(MemoryReactorClock):
     """
     A MemoryReactorClock that supports callFromThread.
@@ -616,7 +616,7 @@ class ThreadedMemoryReactorClock(MemoryReactorClock):
 
 def validate_connector(connector: tcp.Connector, expected_ip: str) -> None:
     """Try to validate the obtained connector as it would happen when
-    synapse is running and the conection will be established.
+    relapse is running and the conection will be established.
 
     This method will raise a useful exception when necessary, else it will
     just do nothing.
@@ -938,7 +938,7 @@ def setup_test_homeserver(
     cleanup_func: Callable[[Callable[[], None]], None],
     name: str = "test",
     config: Optional[HomeServerConfig] = None,
-    reactor: Optional[ISynapseReactor] = None,
+    reactor: Optional[IRelapseReactor] = None,
     homeserver_to_use: Type[HomeServer] = TestHomeServer,
     **kwargs: Any,
 ) -> HomeServer:
@@ -958,7 +958,7 @@ def setup_test_homeserver(
     if reactor is None:
         from twisted.internet import reactor as _reactor
 
-        reactor = cast(ISynapseReactor, _reactor)
+        reactor = cast(IRelapseReactor, _reactor)
 
     if config is None:
         config = default_config(name, parse=True)
@@ -969,7 +969,7 @@ def setup_test_homeserver(
         kwargs["clock"] = MockClock()
 
     if USE_POSTGRES_FOR_TESTS:
-        test_db = "synapse_test_%s" % uuid.uuid4().hex
+        test_db = "relapse_test_%s" % uuid.uuid4().hex
 
         database_config = {
             "name": "psycopg2",
@@ -1049,7 +1049,7 @@ def setup_test_homeserver(
     hs = homeserver_to_use(
         name,
         config=config,
-        version_string="Synapse/tests",
+        version_string="Relapse/tests",
         reactor=reactor,
     )
 

@@ -17,25 +17,25 @@ from unittest.mock import AsyncMock, Mock
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.constants import EventTypes, LoginType, Membership
-from synapse.api.errors import SynapseError
-from synapse.api.room_versions import RoomVersion
-from synapse.config.homeserver import HomeServerConfig
-from synapse.events import EventBase
-from synapse.module_api.callbacks.third_party_event_rules_callbacks import (
+from relapse.api.constants import EventTypes, LoginType, Membership
+from relapse.api.errors import RelapseError
+from relapse.api.room_versions import RoomVersion
+from relapse.config.homeserver import HomeServerConfig
+from relapse.events import EventBase
+from relapse.module_api.callbacks.third_party_event_rules_callbacks import (
     load_legacy_third_party_event_rules,
 )
-from synapse.rest import admin
-from synapse.rest.client import account, login, profile, room
-from synapse.server import HomeServer
-from synapse.types import JsonDict, Requester, StateMap
-from synapse.util import Clock
-from synapse.util.frozenutils import unfreeze
+from relapse.rest import admin
+from relapse.rest.client import account, login, profile, room
+from relapse.server import HomeServer
+from relapse.types import JsonDict, Requester, StateMap
+from relapse.util import Clock
+from relapse.util.frozenutils import unfreeze
 
 from tests import unittest
 
 if TYPE_CHECKING:
-    from synapse.module_api import ModuleApi
+    from relapse.module_api import ModuleApi
 
 thread_local = threading.local()
 
@@ -177,20 +177,20 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         )
         self.assertEqual(channel.code, 403, channel.result)
 
-    def test_third_party_rules_workaround_synapse_errors_pass_through(self) -> None:
+    def test_third_party_rules_workaround_relapse_errors_pass_through(self) -> None:
         """
         Tests that the workaround introduced by https://github.com/matrix-org/synapse/pull/11042
-        is functional: that SynapseErrors are passed through from check_event_allowed
+        is functional: that RelapseErrors are passed through from check_event_allowed
         and bubble up to the web resource.
 
         NEW MODULES SHOULD NOT MAKE USE OF THIS WORKAROUND!
         This is a temporary workaround!
         """
 
-        class NastyHackException(SynapseError):
+        class NastyHackException(RelapseError):
             def error_dict(self, config: Optional[HomeServerConfig]) -> JsonDict:
                 """
-                This overrides SynapseError's `error_dict` to nastily inject
+                This overrides RelapseError's `error_dict` to nastily inject
                 JSON into the error response.
                 """
                 result = super().error_dict(config)
@@ -422,7 +422,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
     def test_sent_event_end_up_in_room_state(self) -> None:
         """Tests that a state event sent by a module while processing another state event
         doesn't get dropped from the state of the room. This is to guard against a bug
-        where Synapse has been observed doing so, see https://github.com/matrix-org/synapse/issues/10830
+        where Relapse has been observed doing so, see https://github.com/matrix-org/synapse/issues/10830
         """
         event_type = "org.matrix.test_state"
 
@@ -460,7 +460,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
             # Update the content of the custom state event to be sent by the callback.
             event_content["i"] = i
 
-            # Update the room's power levels with a different value each time so Synapse
+            # Update the room's power levels with a different value each time so Relapse
             # doesn't consider an update redundant.
             self._update_power_levels(event_default=i)
 
@@ -652,7 +652,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         # Change a user's profile.
         channel = self.make_request(
             "PUT",
-            "/_synapse/admin/v2/users/%s" % self.user_id,
+            "/_relapse/admin/v2/users/%s" % self.user_id,
             {"displayname": displayname, "avatar_url": avatar_url},
             access_token=admin_tok,
         )
@@ -753,7 +753,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         # Deactivate the user.
         channel = self.make_request(
             "PUT",
-            "/_synapse/admin/v2/users/%s" % user_id,
+            "/_relapse/admin/v2/users/%s" % user_id,
             {"deactivated": True},
             access_token=admin_tok,
         )
@@ -772,7 +772,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         # Reactivate the user.
         channel = self.make_request(
             "PUT",
-            "/_synapse/admin/v2/users/%s" % user_id,
+            "/_relapse/admin/v2/users/%s" % user_id,
             {"deactivated": False, "password": "hackme"},
             access_token=admin_tok,
         )
@@ -855,7 +855,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         # Deactivate the user.
         channel = self.make_request(
             "PUT",
-            "/_synapse/admin/v2/users/%s" % user_id,
+            "/_relapse/admin/v2/users/%s" % user_id,
             {"deactivated": True},
             access_token=admin_tok,
         )
@@ -891,7 +891,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         # Shutdown the room.
         channel = self.make_request(
             "DELETE",
-            "/_synapse/admin/v2/rooms/%s" % self.room_id,
+            "/_relapse/admin/v2/rooms/%s" % self.room_id,
             {},
             access_token=admin_tok,
         )
@@ -928,7 +928,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         # Add a 3PID to the user.
         channel = self.make_request(
             "PUT",
-            "/_synapse/admin/v2/users/%s" % user_id,
+            "/_relapse/admin/v2/users/%s" % user_id,
             {
                 "threepids": [
                     {
@@ -955,7 +955,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         on_remove_user_third_party_identifier module callbacks are called
         just before associating and removing a 3PID to/from an account.
         """
-        # Pretend to be a Synapse module and register both callbacks as mocks.
+        # Pretend to be a Relapse module and register both callbacks as mocks.
         on_add_user_third_party_identifier_callback_mock = AsyncMock(return_value=None)
         on_remove_user_third_party_identifier_callback_mock = AsyncMock(
             return_value=None
@@ -975,7 +975,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         # Add a 3PID to the user.
         channel = self.make_request(
             "PUT",
-            "/_synapse/admin/v2/users/%s" % user_id,
+            "/_relapse/admin/v2/users/%s" % user_id,
             {
                 "threepids": [
                     {
@@ -997,7 +997,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         # Now remove the 3PID from the user
         channel = self.make_request(
             "PUT",
-            "/_synapse/admin/v2/users/%s" % user_id,
+            "/_relapse/admin/v2/users/%s" % user_id,
             {
                 "threepids": [],
             },
@@ -1017,7 +1017,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         """Tests that the on_remove_user_third_party_identifier module callback is called
         when a user is deactivated and their third-party ID associations are deleted.
         """
-        # Pretend to be a Synapse module and register both callbacks as mocks.
+        # Pretend to be a Relapse module and register both callbacks as mocks.
         on_remove_user_third_party_identifier_callback_mock = AsyncMock(
             return_value=None
         )
@@ -1035,7 +1035,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         # Add a 3PID to the user.
         channel = self.make_request(
             "PUT",
-            "/_synapse/admin/v2/users/%s" % user_id,
+            "/_relapse/admin/v2/users/%s" % user_id,
             {
                 "threepids": [
                     {
@@ -1054,7 +1054,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         # Now deactivate the user.
         channel = self.make_request(
             "PUT",
-            "/_synapse/admin/v2/users/%s" % user_id,
+            "/_relapse/admin/v2/users/%s" % user_id,
             {
                 "deactivated": True,
             },

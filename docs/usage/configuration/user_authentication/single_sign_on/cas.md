@@ -1,6 +1,6 @@
 # CAS
 
-Synapse supports authenticating users via the [Central Authentication
+Relapse supports authenticating users via the [Central Authentication
 Service protocol](https://en.wikipedia.org/wiki/Central_Authentication_Service)
 (CAS) natively.
 

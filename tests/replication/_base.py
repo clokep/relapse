@@ -21,19 +21,19 @@ from twisted.python.failure import Failure
 from twisted.test.proto_helpers import MemoryReactor
 from twisted.web.resource import Resource
 
-from synapse.app.generic_worker import GenericWorkerServer
-from synapse.config.workers import InstanceTcpLocationConfig, InstanceUnixLocationConfig
-from synapse.http.site import SynapseRequest, SynapseSite
-from synapse.replication.http import ReplicationRestResource
-from synapse.replication.tcp.client import ReplicationDataHandler
-from synapse.replication.tcp.handler import ReplicationCommandHandler
-from synapse.replication.tcp.protocol import (
+from relapse.app.generic_worker import GenericWorkerServer
+from relapse.config.workers import InstanceTcpLocationConfig, InstanceUnixLocationConfig
+from relapse.http.site import RelapseRequest, RelapseSite
+from relapse.replication.http import ReplicationRestResource
+from relapse.replication.tcp.client import ReplicationDataHandler
+from relapse.replication.tcp.handler import ReplicationCommandHandler
+from relapse.replication.tcp.protocol import (
     ClientReplicationStreamProtocol,
     ServerReplicationStreamProtocol,
 )
-from synapse.replication.tcp.resource import ReplicationStreamProtocolFactory
-from synapse.server import HomeServer
-from synapse.util import Clock
+from relapse.replication.tcp.resource import ReplicationStreamProtocolFactory
+from relapse.server import HomeServer
+from relapse.util import Clock
 
 from tests import unittest
 from tests.server import FakeTransport
@@ -105,12 +105,12 @@ class BaseStreamTestCase(unittest.HomeserverTestCase):
 
     def create_resource_dict(self) -> Dict[str, Resource]:
         d = super().create_resource_dict()
-        d["/_synapse/replication"] = ReplicationRestResource(self.hs)
+        d["/_relapse/replication"] = ReplicationRestResource(self.hs)
         return d
 
     def _get_worker_hs_config(self) -> dict:
         config = self.default_config()
-        config["worker_app"] = "synapse.app.generic_worker"
+        config["worker_app"] = "relapse.app.generic_worker"
         config["instance_map"] = {"main": {"host": "testserv", "port": 8765}}
         return config
 
@@ -146,7 +146,7 @@ class BaseStreamTestCase(unittest.HomeserverTestCase):
         self.streamer.on_notifier_poke()
         self.pump(0.1)
 
-    def handle_http_replication_attempt(self) -> SynapseRequest:
+    def handle_http_replication_attempt(self) -> RelapseRequest:
         """Asserts that a connection attempt was made to the master HS on the
         HTTP replication port, then proxies it to the master HS object to be
         handled.
@@ -172,10 +172,10 @@ class BaseStreamTestCase(unittest.HomeserverTestCase):
 
         # hook into the channel's request factory so that we can keep a record
         # of the requests
-        requests: List[SynapseRequest] = []
+        requests: List[RelapseRequest] = []
         real_request_factory = channel.requestFactory
 
-        def request_factory(*args: Any, **kwargs: Any) -> SynapseRequest:
+        def request_factory(*args: Any, **kwargs: Any) -> RelapseRequest:
             request = real_request_factory(*args, **kwargs)
             requests.append(request)
             return request
@@ -208,7 +208,7 @@ class BaseStreamTestCase(unittest.HomeserverTestCase):
         return requests[0]
 
     def assert_request_is_get_repl_stream_updates(
-        self, request: SynapseRequest, stream_name: str
+        self, request: RelapseRequest, stream_name: str
     ) -> None:
         """Asserts that the given request is a HTTP replication request for
         fetching updates for given stream.
@@ -217,7 +217,7 @@ class BaseStreamTestCase(unittest.HomeserverTestCase):
         path: bytes = request.path  # type: ignore
         self.assertRegex(
             path,
-            rb"^/_synapse/replication/get_repl_stream_updates/%s/[^/]+$"
+            rb"^/_relapse/replication/get_repl_stream_updates/%s/[^/]+$"
             % (stream_name.encode("ascii"),),
         )
 
@@ -315,7 +315,7 @@ class BaseMultiWorkerStreamTestCase(unittest.HomeserverTestCase):
         stream to the master HS.
 
         Args:
-            worker_app: Type of worker, e.g. `synapse.app.generic_worker`.
+            worker_app: Type of worker, e.g. `relapse.app.generic_worker`.
             extra_config: Any extra config to use for this instances.
             **kwargs: Options that get passed to `self.setup_test_homeserver`,
                 useful to e.g. pass some mocks for things like `federation_http_client`
@@ -375,8 +375,8 @@ class BaseMultiWorkerStreamTestCase(unittest.HomeserverTestCase):
         for servlet in self.servlets:
             servlet(worker_hs, resource)
 
-        self._hs_to_site[worker_hs] = SynapseSite(
-            logger_name="synapse.access.http.fake",
+        self._hs_to_site[worker_hs] = RelapseSite(
+            logger_name="relapse.access.http.fake",
             site_tag="{}-{}".format(
                 worker_hs.config.server.server_name, worker_hs.get_instance_name()
             ),

@@ -20,10 +20,10 @@ from unittest.mock import Mock, patch
 from twisted.web.http import HTTPChannel
 from twisted.web.server import Request
 
-from synapse.http.site import SynapseRequest
-from synapse.logging._terse_json import JsonFormatter, TerseJsonFormatter
-from synapse.logging.context import LoggingContext, LoggingContextFilter
-from synapse.types import JsonDict
+from relapse.http.site import RelapseRequest
+from relapse.logging._terse_json import JsonFormatter, TerseJsonFormatter
+from relapse.logging.context import LoggingContext, LoggingContextFilter
+from relapse.types import JsonDict
 
 from tests.logging import LoggerCleanupMixin
 from tests.server import FakeChannel, get_clock
@@ -158,12 +158,12 @@ class TerseJsonTestCase(LoggerCleanupMixin, TestCase):
         site.server_version_string = "Server v1"
         site.reactor = Mock()
         site.experimental_cors_msc3886 = False
-        request = SynapseRequest(
+        request = RelapseRequest(
             cast(HTTPChannel, FakeChannel(site, self.reactor)), site
         )
         # Call requestReceived to finish instantiating the object.
         request.content = BytesIO()
-        # Partially skip some internal processing of SynapseRequest.
+        # Partially skip some internal processing of RelapseRequest.
         request._started_processing = Mock()  # type: ignore[method-assign]
         request.request_metrics = Mock(spec=["name"])
         with patch.object(Request, "render"):

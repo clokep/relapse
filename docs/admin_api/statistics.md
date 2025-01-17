@@ -9,7 +9,7 @@ for a server admin: see [Admin API](../usage/administration/admin_api/).
 The API is:
 
 ```
-GET /_synapse/admin/v1/statistics/users/media
+GET /_relapse/admin/v1/statistics/users/media
 ```
 
 A response body like the following is returned:
@@ -100,7 +100,7 @@ it should be enough to get a rough idea of where database disk space is going.
 The API is:
 
 ```
-GET /_synapse/admin/v1/statistics/database/rooms
+GET /_relapse/admin/v1/statistics/database/rooms
 ```
 
 A response body like the following is returned:
@@ -129,4 +129,4 @@ The following fields are returned in the JSON response body:
     in the database.
 
 
-*Added in Synapse 1.83.0*
+*Added in Relapse 1.83.0*

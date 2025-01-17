@@ -14,7 +14,7 @@
 
 from pymacaroons.exceptions import MacaroonVerificationFailedException
 
-from synapse.util.macaroons import MacaroonGenerator, OidcSessionData
+from relapse.util.macaroons import MacaroonGenerator, OidcSessionData
 
 from tests.server import get_clock
 from tests.unittest import TestCase

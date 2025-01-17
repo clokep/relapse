@@ -1,6 +1,6 @@
 # Porting an existing module that uses the old interface
 
-In order to port a module that uses Synapse's old module interface, its author needs to:
+In order to port a module that uses Relapse's old module interface, its author needs to:
 
 * ensure the module's callbacks are all asynchronous.
 * register their callbacks using one or more of the `register_[...]_callbacks` methods
@@ -16,5 +16,5 @@ There is no longer a `get_db_schema_files` callback provided for password auth p
 changes to the database should now be made by the module using the module API class.
 
 The module's author should also update any example in the module's configuration to only
-use the new `modules` section in Synapse's configuration file (see [this section](index.html#using-modules)
+use the new `modules` section in Relapse's configuration file (see [this section](index.html#using-modules)
 for more info).

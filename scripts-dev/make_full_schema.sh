@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 #
-# This script generates SQL files for creating a brand new Synapse DB with the latest
+# This script generates SQL files for creating a brand new Relapse DB with the latest
 # schema, on both SQLite3 and Postgres.
 
 export PGHOST="localhost"
-POSTGRES_MAIN_DB_NAME="synapse_full_schema_main.$$"
-POSTGRES_COMMON_DB_NAME="synapse_full_schema_common.$$"
-POSTGRES_STATE_DB_NAME="synapse_full_schema_state.$$"
-REQUIRED_DEPS=("matrix-synapse" "psycopg2")
+POSTGRES_MAIN_DB_NAME="relapse_full_schema_main.$$"
+POSTGRES_COMMON_DB_NAME="relapse_full_schema_common.$$"
+POSTGRES_STATE_DB_NAME="relapse_full_schema_state.$$"
+REQUIRED_DEPS=("matrix-relapse" "psycopg2")
 
 usage() {
   echo
@@ -20,18 +20,18 @@ usage() {
   echo "  CI mode. Prints every command that the script runs."
   echo "-o <path>"
   echo "  Directory to output full schema files to. You probably want to use"
-  echo "  '-o synapse/storage/schema'"
+  echo "  '-o relapse/storage/schema'"
   echo "-n <schema number>"
   echo "  Schema number for the new snapshot. Used to set the location of files within "
-  echo "  the output directory, mimicking that of synapse/storage/schemas."
+  echo "  the output directory, mimicking that of relapse/storage/schemas."
   echo "  Defaults to 9999."
   echo "-h"
   echo "  Display this help text."
   echo ""
   echo ""
   echo "You probably want to invoke this with something like"
-  echo "  docker run --rm -e POSTGRES_PASSWORD=postgres -e POSTGRES_USER=postgres -e POSTGRES_DB=synapse -p 5432:5432 postgres:11-alpine"
-  echo "  echo postgres | scripts-dev/make_full_schema.sh -p postgres -n MY_SCHEMA_NUMBER -o synapse/storage/schema"
+  echo "  docker run --rm -e POSTGRES_PASSWORD=postgres -e POSTGRES_USER=postgres -e POSTGRES_DB=relapse -p 5432:5432 postgres:11-alpine"
+  echo "  echo postgres | scripts-dev/make_full_schema.sh -p postgres -n MY_SCHEMA_NUMBER -o relapse/storage/schema"
   echo ""
   echo "  NB: make sure to run this against the *oldest* supported version of postgres,"
   echo "  or else pg_dump might output non-backwards-compatible syntax."
@@ -98,12 +98,12 @@ export PGPASSWORD
 # Exit immediately if a command fails
 set -e
 
-# cd to root of the synapse directory
+# cd to root of the relapse directory
 cd "$(dirname "$0")/.."
 
 # Create temporary SQLite and Postgres homeserver db configs and key file
 TMPDIR=$(mktemp -d)
-KEY_FILE=$TMPDIR/test.signing.key # default Synapse signing key path
+KEY_FILE=$TMPDIR/test.signing.key # default Relapse signing key path
 SQLITE_CONFIG=$TMPDIR/sqlite.conf
 SQLITE_MAIN_DB=$TMPDIR/main.db
 SQLITE_STATE_DB=$TMPDIR/state.db
@@ -191,11 +191,11 @@ EOF
 
 # Generate the server's signing key.
 echo "Generating SQLite3 db schema..."
-python -m synapse.app.homeserver --generate-keys -c "$SQLITE_CONFIG"
+python -m relapse.app.homeserver --generate-keys -c "$SQLITE_CONFIG"
 
 # Make sure the SQLite3 database is using the latest schema and has no pending background update.
 echo "Running db background jobs..."
-poetry run python synapse/_scripts/update_synapse_database.py --database-config "$SQLITE_CONFIG" --run-background-updates
+poetry run python relapse/_scripts/update_relapse_database.py --database-config "$SQLITE_CONFIG" --run-background-updates
 
 # Create the PostgreSQL database.
 echo "Creating postgres databases..."
@@ -204,12 +204,12 @@ createdb --lc-collate=C --lc-ctype=C --template=template0 "$POSTGRES_MAIN_DB_NAM
 createdb --lc-collate=C --lc-ctype=C --template=template0 "$POSTGRES_STATE_DB_NAME"
 
 echo "Running db background jobs..."
-poetry run python synapse/_scripts/update_synapse_database.py --database-config "$POSTGRES_CONFIG" --run-background-updates
+poetry run python relapse/_scripts/update_relapse_database.py --database-config "$POSTGRES_CONFIG" --run-background-updates
 
 
 echo "Dropping unwanted db tables..."
 
-# Some common tables are created and updated by Synapse itself and do not belong in the
+# Some common tables are created and updated by Relapse itself and do not belong in the
 # schema.
 DROP_APP_MANAGED_TABLES="
 DROP TABLE schema_version;
@@ -217,7 +217,7 @@ DROP TABLE schema_compat_version;
 DROP TABLE applied_schema_deltas;
 DROP TABLE applied_module_schemas;
 "
-# Other common tables are not created by Synapse and do belong in the schema.
+# Other common tables are not created by Relapse and do belong in the schema.
 # TODO: we could derive DROP_COMMON_TABLES from the dump of the common-only DB. But
 #       since there's only one table there, I haven't bothered to do so.
 DROP_COMMON_TABLES="$DROP_APP_MANAGED_TABLES
@@ -299,11 +299,11 @@ pg_dump --format=plain --data-only --inserts --no-tablespaces --no-acl --no-owne
 pg_dump --format=plain --schema-only         --no-tablespaces --no-acl --no-owner "$POSTGRES_STATE_DB_NAME"  | cleanup_pg_schema  > "$OUTPUT_DIR/state/full_schemas/$SCHEMA_NUMBER/full.sql.postgres"
 pg_dump --format=plain --data-only --inserts --no-tablespaces --no-acl --no-owner "$POSTGRES_STATE_DB_NAME"  | cleanup_pg_schema >> "$OUTPUT_DIR/state/full_schemas/$SCHEMA_NUMBER/full.sql.postgres"
 
-if [[ "$OUTPUT_DIR" == *synapse/storage/schema ]]; then
+if [[ "$OUTPUT_DIR" == *relapse/storage/schema ]]; then
   echo "Updating contrib/datagrip symlinks..."
-  ln -sf "../../synapse/storage/schema/common/full_schemas/$SCHEMA_NUMBER/full.sql.postgres" "contrib/datagrip/common.sql"
-  ln -sf "../../synapse/storage/schema/main/full_schemas/$SCHEMA_NUMBER/full.sql.postgres"   "contrib/datagrip/main.sql"
-  ln -sf "../../synapse/storage/schema/state/full_schemas/$SCHEMA_NUMBER/full.sql.postgres"  "contrib/datagrip/state.sql"
+  ln -sf "../../relapse/storage/schema/common/full_schemas/$SCHEMA_NUMBER/full.sql.postgres" "contrib/datagrip/common.sql"
+  ln -sf "../../relapse/storage/schema/main/full_schemas/$SCHEMA_NUMBER/full.sql.postgres"   "contrib/datagrip/main.sql"
+  ln -sf "../../relapse/storage/schema/state/full_schemas/$SCHEMA_NUMBER/full.sql.postgres"  "contrib/datagrip/state.sql"
 else
   echo "Not updating contrib/datagrip symlinks (unknown output directory)"
 fi

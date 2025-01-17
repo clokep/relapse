@@ -11,17 +11,17 @@ to poetry, please [double-check your poetry version](#check-the-version-of-poetr
 
 # Background
 
-Synapse uses a variety of third-party Python packages to function as a homeserver.
+Relapse uses a variety of third-party Python packages to function as a homeserver.
 Some of these are direct dependencies, listed in `pyproject.toml` under the
 `[tool.poetry.dependencies]` section. The rest are transitive dependencies (the
 things that our direct dependencies themselves depend on, and so on recursively.)
 
 We maintain a locked list of all our dependencies (transitive included) so that
 we can track exactly which version of each dependency appears in a given release.
-See [here](https://github.com/matrix-org/synapse/issues/11537#issue-1074469665)
-for discussion of why we wanted this for Synapse. We chose to use
+See [here](https://github.com/clokep/relapse/issues/11537#issue-1074469665)
+for discussion of why we wanted this for Relapse. We chose to use
 [`poetry`](https://python-poetry.org/) to manage this locked list; see
-[this comment](https://github.com/matrix-org/synapse/issues/11537#issuecomment-1015975819)
+[this comment](https://github.com/clokep/relapse/issues/11537#issuecomment-1015975819)
 for the reasoning.
 
 The locked dependencies get included in our "self-contained" releases: namely,
@@ -30,16 +30,16 @@ in development and our continuous integration.
 
 Separately, our "broad" dependencies—the version ranges specified in
 `pyproject.toml`—are included as metadata in our "sdists" and "wheels" [uploaded
-to PyPI](https://pypi.org/project/matrix-synapse). Installing from PyPI or from
-the Synapse source tree directly will _not_ use the locked dependencies; instead,
+to PyPI](https://pypi.org/project/matrix-relapse). Installing from PyPI or from
+the Relapse source tree directly will _not_ use the locked dependencies; instead,
 they'll pull in the latest version of each package available at install time.
 
 ## Example dependency
 
 An example may help. We have a broad dependency on
 [`phonenumbers`](https://pypi.org/project/phonenumbers/), as declared in
-this snippet from pyproject.toml [as of Synapse 1.57](
-https://github.com/matrix-org/synapse/blob/release-v1.57/pyproject.toml#L133
+this snippet from pyproject.toml [as of Relapse 1.57](
+https://github.com/clokep/relapse/blob/release-v1.57/pyproject.toml#L133
 ):
 
 ```toml
@@ -49,7 +49,7 @@ phonenumbers = ">=8.2.0"
 ```
 
 In our lockfile this is
-[pinned]( https://github.com/matrix-org/synapse/blob/dfc7646504cef3e4ff396c36089e1c6f1b1634de/poetry.lock#L679-L685)
+[pinned]( https://github.com/clokep/relapse/blob/dfc7646504cef3e4ff396c36089e1c6f1b1634de/poetry.lock#L679-L685)
 to version 8.12.44, even though
 [newer versions are available](https://pypi.org/project/phonenumbers/#history).
 
@@ -64,7 +64,7 @@ python-versions = "*"
 ```
 
 The lockfile also includes a
-[cryptographic checksum](https://github.com/matrix-org/synapse/blob/release-v1.57/poetry.lock#L2178-L2181)
+[cryptographic checksum](https://github.com/clokep/relapse/blob/release-v1.57/poetry.lock#L2178-L2181)
 of the sdists and wheels provided for this version of `phonenumbers`.
 
 ```toml
@@ -79,9 +79,9 @@ phonenumbers = [
 We can see this pinned version inside the docker image for that release:
 
 ```
-$ docker pull matrixdotorg/synapse:v1.57.0
+$ docker pull matrixdotorg/relapse:v1.57.0
 ...
-$ docker run --entrypoint pip matrixdotorg/synapse:v1.57.0 show phonenumbers
+$ docker run --entrypoint pip matrixdotorg/relapse:v1.57.0 show phonenumbers
 Name: phonenumbers
 Version: 8.12.44
 Summary: Python version of Google's common library for parsing, formatting, storing and validating international phone numbers.
@@ -91,16 +91,16 @@ Author-email: dmd@lurklurk.org
 License: Apache License 2.0
 Location: /usr/local/lib/python3.9/site-packages
 Requires:
-Required-by: matrix-synapse
+Required-by: matrix-relapse
 ```
 
 Whereas the wheel metadata just contains the broad dependencies:
 
 ```
 $ cd /tmp
-$ wget https://files.pythonhosted.org/packages/ca/5e/d722d572cc5b3092402b783d6b7185901b444427633bd8a6b00ea0dd41b7/matrix_synapse-1.57.0rc1-py3-none-any.whl
+$ wget https://files.pythonhosted.org/packages/ca/5e/d722d572cc5b3092402b783d6b7185901b444427633bd8a6b00ea0dd41b7/matrix_relapse-1.57.0rc1-py3-none-any.whl
 ...
-$ unzip -c matrix_synapse-1.57.0rc1-py3-none-any.whl matrix_synapse-1.57.0rc1.dist-info/METADATA | grep phonenumbers
+$ unzip -c matrix_relapse-1.57.0rc1-py3-none-any.whl matrix_relapse-1.57.0rc1.dist-info/METADATA | grep phonenumbers
 Requires-Dist: phonenumbers (>=8.2.0)
 ```
 
@@ -115,11 +115,11 @@ recommend it for daily use. To use it:
    packaged for your system already.
 2. Teach direnv about poetry. The [shell config here](https://github.com/direnv/direnv/wiki/Python#poetry)
    needs to be added to `~/.config/direnv/direnvrc` (or more generally `$XDG_CONFIG_HOME/direnv/direnvrc`).
-3. Mark the synapse checkout as a poetry project: `echo layout poetry > .envrc`.
+3. Mark the relapse checkout as a poetry project: `echo layout poetry > .envrc`.
 4. Convince yourself that you trust this `.envrc` configuration and project.
    Then formally confirm this to `direnv` by running `direnv allow`.
 
-Then whenever you navigate to the synapse checkout, you should be able to run
+Then whenever you navigate to the relapse checkout, you should be able to run
 e.g. `mypy` instead of `poetry run mypy`; `python` instead of
 `poetry run python`; and your shell commands will automatically run in the
 context of poetry's venv, without having to run `poetry shell` beforehand.
@@ -260,7 +260,7 @@ doesn't require poetry. (It's what we use in CI too). However, you could try
 
 ## ...handle a Dependabot pull request?
 
-Synapse uses Dependabot to keep the `poetry.lock` and `Cargo.lock` file 
+Relapse uses Dependabot to keep the `poetry.lock` and `Cargo.lock` file 
 up-to-date with the latest releases of our dependencies. The changelog check is
 omitted for Dependabot PRs; the release script will include them in the 
 changelog.
@@ -279,7 +279,7 @@ should be safe to merge if linting passes.
 
 ## Check the version of poetry with `poetry --version`.
 
-The minimum version of poetry supported by Synapse is 1.3.2.
+The minimum version of poetry supported by Relapse is 1.3.2.
 
 It can also be useful to check the version of `poetry-core` in use. If you've
 installed `poetry` with `pipx`, try `pipx runpip poetry list | grep
@@ -294,7 +294,7 @@ from PyPI. (This is what makes poetry seem slow when doing the first
 
 ## Remove outdated egg-info
 
-Delete the `matrix_synapse.egg-info/` directory from the root of your Synapse
+Delete the `matrix_relapse.egg-info/` directory from the root of your Relapse
 install.
 
 This stores some cached information about dependencies and often conflicts with

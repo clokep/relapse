@@ -31,22 +31,22 @@ from twisted.python.failure import Failure
 from twisted.test.proto_helpers import MemoryReactor
 from twisted.web.resource import Resource
 
-from synapse.api.errors import Codes, HttpResponseException
-from synapse.events import EventBase
-from synapse.http.types import QueryParams
-from synapse.logging.context import make_deferred_yieldable
-from synapse.media._base import FileInfo, ThumbnailInfo
-from synapse.media.filepath import MediaFilePaths
-from synapse.media.media_storage import MediaStorage, ReadableFileWrapper
-from synapse.media.storage_provider import FileStorageProviderBackend
-from synapse.module_api import ModuleApi
-from synapse.module_api.callbacks.spamchecker_callbacks import load_legacy_spam_checkers
-from synapse.rest import admin
-from synapse.rest.client import login
-from synapse.rest.media.thumbnail_resource import ThumbnailResource
-from synapse.server import HomeServer
-from synapse.types import JsonDict, RoomAlias
-from synapse.util import Clock
+from relapse.api.errors import Codes, HttpResponseException
+from relapse.events import EventBase
+from relapse.http.types import QueryParams
+from relapse.logging.context import make_deferred_yieldable
+from relapse.media._base import FileInfo, ThumbnailInfo
+from relapse.media.filepath import MediaFilePaths
+from relapse.media.media_storage import MediaStorage, ReadableFileWrapper
+from relapse.media.storage_provider import FileStorageProviderBackend
+from relapse.module_api import ModuleApi
+from relapse.module_api.callbacks.spamchecker_callbacks import load_legacy_spam_checkers
+from relapse.rest import admin
+from relapse.rest.client import login
+from relapse.rest.media.thumbnail_resource import ThumbnailResource
+from relapse.server import HomeServer
+from relapse.types import JsonDict, RoomAlias
+from relapse.util import Clock
 
 from tests import unittest
 from tests.server import FakeChannel
@@ -58,7 +58,7 @@ class MediaStorageTests(unittest.HomeserverTestCase):
     needs_threadpool = True
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
-        self.test_dir = tempfile.mkdtemp(prefix="synapse-tests-")
+        self.test_dir = tempfile.mkdtemp(prefix="relapse-tests-")
         self.addCleanup(shutil.rmtree, self.test_dir)
 
         self.primary_base_path = os.path.join(self.test_dir, "primary")
@@ -284,7 +284,7 @@ class MediaRepoTests(unittest.HomeserverTestCase):
         config["max_image_pixels"] = 2000000
 
         provider_config = {
-            "module": "synapse.media.storage_provider.FileStorageProviderBackend",
+            "module": "relapse.media.storage_provider.FileStorageProviderBackend",
             "store_local": True,
             "store_synchronous": False,
             "store_remote": True,
@@ -362,7 +362,7 @@ class MediaRepoTests(unittest.HomeserverTestCase):
 
     def test_disposition_filename_ascii(self) -> None:
         """
-        If the filename is filename=<ascii> then Synapse will decode it as an
+        If the filename is filename=<ascii> then Relapse will decode it as an
         ASCII string, and use filename= in the response.
         """
         channel = self._req(b"attachment; filename=out" + self.test_image.extension)
@@ -382,7 +382,7 @@ class MediaRepoTests(unittest.HomeserverTestCase):
 
     def test_disposition_filenamestar_utf8escaped(self) -> None:
         """
-        If the filename is filename=*utf8''<utf8 escaped> then Synapse will
+        If the filename is filename=*utf8''<utf8 escaped> then Relapse will
         correctly decode it as the UTF-8 string, and use filename* in the
         response.
         """
@@ -510,7 +510,7 @@ class MediaRepoTests(unittest.HomeserverTestCase):
             )
 
         # Deleting the thumbnail on disk then re-requesting it should work as
-        # Synapse should regenerate missing thumbnails.
+        # Relapse should regenerate missing thumbnails.
         origin, media_id = self.media_id.split("/")
         info = self.get_success(self.store.get_cached_remote_media(origin, media_id))
         assert info is not None

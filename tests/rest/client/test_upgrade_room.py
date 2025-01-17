@@ -16,12 +16,12 @@ from unittest.mock import patch
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.constants import EventContentFields, EventTypes, RoomTypes
-from synapse.config.server import DEFAULT_ROOM_VERSION
-from synapse.rest import admin
-from synapse.rest.client import login, room, room_upgrade_rest_servlet
-from synapse.server import HomeServer
-from synapse.util import Clock
+from relapse.api.constants import EventContentFields, EventTypes, RoomTypes
+from relapse.config.server import DEFAULT_ROOM_VERSION
+from relapse.rest import admin
+from relapse.rest.client import login, room, room_upgrade_rest_servlet
+from relapse.server import HomeServer
+from relapse.util import Clock
 
 from tests import unittest
 from tests.server import FakeChannel
@@ -215,9 +215,9 @@ class UpgradeRoomTest(unittest.HomeserverTestCase):
         # Set creator's power level to the string "100" instead of the integer `100`.
         power_levels["users"][self.creator] = "100"
 
-        # Synapse refuses to accept new stringy power level events. Bypass this by
+        # Relapse refuses to accept new stringy power level events. Bypass this by
         # neutering the validation.
-        with patch("synapse.events.validator.jsonschema.validate"):
+        with patch("relapse.events.validator.jsonschema.validate"):
             # Note: https://github.com/matrix-org/matrix-spec/issues/853 plans to forbid
             # string power levels in new rooms. For this test to have a clean
             # conscience, we ought to ensure it's upgrading from a sufficiently old

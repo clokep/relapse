@@ -31,16 +31,16 @@ from twisted.internet import defer, reactor
 from twisted.internet.defer import CancelledError, Deferred
 from twisted.internet.interfaces import IReactorTime
 
-from synapse.api.errors import SynapseError
-from synapse.logging.context import (
+from relapse.api.errors import RelapseError
+from relapse.logging.context import (
     SENTINEL_CONTEXT,
     LoggingContext,
     PreserveLoggingContext,
     current_context,
     make_deferred_yieldable,
 )
-from synapse.util.caches import descriptors
-from synapse.util.caches.descriptors import _CacheContext, cached, cachedList
+from relapse.util.caches import descriptors
+from relapse.util.caches.descriptors import _CacheContext, cached, cachedList
 
 from tests import unittest
 from tests.test_utils import get_awaitable_result
@@ -205,20 +205,20 @@ class DescriptorTestCase(unittest.TestCase):
         class Cls:
             @cached()
             def fn(self, arg1: int) -> NoReturn:
-                raise SynapseError(100, "mai spoon iz too big!!1")
+                raise RelapseError(100, "mai spoon iz too big!!1")
 
         obj = Cls()
 
         # this should fail immediately
         d = obj.fn(1)
-        self.failureResultOf(d, SynapseError)
+        self.failureResultOf(d, RelapseError)
 
         # ... leaving the cache empty
         self.assertEqual(len(obj.fn.cache.cache), 0)
 
         # and a second call should result in a second exception
         d = obj.fn(1)
-        self.failureResultOf(d, SynapseError)
+        self.failureResultOf(d, RelapseError)
 
     def test_cache_with_async_exception(self) -> None:
         """The wrapped function returns a failure"""
@@ -327,7 +327,7 @@ class DescriptorTestCase(unittest.TestCase):
                 def inner_fn() -> Generator["Deferred[Any]", object, NoReturn]:
                     # we want this to behave like an asynchronous function
                     yield run_on_reactor()
-                    raise SynapseError(400, "blah")
+                    raise RelapseError(400, "blah")
 
                 return inner_fn()
 
@@ -342,7 +342,7 @@ class DescriptorTestCase(unittest.TestCase):
                     )
                     yield d
                     self.fail("No exception thrown")
-                except SynapseError:
+                except RelapseError:
                     pass
 
                 self.assertEqual(current_context(), c1)
@@ -435,20 +435,20 @@ class DescriptorTestCase(unittest.TestCase):
         class Cls:
             @descriptors.cached(iterable=True)
             def fn(self, arg1: int) -> NoReturn:
-                raise SynapseError(100, "mai spoon iz too big!!1")
+                raise RelapseError(100, "mai spoon iz too big!!1")
 
         obj = Cls()
 
         # this should fail immediately
         d = obj.fn(1)
-        self.failureResultOf(d, SynapseError)
+        self.failureResultOf(d, RelapseError)
 
         # ... leaving the cache empty
         self.assertEqual(len(obj.fn.cache.cache), 0)
 
         # and a second call should result in a second exception
         d = obj.fn(1)
-        self.failureResultOf(d, SynapseError)
+        self.failureResultOf(d, RelapseError)
 
     def test_invalidate_cascade(self) -> None:
         """Invalidations should cascade up through cache contexts"""

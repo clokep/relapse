@@ -16,8 +16,8 @@ import os
 
 import twisted.logger
 
-from synapse.logging.context import LoggingContextFilter
-from synapse.synapse_rust import reset_logging_config
+from relapse.logging.context import LoggingContextFilter
+from relapse.relapse_rust import reset_logging_config
 
 
 class ToTwistedHandler(logging.Handler):
@@ -50,7 +50,7 @@ def setup_logging() -> None:
     handler.addFilter(LoggingContextFilter())
     root_logger.addHandler(handler)
 
-    log_level = os.environ.get("SYNAPSE_TEST_LOG_LEVEL", "ERROR")
+    log_level = os.environ.get("RELAPSE_TEST_LOG_LEVEL", "ERROR")
     root_logger.setLevel(log_level)
 
     # In order to not add noise by default (since we only log ERROR messages for trial
@@ -60,7 +60,7 @@ def setup_logging() -> None:
         # Log when events are (maybe unexpectedly) filtered out of responses in tests. It's
         # just nice to be able to look at the CI log and figure out why an event isn't being
         # returned.
-        logging.getLogger("synapse.visibility.filtered_event_debug").setLevel(
+        logging.getLogger("relapse.visibility.filtered_event_debug").setLevel(
             logging.DEBUG
         )
 

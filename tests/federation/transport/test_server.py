@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from synapse.api.constants import EduTypes
+from relapse.api.constants import EduTypes
 
 from tests import unittest
 from tests.unittest import DEBUG, override_config
@@ -43,7 +43,7 @@ class RoomDirectoryFederationTests(unittest.FederatingHomeserverTestCase):
 
     @DEBUG
     def test_edu_debugging_doesnt_explode(self) -> None:
-        """Sanity check incoming federation succeeds with `synapse.debug_8631` enabled.
+        """Sanity check incoming federation succeeds with `relapse.debug_8631` enabled.
 
         Remove this when we strip out issue_8631_logger.
         """

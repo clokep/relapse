@@ -15,21 +15,21 @@ from typing import Optional
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import synapse.rest.admin
-from synapse.api.errors import Codes, SynapseError
-from synapse.rest.client import login
-from synapse.server import HomeServer
-from synapse.util import Clock
+import relapse.rest.admin
+from relapse.api.errors import Codes, RelapseError
+from relapse.rest.client import login
+from relapse.server import HomeServer
+from relapse.util import Clock
 
 from tests import unittest
 
 
 class UsernameAvailableTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         login.register_servlets,
     ]
-    url = "/_synapse/admin/v1/username_available"
+    url = "/_relapse/admin/v1/username_available"
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.register_user("admin", "pass", admin=True)
@@ -43,7 +43,7 @@ class UsernameAvailableTestCase(unittest.HomeserverTestCase):
         ) -> None:
             if localpart == "allowed":
                 return
-            raise SynapseError(
+            raise RelapseError(
                 400,
                 "User ID already taken.",
                 errcode=Codes.USER_IN_USE,

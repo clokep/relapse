@@ -2,9 +2,9 @@ from unittest import TestCase as StdlibTestCase
 
 import yaml
 
-from synapse.config import ConfigError
-from synapse.config.api import ApiConfig
-from synapse.types.state import StateFilter
+from relapse.config import ConfigError
+from relapse.config.api import ApiConfig
+from relapse.types.state import StateFilter
 
 DEFAULT_PREJOIN_STATE_PAIRS = {
     ("m.room.join_rules", ""),

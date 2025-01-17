@@ -1,10 +1,10 @@
 # Creating multiple stream writers with a bash script
 
-This script creates multiple [stream writer](https://github.com/matrix-org/synapse/blob/develop/docs/workers.md#stream-writers) workers.
+This script creates multiple [stream writer](https://github.com/clokep/relapse/blob/develop/docs/workers.md#stream-writers) workers.
 
 Stream writers require both replication and HTTP listeners.
 
-It also prints out the example lines for Synapse main configuration file.
+It also prints out the example lines for Relapse main configuration file.
 
 Remember to route necessary endpoints directly to a worker associated with it.
 
@@ -33,10 +33,10 @@ i=0
 while [ $i -lt "$NUM_WRITERS" ]
 do
 cat << EOF > ${STREAM_WRITERS[$i]}_stream_writer.yaml
-worker_app: synapse.app.generic_worker
+worker_app: relapse.app.generic_worker
 worker_name: ${STREAM_WRITERS[$i]}_stream_writer
 
-# The replication listener on the main synapse process.
+# The replication listener on the main relapse process.
 worker_replication_host: 127.0.0.1
 worker_replication_http_port: 9093
 
@@ -53,7 +53,7 @@ worker_listeners:
       - names: [client]
 
 #worker_pid_file: DATADIR/${STREAM_WRITERS[$i]}.pid
-worker_log_config: /etc/matrix-synapse/stream-writer-log.yaml
+worker_log_config: /etc/matrix-relapse/stream-writer-log.yaml
 EOF
 HOMESERVER_YAML_INSTANCE_MAP+=$"  ${STREAM_WRITERS[$i]}_stream_writer:
     host: 127.0.0.1
@@ -71,7 +71,7 @@ cat << EXAMPLECONFIG
 # Don't forget to configure your reverse proxy and
 # necessary endpoints to their respective worker.
 
-# See https://github.com/matrix-org/synapse/blob/develop/docs/workers.md
+# See https://github.com/clokep/relapse/blob/develop/docs/workers.md
 # for more information.
 
 # Remember: Under NO circumstances should the replication
@@ -102,7 +102,7 @@ You should receive an output similar to the following:
 # Don't forget to configure your reverse proxy and
 # necessary endpoints to their respective worker.
 
-# See https://github.com/matrix-org/synapse/blob/develop/docs/workers.md
+# See https://github.com/clokep/relapse/blob/develop/docs/workers.md
 # for more information
 
 # Remember: Under NO circumstances should the replication
@@ -134,9 +134,9 @@ stream_writers:
   account_data: account_data_stream_writer
 ```
 
-Simply copy-and-paste the output to an appropriate place in your Synapse main configuration file.
+Simply copy-and-paste the output to an appropriate place in your Relapse main configuration file.
 
-## Write directly to Synapse configuration file
+## Write directly to Relapse configuration file
 
 You could also write the output directly to homeserver main configuration file. **This, however, is not recommended** as even a small typo (such as replacing >> with >) can erase the entire ```homeserver.yaml```. 
 
@@ -144,8 +144,8 @@ If you do this, back up your original configuration file first:
 
 ```console
 # Back up homeserver.yaml first
-cp /etc/matrix-synapse/homeserver.yaml /etc/matrix-synapse/homeserver.yaml.bak 
+cp /etc/matrix-relapse/homeserver.yaml /etc/matrix-relapse/homeserver.yaml.bak 
 
 # Create workers and write output to your homeserver.yaml
-./create_stream_writers.sh >> /etc/matrix-synapse/homeserver.yaml 
+./create_stream_writers.sh >> /etc/matrix-relapse/homeserver.yaml 
 ```

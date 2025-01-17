@@ -15,14 +15,14 @@ from typing import List, Sequence
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import synapse.rest.admin
-from synapse.api.errors import Codes
-from synapse.rest.client import login, room, sync
-from synapse.server import HomeServer
-from synapse.storage.roommember import RoomsForUser
-from synapse.types import JsonDict
-from synapse.util import Clock
-from synapse.util.stringutils import random_string
+import relapse.rest.admin
+from relapse.api.errors import Codes
+from relapse.rest.client import login, room, sync
+from relapse.server import HomeServer
+from relapse.storage.roommember import RoomsForUser
+from relapse.types import JsonDict
+from relapse.util import Clock
+from relapse.util.stringutils import random_string
 
 from tests import unittest
 from tests.unittest import override_config
@@ -30,7 +30,7 @@ from tests.unittest import override_config
 
 class ServerNoticeTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         login.register_servlets,
         room.register_servlets,
         sync.register_servlets,
@@ -49,7 +49,7 @@ class ServerNoticeTestCase(unittest.HomeserverTestCase):
         self.other_user = self.register_user("user", "pass")
         self.other_user_token = self.login("user", "pass")
 
-        self.url = "/_synapse/admin/v1/send_server_notice"
+        self.url = "/_relapse/admin/v1/send_server_notice"
 
     def test_no_auth(self) -> None:
         """Try to send a server notice without authentication."""

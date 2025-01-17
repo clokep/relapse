@@ -13,7 +13,7 @@ jobs:
 
       - name: Configure Git
         run: |
-          git config user.email "action@synapse.bot.com"
+          git config user.email "action@relapse.bot.com"
           git config user.name "Action Bot"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -35,7 +35,7 @@ jobs:
             git checkout develop -- ./docs/website_files/version-picker.css
             git checkout develop -- ./docs/website_files/README.md
 
-            echo "window.SYNAPSE_VERSION = '$version';" > ./docs/website_files/version.js
+            echo "window.RELAPSE_VERSION = '$version';" > ./docs/website_files/version.js
 
             # Adding version-picker element to index.hbs
             awk '/<button id="search-toggle" class="icon-button" type="button" title="Search. \(Shortkey: s\)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">/{

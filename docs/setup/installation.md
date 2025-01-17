@@ -2,7 +2,7 @@
 
 ## Choosing your server name
 
-It is important to choose the name for your server before you install Synapse,
+It is important to choose the name for your server before you install Relapse,
 because it cannot be changed later.
 
 The server name determines the "domain" part of user-ids for users on your
@@ -16,7 +16,7 @@ that your email address is probably `user@example.com` rather than
 `user@email.example.com`) - but doing so may require more advanced setup: see
 [Setting up Federation](../federate.md).
 
-## Installing Synapse
+## Installing Relapse
 
 ### Prebuilt packages
 
@@ -25,19 +25,19 @@ for most users.
 
 #### Docker images and Ansible playbooks
 
-There is an official synapse image available at
-<https://hub.docker.com/r/matrixdotorg/synapse> or at [`ghcr.io/matrix-org/synapse`](https://ghcr.io/matrix-org/synapse)
+There is an official relapse image available at
+<https://hub.docker.com/r/matrixdotorg/relapse> or at [`ghcr.io/clokep/relapse`](https://ghcr.io/clokep/relapse)
 which can be used with the docker-compose file available at
-[contrib/docker](https://github.com/matrix-org/synapse/tree/develop/contrib/docker).
+[contrib/docker](https://github.com/clokep/relapse/tree/develop/contrib/docker).
 Further information on this including configuration options is available in the README
 on hub.docker.com.
 
 Alternatively, Andreas Peters (previously Silvio Fricke) has contributed a
-Dockerfile to automate a synapse server in a single Docker image, at
+Dockerfile to automate a relapse server in a single Docker image, at
 <https://hub.docker.com/r/avhost/docker-matrix/tags/>
 
 Slavi Pantaleev has created an Ansible playbook,
-which installs the official Docker image of Matrix Synapse
+which installs the official Docker image of Matrix Relapse
 along with many other Matrix-related services (Postgres database, Element, coturn,
 ma1sd, SSL support, etc.).
 For more details, see
@@ -47,7 +47,7 @@ For more details, see
 
 ##### Matrix.org packages
 
-Matrix.org provides Debian/Ubuntu packages of Synapse, for the amd64
+Matrix.org provides Debian/Ubuntu packages of Relapse, for the amd64
 architecture via <https://packages.matrix.org/debian/>.  
 
 To install the latest release:
@@ -58,7 +58,7 @@ sudo wget -O /usr/share/keyrings/matrix-org-archive-keyring.gpg https://packages
 echo "deb [signed-by=/usr/share/keyrings/matrix-org-archive-keyring.gpg] https://packages.matrix.org/debian/ $(lsb_release -cs) main" |
     sudo tee /etc/apt/sources.list.d/matrix-org.list
 sudo apt update
-sudo apt install matrix-synapse-py3
+sudo apt install matrix-relapse-py3
 ```
 
 Packages are also published for release candidates. To enable the prerelease
@@ -69,7 +69,7 @@ sudo wget -O /usr/share/keyrings/matrix-org-archive-keyring.gpg https://packages
 echo "deb [signed-by=/usr/share/keyrings/matrix-org-archive-keyring.gpg] https://packages.matrix.org/debian/ $(lsb_release -cs) main prerelease" |
     sudo tee /etc/apt/sources.list.d/matrix-org.list
 sudo apt update
-sudo apt install matrix-synapse-py3
+sudo apt install matrix-relapse-py3
 ```
 
 The fingerprint of the repository signing key (as shown by `gpg
@@ -77,55 +77,55 @@ The fingerprint of the repository signing key (as shown by `gpg
 `AAF9AE843A7584B5A3E4CD2BCF45A512DE2DA058`.
 
 When installing with Debian packages, you might prefer to place files in
-`/etc/matrix-synapse/conf.d/` to override your configuration without editing
-the main configuration file at `/etc/matrix-synapse/homeserver.yaml`.
+`/etc/matrix-relapse/conf.d/` to override your configuration without editing
+the main configuration file at `/etc/matrix-relapse/homeserver.yaml`.
 By doing that, you won't be asked if you want to replace your configuration
 file when you upgrade the Debian package to a later version.
 
 ##### Downstream Debian packages
 
 Andrej Shadura maintains a
-[`matrix-synapse`](https://packages.debian.org/sid/matrix-synapse) package in
+[`matrix-relapse`](https://packages.debian.org/sid/matrix-relapse) package in
 the Debian repositories.
 For `bookworm` and `sid`, it can be installed simply with:
 
 ```sh
-sudo apt install matrix-synapse
+sudo apt install matrix-relapse
 ```
 
-Synapse is also available in `bullseye-backports`.  Please
+Relapse is also available in `bullseye-backports`.  Please
 see the [Debian documentation](https://backports.debian.org/Instructions/)
 for information on how to use backports.
 
-`matrix-synapse` is no longer maintained for `buster` and older.
+`matrix-relapse` is no longer maintained for `buster` and older.
 
 ##### Downstream Ubuntu packages
 
 We do not recommend using the packages in the default Ubuntu repository
 at this time, as they are [old and suffer from known security vulnerabilities](
-    https://bugs.launchpad.net/ubuntu/+source/matrix-synapse/+bug/1848709
+    https://bugs.launchpad.net/ubuntu/+source/matrix-relapse/+bug/1848709
 ).
-The latest version of Synapse can be installed from [our repository](#matrixorg-packages).
+The latest version of Relapse can be installed from [our repository](#matrixorg-packages).
 
 #### Fedora
 
-Synapse is in the Fedora repositories as
-[`matrix-synapse`](https://src.fedoraproject.org/rpms/matrix-synapse):
+Relapse is in the Fedora repositories as
+[`matrix-relapse`](https://src.fedoraproject.org/rpms/matrix-relapse):
 
 ```sh
-sudo dnf install matrix-synapse
+sudo dnf install matrix-relapse
 ```
 
 Additionally, Oleg Girko provides Fedora RPMs at
-<https://obs.infoserver.lv/project/monitor/matrix-synapse>
+<https://obs.infoserver.lv/project/monitor/matrix-relapse>
 
 #### OpenSUSE
 
-Synapse is in the OpenSUSE repositories as
-[`matrix-synapse`](https://software.opensuse.org/package/matrix-synapse):
+Relapse is in the OpenSUSE repositories as
+[`matrix-relapse`](https://software.opensuse.org/package/matrix-relapse):
 
 ```sh
-sudo zypper install matrix-synapse
+sudo zypper install matrix-relapse
 ```
 
 #### SUSE Linux Enterprise Server
@@ -136,7 +136,7 @@ Unofficial package are built for SLES 15 in the openSUSE:Backports:SLE-15 reposi
 #### ArchLinux
 
 The quickest way to get up and running with ArchLinux is probably with the package provided by ArchLinux
-<https://archlinux.org/packages/extra/x86_64/matrix-synapse/>, which should pull in most of
+<https://archlinux.org/packages/extra/x86_64/matrix-relapse/>, which should pull in most of
 the necessary dependencies.
 
 pip may be outdated (6.0.7-1 and needs to be upgraded to 6.0.8-1 ):
@@ -157,51 +157,51 @@ sudo pip install py-bcrypt
 
 #### Alpine Linux
 
-6543 maintains [Synapse packages for Alpine Linux](https://pkgs.alpinelinux.org/packages?name=synapse&branch=edge) in the community repository. Install with:
+6543 maintains [Relapse packages for Alpine Linux](https://pkgs.alpinelinux.org/packages?name=relapse&branch=edge) in the community repository. Install with:
 
 ```sh
-sudo apk add synapse
+sudo apk add relapse
 ```
 
 #### Void Linux
 
-Synapse can be found in the void repositories as
-['synapse'](https://github.com/void-linux/void-packages/tree/master/srcpkgs/synapse):
+Relapse can be found in the void repositories as
+['relapse'](https://github.com/void-linux/void-packages/tree/master/srcpkgs/relapse):
 
 ```sh
 xbps-install -Su
-xbps-install -S synapse
+xbps-install -S relapse
 ```
 
 #### FreeBSD
 
-Synapse can be installed via FreeBSD Ports or Packages contributed by Brendan Molloy from:
+Relapse can be installed via FreeBSD Ports or Packages contributed by Brendan Molloy from:
 
-- Ports: `cd /usr/ports/net-im/py-matrix-synapse && make install clean`
-- Packages: `pkg install py38-matrix-synapse`
+- Ports: `cd /usr/ports/net-im/py-matrix-relapse && make install clean`
+- Packages: `pkg install py38-matrix-relapse`
 
 #### OpenBSD
 
-As of OpenBSD 6.7 Synapse is available as a pre-compiled binary. The filesystem
-underlying the homeserver directory (defaults to `/var/synapse`) has to be
+As of OpenBSD 6.7 Relapse is available as a pre-compiled binary. The filesystem
+underlying the homeserver directory (defaults to `/var/relapse`) has to be
 mounted with `wxallowed` (cf. `mount(8)`), so creating a separate filesystem
-and mounting it to `/var/synapse` should be taken into consideration.
+and mounting it to `/var/relapse` should be taken into consideration.
 
-Installing Synapse:
+Installing Relapse:
 
 ```sh
-doas pkg_add synapse
+doas pkg_add relapse
 ```
 
 #### NixOS
 
-Robin Lambertz has packaged Synapse for NixOS at:
-<https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/services/matrix/synapse.nix>
+Robin Lambertz has packaged Relapse for NixOS at:
+<https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/services/matrix/relapse.nix>
 
 
 ### Installing as a Python module from PyPI
 
-It's also possible to install Synapse as a Python module from PyPI.
+It's also possible to install Relapse as a Python module from PyPI.
 
 When following this route please make sure that the [Platform-specific prerequisites](#platform-specific-prerequisites) are already installed.
 
@@ -215,36 +215,36 @@ If building on an uncommon architecture for which pre-built wheels are
 unavailable, you will need to have a recent Rust compiler installed. The easiest
 way of installing the latest version is to use [rustup](https://rustup.rs/).
 
-To install the Synapse homeserver run:
+To install the Relapse homeserver run:
 
 ```sh
-mkdir -p ~/synapse
-virtualenv -p python3 ~/synapse/env
-source ~/synapse/env/bin/activate
+mkdir -p ~/relapse
+virtualenv -p python3 ~/relapse/env
+source ~/relapse/env/bin/activate
 pip install --upgrade pip
 pip install --upgrade setuptools
-pip install matrix-synapse
+pip install matrix-relapse
 ```
 
-This will download Synapse from [PyPI](https://pypi.org/project/matrix-synapse)
+This will download Relapse from [PyPI](https://pypi.org/project/matrix-relapse)
 and install it, along with the python libraries it uses, into a virtual environment
-under `~/synapse/env`.  Feel free to pick a different directory if you
+under `~/relapse/env`.  Feel free to pick a different directory if you
 prefer.
 
-This Synapse installation can then be later upgraded by using pip again with the
+This Relapse installation can then be later upgraded by using pip again with the
 update flag:
 
 ```sh
-source ~/synapse/env/bin/activate
-pip install -U matrix-synapse
+source ~/relapse/env/bin/activate
+pip install -U matrix-relapse
 ```
 
-Before you can start Synapse, you will need to generate a configuration
+Before you can start Relapse, you will need to generate a configuration
 file. To do this, run (in your virtualenv, as before):
 
 ```sh
-cd ~/synapse
-python -m synapse.app.homeserver \
+cd ~/relapse
+python -m relapse.app.homeserver \
     --server-name my.domain.name \
     --config-path homeserver.yaml \
     --generate-config \
@@ -252,7 +252,7 @@ python -m synapse.app.homeserver \
 ```
 
 ... substituting an appropriate value for `--server-name` and choosing whether
-or not to report usage statistics (hostname, Synapse version, uptime, total
+or not to report usage statistics (hostname, Relapse version, uptime, total
 users, etc.) to the developers via the `--report-stats` argument.
 
 This command will generate you a config file that you can then customise, but it will
@@ -264,19 +264,19 @@ old key cached. If you update the signing key, you should change the name of the
 key in the `<server name>.signing.key` file (the second word) to something
 different. See the [spec](https://matrix.org/docs/spec/server_server/latest.html#retrieving-server-keys) for more information on key management).
 
-To actually run your new homeserver, pick a working directory for Synapse to
-run (e.g. `~/synapse`), and:
+To actually run your new homeserver, pick a working directory for Relapse to
+run (e.g. `~/relapse`), and:
 
 ```sh
-cd ~/synapse
+cd ~/relapse
 source env/bin/activate
 synctl start
 ```
 
 #### Platform-specific prerequisites
 
-Synapse is written in Python but some of the libraries it uses are written in
-C. So before we can install Synapse itself we need a working C compiler and the
+Relapse is written in Python but some of the libraries it uses are written in
+C. So before we can install Relapse itself we need a working C compiler and the
 header files for Python C extensions.
 
 ##### Debian/Ubuntu/Raspbian
@@ -351,12 +351,12 @@ sudo zypper in python-pip python-setuptools sqlite3 python-virtualenv \
 
 ##### OpenBSD
 
-A port of Synapse is available under `net/synapse`. The filesystem
-underlying the homeserver directory (defaults to `/var/synapse`) has to be
+A port of Relapse is available under `net/relapse`. The filesystem
+underlying the homeserver directory (defaults to `/var/relapse`) has to be
 mounted with `wxallowed` (cf. `mount(8)`), so creating a separate filesystem
-and mounting it to `/var/synapse` should be taken into consideration.
+and mounting it to `/var/relapse` should be taken into consideration.
 
-To be able to build Synapse's dependency on python the `WRKOBJDIR`
+To be able to build Relapse's dependency on python the `WRKOBJDIR`
 (cf. `bsd.port.mk(5)`) for building python, too, needs to be on a filesystem
 mounted with `wxallowed` (cf. `mount(8)`).
 
@@ -380,31 +380,31 @@ Setting the `WRKOBJDIR` for building python:
 echo WRKOBJDIR_lang/python/3.7=/usr/local/pobj_wxallowed  \\nWRKOBJDIR_lang/python/2.7=/usr/local/pobj_wxallowed >> /etc/mk.conf
 ```
 
-Building Synapse:
+Building Relapse:
 
 ```sh
-cd /usr/ports/net/synapse
+cd /usr/ports/net/relapse
 make install
 ```
 
 ##### Windows
 
-Running Synapse natively on Windows is not officially supported.
+Running Relapse natively on Windows is not officially supported.
 
-If you wish to run or develop Synapse on Windows, the Windows Subsystem for
+If you wish to run or develop Relapse on Windows, the Windows Subsystem for
 Linux provides a Linux environment which is capable of using the Debian, Fedora,
 or source installation methods. More information about WSL can be found at
 <https://docs.microsoft.com/en-us/windows/wsl/install> for Windows 10/11 and
 <https://docs.microsoft.com/en-us/windows/wsl/install-on-server> for
 Windows Server.
 
-## Setting up Synapse
+## Setting up Relapse
 
-Once you have installed synapse as above, you will need to configure it.
+Once you have installed relapse as above, you will need to configure it.
 
 ### Using PostgreSQL
 
-By default Synapse uses an [SQLite](https://sqlite.org/) database and in doing so trades
+By default Relapse uses an [SQLite](https://sqlite.org/) database and in doing so trades
 performance for convenience. Almost all installations should opt to use [PostgreSQL](https://www.postgresql.org)
 instead. Advantages include:
 
@@ -412,25 +412,25 @@ instead. Advantages include:
   caching model, smarter query optimiser
 - allowing the DB to be run on separate hardware
 
-For information on how to install and use PostgreSQL in Synapse, please see
+For information on how to install and use PostgreSQL in Relapse, please see
 [Using Postgres](../postgres.md)
 
 SQLite is only acceptable for testing purposes. SQLite should not be used in
-a production server. Synapse will perform poorly when using
+a production server. Relapse will perform poorly when using
 SQLite, especially when participating in large rooms.
 
 ### TLS certificates
 
 The default configuration exposes a single HTTP port on the local
 interface: `http://localhost:8008`. It is suitable for local testing,
-but for any practical use, you will need Synapse's APIs to be served
+but for any practical use, you will need Relapse's APIs to be served
 over HTTPS.
 
 The recommended way to do so is to set up a reverse proxy on port
 `8448`. You can find documentation on doing so in
 [the reverse proxy documentation](../reverse_proxy.md).
 
-Alternatively, you can configure Synapse to expose an HTTPS port. To do
+Alternatively, you can configure Relapse to expose an HTTPS port. To do
 so, you will need to edit `homeserver.yaml`, as follows:
 
 - First, under the `listeners` option, add the configuration for the
@@ -448,7 +448,7 @@ listeners:
 - You will also need to add the options `tls_certificate_path` and
   `tls_private_key_path`. to your configuration file. You will need to manage provisioning of 
    these certificates yourself.
-- You can find more information about these options as well as how to configure synapse in the 
+- You can find more information about these options as well as how to configure relapse in the 
   [configuration manual](../usage/configuration/config_documentation.md).
 
   If you are using your own certificate, be sure to use a `.pem` file that
@@ -517,12 +517,12 @@ public_baseurl: "https://<matrix.example.com>"
 
 ### Email
 
-It is desirable for Synapse to have the capability to send email. This allows
-Synapse to send password reset emails, send verifications when an email address
+It is desirable for Relapse to have the capability to send email. This allows
+Relapse to send password reset emails, send verifications when an email address
 is added to a user's account, and send email notifications to users when they
 receive new messages.
 
-To configure an SMTP server for Synapse, modify the configuration section
+To configure an SMTP server for Relapse, modify the configuration section
 headed `email`, and be sure to have at least the `smtp_host`, `smtp_port`
 and `notif_from` fields filled out.  You may also need to set `smtp_user`,
 `smtp_pass`, and `require_transport_security`.
@@ -540,11 +540,11 @@ setting.
 
 Alternatively, you can create new users from the command line. This can be done as follows:
 
- 1. If synapse was installed via pip, activate the virtualenv as follows (if Synapse was
+ 1. If relapse was installed via pip, activate the virtualenv as follows (if Relapse was
     installed via a prebuilt package, `register_new_matrix_user` should already be
     on the search path):
     ```sh
-    cd ~/synapse
+    cd ~/relapse
     source env/bin/activate
     synctl start # if not already running
     ```
@@ -554,7 +554,7 @@ Alternatively, you can create new users from the command line. This can be done 
     ```
 
 This will prompt you to add details for the new user, and will then connect to
-the running Synapse to create the new user. For example:
+the running Relapse to create the new user. For example:
 ```
 New user localpart: erikj
 Password:
@@ -565,7 +565,7 @@ Success!
 
 This process uses a setting
 [`registration_shared_secret`](../usage/configuration/config_documentation.md#registration_shared_secret),
-which is shared between Synapse itself and the `register_new_matrix_user`
+which is shared between Relapse itself and the `register_new_matrix_user`
 script. It doesn't matter what it is (a random value is generated by
 `--generate-config`), but it should be kept secret, as anyone with knowledge of
 it can register users, including admin accounts, on your server even if
@@ -578,9 +578,9 @@ a TURN server. See [TURN setup](../turn-howto.md) for details.
 
 ### URL previews
 
-Synapse includes support for previewing URLs, which is disabled by default.  To
+Relapse includes support for previewing URLs, which is disabled by default.  To
 turn it on you must enable the `url_preview_enabled: True` config parameter
-and explicitly specify the IP ranges that Synapse is not allowed to spider for
+and explicitly specify the IP ranges that Relapse is not allowed to spider for
 previewing in the `url_preview_ip_range_blacklist` configuration parameter.
 This is critical from a security perspective to stop arbitrary Matrix users
 spidering 'internal' URLs on your network. At the very least we recommend that
@@ -602,4 +602,4 @@ pip install twisted
 ```
 
 If you have any other problems, feel free to ask in
-[#synapse:matrix.org](https://matrix.to/#/#synapse:matrix.org).
+[#relapse:matrix.org](https://matrix.to/#/#relapse:matrix.org).

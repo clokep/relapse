@@ -23,8 +23,8 @@ concurrency:
 
 jobs:
   check_repo:
-    # Prevent this workflow from running on any fork of Synapse other than matrix-org/synapse, as it is
-    # only useful to the Synapse core team.
+    # Prevent this workflow from running on any fork of Relapse other than clokep/relapse, as it is
+    # only useful to the Relapse core team.
     # All other workflow steps depend on this one, thus if 'should_run_workflow' is not 'true', the rest
     # of the workflow will be skipped as well.
     runs-on: ubuntu-latest
@@ -32,7 +32,7 @@ jobs:
       should_run_workflow: ${{ steps.check_condition.outputs.should_run_workflow }}
     steps:
       - id: check_condition
-        run: echo "should_run_workflow=${{ github.repository == 'matrix-org/synapse' }}" >> "$GITHUB_OUTPUT"
+        run: echo "should_run_workflow=${{ github.repository == 'clokep/relapse' }}" >> "$GITHUB_OUTPUT"
 
   mypy:
     needs: check_repo
@@ -54,7 +54,7 @@ jobs:
       # Dump installed versions for debugging.
       - run: poetry run pip list > before.txt
       # Upgrade all runtime dependencies only. This is intended to mimic a fresh
-      # `pip install matrix-synapse[all]` as closely as possible.
+      # `pip install matrix-relapse[all]` as closely as possible.
       - run: poetry update --no-dev
       - run: poetry run pip list > after.txt && (diff -u before.txt after.txt || true)
       - name: Remove unhelpful options from mypy config
@@ -95,17 +95,17 @@ jobs:
         timeout-minutes: 2
         run: until pg_isready -h localhost; do sleep 1; done
 
-      # We nuke the local copy, as we've installed synapse into the virtualenv
+      # We nuke the local copy, as we've installed relapse into the virtualenv
       # (rather than use an editable install, which we no longer support). If we
       # don't do this then python can't find the native lib.
-      - run: rm -rf synapse/
+      - run: rm -rf relapse/
 
       - run: python -m twisted.trial --jobs=2 tests
         env:
-          SYNAPSE_POSTGRES: ${{ matrix.database == 'postgres' || '' }}
-          SYNAPSE_POSTGRES_HOST: localhost
-          SYNAPSE_POSTGRES_USER: postgres
-          SYNAPSE_POSTGRES_PASSWORD: postgres
+          RELAPSE_POSTGRES: ${{ matrix.database == 'postgres' || '' }}
+          RELAPSE_POSTGRES_HOST: localhost
+          RELAPSE_POSTGRES_USER: postgres
+          RELAPSE_POSTGRES_PASSWORD: postgres
       - name: Dump logs
         # Logs are most useful when the command fails, always include them.
         if: ${{ always() }}
@@ -125,7 +125,7 @@ jobs:
     if: needs.check_repo.outputs.should_run_workflow == 'true'
     runs-on: ubuntu-latest
     container:
-      image: matrixdotorg/sytest-synapse:testing
+      image: ghcr.io/clokep/sytest-relapse:testing
       volumes:
         - ${{ github.workspace }}:/src
     strategy:
@@ -142,7 +142,7 @@ jobs:
       POSTGRES: ${{ matrix.postgres && 1}}
       WORKERS: ${{ matrix.workers && 1 }}
       REDIS: ${{ matrix.redis && 1 }}
-      BLACKLIST: ${{ matrix.workers && 'synapse-blacklist-with-workers' }}
+      BLACKLIST: ${{ matrix.workers && 'relapse-blacklist-with-workers' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -156,9 +156,9 @@ jobs:
         run: rm /src/poetry.lock
         working-directory: /src
       - name: Prepare test blacklist
-        run: cat sytest-blacklist .ci/worker-blacklist > synapse-blacklist-with-workers
+        run: cat sytest-blacklist .ci/worker-blacklist > relapse-blacklist-with-workers
       - name: Run SyTest
-        run: /bootstrap.sh synapse
+        run: /bootstrap.sh relapse
         working-directory: /src
       - name: Summarise results.tap
         if: ${{ always() }}
@@ -192,13 +192,13 @@ jobs:
             database: Postgres
 
     steps:
-      - name: Run actions/checkout@v4 for synapse
+      - name: Run actions/checkout@v4 for relapse
         uses: actions/checkout@v4
         with:
-          path: synapse
+          path: relapse
 
       - name: Prepare Complement's Prerequisites
-        run: synapse/.ci/scripts/setup_complement_prerequisites.sh
+        run: relapse/.ci/scripts/setup_complement_prerequisites.sh
 
       - uses: actions/setup-go@v5
         with:
@@ -207,7 +207,7 @@ jobs:
 
       - run: |
           set -o pipefail
-          TEST_ONLY_IGNORE_POETRY_LOCKFILE=1 POSTGRES=${{ (matrix.database == 'Postgres') && 1 || '' }} WORKERS=${{ (matrix.arrangement == 'workers') && 1 || '' }} COMPLEMENT_DIR=`pwd`/complement synapse/scripts-dev/complement.sh -json 2>&1 | synapse/.ci/scripts/gotestfmt
+          TEST_ONLY_IGNORE_POETRY_LOCKFILE=1 POSTGRES=${{ (matrix.database == 'Postgres') && 1 || '' }} WORKERS=${{ (matrix.arrangement == 'workers') && 1 || '' }} COMPLEMENT_DIR=`pwd`/complement relapse/scripts-dev/complement.sh -json 2>&1 | relapse/.ci/scripts/gotestfmt
         shell: bash
         name: Run Complement Tests
 

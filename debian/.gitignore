@@ -1,7 +1,7 @@
-/matrix-synapse-py3.*.debhelper
-/matrix-synapse-py3.debhelper.log
-/matrix-synapse-py3.substvars
-/matrix-synapse-*/
+/matrix-relapse-py3.*.debhelper
+/matrix-relapse-py3.debhelper.log
+/matrix-relapse-py3.substvars
+/matrix-relapse-*/
 /files
 /debhelper-build-stamp
 /.debhelper

@@ -1,0 +1,8 @@
+worker_app: relapse.app.federation_sender
+worker_name: relapse-federation-sender-1
+
+# The replication listener on the main relapse process.
+worker_replication_host: relapse
+worker_replication_http_port: 9093
+
+worker_log_config: /data/federation_sender.log.config

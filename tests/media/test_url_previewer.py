@@ -15,8 +15,8 @@ import os
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.server import HomeServer
-from synapse.util import Clock
+from relapse.server import HomeServer
+from relapse.util import Clock
 
 from tests import unittest
 from tests.unittest import override_config
@@ -49,7 +49,7 @@ class URLPreviewTests(unittest.HomeserverTestCase):
         config["media_store_path"] = self.media_store_path
 
         provider_config = {
-            "module": "synapse.media.storage_provider.FileStorageProviderBackend",
+            "module": "relapse.media.storage_provider.FileStorageProviderBackend",
             "store_local": True,
             "store_synchronous": False,
             "store_remote": True,

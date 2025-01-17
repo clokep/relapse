@@ -23,9 +23,9 @@ import attr
 from twisted.web.http_headers import Headers
 from twisted.web.iweb import IResponse
 
-from synapse.server import HomeServer
-from synapse.util import Clock
-from synapse.util.stringutils import random_string
+from relapse.server import HomeServer
+from relapse.util import Clock
+from relapse.util.stringutils import random_string
 
 from tests.test_utils import FakeResponse
 

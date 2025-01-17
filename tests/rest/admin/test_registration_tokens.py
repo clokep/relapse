@@ -17,18 +17,18 @@ from typing import Optional
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import synapse.rest.admin
-from synapse.api.errors import Codes
-from synapse.rest.client import login
-from synapse.server import HomeServer
-from synapse.util import Clock
+import relapse.rest.admin
+from relapse.api.errors import Codes
+from relapse.rest.client import login
+from relapse.server import HomeServer
+from relapse.util import Clock
 
 from tests import unittest
 
 
 class ManageRegistrationTokensTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         login.register_servlets,
     ]
 
@@ -40,7 +40,7 @@ class ManageRegistrationTokensTestCase(unittest.HomeserverTestCase):
         self.other_user = self.register_user("user", "pass")
         self.other_user_tok = self.login("user", "pass")
 
-        self.url = "/_synapse/admin/v1/registration_tokens"
+        self.url = "/_relapse/admin/v1/registration_tokens"
 
     def _new_token(
         self,

@@ -1,14 +1,14 @@
-synctl(1) -- Synapse server control interface
+synctl(1) -- Relapse server control interface
 =============================================
 
 ## SYNOPSIS
-  Start, stop or restart synapse server.
+  Start, stop or restart relapse server.
 
 `synctl` {start|stop|restart} [configfile] [-w|--worker=<WORKERCONFIG>] [-a|--all-processes=<WORKERCONFIGDIR>]
 
 ## DESCRIPTION
 
-**synctl** can be used to start, stop or restart Synapse server.  The
+**synctl** can be used to start, stop or restart Relapse server.  The
 control operation can be done on all processes or a single worker
 process.
 
@@ -31,7 +31,7 @@ process.
   * `-a`, `--all-processes`:
 
     Perform start, stop or restart operations on all the workers in
-    the given directory and the main synapse process. Incompatible
+    the given directory and the main relapse process. Incompatible
     with `-w`|`--worker`.  Value passed must be a directory containing
     valid work configuration files.  All files ending with `.yaml`
     extension shall be considered as configuration files and all other
@@ -41,16 +41,16 @@ process.
 
 Configuration file may be generated as follows:
 
-    $ python -m synapse.app.homeserver -c config.yaml --generate-config --server-name=<server name>
+    $ python -m relapse.app.homeserver -c config.yaml --generate-config --server-name=<server name>
 
 ## ENVIRONMENT
 
-  * `SYNAPSE_CACHE_FACTOR`:
-    Synapse's architecture is quite RAM hungry currently - we deliberately
+  * `RELAPSE_CACHE_FACTOR`:
+    Relapse's architecture is quite RAM hungry currently - we deliberately
     cache a lot of recent room data and metadata in RAM in order to speed up
     common requests. We'll improve this in the future, but for now the easiest
     way to either reduce the RAM usage (at the risk of slowing things down)
-    is to set the almost-undocumented ``SYNAPSE_CACHE_FACTOR`` environment
+    is to set the almost-undocumented ``RELAPSE_CACHE_FACTOR`` environment
     variable. The default is 0.5, which can be decreased to reduce RAM usage
     in memory constrained enviroments, or increased if performance starts to
     degrade.
@@ -68,4 +68,4 @@ Debian GNU/Linux distribution.
 
 ## SEE ALSO
 
-synapse_port_db(1), hash_password(1), register_new_matrix_user(1), synapse_review_recent_signups(1)
+relapse_port_db(1), hash_password(1), register_new_matrix_user(1), relapse_review_recent_signups(1)

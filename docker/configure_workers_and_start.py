@@ -13,34 +13,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This script reads environment variables and generates a shared Synapse worker,
+# This script reads environment variables and generates a shared Relapse worker,
 # nginx and supervisord configs depending on the workers requested.
 #
 # The environment variables it reads are:
-#   * SYNAPSE_SERVER_NAME: The desired server_name of the homeserver.
-#   * SYNAPSE_REPORT_STATS: Whether to report stats.
-#   * SYNAPSE_WORKER_TYPES: A comma separated list of worker names as specified in WORKERS_CONFIG
+#   * RELAPSE_SERVER_NAME: The desired server_name of the homeserver.
+#   * RELAPSE_REPORT_STATS: Whether to report stats.
+#   * RELAPSE_WORKER_TYPES: A comma separated list of worker names as specified in WORKERS_CONFIG
 #         below. Leave empty for no workers. Add a ':' and a number at the end to
 #         multiply that worker. Append multiple worker types with '+' to merge the
 #         worker types into a single worker. Add a name and a '=' to the front of a
 #         worker type to give this instance a name in logs and nginx.
 #         Examples:
-#         SYNAPSE_WORKER_TYPES='event_persister, federation_sender, client_reader'
-#         SYNAPSE_WORKER_TYPES='event_persister:2, federation_sender:2, client_reader'
-#         SYNAPSE_WORKER_TYPES='stream_writers=account_data+presence+typing'
-#   * SYNAPSE_AS_REGISTRATION_DIR: If specified, a directory in which .yaml and .yml files
+#         RELAPSE_WORKER_TYPES='event_persister, federation_sender, client_reader'
+#         RELAPSE_WORKER_TYPES='event_persister:2, federation_sender:2, client_reader'
+#         RELAPSE_WORKER_TYPES='stream_writers=account_data+presence+typing'
+#   * RELAPSE_AS_REGISTRATION_DIR: If specified, a directory in which .yaml and .yml files
 #         will be treated as Application Service registration files.
-#   * SYNAPSE_TLS_CERT: Path to a TLS certificate in PEM format.
-#   * SYNAPSE_TLS_KEY: Path to a TLS key. If this and SYNAPSE_TLS_CERT are specified,
+#   * RELAPSE_TLS_CERT: Path to a TLS certificate in PEM format.
+#   * RELAPSE_TLS_KEY: Path to a TLS key. If this and RELAPSE_TLS_CERT are specified,
 #         Nginx will be configured to serve TLS on port 8448.
-#   * SYNAPSE_USE_EXPERIMENTAL_FORKING_LAUNCHER: Whether to use the forking launcher,
+#   * RELAPSE_USE_EXPERIMENTAL_FORKING_LAUNCHER: Whether to use the forking launcher,
 #         only intended for usage in Complement at the moment.
 #         No stability guarantees are provided.
-#   * SYNAPSE_LOG_LEVEL: Set this to DEBUG, INFO, WARNING or ERROR to change the
+#   * RELAPSE_LOG_LEVEL: Set this to DEBUG, INFO, WARNING or ERROR to change the
 #         log level. INFO is the default.
-#   * SYNAPSE_LOG_SENSITIVE: If unset, SQL and SQL values won't be logged,
-#         regardless of the SYNAPSE_LOG_LEVEL setting.
-#   * SYNAPSE_LOG_TESTING: if set, Synapse will log additional information useful
+#   * RELAPSE_LOG_SENSITIVE: If unset, SQL and SQL values won't be logged,
+#         regardless of the RELAPSE_LOG_LEVEL setting.
+#   * RELAPSE_LOG_TESTING: if set, Relapse will log additional information useful
 #     for testing.
 #
 # NOTE: According to Complement's ENTRYPOINT expectations for a homeserver image (as defined
@@ -90,14 +90,14 @@ WORKER_PLACEHOLDER_NAME = "placeholder_name"
 #   have to attach by instance_map to the master process and have client endpoints.
 WORKERS_CONFIG: Dict[str, Dict[str, Any]] = {
     "pusher": {
-        "app": "synapse.app.generic_worker",
+        "app": "relapse.app.generic_worker",
         "listener_resources": [],
         "endpoint_patterns": [],
         "shared_extra_conf": {},
         "worker_extra_conf": "",
     },
     "user_dir": {
-        "app": "synapse.app.generic_worker",
+        "app": "relapse.app.generic_worker",
         "listener_resources": ["client"],
         "endpoint_patterns": [
             "^/_matrix/client/(api/v1|r0|v3|unstable)/user_directory/search$"
@@ -108,15 +108,15 @@ WORKERS_CONFIG: Dict[str, Dict[str, Any]] = {
         "worker_extra_conf": "",
     },
     "media_repository": {
-        "app": "synapse.app.generic_worker",
+        "app": "relapse.app.generic_worker",
         "listener_resources": ["media"],
         "endpoint_patterns": [
             "^/_matrix/media/",
-            "^/_synapse/admin/v1/purge_media_cache$",
-            "^/_synapse/admin/v1/room/.*/media.*$",
-            "^/_synapse/admin/v1/user/.*/media.*$",
-            "^/_synapse/admin/v1/media/.*$",
-            "^/_synapse/admin/v1/quarantine_media/.*$",
+            "^/_relapse/admin/v1/purge_media_cache$",
+            "^/_relapse/admin/v1/room/.*/media.*$",
+            "^/_relapse/admin/v1/user/.*/media.*$",
+            "^/_relapse/admin/v1/media/.*$",
+            "^/_relapse/admin/v1/quarantine_media/.*$",
         ],
         # The first configured media worker will run the media background jobs
         "shared_extra_conf": {
@@ -126,7 +126,7 @@ WORKERS_CONFIG: Dict[str, Dict[str, Any]] = {
         "worker_extra_conf": "enable_media_repo: true",
     },
     "appservice": {
-        "app": "synapse.app.generic_worker",
+        "app": "relapse.app.generic_worker",
         "listener_resources": [],
         "endpoint_patterns": [],
         "shared_extra_conf": {
@@ -135,14 +135,14 @@ WORKERS_CONFIG: Dict[str, Dict[str, Any]] = {
         "worker_extra_conf": "",
     },
     "federation_sender": {
-        "app": "synapse.app.generic_worker",
+        "app": "relapse.app.generic_worker",
         "listener_resources": [],
         "endpoint_patterns": [],
         "shared_extra_conf": {},
         "worker_extra_conf": "",
     },
     "synchrotron": {
-        "app": "synapse.app.generic_worker",
+        "app": "relapse.app.generic_worker",
         "listener_resources": ["client"],
         "endpoint_patterns": [
             "^/_matrix/client/(v2_alpha|r0|v3)/sync$",
@@ -154,7 +154,7 @@ WORKERS_CONFIG: Dict[str, Dict[str, Any]] = {
         "worker_extra_conf": "",
     },
     "client_reader": {
-        "app": "synapse.app.generic_worker",
+        "app": "relapse.app.generic_worker",
         "listener_resources": ["client"],
         "endpoint_patterns": [
             "^/_matrix/client/(api/v1|r0|v3|unstable)/publicRooms$",
@@ -189,7 +189,7 @@ WORKERS_CONFIG: Dict[str, Dict[str, Any]] = {
         "worker_extra_conf": "",
     },
     "federation_reader": {
-        "app": "synapse.app.generic_worker",
+        "app": "relapse.app.generic_worker",
         "listener_resources": ["federation"],
         "endpoint_patterns": [
             "^/_matrix/federation/(v1|v2)/event/",
@@ -216,21 +216,21 @@ WORKERS_CONFIG: Dict[str, Dict[str, Any]] = {
         "worker_extra_conf": "",
     },
     "federation_inbound": {
-        "app": "synapse.app.generic_worker",
+        "app": "relapse.app.generic_worker",
         "listener_resources": ["federation"],
         "endpoint_patterns": ["/_matrix/federation/(v1|v2)/send/"],
         "shared_extra_conf": {},
         "worker_extra_conf": "",
     },
     "event_persister": {
-        "app": "synapse.app.generic_worker",
+        "app": "relapse.app.generic_worker",
         "listener_resources": ["replication"],
         "endpoint_patterns": [],
         "shared_extra_conf": {},
         "worker_extra_conf": "",
     },
     "background_worker": {
-        "app": "synapse.app.generic_worker",
+        "app": "relapse.app.generic_worker",
         "listener_resources": [],
         "endpoint_patterns": [],
         # This worker cannot be sharded. Therefore, there should only ever be one
@@ -239,7 +239,7 @@ WORKERS_CONFIG: Dict[str, Dict[str, Any]] = {
         "worker_extra_conf": "",
     },
     "event_creator": {
-        "app": "synapse.app.generic_worker",
+        "app": "relapse.app.generic_worker",
         "listener_resources": ["client"],
         "endpoint_patterns": [
             "^/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/redact",
@@ -253,14 +253,14 @@ WORKERS_CONFIG: Dict[str, Dict[str, Any]] = {
         "worker_extra_conf": "",
     },
     "frontend_proxy": {
-        "app": "synapse.app.generic_worker",
+        "app": "relapse.app.generic_worker",
         "listener_resources": ["client", "replication"],
         "endpoint_patterns": ["^/_matrix/client/(api/v1|r0|v3|unstable)/keys/upload"],
         "shared_extra_conf": {},
         "worker_extra_conf": "",
     },
     "account_data": {
-        "app": "synapse.app.generic_worker",
+        "app": "relapse.app.generic_worker",
         "listener_resources": ["client", "replication"],
         "endpoint_patterns": [
             "^/_matrix/client/(r0|v3|unstable)/.*/tags",
@@ -270,14 +270,14 @@ WORKERS_CONFIG: Dict[str, Dict[str, Any]] = {
         "worker_extra_conf": "",
     },
     "presence": {
-        "app": "synapse.app.generic_worker",
+        "app": "relapse.app.generic_worker",
         "listener_resources": ["client", "replication"],
         "endpoint_patterns": ["^/_matrix/client/(api/v1|r0|v3|unstable)/presence/"],
         "shared_extra_conf": {},
         "worker_extra_conf": "",
     },
     "receipts": {
-        "app": "synapse.app.generic_worker",
+        "app": "relapse.app.generic_worker",
         "listener_resources": ["client", "replication"],
         "endpoint_patterns": [
             "^/_matrix/client/(r0|v3|unstable)/rooms/.*/receipt",
@@ -287,14 +287,14 @@ WORKERS_CONFIG: Dict[str, Dict[str, Any]] = {
         "worker_extra_conf": "",
     },
     "to_device": {
-        "app": "synapse.app.generic_worker",
+        "app": "relapse.app.generic_worker",
         "listener_resources": ["client", "replication"],
         "endpoint_patterns": ["^/_matrix/client/(r0|v3|unstable)/sendToDevice/"],
         "shared_extra_conf": {},
         "worker_extra_conf": "",
     },
     "typing": {
-        "app": "synapse.app.generic_worker",
+        "app": "relapse.app.generic_worker",
         "listener_resources": ["client", "replication"],
         "endpoint_patterns": [
             "^/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/typing"
@@ -411,7 +411,7 @@ def add_worker_roles_to_shared_config(
         )
 
         # Map of stream writer instance names to host/ports combos
-        if os.environ.get("SYNAPSE_USE_UNIX_SOCKET", False):
+        if os.environ.get("RELAPSE_USE_UNIX_SOCKET", False):
             instance_map[worker_name] = {
                 "path": f"/run/worker.{worker_port}",
             }
@@ -431,7 +431,7 @@ def add_worker_roles_to_shared_config(
 
             # Map of stream writer instance names to host/ports combos
             # For now, all stream writers need http replication ports
-            if os.environ.get("SYNAPSE_USE_UNIX_SOCKET", False):
+            if os.environ.get("RELAPSE_USE_UNIX_SOCKET", False):
                 instance_map[worker_name] = {
                     "path": f"/run/worker.{worker_port}",
                 }
@@ -576,14 +576,14 @@ def split_and_strip_string(
 
 
 def generate_base_homeserver_config() -> None:
-    """Starts Synapse and generates a basic homeserver config, which will later be
+    """Starts Relapse and generates a basic homeserver config, which will later be
     modified for worker support.
 
     Raises: CalledProcessError if calling start.py returned a non-zero exit code.
     """
     # start.py already does this for us, so just call that.
     # note that this script is copied in in the official, monolith dockerfile
-    os.environ["SYNAPSE_HTTP_PORT"] = str(MAIN_PROCESS_HTTP_LISTENER_PORT)
+    os.environ["RELAPSE_HTTP_PORT"] = str(MAIN_PROCESS_HTTP_LISTENER_PORT)
     subprocess.run(["/usr/local/bin/python", "/start.py", "migrate_config"], check=True)
 
 
@@ -722,8 +722,8 @@ def generate_worker_files(
 
     Args:
         environ: os.environ instance.
-        config_path: The location of the generated Synapse main worker config file.
-        data_dir: The location of the synapse data directory. Where log and
+        config_path: The location of the generated Relapse main worker config file.
+        data_dir: The location of the relapse data directory. Where log and
             user-facing config files live.
         requested_worker_types: A Dict containing requested workers in the format of
             {'worker_name1': {'worker_type', ...}}
@@ -732,7 +732,7 @@ def generate_worker_files(
     # into files at the correct indentation below.
 
     # Convenience helper for if using unix sockets instead of host:port
-    using_unix_sockets = environ.get("SYNAPSE_USE_UNIX_SOCKET", False)
+    using_unix_sockets = environ.get("RELAPSE_USE_UNIX_SOCKET", False)
     # First read the original config file and extract the listeners block. Then we'll
     # add another listener for replication. Later we'll write out the result to the
     # shared config file.
@@ -762,7 +762,7 @@ def generate_worker_files(
 
     # The shared homeserver config. The contents of which will be inserted into the
     # base shared worker jinja2 template. This config file will be passed to all
-    # workers, included Synapse's main process. It is intended mainly for disabling
+    # workers, included Relapse's main process. It is intended mainly for disabling
     # functionality when certain workers are spun up, and adding a replication listener.
     shared_config: Dict[str, Any] = {"listeners": listeners}
 
@@ -908,7 +908,7 @@ def generate_worker_files(
 
     # Find application service registrations
     appservice_registrations = None
-    appservice_registration_dir = os.environ.get("SYNAPSE_AS_REGISTRATION_DIR")
+    appservice_registration_dir = os.environ.get("RELAPSE_AS_REGISTRATION_DIR")
     if appservice_registration_dir:
         # Scan for all YAML files that should be application service registrations.
         appservice_registrations = [
@@ -946,11 +946,11 @@ def generate_worker_files(
     # Nginx config
     convert(
         "/conf/nginx.conf.j2",
-        "/etc/nginx/conf.d/matrix-synapse.conf",
+        "/etc/nginx/conf.d/matrix-relapse.conf",
         worker_locations=nginx_location_config,
         upstream_directives=nginx_upstream_config,
-        tls_cert_path=os.environ.get("SYNAPSE_TLS_CERT"),
-        tls_key_path=os.environ.get("SYNAPSE_TLS_KEY"),
+        tls_cert_path=os.environ.get("RELAPSE_TLS_CERT"),
+        tls_key_path=os.environ.get("RELAPSE_TLS_KEY"),
         using_unix_sockets=using_unix_sockets,
     )
 
@@ -965,11 +965,11 @@ def generate_worker_files(
     )
 
     convert(
-        "/conf/synapse.supervisord.conf.j2",
-        "/etc/supervisor/conf.d/synapse.conf",
+        "/conf/relapse.supervisord.conf.j2",
+        "/etc/supervisor/conf.d/relapse.conf",
         workers=worker_descriptors,
         main_config_path=config_path,
-        use_forking_launcher=environ.get("SYNAPSE_USE_EXPERIMENTAL_FORKING_LAUNCHER"),
+        use_forking_launcher=environ.get("RELAPSE_USE_EXPERIMENTAL_FORKING_LAUNCHER"),
     )
 
     # healthcheck config
@@ -994,14 +994,14 @@ def generate_worker_log_config(
     """
     # Check whether we should write worker logs to disk, in addition to the console
     extra_log_template_args: Dict[str, Optional[str]] = {}
-    if environ.get("SYNAPSE_WORKERS_WRITE_LOGS_TO_DISK"):
+    if environ.get("RELAPSE_WORKERS_WRITE_LOGS_TO_DISK"):
         extra_log_template_args["LOG_FILE_PATH"] = f"{data_dir}/logs/{worker_name}.log"
 
-    extra_log_template_args["SYNAPSE_LOG_LEVEL"] = environ.get("SYNAPSE_LOG_LEVEL")
-    extra_log_template_args["SYNAPSE_LOG_SENSITIVE"] = environ.get(
-        "SYNAPSE_LOG_SENSITIVE"
+    extra_log_template_args["RELAPSE_LOG_LEVEL"] = environ.get("RELAPSE_LOG_LEVEL")
+    extra_log_template_args["RELAPSE_LOG_SENSITIVE"] = environ.get(
+        "RELAPSE_LOG_SENSITIVE"
     )
-    extra_log_template_args["SYNAPSE_LOG_TESTING"] = environ.get("SYNAPSE_LOG_TESTING")
+    extra_log_template_args["RELAPSE_LOG_TESTING"] = environ.get("RELAPSE_LOG_TESTING")
 
     # Render and write the file
     log_config_filepath = f"/conf/workers/{worker_name}.log.config"
@@ -1011,20 +1011,20 @@ def generate_worker_log_config(
         worker_name=worker_name,
         **extra_log_template_args,
         include_worker_name_in_log_line=environ.get(
-            "SYNAPSE_USE_EXPERIMENTAL_FORKING_LAUNCHER"
+            "RELAPSE_USE_EXPERIMENTAL_FORKING_LAUNCHER"
         ),
     )
     return log_config_filepath
 
 
 def main(args: List[str], environ: MutableMapping[str, str]) -> None:
-    config_dir = environ.get("SYNAPSE_CONFIG_DIR", "/data")
-    config_path = environ.get("SYNAPSE_CONFIG_PATH", config_dir + "/homeserver.yaml")
-    data_dir = environ.get("SYNAPSE_DATA_DIR", "/data")
+    config_dir = environ.get("RELAPSE_CONFIG_DIR", "/data")
+    config_path = environ.get("RELAPSE_CONFIG_PATH", config_dir + "/homeserver.yaml")
+    data_dir = environ.get("RELAPSE_DATA_DIR", "/data")
 
-    # override SYNAPSE_NO_TLS, we don't support TLS in worker mode,
+    # override RELAPSE_NO_TLS, we don't support TLS in worker mode,
     # this needs to be handled by a frontend proxy
-    environ["SYNAPSE_NO_TLS"] = "yes"
+    environ["RELAPSE_NO_TLS"] = "yes"
 
     # Generate the base homeserver config if one does not yet exist
     if not os.path.exists(config_path):
@@ -1038,7 +1038,7 @@ def main(args: List[str], environ: MutableMapping[str, str]) -> None:
     if not os.path.exists(mark_filepath):
         # Collect and validate worker_type requests
         # Read the desired worker configuration from the environment
-        worker_types_env = environ.get("SYNAPSE_WORKER_TYPES", "").strip()
+        worker_types_env = environ.get("RELAPSE_WORKER_TYPES", "").strip()
         # Only process worker_types if they exist
         if not worker_types_env:
             # No workers, just the main process
@@ -1067,7 +1067,7 @@ def main(args: List[str], environ: MutableMapping[str, str]) -> None:
     else:
         log("Could not find %s, will not use" % (jemallocpath,))
 
-    # Start supervisord, which will start Synapse, all of the configured worker
+    # Start supervisord, which will start Relapse, all of the configured worker
     # processes, redis, nginx etc. according to the config we created above.
     log("Starting supervisord")
     flush_buffers()

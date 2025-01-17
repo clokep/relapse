@@ -7,7 +7,7 @@ for a server admin: see [Admin API](../usage/administration/admin_api/).
 
 The api is:
 ```
-GET /_synapse/admin/v1/event_reports?from=0&limit=10
+GET /_relapse/admin/v1/event_reports?from=0&limit=10
 ```
 
 It returns a JSON body like the following:
@@ -93,7 +93,7 @@ This API returns information about a specific event report.
 
 The api is:
 ```
-GET /_synapse/admin/v1/event_reports/<report_id>
+GET /_relapse/admin/v1/event_reports/<report_id>
 ```
 
 It returns a JSON body like the following:
@@ -177,7 +177,7 @@ will be an empty JSON object.
 
 The api is:
 ```
-DELETE /_synapse/admin/v1/event_reports/<report_id>
+DELETE /_relapse/admin/v1/event_reports/<report_id>
 ```
 
 **URL parameters:**

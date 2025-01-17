@@ -6,9 +6,9 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = "Synapse development"
+project = "Relapse development"
 copyright = "2023, The Matrix.org Foundation C.I.C."
-author = "The Synapse Maintainers and Community"
+author = "The Relapse Maintainers and Community"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -31,7 +31,7 @@ autodoc2_docstring_parser_regexes = [
 
 autodoc2_packages = [
     {
-        "path": "../synapse",
+        "path": "../relapse",
         # Don't render documentation for everything as a matter of course
         "auto_mode": False,
     },

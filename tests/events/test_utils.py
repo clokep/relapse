@@ -18,10 +18,10 @@ from typing import Any, List, Mapping, Optional
 import attr
 from parameterized import parameterized
 
-from synapse.api.constants import EventContentFields
-from synapse.api.room_versions import RoomVersions
-from synapse.events import EventBase, make_event_from_dict
-from synapse.events.utils import (
+from relapse.api.constants import EventContentFields
+from relapse.api.room_versions import RoomVersions
+from relapse.events import EventBase, make_event_from_dict
+from relapse.events.utils import (
     PowerLevelsContent,
     SerializeEventConfig,
     _split_field,
@@ -30,8 +30,8 @@ from synapse.events.utils import (
     prune_event,
     serialize_event,
 )
-from synapse.types import JsonDict
-from synapse.util.frozenutils import freeze
+from relapse.types import JsonDict
+from relapse.util.frozenutils import freeze
 
 
 def MockEvent(**kwargs: Any) -> EventBase:

@@ -15,10 +15,10 @@
 import os
 from unittest.mock import Mock
 
-from synapse.config import ConfigError
-from synapse.config.homeserver import HomeServerConfig
-from synapse.module_api import ModuleApi
-from synapse.types import JsonDict
+from relapse.config import ConfigError
+from relapse.config.homeserver import HomeServerConfig
+from relapse.module_api import ModuleApi
+from relapse.types import JsonDict
 
 from tests.server import get_clock, setup_test_homeserver
 from tests.unittest import TestCase, skip_unless
@@ -29,7 +29,7 @@ SERVER_NAME = "test"
 ISSUER = "https://issuer/"
 CLIENT_ID = "test-client-id"
 CLIENT_SECRET = "test-client-secret"
-BASE_URL = "https://synapse/"
+BASE_URL = "https://relapse/"
 
 
 class CustomAuthModule:

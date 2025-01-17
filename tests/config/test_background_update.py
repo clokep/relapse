@@ -13,7 +13,7 @@
 # limitations under the License.
 import yaml
 
-from synapse.storage.background_updates import BackgroundUpdater
+from relapse.storage.background_updates import BackgroundUpdater
 
 from tests.unittest import HomeserverTestCase, override_config
 

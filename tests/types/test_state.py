@@ -1,7 +1,7 @@
 from immutabledict import immutabledict
 
-from synapse.api.constants import EventTypes
-from synapse.types.state import StateFilter
+from relapse.api.constants import EventTypes
+from relapse.types.state import StateFilter
 
 from tests.unittest import TestCase
 

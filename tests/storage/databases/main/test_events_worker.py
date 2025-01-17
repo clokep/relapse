@@ -20,19 +20,19 @@ from twisted.enterprise.adbapi import ConnectionPool
 from twisted.internet.defer import CancelledError, Deferred, ensureDeferred
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.room_versions import EventFormatVersions, RoomVersions
-from synapse.events import make_event_from_dict
-from synapse.logging.context import LoggingContext
-from synapse.rest import admin
-from synapse.rest.client import login, room
-from synapse.server import HomeServer
-from synapse.storage.databases.main.events_worker import (
+from relapse.api.room_versions import EventFormatVersions, RoomVersions
+from relapse.events import make_event_from_dict
+from relapse.logging.context import LoggingContext
+from relapse.rest import admin
+from relapse.rest.client import login, room
+from relapse.server import HomeServer
+from relapse.storage.databases.main.events_worker import (
     EVENT_QUEUE_THREADS,
     EventsWorkerStore,
 )
-from synapse.storage.types import Connection
-from synapse.util import Clock
-from synapse.util.async_helpers import yieldable_gather_results
+from relapse.storage.types import Connection
+from relapse.util import Clock
+from relapse.util.async_helpers import yieldable_gather_results
 
 from tests import unittest
 from tests.test_utils.event_injection import create_event, inject_event

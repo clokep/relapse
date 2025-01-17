@@ -31,10 +31,10 @@ pub fn register_module(py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_submodule(child_module)?;
 
     // We need to manually add the module to sys.modules to make `from
-    // synapse.synapse_rust import acl` work.
+    // relapse.relapse_rust import acl` work.
     py.import("sys")?
         .getattr("modules")?
-        .set_item("synapse.synapse_rust.acl", child_module)?;
+        .set_item("relapse.relapse_rust.acl", child_module)?;
 
     Ok(())
 }

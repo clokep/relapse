@@ -54,7 +54,7 @@ def get_test_ca_cert_file() -> str:
 
         openssl genrsa -out ca.key 2048
         openssl req -new -x509 -key ca.key -days 3650 -out ca.crt \
-            -subj '/CN=synapse test CA'
+            -subj '/CN=relapse test CA'
     """
     return os.path.join(os.path.dirname(__file__), "ca.crt")
 

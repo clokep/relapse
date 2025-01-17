@@ -16,7 +16,7 @@ from typing import Dict
 
 from twisted.web.resource import Resource
 
-from synapse.rest.synapse.client import build_synapse_client_resource_tree
+from relapse.rest.relapse.client import build_relapse_client_resource_tree
 
 from tests.unittest import HomeserverTestCase, override_config, skip_unless
 from tests.utils import HAS_AUTHLIB
@@ -24,16 +24,16 @@ from tests.utils import HAS_AUTHLIB
 
 @skip_unless(HAS_AUTHLIB, "requires authlib")
 class JWKSTestCase(HomeserverTestCase):
-    """Test /_synapse/jwks JWKS data."""
+    """Test /_relapse/jwks JWKS data."""
 
     def create_resource_dict(self) -> Dict[str, Resource]:
         d = super().create_resource_dict()
-        d.update(build_synapse_client_resource_tree(self.hs))
+        d.update(build_relapse_client_resource_tree(self.hs))
         return d
 
     def test_empty_jwks(self) -> None:
         """Test that the JWKS endpoint is not present by default."""
-        channel = self.make_request("GET", "/_synapse/jwks")
+        channel = self.make_request("GET", "/_relapse/jwks")
         self.assertEqual(404, channel.code, channel.result)
 
     @override_config(
@@ -52,7 +52,7 @@ class JWKSTestCase(HomeserverTestCase):
     )
     def test_empty_jwks_for_msc3861_client_secret_post(self) -> None:
         """Test that the JWKS endpoint is empty when plain auth is used."""
-        channel = self.make_request("GET", "/_synapse/jwks")
+        channel = self.make_request("GET", "/_relapse/jwks")
         self.assertEqual(200, channel.code, channel.result)
         self.assertEqual({"keys": []}, channel.json_body)
 
@@ -83,7 +83,7 @@ class JWKSTestCase(HomeserverTestCase):
     )
     def test_key_returned_for_msc3861_client_secret_post(self) -> None:
         """Test that the JWKS includes public part of JWK for private_key_jwt auth is used."""
-        channel = self.make_request("GET", "/_synapse/jwks")
+        channel = self.make_request("GET", "/_relapse/jwks")
         self.assertEqual(200, channel.code, channel.result)
         self.assertEqual(
             {

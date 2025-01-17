@@ -20,10 +20,10 @@ from twisted.test.proto_helpers import MemoryReactor
 from twisted.web.http import HTTPChannel
 from twisted.web.server import Request
 
-from synapse.rest import admin
-from synapse.rest.client import login
-from synapse.server import HomeServer
-from synapse.util import Clock
+from relapse.rest import admin
+from relapse.rest.client import login
+from relapse.server import HomeServer
+from relapse.util import Clock
 
 from tests.http import (
     TestServerTLSConnectionFactory,
@@ -143,7 +143,7 @@ class MediaRepoShardTestCase(BaseMultiWorkerStreamTestCase):
 
     def test_basic(self) -> None:
         """Test basic fetching of remote media from a single worker."""
-        hs1 = self.make_worker_hs("synapse.app.generic_worker")
+        hs1 = self.make_worker_hs("relapse.app.generic_worker")
 
         channel, request = self._get_media_req(hs1, "example.com:443", "ABC123")
 
@@ -161,8 +161,8 @@ class MediaRepoShardTestCase(BaseMultiWorkerStreamTestCase):
         """Test that fetching remote media from two different processes at the
         same time works.
         """
-        hs1 = self.make_worker_hs("synapse.app.generic_worker")
-        hs2 = self.make_worker_hs("synapse.app.generic_worker")
+        hs1 = self.make_worker_hs("relapse.app.generic_worker")
+        hs2 = self.make_worker_hs("relapse.app.generic_worker")
 
         start_count = self._count_remote_media()
 
@@ -202,8 +202,8 @@ class MediaRepoShardTestCase(BaseMultiWorkerStreamTestCase):
 
         This checks that races generating thumbnails are handled correctly.
         """
-        hs1 = self.make_worker_hs("synapse.app.generic_worker")
-        hs2 = self.make_worker_hs("synapse.app.generic_worker")
+        hs1 = self.make_worker_hs("relapse.app.generic_worker")
+        hs2 = self.make_worker_hs("relapse.app.generic_worker")
 
         start_count = self._count_remote_thumbnails()
 

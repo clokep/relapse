@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from synapse.util.threepids import canonicalise_email
+from relapse.util.threepids import canonicalise_email
 
 from tests.unittest import HomeserverTestCase
 

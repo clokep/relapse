@@ -16,17 +16,17 @@ from unittest.mock import AsyncMock, Mock
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.constants import EventTypes, LimitBlockingTypes, ServerNoticeMsgType
-from synapse.api.errors import ResourceLimitError
-from synapse.rest import admin
-from synapse.rest.client import login, room, sync
-from synapse.server import HomeServer
-from synapse.server_notices.resource_limits_server_notices import (
+from relapse.api.constants import EventTypes, LimitBlockingTypes, ServerNoticeMsgType
+from relapse.api.errors import ResourceLimitError
+from relapse.rest import admin
+from relapse.rest.client import login, room, sync
+from relapse.server import HomeServer
+from relapse.server_notices.resource_limits_server_notices import (
     ResourceLimitsServerNotices,
 )
-from synapse.server_notices.server_notices_sender import ServerNoticesSender
-from synapse.types import JsonDict
-from synapse.util import Clock
+from relapse.server_notices.server_notices_sender import ServerNoticesSender
+from relapse.types import JsonDict
+from relapse.util import Clock
 
 from tests import unittest
 from tests.unittest import override_config

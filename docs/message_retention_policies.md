@@ -1,6 +1,6 @@
 # Message retention policies
 
-Synapse admins can enable support for message retention policies on
+Relapse admins can enable support for message retention policies on
 their homeserver. Message retention policies exist at a room level,
 follow the semantics described in
 [MSC1763](https://github.com/matrix-org/matrix-doc/blob/matthew/msc1763/proposals/1763-configurable-retention-periods.md),
@@ -18,7 +18,7 @@ sent in that room is ever purged on that server.
 
 MSC1763 also specifies semantics for a `min_lifetime` parameter which
 defines the amount of time after which an event _can_ get purged (after
-it was sent to the room), but Synapse doesn't currently support it
+it was sent to the room), but Relapse doesn't currently support it
 beyond registering it.
 
 Both `max_lifetime` and `min_lifetime` are optional parameters.
@@ -28,9 +28,9 @@ Note that message retention policies don't apply to state events.
 Once an event reaches its expiry date (defined as the time it was sent
 plus the value for `max_lifetime` in the room), two things happen:
 
-* Synapse stops serving the event to clients via any endpoint.
+* Relapse stops serving the event to clients via any endpoint.
 * The message gets picked up by the next purge job (see the "Purge jobs"
-  section) and is removed from Synapse's database.
+  section) and is removed from Relapse's database.
 
 Since purge jobs don't run continuously, this means that an event might
 stay in a server's database for longer than the value for `max_lifetime`
@@ -42,7 +42,7 @@ purged according to its room's policy, then the receiving server will
 process and store that event until it's picked up by the next purge job,
 though it will always hide it from clients.
 
-Synapse requires at least one message in each room, so it will never
+Relapse requires at least one message in each room, so it will never
 delete the last message in a room. It will, however, hide it from
 clients.
 
@@ -50,7 +50,7 @@ clients.
 ## Server configuration
 
 Support for this feature can be enabled and configured by adding a the
-`retention` in the Synapse configuration file (see
+`retention` in the Relapse configuration file (see
 [configuration manual](usage/configuration/config_documentation.md#retention)).
 
 To enable support for message retention policies, set the setting
@@ -59,8 +59,8 @@ To enable support for message retention policies, set the setting
 
 ### Default policy
 
-A default message retention policy is a policy defined in Synapse's
-configuration that is used by Synapse for every room that doesn't have a
+A default message retention policy is a policy defined in Relapse's
+configuration that is used by Relapse for every room that doesn't have a
 message retention policy configured in its state. This allows server
 admins to ensure that messages are never kept indefinitely in a server's
 database. 
@@ -82,11 +82,11 @@ duration (using the units `s` (seconds), `m` (minutes), `h` (hours),
 
 ### Purge jobs
 
-Purge jobs are the jobs that Synapse runs in the background to purge
+Purge jobs are the jobs that Relapse runs in the background to purge
 expired events from the database. They are only run if support for
 message retention policies is enabled in the server's configuration. If
 no configuration for purge jobs is configured by the server admin,
-Synapse will use a default configuration, which is described here in the
+Relapse will use a default configuration, which is described here in the
 [configuration manual](usage/configuration/config_documentation.md#retention).
 
 Some server admins might want a finer control on when events are removed
@@ -128,7 +128,7 @@ make sure your configuration handles every policy.
 
 As previously mentioned in this documentation, while a purge job that
 runs e.g. every day means that an expired event might stay in the
-database for up to a day after its expiry, Synapse hides expired events
+database for up to a day after its expiry, Relapse hides expired events
 from clients as soon as they expire, so the event is not visible to
 local users between its expiry date and the moment it gets purged from
 the server's database.
@@ -154,7 +154,7 @@ will be used instead. Likewise, if the value of `max_lifetime` is higher
 than `allowed_lifetime_max`, the value of `allowed_lifetime_max` will be
 used instead.
 
-In the example above, we ensure Synapse never deletes events that are less
+In the example above, we ensure Relapse never deletes events that are less
 than one day old, and that it always deletes events that are over a year
 old.
 
@@ -162,7 +162,7 @@ If a default policy is set, and its `max_lifetime` value is lower than
 `allowed_lifetime_min` or higher than `allowed_lifetime_max`, the same
 process applies.
 
-Both parameters are optional; if one is omitted Synapse won't use it to
+Both parameters are optional; if one is omitted Relapse won't use it to
 adjust the effective value of `max_lifetime`.
 
 Like other settings in this section, these parameters can be expressed
@@ -189,7 +189,7 @@ described.
 
 Note that over every server in the room, only the ones with support for
 message retention policies will actually remove expired events. This
-support is currently not enabled by default in Synapse.
+support is currently not enabled by default in Relapse.
 
 
 ## Note on reclaiming disk space
@@ -201,5 +201,5 @@ space, it will start writing new data into where the purged data was.
 
 If you want to reclaim the freed disk space anyway and return it to the
 operating system, the server admin needs to run `VACUUM FULL;` (or
-`VACUUM;` for SQLite databases) on Synapse's database (see the related
+`VACUUM;` for SQLite databases) on Relapse's database (see the related
 [PostgreSQL documentation](https://www.postgresql.org/docs/current/sql-vacuum.html)).

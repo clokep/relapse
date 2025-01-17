@@ -19,10 +19,10 @@ from twisted.internet import defer
 from twisted.internet.error import DNSLookupError
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.http import RequestTimedOutError
-from synapse.http.client import SimpleHttpClient
-from synapse.server import HomeServer
-from synapse.util import Clock
+from relapse.http import RequestTimedOutError
+from relapse.http.client import SimpleHttpClient
+from relapse.server import HomeServer
+from relapse.util import Clock
 
 from tests.unittest import HomeserverTestCase
 
@@ -124,7 +124,7 @@ class SimpleHttpClientTests(HomeserverTestCase):
         self.assertIsInstance(f.value, RequestTimedOutError)
 
     def test_client_ip_range_blocklist(self) -> None:
-        """Ensure that Synapse does not try to connect to blocked IPs"""
+        """Ensure that Relapse does not try to connect to blocked IPs"""
 
         # Add some DNS entries we'll block
         self.reactor.lookups["internal"] = "127.0.0.1"

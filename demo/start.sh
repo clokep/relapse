@@ -24,7 +24,7 @@ for port in 8080 8081 8082; do
     # Generate the configuration for the homeserver at localhost:848x, note that
     # the homeserver name needs to match the HTTPS listening port for federation
     # to properly work..
-    python3 -m synapse.app.homeserver \
+    python3 -m relapse.app.homeserver \
         --generate-config \
         --server-name "localhost:$https_port" \
         --config-path "$port.config" \
@@ -150,7 +150,7 @@ for port in 8080 8081 8082; do
     fi
 
     # Run the homeserver in the background.
-    python3 -m synapse.app.homeserver \
+    python3 -m relapse.app.homeserver \
         --config-path "$port.config" \
         -D \
 

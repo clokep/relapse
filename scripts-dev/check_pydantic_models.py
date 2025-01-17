@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-A script which enforces that Synapse always uses strict types when defining a Pydantic
+A script which enforces that Relapse always uses strict types when defining a Pydantic
 model.
 
 Pydantic does not yet offer a strict mode, but it is planned for pydantic v2. See
@@ -50,7 +50,7 @@ from typing import (
 
 from parameterized import parameterized
 
-from synapse._pydantic_compat import HAS_PYDANTIC_V2
+from relapse._pydantic_compat import HAS_PYDANTIC_V2
 
 if TYPE_CHECKING or HAS_PYDANTIC_V2:
     from pydantic.v1 import (
@@ -172,7 +172,7 @@ def monkeypatch_pydantic() -> Generator[None, None, None]:
     ModelCheckingException instance.
     """
     with contextlib.ExitStack() as patches:
-        # Most Synapse code ought to import the patched objects directly from
+        # Most Relapse code ought to import the patched objects directly from
         # `pydantic`. But we also patch their containing modules `pydantic.main` and
         # `pydantic.types` for completeness.
         patch_basemodel1 = unittest.mock.patch(
@@ -213,7 +213,7 @@ def format_model_checker_exception(e: ModelCheckerException) -> str:
 
 
 def lint() -> int:
-    """Try to import all of Synapse and see if we spot any Pydantic type coercions.
+    """Try to import all of Relapse and see if we spot any Pydantic type coercions.
 
     Print any problems, then return a status code suitable for sys.exit."""
     failures = do_lint()
@@ -225,17 +225,17 @@ def lint() -> int:
 
 
 def do_lint() -> Set[str]:
-    """Try to import all of Synapse and see if we spot any Pydantic type coercions."""
+    """Try to import all of Relapse and see if we spot any Pydantic type coercions."""
     failures = set()
 
     with monkeypatch_pydantic():
-        logger.debug("Importing synapse")
+        logger.debug("Importing relapse")
         try:
-            # TODO: make "synapse" an argument so we can target this script at
+            # TODO: make "relapse" an argument so we can target this script at
             # a subpackage
-            module = importlib.import_module("synapse")
+            module = importlib.import_module("relapse")
         except ModelCheckerException as e:
-            logger.warning("Bad annotation found when importing synapse")
+            logger.warning("Bad annotation found when importing relapse")
             failures.add(format_model_checker_exception(e))
             return failures
 

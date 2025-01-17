@@ -14,7 +14,7 @@
   - [Delegation](delegate.md)
 
 # Upgrading
-  - [Upgrading between Synapse Versions](upgrade.md)
+  - [Upgrading between Relapse Versions](upgrade.md)
 
 # Usage
   - [Federation](federate.md)
@@ -74,7 +74,7 @@
     - [Monitoring](metrics-howto.md)
       - [Reporting Homeserver Usage Statistics](usage/administration/monitoring/reporting_homeserver_usage_statistics.md)
     - [Monthly Active Users](usage/administration/monthly_active_users.md)
-    - [Understanding Synapse Through Grafana Graphs](usage/administration/understanding_synapse_through_grafana_graphs.md)
+    - [Understanding Relapse Through Grafana Graphs](usage/administration/understanding_relapse_through_grafana_graphs.md)
     - [Useful SQL for Admins](usage/administration/useful_sql_for_admins.md)
     - [Database Maintenance Tools](usage/administration/database_maintenance_tools.md)
     - [State Groups](usage/administration/state_groups.md)
@@ -94,13 +94,13 @@
   - [Database Schemas](development/database_schema.md)
   - [Experimental features](development/experimental_features.md)
   - [Dependency management](development/dependencies.md)
-  - [Synapse Architecture]()
-    - [Cancellation](development/synapse_architecture/cancellation.md)
+  - [Relapse Architecture]()
+    - [Cancellation](development/relapse_architecture/cancellation.md)
     - [Log Contexts](log_contexts.md)
     - [Replication](replication.md)
-    - [Streams](development/synapse_architecture/streams.md)
+    - [Streams](development/relapse_architecture/streams.md)
     - [TCP Replication](tcp_replication.md)
-    - [Faster remote joins](development/synapse_architecture/faster_joins.md)
+    - [Faster remote joins](development/relapse_architecture/faster_joins.md)
   - [Internal Documentation](development/internal_documentation/README.md)
     - [Single Sign-On]()
       - [SAML](development/saml.md)
@@ -114,4 +114,4 @@
 
 # Other
   - [Dependency Deprecation Policy](deprecation_policy.md)
-  - [Running Synapse on a Single-Board Computer](other/running_synapse_on_single_board_computers.md)
+  - [Running Relapse on a Single-Board Computer](other/running_relapse_on_single_board_computers.md)

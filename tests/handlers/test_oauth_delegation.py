@@ -29,19 +29,19 @@ from twisted.test.proto_helpers import MemoryReactor
 from twisted.web.http_headers import Headers
 from twisted.web.iweb import IResponse
 
-from synapse.api.errors import (
+from relapse.api.errors import (
     AuthError,
     Codes,
     InvalidClientTokenError,
     OAuthInsufficientScopeError,
-    SynapseError,
+    RelapseError,
 )
-from synapse.http.site import SynapseRequest
-from synapse.rest import admin
-from synapse.rest.client import account, devices, keys, login, logout, register
-from synapse.server import HomeServer
-from synapse.types import JsonDict, UserID
-from synapse.util import Clock
+from relapse.http.site import RelapseRequest
+from relapse.rest import admin
+from relapse.rest.client import account, devices, keys, login, logout, register
+from relapse.server import HomeServer
+from relapse.types import JsonDict, UserID
+from relapse.util import Clock
 
 from tests.server import FakeChannel
 from tests.test_utils import FakeResponse, get_awaitable_result
@@ -53,7 +53,7 @@ SERVER_NAME = "test"
 ISSUER = "https://issuer/"
 CLIENT_ID = "test-client-id"
 CLIENT_SECRET = "test-client-secret"
-BASE_URL = "https://synapse/"
+BASE_URL = "https://relapse/"
 SCOPES = ["openid"]
 
 AUTHORIZATION_ENDPOINT = ISSUER + "authorize"
@@ -63,7 +63,7 @@ WELL_KNOWN = ISSUER + ".well-known/openid-configuration"
 JWKS_URI = ISSUER + ".well-known/jwks.json"
 INTROSPECTION_ENDPOINT = ISSUER + "introspect"
 
-SYNAPSE_ADMIN_SCOPE = "urn:synapse:admin:*"
+RELAPSE_ADMIN_SCOPE = "urn:relapse:admin:*"
 MATRIX_USER_SCOPE = "urn:matrix:org.matrix.msc2967.client:api:*"
 MATRIX_GUEST_SCOPE = "urn:matrix:org.matrix.msc2967.client:api:guest"
 MATRIX_DEVICE_SCOPE_PREFIX = "urn:matrix:org.matrix.msc2967.client:device:"
@@ -128,12 +128,12 @@ class MSC3861OAuthDelegation(HomeserverTestCase):
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         self.http_client = Mock(spec=["get_json"])
         self.http_client.get_json.side_effect = get_json
-        self.http_client.user_agent = b"Synapse Test"
+        self.http_client.user_agent = b"Relapse Test"
 
         hs = self.setup_test_homeserver(proxied_http_client=self.http_client)
 
         # Import this here so that we've checked that authlib is available.
-        from synapse.api.auth.msc3861_delegated import MSC3861DelegatedAuth
+        from relapse.api.auth.msc3861_delegated import MSC3861DelegatedAuth
 
         self.auth = checked_cast(MSC3861DelegatedAuth, hs.get_auth())
 
@@ -235,7 +235,7 @@ class MSC3861OAuthDelegation(HomeserverTestCase):
                 payload={
                     "active": True,
                     "sub": SUBJECT,
-                    "scope": " ".join([SYNAPSE_ADMIN_SCOPE]),
+                    "scope": " ".join([RELAPSE_ADMIN_SCOPE]),
                     "username": USERNAME,
                 },
             )
@@ -259,7 +259,7 @@ class MSC3861OAuthDelegation(HomeserverTestCase):
                 payload={
                     "active": True,
                     "sub": SUBJECT,
-                    "scope": " ".join([SYNAPSE_ADMIN_SCOPE, MATRIX_USER_SCOPE]),
+                    "scope": " ".join([RELAPSE_ADMIN_SCOPE, MATRIX_USER_SCOPE]),
                     "username": USERNAME,
                 },
             )
@@ -290,7 +290,7 @@ class MSC3861OAuthDelegation(HomeserverTestCase):
                     "active": True,
                     "sub": SUBJECT,
                     "scope": " ".join(
-                        [SYNAPSE_ADMIN_SCOPE, MATRIX_USER_SCOPE, MATRIX_GUEST_SCOPE]
+                        [RELAPSE_ADMIN_SCOPE, MATRIX_USER_SCOPE, MATRIX_GUEST_SCOPE]
                     ),
                     "username": USERNAME,
                 },
@@ -469,12 +469,12 @@ class MSC3861OAuthDelegation(HomeserverTestCase):
         self.http_client.request = AsyncMock(
             return_value=FakeResponse(code=500, body=b"Internal Server Error")
         )
-        error = self.get_failure(self.auth.get_user_by_req(request), SynapseError)
+        error = self.get_failure(self.auth.get_user_by_req(request), RelapseError)
         self.assertEqual(error.value.code, 503)
 
         # The introspection endpoint request fails.
         self.http_client.request = AsyncMock(side_effect=Exception())
-        error = self.get_failure(self.auth.get_user_by_req(request), SynapseError)
+        error = self.get_failure(self.auth.get_user_by_req(request), RelapseError)
         self.assertEqual(error.value.code, 503)
 
         # The introspection endpoint does not return a JSON object.
@@ -483,14 +483,14 @@ class MSC3861OAuthDelegation(HomeserverTestCase):
                 code=200, payload=["this is an array", "not an object"]
             )
         )
-        error = self.get_failure(self.auth.get_user_by_req(request), SynapseError)
+        error = self.get_failure(self.auth.get_user_by_req(request), RelapseError)
         self.assertEqual(error.value.code, 503)
 
         # The introspection endpoint does not return valid JSON.
         self.http_client.request = AsyncMock(
             return_value=FakeResponse(code=200, body=b"this is not valid JSON")
         )
-        error = self.get_failure(self.auth.get_user_by_req(request), SynapseError)
+        error = self.get_failure(self.auth.get_user_by_req(request), RelapseError)
         self.assertEqual(error.value.code, 503)
 
     def make_device_keys(self, user_id: str, device_id: str) -> JsonDict:
@@ -650,20 +650,20 @@ class MSC3861OAuthDelegation(HomeserverTestCase):
 
     def test_admin_api_endpoints_removed(self) -> None:
         """Test that admin API endpoints that were removed in MSC2964 are no longer available."""
-        self.expect_unrecognized("GET", "/_synapse/admin/v1/registration_tokens")
-        self.expect_unrecognized("POST", "/_synapse/admin/v1/registration_tokens/new")
-        self.expect_unrecognized("GET", "/_synapse/admin/v1/registration_tokens/abcd")
-        self.expect_unrecognized("PUT", "/_synapse/admin/v1/registration_tokens/abcd")
+        self.expect_unrecognized("GET", "/_relapse/admin/v1/registration_tokens")
+        self.expect_unrecognized("POST", "/_relapse/admin/v1/registration_tokens/new")
+        self.expect_unrecognized("GET", "/_relapse/admin/v1/registration_tokens/abcd")
+        self.expect_unrecognized("PUT", "/_relapse/admin/v1/registration_tokens/abcd")
         self.expect_unrecognized(
-            "DELETE", "/_synapse/admin/v1/registration_tokens/abcd"
+            "DELETE", "/_relapse/admin/v1/registration_tokens/abcd"
         )
-        self.expect_unrecognized("POST", "/_synapse/admin/v1/reset_password/foo")
-        self.expect_unrecognized("POST", "/_synapse/admin/v1/users/foo/login")
-        self.expect_unrecognized("GET", "/_synapse/admin/v1/register")
-        self.expect_unrecognized("POST", "/_synapse/admin/v1/register")
-        self.expect_unrecognized("GET", "/_synapse/admin/v1/users/foo/admin")
-        self.expect_unrecognized("PUT", "/_synapse/admin/v1/users/foo/admin")
-        self.expect_unrecognized("POST", "/_synapse/admin/v1/account_validity/validity")
+        self.expect_unrecognized("POST", "/_relapse/admin/v1/reset_password/foo")
+        self.expect_unrecognized("POST", "/_relapse/admin/v1/users/foo/login")
+        self.expect_unrecognized("GET", "/_relapse/admin/v1/register")
+        self.expect_unrecognized("POST", "/_relapse/admin/v1/register")
+        self.expect_unrecognized("GET", "/_relapse/admin/v1/users/foo/admin")
+        self.expect_unrecognized("PUT", "/_relapse/admin/v1/users/foo/admin")
+        self.expect_unrecognized("POST", "/_relapse/admin/v1/account_validity/validity")
 
     def test_admin_token(self) -> None:
         """The handler should return a requester with admin rights when admin_token is used."""
@@ -728,7 +728,7 @@ class MSC3861OAuthDelegation(HomeserverTestCase):
         # First test a known access token
         channel = FakeChannel(self.site, self.reactor)
         # type-ignore: FakeChannel is a mock of an HTTPChannel, not a proper HTTPChannel
-        req = SynapseRequest(channel, self.site)  # type: ignore[arg-type]
+        req = RelapseRequest(channel, self.site)  # type: ignore[arg-type]
         req.client.host = EXAMPLE_IPV4_ADDR
         req.requestHeaders.addRawHeader("Authorization", f"Bearer {known_token}")
         req.requestHeaders.addRawHeader("User-Agent", EXAMPLE_USER_AGENT)
@@ -760,7 +760,7 @@ class MSC3861OAuthDelegation(HomeserverTestCase):
         MAS_USER_AGENT = "masmasmas"
 
         channel = FakeChannel(self.site, self.reactor)
-        req = SynapseRequest(channel, self.site)  # type: ignore[arg-type]
+        req = RelapseRequest(channel, self.site)  # type: ignore[arg-type]
         req.client.host = MAS_IPV4_ADDR
         req.requestHeaders.addRawHeader(
             "Authorization", f"Bearer {self.auth._admin_token}"

@@ -1,4 +1,4 @@
-# `lnav` config for Synapse logs
+# `lnav` config for Relapse logs
 
 [lnav](https://lnav.org/) is a log-viewing tool. It is particularly useful when 
 you need to interleave multiple log files, or for exploring a large log file
@@ -7,9 +7,9 @@ with regex filters. The downside is that it is not as ubiquitous as tools like
 
 This directory contains an `lnav` [log format definition](
     https://docs.lnav.org/en/v0.10.1/formats.html#defining-a-new-format
-) for Synapse logs as
-emitted by Synapse with the default [logging configuration](
-    https://matrix-org.github.io/synapse/latest/usage/configuration/config_documentation.html#log_config
+) for Relapse logs as
+emitted by Relapse with the default [logging configuration](
+    https://clokep.github.io/relapse/latest/usage/configuration/config_documentation.html#log_config
 ). It supports lnav 0.10.1 because that's what's packaged by my distribution.
 
 This should allow lnav:
@@ -28,8 +28,8 @@ See also https://gist.github.com/benje/e2ab750b0a81d11920d83af637d289f7 for a
 
 ## Tips
 
-- `lnav -i /path/to/synapse/checkout/contrib/lnav/synapse-log-format.json`
-- `lnav my_synapse_log_file` or `lnav synapse_log_files.*`, etc.
+- `lnav -i /path/to/relapse/checkout/contrib/lnav/relapse-log-format.json`
+- `lnav my_relapse_log_file` or `lnav relapse_log_files.*`, etc.
 - `lnav --help` for CLI help.
 
 Within lnav itself:
@@ -40,7 +40,7 @@ Within lnav itself:
   down and up.
 - Use `o` and `O` to skip through logs based on the request ID (`POST-1234`, or
   else the value of the [`request_id_header`](
-    https://matrix-org.github.io/synapse/latest/usage/configuration/config_documentation.html?highlight=request_id_header#listeners
+    https://clokep.github.io/relapse/latest/usage/configuration/config_documentation.html?highlight=request_id_header#listeners
   ) header). This may get confused if the same request ID is repeated among 
   multiple files or process restarts.
 - ???

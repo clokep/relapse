@@ -17,7 +17,7 @@ from typing import AsyncContextManager, Callable, Sequence, Tuple
 from twisted.internet import defer
 from twisted.internet.defer import CancelledError, Deferred
 
-from synapse.util.async_helpers import ReadWriteLock
+from relapse.util.async_helpers import ReadWriteLock
 
 from tests import unittest
 

@@ -31,7 +31,7 @@ from twisted.web.http import RESPONSES
 from twisted.web.http_headers import Headers
 from twisted.web.iweb import IResponse
 
-from synapse.types import JsonSerializable
+from relapse.types import JsonSerializable
 
 if TYPE_CHECKING:
     from sys import UnraisableHookArgs

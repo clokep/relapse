@@ -20,15 +20,15 @@ from typing import Any, Callable, Dict, List, Tuple, Type, TypeVar, Union, overl
 import attr
 from typing_extensions import Literal, ParamSpec
 
-from synapse.api.constants import EventTypes
-from synapse.api.room_versions import RoomVersions
-from synapse.config.homeserver import HomeServerConfig
-from synapse.config.server import DEFAULT_ROOM_VERSION
-from synapse.logging.context import current_context, set_current_context
-from synapse.server import HomeServer
-from synapse.storage.database import LoggingDatabaseConnection
-from synapse.storage.engines import create_engine
-from synapse.storage.prepare_database import prepare_database
+from relapse.api.constants import EventTypes
+from relapse.api.room_versions import RoomVersions
+from relapse.config.homeserver import HomeServerConfig
+from relapse.config.server import DEFAULT_ROOM_VERSION
+from relapse.logging.context import current_context, set_current_context
+from relapse.server import HomeServer
+from relapse.storage.database import LoggingDatabaseConnection
+from relapse.storage.engines import create_engine
+from relapse.storage.prepare_database import prepare_database
 
 try:
     import authlib  # noqa: F401
@@ -42,21 +42,21 @@ except ImportError:
 # When running under postgres, we first create a base database with the name
 # POSTGRES_BASE_DB and update it to the current schema. Then, for each test case, we
 # create another unique database, using the base database as a template.
-USE_POSTGRES_FOR_TESTS = os.environ.get("SYNAPSE_POSTGRES", False)
-LEAVE_DB = os.environ.get("SYNAPSE_LEAVE_DB", False)
-POSTGRES_USER = os.environ.get("SYNAPSE_POSTGRES_USER", None)
-POSTGRES_HOST = os.environ.get("SYNAPSE_POSTGRES_HOST", None)
-POSTGRES_PASSWORD = os.environ.get("SYNAPSE_POSTGRES_PASSWORD", None)
+USE_POSTGRES_FOR_TESTS = os.environ.get("RELAPSE_POSTGRES", False)
+LEAVE_DB = os.environ.get("RELAPSE_LEAVE_DB", False)
+POSTGRES_USER = os.environ.get("RELAPSE_POSTGRES_USER", None)
+POSTGRES_HOST = os.environ.get("RELAPSE_POSTGRES_HOST", None)
+POSTGRES_PASSWORD = os.environ.get("RELAPSE_POSTGRES_PASSWORD", None)
 POSTGRES_PORT = (
-    int(os.environ["SYNAPSE_POSTGRES_PORT"])
-    if "SYNAPSE_POSTGRES_PORT" in os.environ
+    int(os.environ["RELAPSE_POSTGRES_PORT"])
+    if "RELAPSE_POSTGRES_PORT" in os.environ
     else None
 )
-POSTGRES_BASE_DB = "_synapse_unit_tests_base_%s" % (os.getpid(),)
+POSTGRES_BASE_DB = "_relapse_unit_tests_base_%s" % (os.getpid(),)
 
 # When debugging a specific test, it's occasionally useful to write the
 # DB to disk and query it with the sqlite CLI.
-SQLITE_PERSIST_DB = os.environ.get("SYNAPSE_TEST_PERSIST_SQLITE_DB") is not None
+SQLITE_PERSIST_DB = os.environ.get("RELAPSE_TEST_PERSIST_SQLITE_DB") is not None
 
 # the dbname we will connect to in order to create the base database.
 POSTGRES_DBNAME_FOR_INITIAL_CREATE = "postgres"

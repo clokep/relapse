@@ -18,8 +18,8 @@ use Debconf::Client::ConfModule (qw/get set/);
 # map from the name of a setting in our .yaml file to the relevant debconf
 # setting.
 my %MAPPINGS=(
-    server_name => 'matrix-synapse/server-name',
-    report_stats => 'matrix-synapse/report-stats',
+    server_name => 'matrix-relapse/server-name',
+    report_stats => 'matrix-relapse/report-stats',
 );
 
 # enable debug if dpkg --debug
@@ -119,8 +119,8 @@ if (not $cmd) {
 }
 
 my @files = (
-    "/etc/matrix-synapse/homeserver.yaml",
-    glob("/etc/matrix-synapse/conf.d/*.yaml"),
+    "/etc/matrix-relapse/homeserver.yaml",
+    glob("/etc/matrix-relapse/conf.d/*.yaml"),
 );
 
 if ($read) {

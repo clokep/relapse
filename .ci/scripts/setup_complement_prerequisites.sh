@@ -2,7 +2,7 @@
 #
 # Common commands to set up Complement's prerequisites in a GitHub Actions CI run.
 #
-# Must be called after Synapse has been checked out to `synapse/`.
+# Must be called after Relapse has been checked out to `relapse/`.
 #
 set -eu
 
@@ -16,11 +16,11 @@ endblock
 
 block Install custom gotestfmt template
   mkdir .gotestfmt/github -p
-  cp synapse/.ci/complement_package.gotpl .gotestfmt/github/package.gotpl
+  cp relapse/.ci/complement_package.gotpl .gotestfmt/github/package.gotpl
 endblock
 
 block Check out Complement
   # Attempt to check out the same branch of Complement as the PR. If it
   # doesn't exist, fallback to HEAD.
-  synapse/.ci/scripts/checkout_complement.sh
+  relapse/.ci/scripts/checkout_complement.sh
 endblock

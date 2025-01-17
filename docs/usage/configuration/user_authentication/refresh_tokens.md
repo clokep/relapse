@@ -1,6 +1,6 @@
 # Refresh Tokens
 
-Synapse supports refresh tokens since version 1.49 (some earlier versions had support for an earlier, experimental draft of [MSC2918] which is not compatible).
+Relapse supports refresh tokens since version 1.49 (some earlier versions had support for an earlier, experimental draft of [MSC2918] which is not compatible).
 
 
 [MSC2918]: https://github.com/matrix-org/matrix-doc/blob/main/proposals/2918-refreshtokens.md#msc2918-refresh-tokens
@@ -8,7 +8,7 @@ Synapse supports refresh tokens since version 1.49 (some earlier versions had su
 
 ## Background and motivation
 
-Synapse users' sessions are identified by **access tokens**; access tokens are
+Relapse users' sessions are identified by **access tokens**; access tokens are
 issued to users on login. Each session gets a unique access token which identifies
 it; the access token must be kept secret as it grants access to the user's account.
 
@@ -29,7 +29,7 @@ When refresh tokens are in use, both an access token and a refresh token will be
 issued to users on login. The access token will expire after a predetermined amount
 of time, but otherwise works in the same way as before. When the access token is
 close to expiring (or has expired), the user's client should present the homeserver
-(Synapse) with the refresh token.
+(Relapse) with the refresh token.
 
 The homeserver will then generate a new access token and refresh token for the user
 and return them. The old refresh token is invalidated and can not be used again*.

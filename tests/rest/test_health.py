@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from synapse.rest.health import HealthResource
+from relapse.rest.health import HealthResource
 
 from tests import unittest
 

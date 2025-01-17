@@ -136,7 +136,7 @@ class TwistedHttpClient(HttpClient):
         """Creates and sends a request to the given url"""
         headers_dict = headers_dict or {}
 
-        headers_dict["User-Agent"] = ["Synapse Cmd Client"]
+        headers_dict["User-Agent"] = ["Relapse Cmd Client"]
 
         retries_left = 5
         print("%s to %s with headers %s" % (method, url, headers_dict))

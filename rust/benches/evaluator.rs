@@ -16,7 +16,7 @@
 
 use std::borrow::Cow;
 
-use synapse::push::{
+use relapse::push::{
     evaluator::PushRuleEvaluator, Condition, EventMatchCondition, FilteredPushRules, JsonValue,
     PushRules, SimpleJsonValue,
 };
@@ -56,7 +56,7 @@ fn bench_match_exact(b: &mut Bencher) {
     )
     .unwrap();
 
-    let condition = Condition::Known(synapse::push::KnownCondition::EventMatch(
+    let condition = Condition::Known(relapse::push::KnownCondition::EventMatch(
         EventMatchCondition {
             key: "room_id".into(),
             pattern: "!room:server".into(),
@@ -101,7 +101,7 @@ fn bench_match_word(b: &mut Bencher) {
     )
     .unwrap();
 
-    let condition = Condition::Known(synapse::push::KnownCondition::EventMatch(
+    let condition = Condition::Known(relapse::push::KnownCondition::EventMatch(
         EventMatchCondition {
             key: "content.body".into(),
             pattern: "test".into(),
@@ -146,7 +146,7 @@ fn bench_match_word_miss(b: &mut Bencher) {
     )
     .unwrap();
 
-    let condition = Condition::Known(synapse::push::KnownCondition::EventMatch(
+    let condition = Condition::Known(relapse::push::KnownCondition::EventMatch(
         EventMatchCondition {
             key: "content.body".into(),
             pattern: "foobar".into(),

@@ -25,12 +25,12 @@ from parameterized import parameterized, parameterized_class
 from twisted.test.proto_helpers import MemoryReactor
 from twisted.web.resource import Resource
 
-import synapse.rest.admin
-from synapse.api.constants import ApprovalNoticeMedium, LoginType, UserTypes
-from synapse.api.errors import Codes, HttpResponseException, ResourceLimitError
-from synapse.api.room_versions import RoomVersions
-from synapse.media.filepath import MediaFilePaths
-from synapse.rest.client import (
+import relapse.rest.admin
+from relapse.api.constants import ApprovalNoticeMedium, LoginType, UserTypes
+from relapse.api.errors import Codes, HttpResponseException, ResourceLimitError
+from relapse.api.room_versions import RoomVersions
+from relapse.media.filepath import MediaFilePaths
+from relapse.rest.client import (
     devices,
     login,
     logout,
@@ -40,10 +40,10 @@ from synapse.rest.client import (
     sync,
     user_directory,
 )
-from synapse.server import HomeServer
-from synapse.storage.databases.main.client_ips import LAST_SEEN_GRANULARITY
-from synapse.types import JsonDict, UserID, create_requester
-from synapse.util import Clock
+from relapse.server import HomeServer
+from relapse.storage.databases.main.client_ips import LAST_SEEN_GRANULARITY
+from relapse.types import JsonDict, UserID, create_requester
+from relapse.util import Clock
 
 from tests import unittest
 from tests.test_utils import SMALL_PNG
@@ -52,12 +52,12 @@ from tests.unittest import override_config
 
 class UserRegisterTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        relapse.rest.admin.register_servlets_for_client_rest_resource,
         profile.register_servlets,
     ]
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
-        self.url = "/_synapse/admin/v1/register"
+        self.url = "/_relapse/admin/v1/register"
 
         self.registration_handler = Mock()
         self.identity_handler = Mock()
@@ -210,7 +210,7 @@ class UserRegisterTestCase(unittest.HomeserverTestCase):
 
     def test_missing_parts(self) -> None:
         """
-        Synapse will complain if you don't give nonce, username, password, and
+        Relapse will complain if you don't give nonce, username, password, and
         mac.  Admin and user_types are optional.  Additional checks are done for length
         and type.
         """
@@ -455,11 +455,11 @@ class UserRegisterTestCase(unittest.HomeserverTestCase):
 
 class UsersListTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         login.register_servlets,
         room.register_servlets,
     ]
-    url = "/_synapse/admin/v2/users"
+    url = "/_relapse/admin/v2/users"
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = hs.get_datastores().main
@@ -1014,7 +1014,7 @@ class UsersListTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "PUT",
-            f"/_synapse/admin/v2/users/{not_approved_user}",
+            f"/_relapse/admin/v2/users/{not_approved_user}",
             {"approved": False},
             access_token=self.admin_user_tok,
         )
@@ -1046,7 +1046,7 @@ class UsersListTestCase(unittest.HomeserverTestCase):
         bot_user_id = self.register_user("robo", "secret")
         self.make_request(
             "PUT",
-            "/_synapse/admin/v2/users/" + urllib.parse.quote(bot_user_id),
+            "/_relapse/admin/v2/users/" + urllib.parse.quote(bot_user_id),
             {"user_type": UserTypes.BOT},
             access_token=self.admin_user_tok,
         )
@@ -1054,7 +1054,7 @@ class UsersListTestCase(unittest.HomeserverTestCase):
         support_user_id = self.register_user("foo", "secret")
         self.make_request(
             "PUT",
-            "/_synapse/admin/v2/users/" + urllib.parse.quote(support_user_id),
+            "/_relapse/admin/v2/users/" + urllib.parse.quote(support_user_id),
             {"user_type": UserTypes.SUPPORT},
             access_token=self.admin_user_tok,
         )
@@ -1242,7 +1242,7 @@ class UserDevicesTestCase(unittest.HomeserverTestCase):
     """
 
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         login.register_servlets,
         sync.register_servlets,
     ]
@@ -1290,7 +1290,7 @@ class UserDevicesTestCase(unittest.HomeserverTestCase):
         # Request all devices of "other user"
         channel = self.make_request(
             "GET",
-            f"/_synapse/admin/v2/users/{self.other_user_id}/devices",
+            f"/_relapse/admin/v2/users/{self.other_user_id}/devices",
             access_token=self.admin_user_token,
         )
         self.assertEqual(200, channel.code, msg=channel.json_body)
@@ -1306,7 +1306,7 @@ class UserDevicesTestCase(unittest.HomeserverTestCase):
         # Request just a single device for "other user" by its ID
         channel = self.make_request(
             "GET",
-            f"/_synapse/admin/v2/users/{self.other_user_id}/devices/"
+            f"/_relapse/admin/v2/users/{self.other_user_id}/devices/"
             f"{self.other_user_device_id}",
             access_token=self.admin_user_token,
         )
@@ -1328,7 +1328,7 @@ class UserDevicesTestCase(unittest.HomeserverTestCase):
 
 class DeactivateAccountTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         login.register_servlets,
     ]
 
@@ -1340,10 +1340,10 @@ class DeactivateAccountTestCase(unittest.HomeserverTestCase):
 
         self.other_user = self.register_user("user", "pass", displayname="User1")
         self.other_user_token = self.login("user", "pass")
-        self.url_other_user = "/_synapse/admin/v2/users/%s" % urllib.parse.quote(
+        self.url_other_user = "/_relapse/admin/v2/users/%s" % urllib.parse.quote(
             self.other_user
         )
-        self.url = "/_synapse/admin/v1/deactivate/%s" % urllib.parse.quote(
+        self.url = "/_relapse/admin/v1/deactivate/%s" % urllib.parse.quote(
             self.other_user
         )
 
@@ -1370,7 +1370,7 @@ class DeactivateAccountTestCase(unittest.HomeserverTestCase):
         """
         If the user is not a server admin, an error is returned.
         """
-        url = "/_synapse/admin/v1/deactivate/@bob:test"
+        url = "/_relapse/admin/v1/deactivate/@bob:test"
 
         channel = self.make_request("POST", url, access_token=self.other_user_token)
 
@@ -1394,7 +1394,7 @@ class DeactivateAccountTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "POST",
-            "/_synapse/admin/v1/deactivate/@unknown_person:test",
+            "/_relapse/admin/v1/deactivate/@unknown_person:test",
             access_token=self.admin_user_tok,
         )
 
@@ -1420,7 +1420,7 @@ class DeactivateAccountTestCase(unittest.HomeserverTestCase):
         """
         Tests that deactivation for a user that is not a local returns a 400
         """
-        url = "/_synapse/admin/v1/deactivate/@unknown_person:unknown_domain"
+        url = "/_relapse/admin/v1/deactivate/@unknown_person:unknown_domain"
 
         channel = self.make_request("POST", url, access_token=self.admin_user_tok)
 
@@ -1605,7 +1605,7 @@ class DeactivateAccountTestCase(unittest.HomeserverTestCase):
 
 class UserRestTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         login.register_servlets,
         sync.register_servlets,
         register.register_servlets,
@@ -1632,7 +1632,7 @@ class UserRestTestCase(unittest.HomeserverTestCase):
             )
         )
 
-        self.url_prefix = "/_synapse/admin/v2/users/%s"
+        self.url_prefix = "/_relapse/admin/v2/users/%s"
         self.url_other_user = self.url_prefix % self.other_user
 
     def test_requester_is_no_admin(self) -> None:
@@ -3128,7 +3128,7 @@ class UserRestTestCase(unittest.HomeserverTestCase):
 
 class UserMembershipRestTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         login.register_servlets,
         room.register_servlets,
     ]
@@ -3138,7 +3138,7 @@ class UserMembershipRestTestCase(unittest.HomeserverTestCase):
         self.admin_user_tok = self.login("admin", "pass")
 
         self.other_user = self.register_user("user", "pass")
-        self.url = "/_synapse/admin/v1/users/%s/joined_rooms" % urllib.parse.quote(
+        self.url = "/_relapse/admin/v1/users/%s/joined_rooms" % urllib.parse.quote(
             self.other_user
         )
 
@@ -3170,7 +3170,7 @@ class UserMembershipRestTestCase(unittest.HomeserverTestCase):
         """
         Tests that a lookup for a user that does not exist returns an empty list
         """
-        url = "/_synapse/admin/v1/users/@unknown_person:test/joined_rooms"
+        url = "/_relapse/admin/v1/users/@unknown_person:test/joined_rooms"
         channel = self.make_request(
             "GET",
             url,
@@ -3185,7 +3185,7 @@ class UserMembershipRestTestCase(unittest.HomeserverTestCase):
         """
         Tests that a lookup for a user that is not a local and participates in no conversation returns an empty list
         """
-        url = "/_synapse/admin/v1/users/@unknown_person:unknown_domain/joined_rooms"
+        url = "/_relapse/admin/v1/users/@unknown_person:unknown_domain/joined_rooms"
 
         channel = self.make_request(
             "GET",
@@ -3273,7 +3273,7 @@ class UserMembershipRestTestCase(unittest.HomeserverTestCase):
         self.get_success(persistence.persist_event(event, context))
 
         # Now get rooms
-        url = "/_synapse/admin/v1/users/@joiner:remote_hs/joined_rooms"
+        url = "/_relapse/admin/v1/users/@joiner:remote_hs/joined_rooms"
         channel = self.make_request(
             "GET",
             url,
@@ -3287,7 +3287,7 @@ class UserMembershipRestTestCase(unittest.HomeserverTestCase):
 
 class PushersRestTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         login.register_servlets,
     ]
 
@@ -3298,7 +3298,7 @@ class PushersRestTestCase(unittest.HomeserverTestCase):
         self.admin_user_tok = self.login("admin", "pass")
 
         self.other_user = self.register_user("user", "pass")
-        self.url = "/_synapse/admin/v1/users/%s/pushers" % urllib.parse.quote(
+        self.url = "/_relapse/admin/v1/users/%s/pushers" % urllib.parse.quote(
             self.other_user
         )
 
@@ -3330,7 +3330,7 @@ class PushersRestTestCase(unittest.HomeserverTestCase):
         """
         Tests that a lookup for a user that does not exist returns a 404
         """
-        url = "/_synapse/admin/v1/users/@unknown_person:test/pushers"
+        url = "/_relapse/admin/v1/users/@unknown_person:test/pushers"
         channel = self.make_request(
             "GET",
             url,
@@ -3344,7 +3344,7 @@ class PushersRestTestCase(unittest.HomeserverTestCase):
         """
         Tests that a lookup for a user that is not a local returns a 400
         """
-        url = "/_synapse/admin/v1/users/@unknown_person:unknown_domain/pushers"
+        url = "/_relapse/admin/v1/users/@unknown_person:unknown_domain/pushers"
 
         channel = self.make_request(
             "GET",
@@ -3415,7 +3415,7 @@ class PushersRestTestCase(unittest.HomeserverTestCase):
 
 class UserMediaRestTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         login.register_servlets,
     ]
 
@@ -3427,7 +3427,7 @@ class UserMediaRestTestCase(unittest.HomeserverTestCase):
         self.admin_user_tok = self.login("admin", "pass")
 
         self.other_user = self.register_user("user", "pass")
-        self.url = "/_synapse/admin/v1/users/%s/media" % urllib.parse.quote(
+        self.url = "/_relapse/admin/v1/users/%s/media" % urllib.parse.quote(
             self.other_user
         )
 
@@ -3461,7 +3461,7 @@ class UserMediaRestTestCase(unittest.HomeserverTestCase):
     @parameterized.expand(["GET", "DELETE"])
     def test_user_does_not_exist(self, method: str) -> None:
         """Tests that a lookup for a user that does not exist returns a 404"""
-        url = "/_synapse/admin/v1/users/@unknown_person:test/media"
+        url = "/_relapse/admin/v1/users/@unknown_person:test/media"
         channel = self.make_request(
             method,
             url,
@@ -3474,7 +3474,7 @@ class UserMediaRestTestCase(unittest.HomeserverTestCase):
     @parameterized.expand(["GET", "DELETE"])
     def test_user_is_not_local(self, method: str) -> None:
         """Tests that a lookup for a user that is not a local returns a 400"""
-        url = "/_synapse/admin/v1/users/@unknown_person:unknown_domain/media"
+        url = "/_relapse/admin/v1/users/@unknown_person:unknown_domain/media"
 
         channel = self.make_request(
             method,
@@ -3987,10 +3987,10 @@ class UserMediaRestTestCase(unittest.HomeserverTestCase):
 
 
 class UserTokenRestTestCase(unittest.HomeserverTestCase):
-    """Test for /_synapse/admin/v1/users/<user>/login"""
+    """Test for /_relapse/admin/v1/users/<user>/login"""
 
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         login.register_servlets,
         sync.register_servlets,
         room.register_servlets,
@@ -4006,7 +4006,7 @@ class UserTokenRestTestCase(unittest.HomeserverTestCase):
 
         self.other_user = self.register_user("user", "pass")
         self.other_user_tok = self.login("user", "pass")
-        self.url = "/_synapse/admin/v1/users/%s/login" % urllib.parse.quote(
+        self.url = "/_relapse/admin/v1/users/%s/login" % urllib.parse.quote(
             self.other_user
         )
 
@@ -4199,13 +4199,13 @@ class UserTokenRestTestCase(unittest.HomeserverTestCase):
 @parameterized_class(
     ("url_prefix",),
     [
-        ("/_synapse/admin/v1/whois/%s",),
+        ("/_relapse/admin/v1/whois/%s",),
         ("/_matrix/client/r0/admin/whois/%s",),
     ],
 )
 class WhoisRestTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         login.register_servlets,
     ]
 
@@ -4284,7 +4284,7 @@ class WhoisRestTestCase(unittest.HomeserverTestCase):
 
 class ShadowBanRestTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         login.register_servlets,
     ]
 
@@ -4296,7 +4296,7 @@ class ShadowBanRestTestCase(unittest.HomeserverTestCase):
 
         self.other_user = self.register_user("user", "pass")
 
-        self.url = "/_synapse/admin/v1/users/%s/shadow_ban" % urllib.parse.quote(
+        self.url = "/_relapse/admin/v1/users/%s/shadow_ban" % urllib.parse.quote(
             self.other_user
         )
 
@@ -4325,7 +4325,7 @@ class ShadowBanRestTestCase(unittest.HomeserverTestCase):
         """
         Tests that shadow-banning for a user that is not a local returns a 400
         """
-        url = "/_synapse/admin/v1/users/@unknown_person:unknown_domain/shadow_ban"
+        url = "/_relapse/admin/v1/users/@unknown_person:unknown_domain/shadow_ban"
 
         channel = self.make_request(method, url, access_token=self.admin_user_tok)
         self.assertEqual(400, channel.code, msg=channel.json_body)
@@ -4364,7 +4364,7 @@ class ShadowBanRestTestCase(unittest.HomeserverTestCase):
 
 class RateLimitTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         login.register_servlets,
     ]
 
@@ -4376,7 +4376,7 @@ class RateLimitTestCase(unittest.HomeserverTestCase):
 
         self.other_user = self.register_user("user", "pass")
         self.url = (
-            "/_synapse/admin/v1/users/%s/override_ratelimit"
+            "/_relapse/admin/v1/users/%s/override_ratelimit"
             % urllib.parse.quote(self.other_user)
         )
 
@@ -4411,7 +4411,7 @@ class RateLimitTestCase(unittest.HomeserverTestCase):
         """
         Tests that a lookup for a user that does not exist returns a 404
         """
-        url = "/_synapse/admin/v1/users/@unknown_person:test/override_ratelimit"
+        url = "/_relapse/admin/v1/users/@unknown_person:test/override_ratelimit"
 
         channel = self.make_request(
             method,
@@ -4434,7 +4434,7 @@ class RateLimitTestCase(unittest.HomeserverTestCase):
         Tests that a lookup for a user that is not a local returns a 400
         """
         url = (
-            "/_synapse/admin/v1/users/@unknown_person:unknown_domain/override_ratelimit"
+            "/_relapse/admin/v1/users/@unknown_person:unknown_domain/override_ratelimit"
         )
 
         channel = self.make_request(
@@ -4589,7 +4589,7 @@ class RateLimitTestCase(unittest.HomeserverTestCase):
 
 class AccountDataTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         login.register_servlets,
     ]
 
@@ -4600,7 +4600,7 @@ class AccountDataTestCase(unittest.HomeserverTestCase):
         self.admin_user_tok = self.login("admin", "pass")
 
         self.other_user = self.register_user("user", "pass")
-        self.url = f"/_synapse/admin/v1/users/{self.other_user}/accountdata"
+        self.url = f"/_relapse/admin/v1/users/{self.other_user}/accountdata"
 
     def test_no_auth(self) -> None:
         """Try to get information of a user without authentication."""
@@ -4624,7 +4624,7 @@ class AccountDataTestCase(unittest.HomeserverTestCase):
 
     def test_user_does_not_exist(self) -> None:
         """Tests that a lookup for a user that does not exist returns a 404"""
-        url = "/_synapse/admin/v1/users/@unknown_person:test/override_ratelimit"
+        url = "/_relapse/admin/v1/users/@unknown_person:test/override_ratelimit"
 
         channel = self.make_request(
             "GET",
@@ -4637,7 +4637,7 @@ class AccountDataTestCase(unittest.HomeserverTestCase):
 
     def test_user_is_not_local(self) -> None:
         """Tests that a lookup for a user that is not a local returns a 400"""
-        url = "/_synapse/admin/v1/users/@unknown_person:unknown_domain/accountdata"
+        url = "/_relapse/admin/v1/users/@unknown_person:unknown_domain/accountdata"
 
         channel = self.make_request(
             "GET",
@@ -4678,7 +4678,7 @@ class AccountDataTestCase(unittest.HomeserverTestCase):
 
 class UsersByExternalIdTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         login.register_servlets,
     ]
 
@@ -4703,7 +4703,7 @@ class UsersByExternalIdTestCase(unittest.HomeserverTestCase):
     def test_no_auth(self) -> None:
         """Try to lookup a user without authentication."""
         url = (
-            "/_synapse/admin/v1/auth_providers/the-auth-provider/users/the-external-id"
+            "/_relapse/admin/v1/auth_providers/the-auth-provider/users/the-external-id"
         )
 
         channel = self.make_request(
@@ -4716,7 +4716,7 @@ class UsersByExternalIdTestCase(unittest.HomeserverTestCase):
 
     def test_binding_does_not_exist(self) -> None:
         """Tests that a lookup for an external ID that does not exist returns a 404"""
-        url = "/_synapse/admin/v1/auth_providers/the-auth-provider/users/unknown-id"
+        url = "/_relapse/admin/v1/auth_providers/the-auth-provider/users/unknown-id"
 
         channel = self.make_request(
             "GET",
@@ -4730,7 +4730,7 @@ class UsersByExternalIdTestCase(unittest.HomeserverTestCase):
     def test_success(self) -> None:
         """Tests a successful external ID lookup"""
         url = (
-            "/_synapse/admin/v1/auth_providers/the-auth-provider/users/the-external-id"
+            "/_relapse/admin/v1/auth_providers/the-auth-provider/users/the-external-id"
         )
 
         channel = self.make_request(
@@ -4747,7 +4747,7 @@ class UsersByExternalIdTestCase(unittest.HomeserverTestCase):
 
     def test_success_urlencoded(self) -> None:
         """Tests a successful external ID lookup with an url-encoded ID"""
-        url = "/_synapse/admin/v1/auth_providers/another-auth-provider/users/a%3Acomplex%40external%2Fid"
+        url = "/_relapse/admin/v1/auth_providers/another-auth-provider/users/a%3Acomplex%40external%2Fid"
 
         channel = self.make_request(
             "GET",
@@ -4764,7 +4764,7 @@ class UsersByExternalIdTestCase(unittest.HomeserverTestCase):
 
 class UsersByThreePidTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         login.register_servlets,
     ]
 
@@ -4786,7 +4786,7 @@ class UsersByThreePidTestCase(unittest.HomeserverTestCase):
 
     def test_no_auth(self) -> None:
         """Try to look up a user without authentication."""
-        url = "/_synapse/admin/v1/threepid/email/users/user%40email.com"
+        url = "/_relapse/admin/v1/threepid/email/users/user%40email.com"
 
         channel = self.make_request(
             "GET",
@@ -4800,7 +4800,7 @@ class UsersByThreePidTestCase(unittest.HomeserverTestCase):
         """Tests that both a lookup for a medium that does not exist and a user that
         doesn't exist with that third party ID returns a 404"""
         # test for unknown medium
-        url = "/_synapse/admin/v1/threepid/publickey/users/unknown-key"
+        url = "/_relapse/admin/v1/threepid/publickey/users/unknown-key"
 
         channel = self.make_request(
             "GET",
@@ -4812,7 +4812,7 @@ class UsersByThreePidTestCase(unittest.HomeserverTestCase):
         self.assertEqual(Codes.NOT_FOUND, channel.json_body["errcode"])
 
         # test for unknown user with a known medium
-        url = "/_synapse/admin/v1/threepid/email/users/unknown"
+        url = "/_relapse/admin/v1/threepid/email/users/unknown"
 
         channel = self.make_request(
             "GET",
@@ -4826,7 +4826,7 @@ class UsersByThreePidTestCase(unittest.HomeserverTestCase):
     def test_success(self) -> None:
         """Tests a successful medium + address lookup"""
         # test for email medium with encoded value of user@email.com
-        url = "/_synapse/admin/v1/threepid/email/users/user%40email.com"
+        url = "/_relapse/admin/v1/threepid/email/users/user%40email.com"
 
         channel = self.make_request(
             "GET",
@@ -4841,7 +4841,7 @@ class UsersByThreePidTestCase(unittest.HomeserverTestCase):
         )
 
         # test for msidn medium with encoded value of +1-12345678
-        url = "/_synapse/admin/v1/threepid/msidn/users/%2B1-12345678"
+        url = "/_relapse/admin/v1/threepid/msidn/users/%2B1-12345678"
 
         channel = self.make_request(
             "GET",
@@ -4858,14 +4858,14 @@ class UsersByThreePidTestCase(unittest.HomeserverTestCase):
 
 class AllowCrossSigningReplacementTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         login.register_servlets,
     ]
 
     @staticmethod
     def url(user: str) -> str:
         template = (
-            "/_synapse/admin/v1/users/{}/_allow_cross_signing_replacement_without_uia"
+            "/_relapse/admin/v1/users/{}/_allow_cross_signing_replacement_without_uia"
         )
         return template.format(urllib.parse.quote(user))
 

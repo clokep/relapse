@@ -1,13 +1,13 @@
-Using the synapse manhole
+Using the relapse manhole
 =========================
 
 The "manhole" allows server administrators to access a Python shell on a running
-Synapse installation. This is a very powerful mechanism for administration and
+Relapse installation. This is a very powerful mechanism for administration and
 debugging.
 
 **_Security Warning_**
 
-Note that this will give administrative access to synapse to **all users** with
+Note that this will give administrative access to relapse to **all users** with
 shell access to the server. It should therefore **not** be enabled in
 environments where untrusted users have shell access.
 
@@ -34,11 +34,11 @@ When using `docker run` to start the server, you will then need to change the co
 ensures that access to the `manhole` is only possible for local users.
 
 ```bash
-docker run -d --name synapse \
-    --mount type=volume,src=synapse-data,dst=/data \
+docker run -d --name relapse \
+    --mount type=volume,src=relapse-data,dst=/data \
     -p 8008:8008 \
     -p 127.0.0.1:9000:9000 \
-    matrixdotorg/synapse:latest
+    matrixdotorg/relapse:latest
 ```
 
 #### Native config
@@ -69,14 +69,14 @@ For example:
 manhole_settings:
   username: manhole
   password: mypassword
-  ssh_priv_key: "/home/synapse/manhole_keys/id_rsa"
-  ssh_pub_key: "/home/synapse/manhole_keys/id_rsa.pub"
+  ssh_priv_key: "/home/relapse/manhole_keys/id_rsa"
+  ssh_pub_key: "/home/relapse/manhole_keys/id_rsa.pub"
 ```
 
 
-## Accessing synapse manhole
+## Accessing relapse manhole
 
-Then restart synapse, and point an ssh client at port 9000 on localhost, using
+Then restart relapse, and point an ssh client at port 9000 on localhost, using
 the username and password configured in `homeserver.yaml` - with the default 
 configuration, this would be:
 
@@ -87,10 +87,10 @@ ssh -p9000 matrix@localhost
 Then enter the password when prompted (the default is `rabbithole`).
 
 This gives a Python REPL in which `hs` gives access to the
-`synapse.server.HomeServer` object - which in turn gives access to many other
+`relapse.server.HomeServer` object - which in turn gives access to many other
 parts of the process.
 
-Note that, prior to Synapse 1.41, any call which returns a coroutine will need to be wrapped in `ensureDeferred`.
+Note that, prior to Relapse 1.41, any call which returns a coroutine will need to be wrapped in `ensureDeferred`.
 
 As a simple example, retrieving an event from the database:
 

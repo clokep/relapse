@@ -13,11 +13,11 @@
 # limitations under the License.
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.events import EventBase
-from synapse.rest import admin, login, room
-from synapse.server import HomeServer
-from synapse.types import JsonDict
-from synapse.util import Clock
+from relapse.events import EventBase
+from relapse.rest import admin, login, room
+from relapse.server import HomeServer
+from relapse.types import JsonDict
+from relapse.util import Clock
 
 from tests.unittest import HomeserverTestCase
 

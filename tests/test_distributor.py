@@ -15,7 +15,7 @@
 
 from unittest.mock import Mock, patch
 
-from synapse.util.distributor import Distributor
+from relapse.util.distributor import Distributor
 
 from . import unittest
 
@@ -42,7 +42,7 @@ class DistributorTestCase(unittest.TestCase):
 
         observers[0].side_effect = Exception("Awoogah!")
 
-        with patch("synapse.util.distributor.logger", spec=["warning"]) as mock_logger:
+        with patch("relapse.util.distributor.logger", spec=["warning"]) as mock_logger:
             self.dist.fire("alarm", "Go")
 
             observers[0].assert_called_once_with("Go")

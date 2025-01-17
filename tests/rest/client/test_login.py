@@ -23,17 +23,17 @@ from typing_extensions import Literal
 from twisted.test.proto_helpers import MemoryReactor
 from twisted.web.resource import Resource
 
-import synapse.rest.admin
-from synapse.api.constants import ApprovalNoticeMedium, LoginType
-from synapse.api.errors import Codes
-from synapse.appservice import ApplicationService
-from synapse.module_api import ModuleApi
-from synapse.rest.client import devices, login, logout, register
-from synapse.rest.client.account import WhoamiRestServlet
-from synapse.rest.synapse.client import build_synapse_client_resource_tree
-from synapse.server import HomeServer
-from synapse.types import JsonDict, create_requester
-from synapse.util import Clock
+import relapse.rest.admin
+from relapse.api.constants import ApprovalNoticeMedium, LoginType
+from relapse.api.errors import Codes
+from relapse.appservice import ApplicationService
+from relapse.module_api import ModuleApi
+from relapse.rest.client import devices, login, logout, register
+from relapse.rest.client.account import WhoamiRestServlet
+from relapse.rest.relapse.client import build_relapse_client_resource_tree
+from relapse.server import HomeServer
+from relapse.types import JsonDict, create_requester
+from relapse.util import Clock
 
 from tests import unittest
 from tests.handlers.test_oidc import HAS_OIDC
@@ -51,14 +51,14 @@ except ImportError:
     HAS_JWT = False
 
 
-# synapse server name: used to populate public_baseurl in some tests
-SYNAPSE_SERVER_PUBLIC_HOSTNAME = "synapse"
+# relapse server name: used to populate public_baseurl in some tests
+RELAPSE_SERVER_PUBLIC_HOSTNAME = "relapse"
 
 # public_baseurl for some tests. It uses an http:// scheme because
-# FakeChannel.isSecure() returns False, so synapse will see the requested uri as
-# http://..., so using http in the public_baseurl stops Synapse trying to redirect to
+# FakeChannel.isSecure() returns False, so relapse will see the requested uri as
+# http://..., so using http in the public_baseurl stops Relapse trying to redirect to
 # https://....
-BASE_URL = "http://%s/" % (SYNAPSE_SERVER_PUBLIC_HOSTNAME,)
+BASE_URL = "http://%s/" % (RELAPSE_SERVER_PUBLIC_HOSTNAME,)
 
 # CAS server used in some tests
 CAS_SERVER = "https://fake.test"
@@ -109,7 +109,7 @@ class TestSpamChecker:
         auth_provider_id: Optional[str] = None,
     ) -> Union[
         Literal["NOT_SPAM"],
-        Tuple["synapse.module_api.errors.Codes", JsonDict],
+        Tuple["relapse.module_api.errors.Codes", JsonDict],
     ]:
         return "NOT_SPAM"
 
@@ -133,7 +133,7 @@ class DenyAllSpamChecker:
         auth_provider_id: Optional[str] = None,
     ) -> Union[
         Literal["NOT_SPAM"],
-        Tuple["synapse.module_api.errors.Codes", JsonDict],
+        Tuple["relapse.module_api.errors.Codes", JsonDict],
     ]:
         # Return an odd set of values to ensure that they get correctly passed
         # to the client.
@@ -142,7 +142,7 @@ class DenyAllSpamChecker:
 
 class LoginRestServletTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        relapse.rest.admin.register_servlets_for_client_rest_resource,
         login.register_servlets,
         logout.register_servlets,
         devices.register_servlets,
@@ -639,7 +639,7 @@ class MultiSSOTestCase(unittest.HomeserverTestCase):
 
     def create_resource_dict(self) -> Dict[str, Resource]:
         d = super().create_resource_dict()
-        d.update(build_synapse_client_resource_tree(self.hs))
+        d.update(build_relapse_client_resource_tree(self.hs))
         return d
 
     def test_get_login_flows(self) -> None:
@@ -704,7 +704,7 @@ class MultiSSOTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "GET",
-            "/_synapse/client/pick_idp?redirectUrl="
+            "/_relapse/client/pick_idp?redirectUrl="
             + urllib.parse.quote_plus(TEST_CLIENT_REDIRECT_URL)
             + "&idp=cas",
             shorthand=False,
@@ -730,7 +730,7 @@ class MultiSSOTestCase(unittest.HomeserverTestCase):
         """If SAML is chosen, should redirect to the SAML server"""
         channel = self.make_request(
             "GET",
-            "/_synapse/client/pick_idp?redirectUrl="
+            "/_relapse/client/pick_idp?redirectUrl="
             + urllib.parse.quote_plus(TEST_CLIENT_REDIRECT_URL)
             + "&idp=saml",
         )
@@ -757,7 +757,7 @@ class MultiSSOTestCase(unittest.HomeserverTestCase):
             # pick the default OIDC provider
             channel = self.make_request(
                 "GET",
-                "/_synapse/client/pick_idp?redirectUrl="
+                "/_relapse/client/pick_idp?redirectUrl="
                 + urllib.parse.quote_plus(TEST_CLIENT_REDIRECT_URL)
                 + "&idp=oidc",
             )
@@ -825,7 +825,7 @@ class MultiSSOTestCase(unittest.HomeserverTestCase):
         """An unknown IdP should cause a 400"""
         channel = self.make_request(
             "GET",
-            "/_synapse/client/pick_idp?redirectUrl=http://x&idp=xyz",
+            "/_relapse/client/pick_idp?redirectUrl=http://x&idp=xyz",
         )
         self.assertEqual(channel.code, 400, channel.result)
 
@@ -863,7 +863,7 @@ class MultiSSOTestCase(unittest.HomeserverTestCase):
         return self.make_request(
             "GET",
             endpoint,
-            custom_headers=[("Host", SYNAPSE_SERVER_PUBLIC_HOSTNAME)],
+            custom_headers=[("Host", RELAPSE_SERVER_PUBLIC_HOSTNAME)],
         )
 
     @staticmethod
@@ -882,7 +882,7 @@ class CASTestCase(unittest.HomeserverTestCase):
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         self.base_url = "https://matrix.goodserver.com/"
-        self.redirect_path = "_synapse/client/login/sso/redirect/confirm"
+        self.redirect_path = "_relapse/client/login/sso/redirect/confirm"
 
         config = self.default_config()
         config["public_baseurl"] = (
@@ -902,7 +902,7 @@ class CASTestCase(unittest.HomeserverTestCase):
             https://apereo.github.io/cas/5.0.x/protocol/CAS-Protocol-V2-Specification.html#26-proxyvalidate-cas-20
 
             This needs to be returned by an async function (as opposed to set as the
-            mock's return value) because the corresponding Synapse code awaits on it.
+            mock's return value) because the corresponding Relapse code awaits on it.
             """
             return (
                 """
@@ -947,7 +947,7 @@ class CASTestCase(unittest.HomeserverTestCase):
         url_parts[4] = urllib.parse.urlencode(query)
         cas_ticket_url = urllib.parse.urlunparse(url_parts)
 
-        # Get Synapse to call the fake CAS and serve the template.
+        # Get Relapse to call the fake CAS and serve the template.
         channel = self.make_request("GET", cas_ticket_url)
 
         # Test that the response is HTML.
@@ -990,7 +990,7 @@ class CASTestCase(unittest.HomeserverTestCase):
             % (urllib.parse.quote(redirect_url))
         )
 
-        # Get Synapse to call the fake CAS and serve the template.
+        # Get Relapse to call the fake CAS and serve the template.
         channel = self.make_request("GET", cas_ticket_url)
 
         self.assertEqual(channel.code, 302)
@@ -1019,7 +1019,7 @@ class CASTestCase(unittest.HomeserverTestCase):
             % (urllib.parse.quote(redirect_url))
         )
 
-        # Get Synapse to call the fake CAS and serve the template.
+        # Get Relapse to call the fake CAS and serve the template.
         channel = self.make_request("GET", cas_ticket_url)
 
         # Because the user is deactivated they are served an error template.
@@ -1030,7 +1030,7 @@ class CASTestCase(unittest.HomeserverTestCase):
 @skip_unless(HAS_JWT, "requires authlib")
 class JWTTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        relapse.rest.admin.register_servlets_for_client_rest_resource,
         login.register_servlets,
     ]
 
@@ -1212,7 +1212,7 @@ class JWTTestCase(unittest.HomeserverTestCase):
 
 
 # The JWTPubKeyTestCase is a complement to JWTTestCase where we instead use
-# RSS256, with a public key configured in synapse as "jwt_secret", and tokens
+# RSS256, with a public key configured in relapse as "jwt_secret", and tokens
 # signed by the private key.
 @skip_unless(HAS_JWT, "requires authlib")
 class JWTPubKeyTestCase(unittest.HomeserverTestCase):
@@ -1220,7 +1220,7 @@ class JWTPubKeyTestCase(unittest.HomeserverTestCase):
         login.register_servlets,
     ]
 
-    # This key's pubkey is used as the jwt_secret setting of synapse. Valid
+    # This key's pubkey is used as the jwt_secret setting of relapse. Valid
     # tokens are signed by this and validated using the pubkey. It is generated
     # with `openssl genrsa 512` (not a secure way to generate real keys, but
     # good enough for tests!)
@@ -1249,7 +1249,7 @@ class JWTPubKeyTestCase(unittest.HomeserverTestCase):
         ]
     )
 
-    # This key is used to sign tokens that shouldn't be accepted by synapse.
+    # This key is used to sign tokens that shouldn't be accepted by relapse.
     # Generated just like jwt_privatekey.
     bad_privatekey = "\n".join(
         [
@@ -1436,7 +1436,7 @@ class UsernamePickerTestCase(HomeserverTestCase):
 
     def create_resource_dict(self) -> Dict[str, Resource]:
         d = super().create_resource_dict()
-        d.update(build_synapse_client_resource_tree(self.hs))
+        d.update(build_relapse_client_resource_tree(self.hs))
         return d
 
     def test_username_picker(self) -> None:
@@ -1456,7 +1456,7 @@ class UsernamePickerTestCase(HomeserverTestCase):
         location_headers = channel.headers.getRawHeaders("Location")
         assert location_headers
         picker_url = location_headers[0]
-        self.assertEqual(picker_url, "/_synapse/client/pick_username/account_details")
+        self.assertEqual(picker_url, "/_relapse/client/pick_username/account_details")
 
         # ... with a username_mapping_session cookie
         cookies: Dict[str, str] = {}

@@ -21,14 +21,14 @@ from signedjson import key as key, sign as sign
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.constants import RoomEncryptionAlgorithms
-from synapse.api.errors import Codes, SynapseError
-from synapse.appservice import ApplicationService
-from synapse.handlers.device import DeviceHandler
-from synapse.server import HomeServer
-from synapse.storage.databases.main.appservice import _make_exclusive_regex
-from synapse.types import JsonDict, UserID
-from synapse.util import Clock
+from relapse.api.constants import RoomEncryptionAlgorithms
+from relapse.api.errors import Codes, RelapseError
+from relapse.appservice import ApplicationService
+from relapse.handlers.device import DeviceHandler
+from relapse.server import HomeServer
+from relapse.storage.databases.main.appservice import _make_exclusive_regex
+from relapse.types import JsonDict, UserID
+from relapse.util import Clock
 
 from tests import unittest
 from tests.unittest import override_config
@@ -109,7 +109,7 @@ class E2eKeysHandlerTestCase(unittest.HomeserverTestCase):
             self.handler.upload_keys_for_user(
                 local_user, device_id, {"one_time_keys": {"alg1:k1": "key2"}}
             ),
-            SynapseError,
+            RelapseError,
         )
 
         # Error when replacing dict key with string
@@ -117,7 +117,7 @@ class E2eKeysHandlerTestCase(unittest.HomeserverTestCase):
             self.handler.upload_keys_for_user(
                 local_user, device_id, {"one_time_keys": {"alg2:k3": "key2"}}
             ),
-            SynapseError,
+            RelapseError,
         )
 
         # Error when replacing string key with dict
@@ -127,7 +127,7 @@ class E2eKeysHandlerTestCase(unittest.HomeserverTestCase):
                 device_id,
                 {"one_time_keys": {"alg1:k1": {"key": "key"}}},
             ),
-            SynapseError,
+            RelapseError,
         )
 
         # Error when replacing dict key
@@ -141,7 +141,7 @@ class E2eKeysHandlerTestCase(unittest.HomeserverTestCase):
                     }
                 },
             ),
-            SynapseError,
+            RelapseError,
         )
 
     def test_claim_one_time_key(self) -> None:
@@ -790,7 +790,7 @@ class E2eKeysHandlerTestCase(unittest.HomeserverTestCase):
                 device_id="nqOvzeuGWT/sRx3h7+MHoInYj3Uk2LD/unI9kDYcHwk",
                 initial_device_display_name="new display name",
             ),
-            SynapseError,
+            RelapseError,
         )
         res = e.value.code
         self.assertEqual(res, 400)

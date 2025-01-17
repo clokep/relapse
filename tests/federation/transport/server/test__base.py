@@ -17,14 +17,14 @@ from typing import Dict, List, Tuple
 
 from twisted.web.resource import Resource
 
-from synapse.api.errors import Codes
-from synapse.federation.transport.server import BaseFederationServlet
-from synapse.federation.transport.server._base import Authenticator, _parse_auth_header
-from synapse.http.server import JsonResource
-from synapse.server import HomeServer
-from synapse.types import JsonDict
-from synapse.util.cancellation import cancellable
-from synapse.util.ratelimitutils import FederationRateLimiter
+from relapse.api.errors import Codes
+from relapse.federation.transport.server import BaseFederationServlet
+from relapse.federation.transport.server._base import Authenticator, _parse_auth_header
+from relapse.http.server import JsonResource
+from relapse.server import HomeServer
+from relapse.types import JsonDict
+from relapse.util.cancellation import cancellable
+from relapse.util.ratelimitutils import FederationRateLimiter
 
 from tests import unittest
 from tests.http.server._base import test_disconnect

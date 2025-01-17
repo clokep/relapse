@@ -1,13 +1,13 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the matrix-synapse-py3 package.
+# This file is distributed under the same license as the matrix-relapse-py3 package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: matrix-synapse-py3\n"
-"Report-Msgid-Bugs-To: matrix-synapse-py3@packages.debian.org\n"
+"Project-Id-Version: matrix-relapse-py3\n"
+"Report-Msgid-Bugs-To: matrix-relapse-py3@packages.debian.org\n"
 "POT-Creation-Date: 2020-04-06 16:39-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
@@ -29,8 +29,8 @@ msgstr ""
 msgid ""
 "The name that this homeserver will appear as, to clients and other servers "
 "via federation. This is normally the public hostname of the server running "
-"synapse, but can be different if you set up delegation. Please refer to the "
-"delegation documentation in this case: https://github.com/matrix-org/synapse/"
+"relapse, but can be different if you set up delegation. Please refer to the "
+"delegation documentation in this case: https://github.com/clokep/relapse/"
 "blob/master/docs/delegate.md."
 msgstr ""
 
@@ -44,7 +44,7 @@ msgstr ""
 #. Description
 #: ../templates:2001
 msgid ""
-"Developers of Matrix and Synapse really appreciate helping the project out "
+"Developers of Matrix and Relapse really appreciate helping the project out "
 "by reporting homeserver usage statistics from this homeserver. Your "
 "homeserver's server name, along with very basic aggregate data (e.g. "
 "number of users) will be reported. But it helps track the growth of the "

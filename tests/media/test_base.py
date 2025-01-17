@@ -14,7 +14,7 @@
 
 from unittest.mock import Mock
 
-from synapse.media._base import add_file_headers, get_filename_from_headers
+from relapse.media._base import add_file_headers, get_filename_from_headers
 
 from tests import unittest
 

@@ -1,13 +1,13 @@
-# Synapse Documentation
+# Relapse Documentation
 
-**The documentation is currently hosted [here](https://matrix-org.github.io/synapse).**
+**The documentation is currently hosted [here](https://clokep.github.io/relapse).**
 Please update any links to point to the new website instead.
 
 ## About
 
 This directory currently holds a series of markdown files documenting how to install, use
-and develop Synapse. The documentation is readable directly from this repository, but it is 
-recommended to instead browse through the [website](https://matrix-org.github.io/synapse) for 
+and develop Relapse. The documentation is readable directly from this repository, but it is 
+recommended to instead browse through the [website](https://clokep.github.io/relapse) for 
 easier discoverability.
 
 ## Adding to the documentation

@@ -28,16 +28,16 @@ from unittest.mock import Mock
 
 from twisted.internet import defer
 
-from synapse.api.auth.internal import InternalAuth
-from synapse.api.constants import EventTypes, Membership
-from synapse.api.room_versions import RoomVersions
-from synapse.events import EventBase, make_event_from_dict
-from synapse.events.snapshot import EventContext
-from synapse.state import StateHandler, StateResolutionHandler, _make_state_cache_entry
-from synapse.types import MutableStateMap, StateMap
-from synapse.types.state import StateFilter
-from synapse.util import Clock
-from synapse.util.macaroons import MacaroonGenerator
+from relapse.api.auth.internal import InternalAuth
+from relapse.api.constants import EventTypes, Membership
+from relapse.api.room_versions import RoomVersions
+from relapse.events import EventBase, make_event_from_dict
+from relapse.events.snapshot import EventContext
+from relapse.state import StateHandler, StateResolutionHandler, _make_state_cache_entry
+from relapse.types import MutableStateMap, StateMap
+from relapse.types.state import StateFilter
+from relapse.util import Clock
+from relapse.util.macaroons import MacaroonGenerator
 
 from tests import unittest
 

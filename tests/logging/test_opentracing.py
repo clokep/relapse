@@ -17,21 +17,21 @@ from typing import Awaitable, cast
 from twisted.internet import defer
 from twisted.test.proto_helpers import MemoryReactorClock
 
-from synapse.logging.context import (
+from relapse.logging.context import (
     LoggingContext,
     make_deferred_yieldable,
     run_in_background,
 )
-from synapse.logging.opentracing import (
+from relapse.logging.opentracing import (
     start_active_span,
     start_active_span_follows_from,
     tag_args,
     trace_with_opname,
 )
-from synapse.util import Clock
+from relapse.util import Clock
 
 try:
-    from synapse.logging.scopecontextmanager import LogContextScopeManager
+    from relapse.logging.scopecontextmanager import LogContextScopeManager
 except ImportError:
     LogContextScopeManager = None  # type: ignore
 

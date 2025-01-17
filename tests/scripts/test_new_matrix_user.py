@@ -15,8 +15,8 @@
 from typing import List, Optional
 from unittest.mock import Mock, patch
 
-from synapse._scripts.register_new_matrix_user import request_registration
-from synapse.types import JsonDict
+from relapse._scripts.register_new_matrix_user import request_registration
+from relapse.types import JsonDict
 
 from tests.unittest import TestCase
 
@@ -57,7 +57,7 @@ class RegisterTestCase(TestCase):
         out: List[str] = []
         err_code: List[int] = []
 
-        with patch("synapse._scripts.register_new_matrix_user.requests", requests):
+        with patch("relapse._scripts.register_new_matrix_user.requests", requests):
             request_registration(
                 "user",
                 "pass",
@@ -93,7 +93,7 @@ class RegisterTestCase(TestCase):
         out: List[str] = []
         err_code: List[int] = []
 
-        with patch("synapse._scripts.register_new_matrix_user.requests", requests):
+        with patch("relapse._scripts.register_new_matrix_user.requests", requests):
             request_registration(
                 "user",
                 "pass",
@@ -148,7 +148,7 @@ class RegisterTestCase(TestCase):
         out: List[str] = []
         err_code: List[int] = []
 
-        with patch("synapse._scripts.register_new_matrix_user.requests", requests):
+        with patch("relapse._scripts.register_new_matrix_user.requests", requests):
             request_registration(
                 "user",
                 "pass",
