@@ -2,15 +2,11 @@
 Relapse |support| |development| |documentation| |license| |pypi| |python|
 =========================================================================
 
-Relapse is an open-source `Matrix <https://matrix.org/>`_ homeserver written and
-maintained by the Matrix.org Foundation. We began rapid development in 2014,
-reaching v1.0.0 in 2019. Development on Relapse and the Matrix protocol itself continues
-in earnest today.
+Relapse is a fork of `Synapse <https://github.com/matrix-org/synapse>`_, a homeserver for
+the `Matrix <https://matrix.org/>`_ protocol.
 
-Briefly, Matrix is an open standard for communications on the internet, supporting
-federation, encryption and VoIP. Matrix.org has more to say about the `goals of the
-Matrix project <https://matrix.org/docs/guides/introduction>`_, and the `formal specification
-<https://spec.matrix.org/>`_ describes the technical details.
+The primary goal of this fork is to make things simpler, more modern, and easier
+to maintain. With that in mind, **a number of features have been removed**.
 
 .. contents::
 
