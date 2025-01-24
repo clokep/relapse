@@ -34,7 +34,7 @@ def main(force_colors: bool) -> None:
 
     click.secho("Getting current schema version...")
 
-    r = repo.git.show("origin/develop:relapse/storage/schema/__init__.py")
+    r = repo.git.show("origin/develop:synapse/storage/schema/__init__.py")
 
     locals: Dict[str, Any] = {}
     exec(r, locals)
