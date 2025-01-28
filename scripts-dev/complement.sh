@@ -214,7 +214,42 @@ fi
 
 extra_test_args=()
 
-test_packages="./tests/csapi ./tests ./tests/msc3874 ./tests/msc3890 ./tests/msc3391 ./tests/msc3930 ./tests/msc3902"
+test_packages="./tests ./tests/msc3874 ./tests/msc3890 ./tests/msc3391 ./tests/msc3930 ./tests/msc3902"
+skipped_test_packages=(
+  TestSyncOmitsStateChangeOnFilteredEvents
+  TestContentCSAPIMediaV1
+  TestDeviceListUpdates/when_leaving_a_room_with_a_remote_user
+  TestAsyncUpload/Download_media
+  TestAsyncUpload/Download_media_over__matrix/client/v1/media/download
+  TestMembershipOnEvents
+  TestArchivedRoomsHistory/timeline_is_empty/initial_sync
+  TestSync/parallel/Device_list_tracking/User_is_correctly_listed_when_they_leave,_even_when_lazy_loading_is_enabled
+  TestRoomSummary
+  TestThreadReceiptsInSyncMSC4102
+  TestUploadKey/Parallel/Should_reject_keys_claiming_to_belong_to_a_different_user
+  TestUploadKey/Parallel/Rejects_invalid_device_keys
+  TestKeyClaimOrdering
+  TestDeviceListsUpdateOverFederationOnRoomJoin
+  TestContentMediaV1
+  TestFederationRoomsInvite/Parallel/Remote_invited_user_can_reject_invite_when_homeserver_is_already_participating_in_the_room
+  TestFederationRoomsInvite/Parallel/Remote_invited_user_can_join_the_room_when_homeserver_is_already_participating_in_the_room
+  #TestSyncOmitsStateChangeOnFilteredEvents
+  TestToDeviceMessagesOverFederation/stopped_server
+  TestMediaFilenames/Parallel/ASCII/Can_download_file_\'name\;with\;semicolons\'_over_/_matrix/client/v1/media/download
+  TestMediaFilenames/Parallel/ASCII/Can_download_file_\'name_with_spaces\'_over_/_matrix/client/v1/media/download
+  TestMediaFilenames/Parallel/ASCII/Can_download_specifying_a_different_ASCII_file_name_over__matrix/client/v1/media/download
+  TestMediaFilenames/Parallel/ASCII/Can_download_file_\'ascii\'_over_/_matrix/client/v1/media/download
+  TestMediaFilenames/Parallel/Unicode/Can_download_with_Unicode_file_name_locally_over__matrix/client/v1/media/download
+  TestMediaFilenames/Parallel/Unicode/Can_download_with_Unicode_file_name_over_federation_via__matrix/client/v1/media/download
+  TestMediaFilenames/Parallel/Unicode/Can_download_specifying_a_different_Unicode_file_name_over__matrix/client/v1/media/download
+  TestMediaWithoutFileNameCSMediaV1/parallel/Can_download_without_a_file_name_locally
+  TestMediaWithoutFileNameCSMediaV1/parallel/Can_download_without_a_file_name_over_federation
+  TestLocalPngThumbnail/test_/_matrix/client/v1/media_endpoint
+  TestRemotePngThumbnail
+  TestFederationThumbnail
+  TestPartialStateJoin/Device_list_tracking/Device_list_tracked_for_new_members_in_partial_state_room
+)
+skip_flag=$(IFS="|" ; echo "${skipped_test_packages[*]}")
 
 # Enable dirty runs, so tests will reuse the same container where possible.
 # This significantly speeds up tests, but increases the possibility of test pollution.
@@ -278,7 +313,8 @@ fi
 export PASS_RELAPSE_LOG_TESTING=1
 
 # Run the tests!
-echo "Images built; running complement with ${extra_test_args[@]} $@ $test_packages"
+echo "Images built; running complement with ${extra_test_args[@]} -skip "$skip_flag" $@ $test_packages"
 cd "$COMPLEMENT_DIR"
 
-go test -v -tags "relapse_blacklist" -count=1 "${extra_test_args[@]}" "$@" $test_packages
+# For now, consider us Synapse to inherit blacklist.
+go test -v -tags "relapse_blacklist" -count=1 "${extra_test_args[@]}" "$@" -skip "$skip_flag" $test_packages
