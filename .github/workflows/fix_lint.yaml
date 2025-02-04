@@ -27,6 +27,7 @@ jobs:
       - name: Setup Poetry
         uses: matrix-org/setup-python-poetry@v1
         with:
+          python-version: "3.12.x"
           install-project: "false"
 
       - name: Import order (isort)

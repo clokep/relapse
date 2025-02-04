@@ -53,7 +53,7 @@ jobs:
         with:
           # setup-python@v4 doesn't impose a default python version. Need to use 3.x
           # here, because `python` on osx points to Python 2.7.
-          python-version: "3.x"
+          python-version: "3.12.x"
 
       - name: Install cibuildwheel
         run: python -m pip install cibuildwheel==2.16.2

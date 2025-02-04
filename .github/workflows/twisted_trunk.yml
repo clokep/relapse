@@ -48,7 +48,7 @@ jobs:
 
       - uses: matrix-org/setup-python-poetry@v1
         with:
-          python-version: "3.x"
+          python-version: "3.12.x"
           extras: "all"
       - run: |
           poetry remove twisted
@@ -73,7 +73,7 @@ jobs:
 
       - uses: matrix-org/setup-python-poetry@v1
         with:
-          python-version: "3.x"
+          python-version: "3.12.x"
           extras: "all test"
       - run: |
           poetry remove twisted
