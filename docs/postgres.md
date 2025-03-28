@@ -8,13 +8,6 @@ Deprecation Policy](deprecation_policy.md).
 Relapse will require the python postgres client library in order to
 connect to a postgres database.
 
--   If you are using the [matrix.org debian/ubuntu
-    packages](setup/installation.md#matrixorg-packages), the necessary python
-    library will already be installed, but you will need to ensure the
-    low-level postgres library is installed, which you can do with
-    `apt install libpq5`.
--   For other pre-built packages, please consult the documentation from
-    the relevant package.
 -   If you installed relapse [in a
     virtualenv](setup/installation.md#installing-as-a-python-module-from-pypi), you can install
     the library with:

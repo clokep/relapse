@@ -49,5 +49,4 @@ the ecosystem.
 
 On a similar note, SQLite does not generally have a concept of "supported 
 release"; bugfixes are published for the latest minor release only. We chose to
-track Debian's oldstable as this is relatively conservative, predictably updated
-and is consistent with the `.deb` packages released by Matrix.org.
+track Debian's oldstable as this is relatively conservative and predictably updated.

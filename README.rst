@@ -14,8 +14,7 @@ Installing and configuration
 ============================
 
 The Relapse documentation describes `how to install Relapse <https://clokep.github.io/relapse/latest/setup/installation.html>`_. We recommend using
-`Docker images <https://clokep.github.io/relapse/latest/setup/installation.html#docker-images-and-ansible-playbooks>`_ or `Debian packages from Matrix.org
-<https://clokep.github.io/relapse/latest/setup/installation.html#matrixorg-packages>`_.
+`Docker images <https://clokep.github.io/relapse/latest/setup/installation.html#docker-images-and-ansible-playbooks>`_.
 
 .. _federation:
 

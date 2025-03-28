@@ -1,6 +1,0 @@
-opt/venvs/matrix-relapse/bin/hash_password usr/bin/hash_password
-opt/venvs/matrix-relapse/bin/register_new_matrix_user usr/bin/register_new_matrix_user
-opt/venvs/matrix-relapse/bin/relapse_port_db usr/bin/relapse_port_db
-opt/venvs/matrix-relapse/bin/relapse_review_recent_signups usr/bin/relapse_review_recent_signups
-opt/venvs/matrix-relapse/bin/synctl usr/bin/synctl
-opt/venvs/matrix-relapse/bin/update_relapse_database usr/bin/update_relapse_database

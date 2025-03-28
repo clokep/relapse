@@ -80,14 +80,6 @@ process, for example:
     pip install matrix-relapse==1.3.0
     ```
 
--   Debian:
-
-    ```bash
-    # replace `1.3.0` and `stretch` accordingly:
-    wget https://packages.matrix.org/debian/pool/main/m/matrix-relapse-py3/matrix-relapse-py3_1.3.0+stretch1_amd64.deb
-    dpkg -i matrix-relapse-py3_1.3.0+stretch1_amd64.deb
-    ```
-
 Generally Relapse database schemas are compatible across multiple versions, once
 a version of Relapse is deployed you may not be able to rollback automatically.
 The following table gives the version ranges and the earliest version they can

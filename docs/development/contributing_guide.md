@@ -477,28 +477,6 @@ There are two options for solving this:
 Sorry, we know it's a bit fiddly, but it's *really* helpful for us when we come
 to put together a release!
 
-### Debian changelog
-
-Changes which affect the debian packaging files (in `debian`) are an
-exception to the rule that all changes require a `changelog.d` file.
-
-In this case, you will need to add an entry to the debian changelog for the
-next release. For this, run the following command:
-
-```
-dch
-```
-
-This will make up a new version number (if there isn't already an unreleased
-version in flight), and open an editor where you can add a new changelog entry.
-(Our release process will ensure that the version number and maintainer name is
-corrected for the release.)
-
-If your change affects both the debian packaging *and* files outside the debian
-directory, you will need both a regular newsfragment *and* an entry in the
-debian changelog. (Though typically such changes should be submitted as two
-separate pull requests.)
-
 ## Sign off
 
 In order to have a concrete record that your contribution is intentional
