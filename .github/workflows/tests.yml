@@ -492,9 +492,17 @@ jobs:
         uses: dtolnay/rust-toolchain@1.61.0
       - uses: Swatinem/rust-cache@v2
 
+      - name: Prep plugin
+        run: |
+          tar -czvf sytest_relapse.tar.gz sytest_relapse/
+          python3 -m http.server &
+
       - name: Run SyTest
         run: /bootstrap.sh relapse
         working-directory: /src
+        env:
+          # PLUGINS is used by bootstrap.sh to give a path to
+          PLUGINS: http://localhost:8000/sytest_relapse.tar.gz
       - name: Summarise results.tap
         if: ${{ always() }}
         run: /sytest/scripts/tap_to_gha.pl /logs/results.tap
