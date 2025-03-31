@@ -68,7 +68,7 @@ jobs:
             type=pep440,pattern={{raw}}
 
       - name: Build and push all platforms
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           push: true
           labels: |
