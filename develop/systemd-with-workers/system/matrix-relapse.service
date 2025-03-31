@@ -1,0 +1,22 @@
+[Unit]
+Description=Relapse master
+
+# This service should be restarted when the relapse target is restarted.
+PartOf=matrix-relapse.target
+ReloadPropagatedFrom=matrix-relapse.target
+
+[Service]
+Type=notify
+NotifyAccess=main
+User=matrix-relapse
+WorkingDirectory=/var/lib/matrix-relapse
+EnvironmentFile=-/etc/default/matrix-relapse
+ExecStartPre=/opt/venvs/matrix-relapse/bin/python -m relapse.app.homeserver --config-path=/etc/matrix-relapse/homeserver.yaml --config-path=/etc/matrix-relapse/conf.d/ --generate-keys
+ExecStart=/opt/venvs/matrix-relapse/bin/python -m relapse.app.homeserver --config-path=/etc/matrix-relapse/homeserver.yaml --config-path=/etc/matrix-relapse/conf.d/
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=3
+SyslogIdentifier=matrix-relapse
+
+[Install]
+WantedBy=matrix-relapse.target
