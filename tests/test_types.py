@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from synapse.api.errors import SynapseError
-from synapse.types import (
+from relapse.api.errors import RelapseError
+from relapse.types import (
     RoomAlias,
     UserID,
     get_domain_from_id,
@@ -51,15 +51,15 @@ class UserIDTestCase(unittest.HomeserverTestCase):
         self.assertEqual(True, self.hs.is_mine(user))
 
     def test_parse_rejects_empty_id(self) -> None:
-        with self.assertRaises(SynapseError):
+        with self.assertRaises(RelapseError):
             UserID.from_string("")
 
     def test_parse_rejects_missing_sigil(self) -> None:
-        with self.assertRaises(SynapseError):
+        with self.assertRaises(RelapseError):
             UserID.from_string("alice:example.com")
 
     def test_parse_rejects_missing_separator(self) -> None:
-        with self.assertRaises(SynapseError):
+        with self.assertRaises(RelapseError):
             UserID.from_string("@alice.example.com")
 
     def test_validation_rejects_missing_domain(self) -> None:

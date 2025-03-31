@@ -8,7 +8,7 @@ formatters:
 
 filters:
     context:
-        (): synapse.logging.context.LoggingContextFilter
+        (): relapse.logging.context.LoggingContextFilter
         request: ""
 
 handlers:
@@ -16,7 +16,7 @@ handlers:
         class: systemd.journal.JournalHandler
         formatter: journal_fmt
         filters: [context]
-        SYSLOG_IDENTIFIER: synapse
+        SYSLOG_IDENTIFIER: relapse
 
 root:
     level: INFO

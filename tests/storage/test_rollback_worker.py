@@ -16,13 +16,13 @@ from unittest import mock
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.app.generic_worker import GenericWorkerServer
-from synapse.server import HomeServer
-from synapse.storage.database import LoggingDatabaseConnection
-from synapse.storage.prepare_database import PrepareDatabaseException, prepare_database
-from synapse.storage.schema import SCHEMA_VERSION
-from synapse.types import JsonDict
-from synapse.util import Clock
+from relapse.app.generic_worker import GenericWorkerServer
+from relapse.server import HomeServer
+from relapse.storage.database import LoggingDatabaseConnection
+from relapse.storage.prepare_database import PrepareDatabaseException, prepare_database
+from relapse.storage.schema import SCHEMA_VERSION
+from relapse.types import JsonDict
+from relapse.util import Clock
 
 from tests.unittest import HomeserverTestCase
 
@@ -109,15 +109,15 @@ class WorkerSchemaTests(HomeserverTestCase):
 
         db_conn.commit()
 
-        # Path `os.listdir` here to make synapse think that there is a migration
+        # Path `os.listdir` here to make relapse think that there is a migration
         # file ready to be run.
-        # Note that we can't patch this function for the whole method, else Synapse
+        # Note that we can't patch this function for the whole method, else Relapse
         # will try to find the file when building the database initially.
         with mock.patch("os.listdir", mock.Mock(side_effect=fake_listdir)):
             with self.assertRaises(PrepareDatabaseException):
-                # Synapse should think that there is an outstanding migration file due to
+                # Relapse should think that there is an outstanding migration file due to
                 # patching 'os.listdir' in the function decorator.
                 #
-                # We expect Synapse to raise an exception to indicate the master process
+                # We expect Relapse to raise an exception to indicate the master process
                 # needs to apply this migration file.
                 prepare_database(db_conn, db_pool.engine, self.hs.config)

@@ -1,11 +1,11 @@
-# Implementing experimental features in Synapse
+# Implementing experimental features in Relapse
 
 It can be desirable to implement "experimental" features which are disabled by
-default and must be explicitly enabled via the Synapse configuration. This is
+default and must be explicitly enabled via the Relapse configuration. This is
 applicable for features which:
 
 * Are unstable in the Matrix spec (e.g. those defined by an MSC that has not yet been merged).
-* Developers are not confident in their use by general Synapse administrators/users
+* Developers are not confident in their use by general Relapse administrators/users
   (e.g. a feature is incomplete, buggy, performs poorly, or needs further testing).
 
 Note that this only really applies to features which are expected to be desirable
@@ -19,12 +19,12 @@ of the following scenarios:
   gracefully if they do not).
 * Unstable features do not become de-facto standards and can be removed
   aggressively (since only those who have opted-in will be affected).
-* Ease finding the implementation of unstable features in Synapse (for future
+* Ease finding the implementation of unstable features in Relapse (for future
   removal or stabilization).
 * Ease testing a feature (or removal of feature) due to enabling/disabling without
   code changes. It also becomes possible to ask for wider testing, if desired.
 
-Experimental configuration flags should be disabled by default (requiring Synapse
+Experimental configuration flags should be disabled by default (requiring Relapse
 administrators to explicitly opt-in), although there are situations where it makes
 sense (from a product point-of-view) to enable features by default. This is
 expected and not an issue.
@@ -33,5 +33,5 @@ It is not a requirement for experimental features to be behind a configuration f
 but one should be used if unsure.
 
 New experimental configuration flags should be added under the `experimental`
-configuration key (see the `synapse.config.experimental` file) and either explain
+configuration key (see the `relapse.config.experimental` file) and either explain
 (briefly) what is being enabled, or include the MSC number.

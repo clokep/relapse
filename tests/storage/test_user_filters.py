@@ -15,10 +15,10 @@
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.server import HomeServer
-from synapse.storage.database import LoggingTransaction
-from synapse.storage.engines import PostgresEngine
-from synapse.util import Clock
+from relapse.server import HomeServer
+from relapse.storage.database import LoggingTransaction
+from relapse.storage.engines import PostgresEngine
+from relapse.util import Clock
 
 from tests import unittest
 

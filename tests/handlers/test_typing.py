@@ -22,14 +22,14 @@ from netaddr import IPSet
 from twisted.test.proto_helpers import MemoryReactor
 from twisted.web.resource import Resource
 
-from synapse.api.constants import EduTypes
-from synapse.api.errors import AuthError
-from synapse.federation.transport.server import TransportLayerServer
-from synapse.handlers.typing import TypingWriterHandler
-from synapse.http.federation.matrix_federation_agent import MatrixFederationAgent
-from synapse.server import HomeServer
-from synapse.types import JsonDict, Requester, StreamKeyType, UserID, create_requester
-from synapse.util import Clock
+from relapse.api.constants import EduTypes
+from relapse.api.errors import AuthError
+from relapse.federation.transport.server import TransportLayerServer
+from relapse.handlers.typing import TypingWriterHandler
+from relapse.http.federation.matrix_federation_agent import MatrixFederationAgent
+from relapse.server import HomeServer
+from relapse.types import JsonDict, Requester, StreamKeyType, UserID, create_requester
+from relapse.util import Clock
 
 from tests import unittest
 from tests.server import ThreadedMemoryReactorClock
@@ -81,7 +81,7 @@ class TypingNotificationsTestCase(unittest.HomeserverTestCase):
         self.mock_federation_client.agent = MatrixFederationAgent(
             reactor,
             tls_client_options_factory=None,
-            user_agent=b"SynapseInTrialTest/0.0.0",
+            user_agent=b"RelapseInTrialTest/0.0.0",
             ip_allowlist=None,
             ip_blocklist=IPSet(),
         )
@@ -337,7 +337,7 @@ class TypingNotificationsTestCase(unittest.HomeserverTestCase):
         self.room_members = [U_APPLE, U_BANANA, U_ONION]
 
         # Gut-wrenching
-        from synapse.handlers.typing import RoomMember
+        from relapse.handlers.typing import RoomMember
 
         member = RoomMember(ROOM_ID, U_APPLE.to_string())
         self.handler._member_typing_until[member] = 1002000

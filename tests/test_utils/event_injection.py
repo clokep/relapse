@@ -14,11 +14,11 @@
 # limitations under the License.
 from typing import Any, List, Optional, Tuple
 
-import synapse.server
-from synapse.api.constants import EventTypes
-from synapse.api.room_versions import KNOWN_ROOM_VERSIONS
-from synapse.events import EventBase
-from synapse.events.snapshot import EventContext
+import relapse.server
+from relapse.api.constants import EventTypes
+from relapse.api.room_versions import KNOWN_ROOM_VERSIONS
+from relapse.events import EventBase
+from relapse.events.snapshot import EventContext
 
 """
 Utility functions for poking events into the storage of the server under test.
@@ -26,7 +26,7 @@ Utility functions for poking events into the storage of the server under test.
 
 
 async def inject_member_event(
-    hs: synapse.server.HomeServer,
+    hs: relapse.server.HomeServer,
     room_id: str,
     sender: str,
     membership: str,
@@ -54,7 +54,7 @@ async def inject_member_event(
 
 
 async def inject_event(
-    hs: synapse.server.HomeServer,
+    hs: relapse.server.HomeServer,
     room_version: Optional[str] = None,
     prev_event_ids: Optional[List[str]] = None,
     **kwargs: Any,
@@ -79,7 +79,7 @@ async def inject_event(
 
 
 async def create_event(
-    hs: synapse.server.HomeServer,
+    hs: relapse.server.HomeServer,
     room_version: Optional[str] = None,
     prev_event_ids: Optional[List[str]] = None,
     **kwargs: Any,
@@ -105,7 +105,7 @@ async def create_event(
 
 
 async def mark_event_as_partial_state(
-    hs: synapse.server.HomeServer,
+    hs: relapse.server.HomeServer,
     event_id: str,
     room_id: str,
 ) -> None:

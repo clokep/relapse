@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from synapse.util.caches.treecache import TreeCache, iterate_tree_cache_entry
+from relapse.util.caches.treecache import TreeCache, iterate_tree_cache_entry
 
 from .. import unittest
 

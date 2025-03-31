@@ -1,8 +1,8 @@
 [tool.towncrier]
-    package = "synapse"
+    package = "relapse"
     filename = "CHANGES.md"
     directory = "changelog.d"
-    issue_format = "[\\#{issue}](https://github.com/matrix-org/synapse/issues/{issue})"
+    issue_format = "[\\#{issue}](https://github.com/clokep/relapse/issues/{issue})"
 
     [[tool.towncrier.type]]
         directory = "feature"
@@ -35,7 +35,7 @@
         showcontent = true
 
 [tool.black]
-target-version = ['py38', 'py39', 'py310', 'py311']
+target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
 # black ignores everything in .gitignore by default, see
 # https://black.readthedocs.io/en/stable/usage_and_configuration/file_collection_and_discovery.html#gitignore
 # Use `extend-exclude` if you want to exclude something in addition to this.
@@ -82,7 +82,7 @@ select = [
 line_length = 88
 sections = ["FUTURE", "STDLIB", "THIRDPARTY", "TWISTED", "FIRSTPARTY", "TESTS", "LOCALFOLDER"]
 default_section = "THIRDPARTY"
-known_first_party = ["synapse"]
+known_first_party = ["relapse"]
 known_tests = ["tests"]
 known_twisted = ["twisted", "OpenSSL"]
 multi_line_output = 3
@@ -92,18 +92,18 @@ skip_gitignore = true
 
 [tool.maturin]
 manifest-path = "rust/Cargo.toml"
-module-name = "synapse.synapse_rust"
+module-name = "relapse.relapse_rust"
 
 [tool.poetry]
-name = "matrix-synapse"
-version = "1.98.0rc1"
+name = "matrix-relapse"
+version = "2.0.0dev"
 description = "Homeserver for the Matrix decentralised comms protocol"
-authors = ["Matrix.org Team and Contributors <packages@matrix.org>"]
+authors = ["Patrick Cloke"]
 license = "Apache-2.0"
 readme = "README.rst"
-repository = "https://github.com/matrix-org/synapse"
+repository = "https://github.com/clokep/relapse"
 packages = [
-    { include = "synapse" },
+    { include = "relapse" },
 ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
@@ -120,7 +120,7 @@ include = [
     { path = "INSTALL.md", format = "sdist" },
     { path = "mypy.ini", format = "sdist" },
     { path = "scripts-dev", format = "sdist" },
-    { path = "synmark", format="sdist" },
+    { path = "remark", format="sdist" },
     { path = "sytest-blacklist", format = "sdist" },
     { path = "tests", format = "sdist" },
     { path = "UPGRADE.rst", format = "sdist" },
@@ -131,7 +131,7 @@ include = [
     { path = "rust/src/**", format = "sdist" },
 ]
 exclude = [
-    { path = "synapse/*.so", format = "sdist"}
+    { path = "relapse/*.so", format = "sdist"}
 ]
 
 [tool.poetry.build]
@@ -139,19 +139,19 @@ script = "build_rust.py"
 generate-setup-file = true
 
 [tool.poetry.scripts]
-synapse_homeserver = "synapse.app.homeserver:main"
-synapse_worker = "synapse.app.generic_worker:main"
-synctl = "synapse._scripts.synctl:main"
+relapse_homeserver = "relapse.app.homeserver:main"
+relapse_worker = "relapse.app.generic_worker:main"
+synctl = "relapse._scripts.synctl:main"
 
-export_signing_key = "synapse._scripts.export_signing_key:main"
-generate_config = "synapse._scripts.generate_config:main"
-generate_log_config = "synapse._scripts.generate_log_config:main"
-generate_signing_key = "synapse._scripts.generate_signing_key:main"
-hash_password = "synapse._scripts.hash_password:main"
-register_new_matrix_user = "synapse._scripts.register_new_matrix_user:main"
-synapse_port_db = "synapse._scripts.synapse_port_db:main"
-synapse_review_recent_signups = "synapse._scripts.review_recent_signups:main"
-update_synapse_database = "synapse._scripts.update_synapse_database:main"
+export_signing_key = "relapse._scripts.export_signing_key:main"
+generate_config = "relapse._scripts.generate_config:main"
+generate_log_config = "relapse._scripts.generate_log_config:main"
+generate_signing_key = "relapse._scripts.generate_signing_key:main"
+hash_password = "relapse._scripts.hash_password:main"
+register_new_matrix_user = "relapse._scripts.register_new_matrix_user:main"
+relapse_port_db = "relapse._scripts.relapse_port_db:main"
+relapse_review_recent_signups = "relapse._scripts.review_recent_signups:main"
+update_relapse_database = "relapse._scripts.update_relapse_database:main"
 
 [tool.poetry.dependencies]
 python = "^3.8.0"
@@ -252,7 +252,7 @@ idna = { version = ">=2.5", optional = true }
 pyicu = { version = ">=2.10.2", optional = true }
 
 [tool.poetry.extras]
-# NB: Packages that should be part of `pip install matrix-synapse[all]` need to be specified
+# NB: Packages that should be part of `pip install matrix-relapse[all]` need to be specified
 # twice: once here, and once in the `all` extra.
 matrix-synapse-ldap3 = ["matrix-synapse-ldap3"]
 postgres = ["psycopg2", "psycopg2cffi", "psycopg2cffi-compat"]
@@ -278,7 +278,7 @@ test = ["parameterized", "idna"]
 user-search = ["pyicu"]
 
 # The duplication here is awful. I hate hate hate hate hate it. However, for now I want
-# to ensure you can still `pip install matrix-synapse[all]` like today. Two motivations:
+# to ensure you can still `pip install matrix-relapse[all]` like today. Two motivations:
 # 1) for new installations, I want instructions in existing documentation and tutorials
 #    out there to still work.
 # 2) I don't want to hard-code a list of extras into CI if I can help it. The ideal
@@ -407,7 +407,7 @@ environment= { PATH = "$PATH:$HOME/.cargo/bin" }
 # Python version.
 before-build = "rm -rf {project}/build"
 build-frontend = "build"
-test-command = "python -c 'from synapse.synapse_rust import sum_as_string; print(sum_as_string(1, 2))'"
+test-command = "python -c 'from relapse.relapse_rust import sum_as_string; print(sum_as_string(1, 2))'"
 
 
 [tool.cibuildwheel.linux]

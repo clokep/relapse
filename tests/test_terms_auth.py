@@ -17,10 +17,10 @@ from unittest.mock import Mock
 from twisted.internet.interfaces import IReactorTime
 from twisted.test.proto_helpers import MemoryReactor, MemoryReactorClock
 
-from synapse.rest.client.register import register_servlets
-from synapse.server import HomeServer
-from synapse.types import JsonDict
-from synapse.util import Clock
+from relapse.rest.client.register import register_servlets
+from relapse.server import HomeServer
+from relapse.types import JsonDict
+from relapse.util import Clock
 
 from tests import unittest
 

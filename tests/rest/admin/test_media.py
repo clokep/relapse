@@ -20,12 +20,12 @@ from parameterized import parameterized
 from twisted.test.proto_helpers import MemoryReactor
 from twisted.web.resource import Resource
 
-import synapse.rest.admin
-from synapse.api.errors import Codes
-from synapse.media.filepath import MediaFilePaths
-from synapse.rest.client import login, profile, room
-from synapse.server import HomeServer
-from synapse.util import Clock
+import relapse.rest.admin
+from relapse.api.errors import Codes
+from relapse.media.filepath import MediaFilePaths
+from relapse.rest.client import login, profile, room
+from relapse.server import HomeServer
+from relapse.util import Clock
 
 from tests import unittest
 from tests.test_utils import SMALL_PNG
@@ -36,8 +36,8 @@ INVALID_TIMESTAMP_IN_S = 1893456000  # 2030-01-01 in seconds
 
 class _AdminMediaTests(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
-        synapse.rest.admin.register_servlets_for_media_repo,
+        relapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets_for_media_repo,
         login.register_servlets,
     ]
 
@@ -60,7 +60,7 @@ class DeleteMediaByIDTestCase(_AdminMediaTests):
         """
         Try to delete media without authentication.
         """
-        url = "/_synapse/admin/v1/media/%s/%s" % (self.server_name, "12345")
+        url = "/_relapse/admin/v1/media/%s/%s" % (self.server_name, "12345")
 
         channel = self.make_request("DELETE", url, b"{}")
 
@@ -78,7 +78,7 @@ class DeleteMediaByIDTestCase(_AdminMediaTests):
         self.other_user = self.register_user("user", "pass")
         self.other_user_token = self.login("user", "pass")
 
-        url = "/_synapse/admin/v1/media/%s/%s" % (self.server_name, "12345")
+        url = "/_relapse/admin/v1/media/%s/%s" % (self.server_name, "12345")
 
         channel = self.make_request(
             "DELETE",
@@ -93,7 +93,7 @@ class DeleteMediaByIDTestCase(_AdminMediaTests):
         """
         Tests that a lookup for a media that does not exist returns a 404
         """
-        url = "/_synapse/admin/v1/media/%s/%s" % (self.server_name, "12345")
+        url = "/_relapse/admin/v1/media/%s/%s" % (self.server_name, "12345")
 
         channel = self.make_request(
             "DELETE",
@@ -108,7 +108,7 @@ class DeleteMediaByIDTestCase(_AdminMediaTests):
         """
         Tests that a lookup for a media that is not a local returns a 400
         """
-        url = "/_synapse/admin/v1/media/%s/%s" % ("unknown_domain", "12345")
+        url = "/_relapse/admin/v1/media/%s/%s" % ("unknown_domain", "12345")
 
         channel = self.make_request(
             "DELETE",
@@ -157,7 +157,7 @@ class DeleteMediaByIDTestCase(_AdminMediaTests):
         local_path = self.filepaths.local_media_filepath(media_id)
         self.assertTrue(os.path.exists(local_path))
 
-        url = "/_synapse/admin/v1/media/%s/%s" % (self.server_name, media_id)
+        url = "/_relapse/admin/v1/media/%s/%s" % (self.server_name, media_id)
 
         # Delete media
         channel = self.make_request(
@@ -195,8 +195,8 @@ class DeleteMediaByIDTestCase(_AdminMediaTests):
 
 class DeleteMediaByDateSizeTestCase(_AdminMediaTests):
     servlets = [
-        synapse.rest.admin.register_servlets,
-        synapse.rest.admin.register_servlets_for_media_repo,
+        relapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets_for_media_repo,
         login.register_servlets,
         profile.register_servlets,
         room.register_servlets,
@@ -210,8 +210,8 @@ class DeleteMediaByDateSizeTestCase(_AdminMediaTests):
         self.admin_user_tok = self.login("admin", "pass")
 
         self.filepaths = MediaFilePaths(hs.config.media.media_store_path)
-        self.url = "/_synapse/admin/v1/media/delete"
-        self.legacy_url = "/_synapse/admin/v1/media/%s/delete" % self.server_name
+        self.url = "/_relapse/admin/v1/media/delete"
+        self.legacy_url = "/_relapse/admin/v1/media/%s/delete" % self.server_name
 
         # Move clock up to somewhat realistic time
         self.reactor.advance(1000000000)
@@ -246,7 +246,7 @@ class DeleteMediaByDateSizeTestCase(_AdminMediaTests):
         """
         Tests that a lookup for media that is not local returns a 400
         """
-        url = "/_synapse/admin/v1/media/%s/delete" % "unknown_domain"
+        url = "/_relapse/admin/v1/media/%s/delete" % "unknown_domain"
 
         channel = self.make_request(
             "POST",
@@ -601,7 +601,7 @@ class QuarantineMediaByIDTestCase(_AdminMediaTests):
         server_and_media_id = response["content_uri"][6:]  # Cut off 'mxc://'
         self.media_id = server_and_media_id.split("/")[1]
 
-        self.url = "/_synapse/admin/v1/media/%s/%s/%s"
+        self.url = "/_relapse/admin/v1/media/%s/%s/%s"
 
     @parameterized.expand(["quarantine", "unquarantine"])
     def test_no_auth(self, action: str) -> None:
@@ -719,7 +719,7 @@ class ProtectMediaByIDTestCase(_AdminMediaTests):
         server_and_media_id = response["content_uri"][6:]  # Cut off 'mxc://'
         self.media_id = server_and_media_id.split("/")[1]
 
-        self.url = "/_synapse/admin/v1/media/%s/%s"
+        self.url = "/_relapse/admin/v1/media/%s/%s"
 
     @parameterized.expand(["protect", "unprotect"])
     def test_no_auth(self, action: str) -> None:
@@ -789,8 +789,8 @@ class ProtectMediaByIDTestCase(_AdminMediaTests):
 
 class PurgeMediaCacheTestCase(_AdminMediaTests):
     servlets = [
-        synapse.rest.admin.register_servlets,
-        synapse.rest.admin.register_servlets_for_media_repo,
+        relapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets_for_media_repo,
         login.register_servlets,
         profile.register_servlets,
         room.register_servlets,
@@ -804,7 +804,7 @@ class PurgeMediaCacheTestCase(_AdminMediaTests):
         self.admin_user_tok = self.login("admin", "pass")
 
         self.filepaths = MediaFilePaths(hs.config.media.media_store_path)
-        self.url = "/_synapse/admin/v1/purge_media_cache"
+        self.url = "/_relapse/admin/v1/purge_media_cache"
 
     def test_no_auth(self) -> None:
         """

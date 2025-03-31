@@ -1,8 +1,8 @@
 # A dockerfile which builds a docker image for building a debian package for
-# synapse. The distro to build for is passed as a docker build var.
+# relapse. The distro to build for is passed as a docker build var.
 #
-# The default entrypoint expects the synapse source to be mounted as a
-# (read-only) volume at /synapse/source, and an output directory at /debs.
+# The default entrypoint expects the relapse source to be mounted as a
+# (read-only) volume at /relapse/source, and an output directory at /debs.
 #
 # A pair of environment variables (TARGET_USERID and TARGET_GROUPID) can be
 # passed to the docker container; if these are set, the build script will chown
@@ -102,5 +102,5 @@ COPY --from=builder /dh-virtualenv_1.2.2-1_all.deb /
 RUN apt-get update -qq -o Acquire::Languages=none \
     && apt-get install -yq /dh-virtualenv_1.2.2-1_all.deb
 
-WORKDIR /synapse/source
-ENTRYPOINT ["bash","/synapse/source/docker/build_debian.sh"]
+WORKDIR /relapse/source
+ENTRYPOINT ["bash","/relapse/source/docker/build_debian.sh"]

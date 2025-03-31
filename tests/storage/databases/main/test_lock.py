@@ -18,9 +18,9 @@ from twisted.internet.base import ReactorBase
 from twisted.internet.defer import Deferred
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.server import HomeServer
-from synapse.storage.databases.main.lock import _LOCK_TIMEOUT_MS, _RENEWAL_INTERVAL_MS
-from synapse.util import Clock
+from relapse.server import HomeServer
+from relapse.storage.databases.main.lock import _LOCK_TIMEOUT_MS, _RENEWAL_INTERVAL_MS
+from relapse.util import Clock
 
 from tests import unittest
 
@@ -158,7 +158,7 @@ class LockTestCase(unittest.HomeserverTestCase):
         self.assertIsNotNone(lock2)
 
     def test_shutdown(self) -> None:
-        """Test that shutting down Synapse releases the locks"""
+        """Test that shutting down Relapse releases the locks"""
         # Acquire two locks
         lock = self.get_success(self.store.try_acquire_lock("name", "key1"))
         self.assertIsNotNone(lock)
@@ -436,7 +436,7 @@ class ReadWriteLockTestCase(unittest.HomeserverTestCase):
         self.assertIsNotNone(lock2)
 
     def test_shutdown(self) -> None:
-        """Test that shutting down Synapse releases the locks"""
+        """Test that shutting down Relapse releases the locks"""
         # Acquire two locks
         lock = self.get_success(
             self.store.try_acquire_read_write_lock("name", "key", write=True)

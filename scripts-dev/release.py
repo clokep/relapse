@@ -103,14 +103,14 @@ def _prepare() -> None:
     """
 
     # Make sure we're in a git repo.
-    synapse_repo = get_repo_and_check_clean_checkout()
+    relapse_repo = get_repo_and_check_clean_checkout()
     sytest_repo = get_repo_and_check_clean_checkout("../sytest", "sytest")
 
-    click.secho("Updating Synapse and Sytest git repos...")
-    synapse_repo.remote().fetch()
+    click.secho("Updating Relapse and Sytest git repos...")
+    relapse_repo.remote().fetch()
     sytest_repo.remote().fetch()
 
-    # Get the current version and AST from root Synapse module.
+    # Get the current version and AST from root Relapse module.
     current_version = get_package_version()
 
     # Figure out what sort of release we're doing and calcuate the new version.
@@ -180,12 +180,12 @@ def _prepare() -> None:
     assert not parsed_new_version.is_postrelease
 
     release_branch_name = get_release_branch_name(parsed_new_version)
-    release_branch = find_ref(synapse_repo, release_branch_name)
+    release_branch = find_ref(relapse_repo, release_branch_name)
     if release_branch:
         if release_branch.is_remote():
             # If the release branch only exists on the remote we check it out
             # locally.
-            synapse_repo.git.checkout(release_branch_name)
+            relapse_repo.git.checkout(release_branch_name)
     else:
         # If a branch doesn't exist we create one. We ask which one branch it
         # should be based off, defaulting to sensible values depending on the
@@ -201,7 +201,7 @@ def _prepare() -> None:
             "Which branch should the release be based on?", default=default
         )
 
-        for repo_name, repo in {"synapse": synapse_repo, "sytest": sytest_repo}.items():
+        for repo_name, repo in {"relapse": relapse_repo, "sytest": sytest_repo}.items():
             base_branch = find_ref(repo, branch_name)
             if not base_branch:
                 print(f"Could not find base branch {branch_name} for {repo_name}!")
@@ -225,14 +225,14 @@ def _prepare() -> None:
             sytest_repo.git.push("-u", sytest_repo.remote().name, release_branch_name)
 
     # Switch to the release branch and ensure it's up to date.
-    synapse_repo.git.checkout(release_branch_name)
-    update_branch(synapse_repo)
+    relapse_repo.git.checkout(release_branch_name)
+    update_branch(relapse_repo)
 
     # Update the version specified in pyproject.toml.
     subprocess.check_output(["poetry", "version", new_version])
 
     # Generate changelogs.
-    generate_and_write_changelog(synapse_repo, current_version, new_version)
+    generate_and_write_changelog(relapse_repo, current_version, new_version)
 
     # Generate debian changelogs
     if parsed_new_version.pre is not None:
@@ -246,26 +246,26 @@ def _prepare() -> None:
 
     if sys.platform == "darwin":
         run_until_successful(
-            f"docker run --rm -v .:/synapse ubuntu:latest /synapse/scripts-dev/docker_update_debian_changelog.sh {new_version}",
+            f"docker run --rm -v .:/relapse ubuntu:latest /relapse/scripts-dev/docker_update_debian_changelog.sh {new_version}",
             shell=True,
         )
     else:
         run_until_successful(
-            f'dch -M -v {debian_version} "New Synapse release {new_version}."',
+            f'dch -M -v {debian_version} "New Relapse release {new_version}."',
             shell=True,
         )
         run_until_successful('dch -M -r -D stable ""', shell=True)
 
     # Show the user the changes and ask if they want to edit the change log.
-    synapse_repo.git.add("-u")
+    relapse_repo.git.add("-u")
     subprocess.run("git diff --cached", shell=True)
 
     if click.confirm("Edit changelog?", default=False):
         click.edit(filename="CHANGES.md")
 
     # Commit the changes.
-    synapse_repo.git.add("-u")
-    synapse_repo.git.commit("-m", new_version)
+    relapse_repo.git.add("-u")
+    relapse_repo.git.commit("-m", new_version)
 
     # We give the option to bail here in case the user wants to make sure things
     # are OK before pushing.
@@ -274,20 +274,20 @@ def _prepare() -> None:
         print("Run when ready to push:")
         print("")
         print(
-            f"\tgit push -u {synapse_repo.remote().name} {synapse_repo.active_branch.name}"
+            f"\tgit push -u {relapse_repo.remote().name} {relapse_repo.active_branch.name}"
         )
         print("")
         sys.exit(0)
 
     # Otherwise, push and open the changelog in the browser.
-    synapse_repo.git.push(
-        "-u", synapse_repo.remote().name, synapse_repo.active_branch.name
+    relapse_repo.git.push(
+        "-u", relapse_repo.remote().name, relapse_repo.active_branch.name
     )
 
     print("Opening the changelog in your browser...")
-    print("Please ask #synapse-dev to give it a check.")
+    print("Please ask #relapse to give it a check.")
     click.launch(
-        f"https://github.com/matrix-org/synapse/blob/{synapse_repo.active_branch.name}/CHANGES.md"
+        f"https://github.com/clokep/relapse/blob/{relapse_repo.active_branch.name}/CHANGES.md"
     )
 
 
@@ -355,18 +355,18 @@ def _tag(gh_token: Optional[str]) -> None:
             print("As this is an RC, remember to mark it as a pre-release!")
         print("(by the way, this step can be automated by passing --gh-token,")
         print("or one of the GH_TOKEN or GITHUB_TOKEN env vars.)")
-        click.launch(f"https://github.com/matrix-org/synapse/releases/edit/{tag_name}")
+        click.launch(f"https://github.com/clokep/relapse/releases/edit/{tag_name}")
 
         print("Once done, you need to wait for the release assets to build.")
         if click.confirm("Launch the release assets actions page?", default=True):
             click.launch(
-                f"https://github.com/matrix-org/synapse/actions?query=branch%3A{tag_name}"
+                f"https://github.com/clokep/relapse/actions?query=branch%3A{tag_name}"
             )
         return
 
     # Create a new draft release
     gh = Github(gh_token)
-    gh_repo = gh.get_repo("matrix-org/synapse")
+    gh_repo = gh.get_repo("clokep/relapse")
     release = gh_repo.create_git_release(
         tag=tag_name,
         name=tag_name,
@@ -378,9 +378,7 @@ def _tag(gh_token: Optional[str]) -> None:
     # Open the release and the actions where we are building the assets.
     print("Launching the release page and the actions page.")
     click.launch(release.html_url)
-    click.launch(
-        f"https://github.com/matrix-org/synapse/actions?query=branch%3A{tag_name}"
-    )
+    click.launch(f"https://github.com/clokep/relapse/actions?query=branch%3A{tag_name}")
 
     click.echo("Wait for release assets to be built")
 
@@ -405,7 +403,7 @@ def _publish(gh_token: str) -> None:
 
     # Publish the draft release
     gh = Github(gh_token)
-    gh_repo = gh.get_repo("matrix-org/synapse")
+    gh_repo = gh.get_repo("clokep/relapse")
     for release in gh_repo.get_releases():
         if release.title == tag_name:
             break
@@ -448,7 +446,7 @@ def _upload(gh_token: Optional[str]) -> None:
 
     # Query all the assets corresponding to this release.
     gh = Github(gh_token)
-    gh_repo = gh.get_repo("matrix-org/synapse")
+    gh_repo = gh.get_repo("clokep/relapse")
     gh_release = gh_repo.get_release(tag_name)
 
     all_assets = set(gh_release.get_assets())
@@ -474,7 +472,7 @@ def _upload(gh_token: Optional[str]) -> None:
     for asset_name in ignored_asset_names:
         print(f" - {asset_name}")
 
-    with TemporaryDirectory(prefix=f"synapse_upload_{tag_name}_") as tmpdir:
+    with TemporaryDirectory(prefix=f"relapse_upload_{tag_name}_") as tmpdir:
         for name, asset_download_url in asset_names_and_urls:
             filename = path.join(tmpdir, name)
 
@@ -537,7 +535,7 @@ def _wait_for_actions(gh_token: Optional[str]) -> None:
 
     # Authentication is optional on this endpoint,
     # but use a token if we have one to reduce the chance of being rate-limited.
-    url = f"https://api.github.com/repos/matrix-org/synapse/actions/runs?branch={tag_name}"
+    url = f"https://api.github.com/repos/clokep/relapse/actions/runs?branch={tag_name}"
     headers = {"Accept": "application/vnd.github+json"}
     if gh_token is not None:
         headers["authorization"] = f"token {gh_token}"
@@ -572,7 +570,7 @@ def _notify(message: str) -> None:
     # for this.
     click.echo(f"\a{message}")
 
-    app_name = "Synapse Release Script"
+    app_name = "Relapse Release Script"
 
     # Try and run notify-send, but don't raise an Exception if this fails
     # (This is best-effort)
@@ -605,30 +603,30 @@ def _merge_back() -> None:
     All branches will be automatically pulled from the remote and the results
     will be pushed to the remote."""
 
-    synapse_repo = get_repo_and_check_clean_checkout()
-    branch_name = synapse_repo.active_branch.name
+    relapse_repo = get_repo_and_check_clean_checkout()
+    branch_name = relapse_repo.active_branch.name
 
     if not branch_name.startswith("release-v"):
         raise RuntimeError("Not on a release branch. This does not seem sensible.")
 
     # Pull so we're up to date
-    synapse_repo.remote().pull()
+    relapse_repo.remote().pull()
 
     current_version = get_package_version()
 
     if current_version.is_prerelease:
         # Release candidate
         if click.confirm(f"Merge {branch_name} → develop?", default=True):
-            _merge_into(synapse_repo, branch_name, "develop")
+            _merge_into(relapse_repo, branch_name, "develop")
     else:
         # Full release
         sytest_repo = get_repo_and_check_clean_checkout("../sytest", "sytest")
 
         if click.confirm(f"Merge {branch_name} → master?", default=True):
-            _merge_into(synapse_repo, branch_name, "master")
+            _merge_into(relapse_repo, branch_name, "master")
 
         if click.confirm("Merge master → develop?", default=True):
-            _merge_into(synapse_repo, "master", "develop")
+            _merge_into(relapse_repo, "master", "develop")
 
         if click.confirm(f"On SyTest, merge {branch_name} → master?", default=True):
             _merge_into(sytest_repo, branch_name, "master")
@@ -650,29 +648,29 @@ def _announce() -> None:
 
     click.echo(
         f"""
-Hi everyone. Synapse {current_version} has just been released.
+Hi everyone. Relapse {current_version} has just been released.
 
-[notes](https://github.com/matrix-org/synapse/releases/tag/{tag_name}) | \
-[docker](https://hub.docker.com/r/matrixdotorg/synapse/tags?name={tag_name}) | \
+[notes](https://github.com/clokep/relapse/releases/tag/{tag_name}) | \
+[docker](https://hub.docker.com/r/clokep/relapse/tags?name={tag_name}) | \
 [debs](https://packages.matrix.org/debian/) | \
-[pypi](https://pypi.org/project/matrix-synapse/{current_version}/)"""
+[pypi](https://pypi.org/project/matrix-relapse/{current_version}/)"""
     )
 
     if "rc" in tag_name:
         click.echo(
             """
 Announce the RC in
-- #homeowners:matrix.org (Synapse Announcements)
-- #synapse-dev:matrix.org"""
+- #homeowners:matrix.org (Relapse Announcements)
+- #relapse:matrix.org"""
         )
     else:
         click.echo(
             """
 Announce the release in
-- #homeowners:matrix.org (Synapse Announcements), bumping the version in the topic
-- #synapse:matrix.org (Synapse Admins), bumping the version in the topic
-- #synapse-dev:matrix.org
-- #synapse-package-maintainers:matrix.org
+- #homeowners:matrix.org (Relapse Announcements), bumping the version in the topic
+- #relapse:matrix.org (Relapse Admins), bumping the version in the topic
+- #relapse:matrix.org
+- #relapse-package-maintainers:matrix.org
 
 Ask the designated people to do the blog and tweets."""
         )
@@ -683,11 +681,11 @@ Ask the designated people to do the blog and tweets."""
 def full(gh_token: str) -> None:
     click.echo("1. If this is a security release, read the security wiki page.")
     click.echo("2. Check for any release blockers before proceeding.")
-    click.echo("    https://github.com/matrix-org/synapse/labels/X-Release-Blocker")
+    click.echo("    https://github.com/clokep/relapse/labels/X-Release-Blocker")
     click.echo(
         "3. Check for any other special release notes, including announcements to add to the changelog or special deployment instructions."
     )
-    click.echo("    See the 'Synapse Maintainer Report'.")
+    click.echo("    See the 'Relapse Maintainer Report'.")
 
     click.confirm("Ready?", abort=True)
 
@@ -738,7 +736,7 @@ def get_release_branch_name(version_number: version.Version) -> str:
 
 
 def get_repo_and_check_clean_checkout(
-    path: str = ".", name: str = "synapse"
+    path: str = ".", name: str = "relapse"
 ) -> git.Repo:
     """Get the project repo and check it's not got any uncommitted changes."""
     try:
@@ -811,7 +809,7 @@ def get_changes_for_version(wanted_version: version.Version) -> str:
     version_changelog = []  # The lines we want to include in the changelog
 
     # Go through each section and find any that match the requested version.
-    regex = re.compile(r"^Synapse v?(\S+)")
+    regex = re.compile(r"^Relapse v?(\S+)")
     for section in headings:
         groups = regex.match(section.title)
         if not groups:
@@ -887,7 +885,7 @@ def build_dependabot_changelog(repo: Repo, current_version: version.Version) -> 
     def replacer(match: Match[str]) -> str:
         desc = match.group(1)
         number = match.group(2)
-        return f"* {desc}. ([\\#{number}](https://github.com/matrix-org/synapse/issues/{number}))"
+        return f"* {desc}. ([\\#{number}](https://github.com/clokep/relapse/issues/{number}))"
 
     for i, message in enumerate(messages):
         messages[i] = re.sub(r"(.*) \(#(\d+)\)$", replacer, message)

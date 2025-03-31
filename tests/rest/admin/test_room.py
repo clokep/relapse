@@ -22,18 +22,18 @@ from parameterized import parameterized
 from twisted.internet.task import deferLater
 from twisted.test.proto_helpers import MemoryReactor
 
-import synapse.rest.admin
-from synapse.api.constants import EventTypes, Membership, RoomTypes
-from synapse.api.errors import Codes
-from synapse.handlers.pagination import (
+import relapse.rest.admin
+from relapse.api.constants import EventTypes, Membership, RoomTypes
+from relapse.api.errors import Codes
+from relapse.handlers.pagination import (
     PURGE_ROOM_ACTION_NAME,
     SHUTDOWN_AND_PURGE_ROOM_ACTION_NAME,
 )
-from synapse.rest.client import directory, events, knock, login, room, sync
-from synapse.server import HomeServer
-from synapse.types import UserID
-from synapse.util import Clock
-from synapse.util.task_scheduler import TaskScheduler
+from relapse.rest.client import directory, events, knock, login, room, sync
+from relapse.server import HomeServer
+from relapse.types import UserID
+from relapse.util import Clock
+from relapse.util.task_scheduler import TaskScheduler
 
 from tests import unittest
 
@@ -45,7 +45,7 @@ ONE_HOUR_IN_S = 3600
 
 class DeleteRoomTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         login.register_servlets,
         events.register_servlets,
         room.register_servlets,
@@ -77,7 +77,7 @@ class DeleteRoomTestCase(unittest.HomeserverTestCase):
         self.room_id = self.helper.create_room_as(
             self.other_user, tok=self.other_user_tok
         )
-        self.url = "/_synapse/admin/v1/rooms/%s" % self.room_id
+        self.url = "/_relapse/admin/v1/rooms/%s" % self.room_id
 
     def test_requester_is_no_admin(self) -> None:
         """
@@ -98,7 +98,7 @@ class DeleteRoomTestCase(unittest.HomeserverTestCase):
         """
         Check that unknown rooms/server return 200
         """
-        url = "/_synapse/admin/v1/rooms/%s" % "!unknown:test"
+        url = "/_relapse/admin/v1/rooms/%s" % "!unknown:test"
 
         channel = self.make_request(
             "DELETE",
@@ -113,7 +113,7 @@ class DeleteRoomTestCase(unittest.HomeserverTestCase):
         """
         Check that invalid room names, return an error 400.
         """
-        url = "/_synapse/admin/v1/rooms/%s" % "invalidroom"
+        url = "/_relapse/admin/v1/rooms/%s" % "invalidroom"
 
         channel = self.make_request(
             "DELETE",
@@ -352,7 +352,7 @@ class DeleteRoomTestCase(unittest.HomeserverTestCase):
         # Request the room be blocked.
         channel = self.make_request(
             "DELETE",
-            f"/_synapse/admin/v1/rooms/{room_id}",
+            f"/_relapse/admin/v1/rooms/{room_id}",
             {"block": True, "purge": purge},
             access_token=self.admin_user_tok,
         )
@@ -527,7 +527,7 @@ class DeleteRoomTestCase(unittest.HomeserverTestCase):
 
 class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         login.register_servlets,
         events.register_servlets,
         room.register_servlets,
@@ -557,20 +557,20 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         self.room_id = self.helper.create_room_as(
             self.other_user, tok=self.other_user_tok
         )
-        self.url = f"/_synapse/admin/v2/rooms/{self.room_id}"
+        self.url = f"/_relapse/admin/v2/rooms/{self.room_id}"
         self.url_status_by_room_id = (
-            f"/_synapse/admin/v2/rooms/{self.room_id}/delete_status"
+            f"/_relapse/admin/v2/rooms/{self.room_id}/delete_status"
         )
-        self.url_status_by_delete_id = "/_synapse/admin/v2/rooms/delete_status/"
+        self.url_status_by_delete_id = "/_relapse/admin/v2/rooms/delete_status/"
 
         self.room_member_handler = hs.get_room_member_handler()
         self.pagination_handler = hs.get_pagination_handler()
 
     @parameterized.expand(
         [
-            ("DELETE", "/_synapse/admin/v2/rooms/%s"),
-            ("GET", "/_synapse/admin/v2/rooms/%s/delete_status"),
-            ("GET", "/_synapse/admin/v2/rooms/delete_status/%s"),
+            ("DELETE", "/_relapse/admin/v2/rooms/%s"),
+            ("GET", "/_relapse/admin/v2/rooms/%s/delete_status"),
+            ("GET", "/_relapse/admin/v2/rooms/delete_status/%s"),
         ]
     )
     def test_requester_is_no_admin(self, method: str, url: str) -> None:
@@ -598,7 +598,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         room_id = "!unknown:test"
         channel = self.make_request(
             "DELETE",
-            f"/_synapse/admin/v2/rooms/{room_id}",
+            f"/_relapse/admin/v2/rooms/{room_id}",
             content={},
             access_token=self.admin_user_tok,
         )
@@ -610,7 +610,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         # get status
         channel = self.make_request(
             "GET",
-            f"/_synapse/admin/v2/rooms/{room_id}/delete_status",
+            f"/_relapse/admin/v2/rooms/{room_id}/delete_status",
             access_token=self.admin_user_tok,
         )
 
@@ -621,8 +621,8 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
 
     @parameterized.expand(
         [
-            ("DELETE", "/_synapse/admin/v2/rooms/%s"),
-            ("GET", "/_synapse/admin/v2/rooms/%s/delete_status"),
+            ("DELETE", "/_relapse/admin/v2/rooms/%s"),
+            ("GET", "/_relapse/admin/v2/rooms/%s/delete_status"),
         ]
     )
     def test_room_is_not_valid(self, method: str, url: str) -> None:
@@ -1263,7 +1263,7 @@ class RoomTestCase(unittest.HomeserverTestCase):
     """Test /room admin API."""
 
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         login.register_servlets,
         room.register_servlets,
         directory.register_servlets,
@@ -1290,7 +1290,7 @@ class RoomTestCase(unittest.HomeserverTestCase):
         room_ids.sort()
 
         # Request the list of rooms
-        url = "/_synapse/admin/v1/rooms"
+        url = "/_relapse/admin/v1/rooms"
         channel = self.make_request(
             "GET",
             url.encode("ascii"),
@@ -1374,7 +1374,7 @@ class RoomTestCase(unittest.HomeserverTestCase):
         while should_repeat:
             run_count += 1
 
-            url = "/_synapse/admin/v1/rooms?from=%d&limit=%d&order_by=%s" % (
+            url = "/_relapse/admin/v1/rooms?from=%d&limit=%d&order_by=%s" % (
                 start,
                 limit,
                 "name",
@@ -1418,7 +1418,7 @@ class RoomTestCase(unittest.HomeserverTestCase):
         # Check that we received all of the room ids
         self.assertEqual(room_ids, returned_room_ids)
 
-        url = "/_synapse/admin/v1/rooms?from=%d&limit=%d" % (start, limit)
+        url = "/_relapse/admin/v1/rooms?from=%d&limit=%d" % (start, limit)
         channel = self.make_request(
             "GET",
             url.encode("ascii"),
@@ -1477,7 +1477,7 @@ class RoomTestCase(unittest.HomeserverTestCase):
         )
 
         # Request the list of rooms
-        url = "/_synapse/admin/v1/rooms"
+        url = "/_relapse/admin/v1/rooms"
         channel = self.make_request(
             "GET",
             url.encode("ascii"),
@@ -1531,7 +1531,7 @@ class RoomTestCase(unittest.HomeserverTestCase):
                     back from the server
             """
             # Request the list of rooms in the given order
-            url = "/_synapse/admin/v1/rooms?order_by=%s" % (order_type,)
+            url = "/_relapse/admin/v1/rooms?order_by=%s" % (order_type,)
             if reverse:
                 url += "&dir=b"
             channel = self.make_request(
@@ -1695,7 +1695,7 @@ class RoomTestCase(unittest.HomeserverTestCase):
                 search_term: The term to search for room names with
                 expected_http_code: The expected http code for the request
             """
-            url = "/_synapse/admin/v1/rooms?search_term=%s" % (search_term,)
+            url = "/_relapse/admin/v1/rooms?search_term=%s" % (search_term,)
             channel = self.make_request(
                 "GET",
                 url.encode("ascii"),
@@ -1777,7 +1777,7 @@ class RoomTestCase(unittest.HomeserverTestCase):
 
         # make the request and test that the response is what we wanted
         search_term = urllib.parse.quote("ж", "utf-8")
-        url = "/_synapse/admin/v1/rooms?search_term=%s" % (search_term,)
+        url = "/_relapse/admin/v1/rooms?search_term=%s" % (search_term,)
         channel = self.make_request(
             "GET",
             url.encode("ascii"),
@@ -1814,7 +1814,7 @@ class RoomTestCase(unittest.HomeserverTestCase):
             tok=self.admin_user_tok,
         )
 
-        url = "/_synapse/admin/v1/rooms/%s" % (room_id_1,)
+        url = "/_relapse/admin/v1/rooms/%s" % (room_id_1,)
         channel = self.make_request(
             "GET",
             url.encode("ascii"),
@@ -1850,7 +1850,7 @@ class RoomTestCase(unittest.HomeserverTestCase):
         """Test that `joined_local_devices` can be requested correctly"""
         room_id_1 = self.helper.create_room_as(self.admin_user, tok=self.admin_user_tok)
 
-        url = "/_synapse/admin/v1/rooms/%s" % (room_id_1,)
+        url = "/_relapse/admin/v1/rooms/%s" % (room_id_1,)
         channel = self.make_request(
             "GET",
             url.encode("ascii"),
@@ -1864,7 +1864,7 @@ class RoomTestCase(unittest.HomeserverTestCase):
         user_tok_1 = self.login("foo", "pass")
         self.helper.join(room_id_1, user_1, tok=user_tok_1)
 
-        url = "/_synapse/admin/v1/rooms/%s" % (room_id_1,)
+        url = "/_relapse/admin/v1/rooms/%s" % (room_id_1,)
         channel = self.make_request(
             "GET",
             url.encode("ascii"),
@@ -1876,7 +1876,7 @@ class RoomTestCase(unittest.HomeserverTestCase):
         # leave room
         self.helper.leave(room_id_1, self.admin_user, tok=self.admin_user_tok)
         self.helper.leave(room_id_1, user_1, tok=user_tok_1)
-        url = "/_synapse/admin/v1/rooms/%s" % (room_id_1,)
+        url = "/_relapse/admin/v1/rooms/%s" % (room_id_1,)
         channel = self.make_request(
             "GET",
             url.encode("ascii"),
@@ -1907,7 +1907,7 @@ class RoomTestCase(unittest.HomeserverTestCase):
         user_tok_3 = self.login("foobar", "pass")
         self.helper.join(room_id_2, user_3, tok=user_tok_3)
 
-        url = "/_synapse/admin/v1/rooms/%s/members" % (room_id_1,)
+        url = "/_relapse/admin/v1/rooms/%s/members" % (room_id_1,)
         channel = self.make_request(
             "GET",
             url.encode("ascii"),
@@ -1920,7 +1920,7 @@ class RoomTestCase(unittest.HomeserverTestCase):
         )
         self.assertEqual(channel.json_body["total"], 3)
 
-        url = "/_synapse/admin/v1/rooms/%s/members" % (room_id_2,)
+        url = "/_relapse/admin/v1/rooms/%s/members" % (room_id_2,)
         channel = self.make_request(
             "GET",
             url.encode("ascii"),
@@ -1938,7 +1938,7 @@ class RoomTestCase(unittest.HomeserverTestCase):
         # Create two test rooms
         room_id = self.helper.create_room_as(self.admin_user, tok=self.admin_user_tok)
 
-        url = "/_synapse/admin/v1/rooms/%s/state" % (room_id,)
+        url = "/_relapse/admin/v1/rooms/%s/state" % (room_id,)
         channel = self.make_request(
             "GET",
             url.encode("ascii"),
@@ -1996,7 +1996,7 @@ class RoomTestCase(unittest.HomeserverTestCase):
 
 class RoomMessagesTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         login.register_servlets,
         room.register_servlets,
     ]
@@ -2019,7 +2019,7 @@ class RoomMessagesTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "GET",
-            "/_synapse/admin/v1/rooms/%s/timestamp_to_event?dir=b&ts=%s"
+            "/_relapse/admin/v1/rooms/%s/timestamp_to_event?dir=b&ts=%s"
             % (self.room_id, ts),
             access_token=self.admin_user_tok,
         )
@@ -2032,7 +2032,7 @@ class RoomMessagesTestCase(unittest.HomeserverTestCase):
         token = "t1-0_0_0_0_0_0_0_0_0_0"
         channel = self.make_request(
             "GET",
-            "/_synapse/admin/v1/rooms/%s/messages?from=%s" % (self.room_id, token),
+            "/_relapse/admin/v1/rooms/%s/messages?from=%s" % (self.room_id, token),
             access_token=self.admin_user_tok,
         )
         self.assertEqual(200, channel.code)
@@ -2046,7 +2046,7 @@ class RoomMessagesTestCase(unittest.HomeserverTestCase):
         token = "s0_0_0_0_0_0_0_0_0_0"
         channel = self.make_request(
             "GET",
-            "/_synapse/admin/v1/rooms/%s/messages?from=%s" % (self.room_id, token),
+            "/_relapse/admin/v1/rooms/%s/messages?from=%s" % (self.room_id, token),
             access_token=self.admin_user_tok,
         )
         self.assertEqual(200, channel.code)
@@ -2064,7 +2064,7 @@ class RoomMessagesTestCase(unittest.HomeserverTestCase):
         # Check that we get the first and second message when querying /messages.
         channel = self.make_request(
             "GET",
-            "/_synapse/admin/v1/rooms/%s/messages?dir=b" % (self.room_id,),
+            "/_relapse/admin/v1/rooms/%s/messages?dir=b" % (self.room_id,),
             access_token=self.admin_user_tok,
         )
         self.assertEqual(channel.code, 200, channel.json_body)
@@ -2084,7 +2084,7 @@ class RoomMessagesTestCase(unittest.HomeserverTestCase):
         # Check that we get the first and second message when querying /messages.
         channel = self.make_request(
             "GET",
-            "/_synapse/admin/v1/rooms/%s/messages?dir=f" % (self.room_id,),
+            "/_relapse/admin/v1/rooms/%s/messages?dir=f" % (self.room_id,),
             access_token=self.admin_user_tok,
         )
         self.assertEqual(channel.code, 200, channel.json_body)
@@ -2126,7 +2126,7 @@ class RoomMessagesTestCase(unittest.HomeserverTestCase):
         # Check that we get the first and second message when querying /messages.
         channel = self.make_request(
             "GET",
-            "/_synapse/admin/v1/rooms/%s/messages?from=%s&dir=b&filter=%s"
+            "/_relapse/admin/v1/rooms/%s/messages?from=%s&dir=b&filter=%s"
             % (
                 self.room_id,
                 second_token_str,
@@ -2152,7 +2152,7 @@ class RoomMessagesTestCase(unittest.HomeserverTestCase):
         # has been purged.
         channel = self.make_request(
             "GET",
-            "/_synapse/admin/v1/rooms/%s/messages?from=%s&dir=b&filter=%s"
+            "/_relapse/admin/v1/rooms/%s/messages?from=%s&dir=b&filter=%s"
             % (
                 self.room_id,
                 second_token_str,
@@ -2170,7 +2170,7 @@ class RoomMessagesTestCase(unittest.HomeserverTestCase):
         # anymore.
         channel = self.make_request(
             "GET",
-            "/_synapse/admin/v1/rooms/%s/messages?from=%s&dir=b&filter=%s"
+            "/_relapse/admin/v1/rooms/%s/messages?from=%s&dir=b&filter=%s"
             % (
                 self.room_id,
                 first_token_str,
@@ -2186,7 +2186,7 @@ class RoomMessagesTestCase(unittest.HomeserverTestCase):
 
 class JoinAliasRoomTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         room.register_servlets,
         login.register_servlets,
     ]
@@ -2204,7 +2204,7 @@ class JoinAliasRoomTestCase(unittest.HomeserverTestCase):
         self.public_room_id = self.helper.create_room_as(
             self.creator, tok=self.creator_tok, is_public=True
         )
-        self.url = f"/_synapse/admin/v1/join/{self.public_room_id}"
+        self.url = f"/_relapse/admin/v1/join/{self.public_room_id}"
 
     def test_requester_is_no_admin(self) -> None:
         """
@@ -2273,7 +2273,7 @@ class JoinAliasRoomTestCase(unittest.HomeserverTestCase):
         """
         Check that unknown rooms/server return error 404.
         """
-        url = "/_synapse/admin/v1/join/!unknown:test"
+        url = "/_relapse/admin/v1/join/!unknown:test"
 
         channel = self.make_request(
             "POST",
@@ -2292,7 +2292,7 @@ class JoinAliasRoomTestCase(unittest.HomeserverTestCase):
         """
         Check that invalid room names, return an error 400.
         """
-        url = "/_synapse/admin/v1/join/invalidroom"
+        url = "/_relapse/admin/v1/join/invalidroom"
 
         channel = self.make_request(
             "POST",
@@ -2340,7 +2340,7 @@ class JoinAliasRoomTestCase(unittest.HomeserverTestCase):
         private_room_id = self.helper.create_room_as(
             self.creator, tok=self.creator_tok, is_public=False
         )
-        url = f"/_synapse/admin/v1/join/{private_room_id}"
+        url = f"/_relapse/admin/v1/join/{private_room_id}"
 
         channel = self.make_request(
             "POST",
@@ -2382,7 +2382,7 @@ class JoinAliasRoomTestCase(unittest.HomeserverTestCase):
 
         # Join user to room.
 
-        url = f"/_synapse/admin/v1/join/{private_room_id}"
+        url = f"/_relapse/admin/v1/join/{private_room_id}"
 
         channel = self.make_request(
             "POST",
@@ -2411,7 +2411,7 @@ class JoinAliasRoomTestCase(unittest.HomeserverTestCase):
         private_room_id = self.helper.create_room_as(
             self.admin_user, tok=self.admin_user_tok, is_public=False
         )
-        url = f"/_synapse/admin/v1/join/{private_room_id}"
+        url = f"/_relapse/admin/v1/join/{private_room_id}"
 
         channel = self.make_request(
             "POST",
@@ -2460,7 +2460,7 @@ class JoinAliasRoomTestCase(unittest.HomeserverTestCase):
         for tok in [user_tok, user_tok_2]:
             channel = self.make_request(
                 "GET",
-                "/_synapse/admin/v1/rooms/%s/context/%s"
+                "/_relapse/admin/v1/rooms/%s/context/%s"
                 % (room_id, events[midway]["event_id"]),
                 access_token=tok,
             )
@@ -2490,7 +2490,7 @@ class JoinAliasRoomTestCase(unittest.HomeserverTestCase):
         midway = (len(events) - 1) // 2
         channel = self.make_request(
             "GET",
-            "/_synapse/admin/v1/rooms/%s/context/%s"
+            "/_relapse/admin/v1/rooms/%s/context/%s"
             % (room_id, events[midway]["event_id"]),
             access_token=self.admin_user_tok,
         )
@@ -2518,7 +2518,7 @@ class JoinAliasRoomTestCase(unittest.HomeserverTestCase):
 
 class MakeRoomAdminTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         room.register_servlets,
         login.register_servlets,
     ]
@@ -2536,7 +2536,7 @@ class MakeRoomAdminTestCase(unittest.HomeserverTestCase):
         self.public_room_id = self.helper.create_room_as(
             self.creator, tok=self.creator_tok, is_public=True
         )
-        self.url = "/_synapse/admin/v1/rooms/{}/make_room_admin".format(
+        self.url = "/_relapse/admin/v1/rooms/{}/make_room_admin".format(
             self.public_room_id
         )
 
@@ -2548,7 +2548,7 @@ class MakeRoomAdminTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "POST",
-            f"/_synapse/admin/v1/rooms/{room_id}/make_room_admin",
+            f"/_relapse/admin/v1/rooms/{room_id}/make_room_admin",
             content={},
             access_token=self.admin_user_tok,
         )
@@ -2575,7 +2575,7 @@ class MakeRoomAdminTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "POST",
-            f"/_synapse/admin/v1/rooms/{room_id}/make_room_admin",
+            f"/_relapse/admin/v1/rooms/{room_id}/make_room_admin",
             content={},
             access_token=self.admin_user_tok,
         )
@@ -2601,7 +2601,7 @@ class MakeRoomAdminTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "POST",
-            f"/_synapse/admin/v1/rooms/{room_id}/make_room_admin",
+            f"/_relapse/admin/v1/rooms/{room_id}/make_room_admin",
             content={"user_id": self.second_user_id},
             access_token=self.admin_user_tok,
         )
@@ -2635,7 +2635,7 @@ class MakeRoomAdminTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "POST",
-            f"/_synapse/admin/v1/rooms/{room_id}/make_room_admin",
+            f"/_relapse/admin/v1/rooms/{room_id}/make_room_admin",
             content={},
             access_token=self.admin_user_tok,
         )
@@ -2653,7 +2653,7 @@ class MakeRoomAdminTestCase(unittest.HomeserverTestCase):
 
 class BlockRoomTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         room.register_servlets,
         login.register_servlets,
     ]
@@ -2670,7 +2670,7 @@ class BlockRoomTestCase(unittest.HomeserverTestCase):
         self.room_id = self.helper.create_room_as(
             self.other_user, tok=self.other_user_tok
         )
-        self.url = "/_synapse/admin/v1/rooms/%s/block"
+        self.url = "/_relapse/admin/v1/rooms/%s/block"
 
     @parameterized.expand([("PUT",), ("GET",)])
     def test_requester_is_no_admin(self, method: str) -> None:

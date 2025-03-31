@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from synapse.config.cache import CacheConfig, add_resizable_cache
-from synapse.types import JsonDict
-from synapse.util.caches.lrucache import LruCache
+from relapse.config.cache import CacheConfig, add_resizable_cache
+from relapse.types import JsonDict
+from relapse.util.caches.lrucache import LruCache
 
 from tests.unittest import TestCase
 
@@ -35,8 +35,8 @@ class CacheConfigTests(TestCase):
         """
         config: JsonDict = {}
         self.config._environ = {
-            "SYNAPSE_CACHE_FACTOR_SOMETHING_OR_OTHER": "2",
-            "SYNAPSE_NOT_CACHE": "BLAH",
+            "RELAPSE_CACHE_FACTOR_SOMETHING_OR_OTHER": "2",
+            "RELAPSE_NOT_CACHE": "BLAH",
         }
         self.config.read_config(config, config_dir_path="", data_dir_path="")
         self.config.resize_all_caches()
@@ -50,8 +50,8 @@ class CacheConfigTests(TestCase):
         """
         config: JsonDict = {"caches": {"per_cache_factors": {"foo": 2, "bar": 3}}}
         self.config._environ = {
-            "SYNAPSE_CACHE_FACTOR_SOMETHING_OR_OTHER": "2",
-            "SYNAPSE_CACHE_FACTOR_FOO": "1",
+            "RELAPSE_CACHE_FACTOR_SOMETHING_OR_OTHER": "2",
+            "RELAPSE_CACHE_FACTOR_FOO": "1",
         }
         self.config.read_config(config, config_dir_path="", data_dir_path="")
         self.config.resize_all_caches()
@@ -131,8 +131,8 @@ class CacheConfigTests(TestCase):
             }
         }
         self.config._environ = {
-            "SYNAPSE_CACHE_FACTOR_CACHE_A": "2",
-            "SYNAPSE_CACHE_FACTOR_CACHE_B": "3",
+            "RELAPSE_CACHE_FACTOR_CACHE_A": "2",
+            "RELAPSE_CACHE_FACTOR_CACHE_B": "3",
         }
         self.config.read_config(config, config_dir_path="", data_dir_path="")
         self.config.resize_all_caches()

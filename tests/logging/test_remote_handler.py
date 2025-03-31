@@ -16,7 +16,7 @@ from typing import Tuple
 from twisted.internet.protocol import Protocol
 from twisted.test.proto_helpers import AccumulatingProtocol, MemoryReactorClock
 
-from synapse.logging import RemoteHandler
+from relapse.logging import RemoteHandler
 
 from tests.logging import LoggerCleanupMixin
 from tests.server import FakeTransport, get_clock

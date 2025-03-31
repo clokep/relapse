@@ -13,8 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""A script to calculate which versions of Synapse have backwards-compatible
-database schemas. It creates a Markdown table of Synapse versions and the earliest
+"""A script to calculate which versions of Relapse have backwards-compatible
+database schemas. It creates a Markdown table of Relapse versions and the earliest
 compatible version.
 
 It is compatible with the mdbook protocol for preprocessors (see
@@ -44,14 +44,14 @@ from packaging import version
 
 # The schema version has moved around over the years.
 SCHEMA_VERSION_FILES = (
-    "synapse/storage/schema/__init__.py",
-    "synapse/storage/prepare_database.py",
-    "synapse/storage/__init__.py",
-    "synapse/app/homeserver.py",
+    "relapse/storage/schema/__init__.py",
+    "relapse/storage/prepare_database.py",
+    "relapse/storage/__init__.py",
+    "relapse/app/homeserver.py",
 )
 
 
-# Skip versions of Synapse < v1.0, they're old and essentially not
+# Skip versions of Relapse < v1.0, they're old and essentially not
 # compatible with today's federation.
 OLDEST_SHOWN_VERSION = version.parse("v1.0")
 
@@ -68,7 +68,7 @@ def get_schema_versions(tag: git.Tag) -> Tuple[Optional[int], Optional[int]]:
             continue
 
         # We (usually) can't execute the code since it might have unknown imports.
-        if file != "synapse/storage/schema/__init__.py":
+        if file != "relapse/storage/schema/__init__.py":
             with io.BytesIO(schema_file.data_stream.read()) as f:
                 for line in f.readlines():
                     if line.startswith(b"SCHEMA_VERSION"):
@@ -79,7 +79,7 @@ def get_schema_versions(tag: git.Tag) -> Tuple[Optional[int], Optional[int]]:
         else:
             # SCHEMA_COMPAT_VERSION is sometimes across multiple lines, the easist
             # thing to do is exec the code. Luckily it has only ever existed in
-            # a file which imports nothing else from Synapse.
+            # a file which imports nothing else from Relapse.
             locals: Dict[str, Any] = {}
             exec(schema_file.data_stream.read().decode("utf-8"), {}, locals)
             schema_version = locals["SCHEMA_VERSION"]
@@ -92,7 +92,7 @@ def get_tags(repo: git.Repo) -> Iterator[git.Tag]:
     """Return an iterator of tags sorted by version."""
     tags = []
     for tag in repo.tags:
-        # All "real" Synapse tags are of the form vX.Y.Z.
+        # All "real" Relapse tags are of the form vX.Y.Z.
         if not tag.name.startswith("v"):
             continue
 
@@ -123,9 +123,9 @@ def get_tags(repo: git.Repo) -> Iterator[git.Tag]:
 def calculate_version_chart() -> str:
     repo = git.Repo(path=".")
 
-    # Map of schema version -> Synapse versions which are at that schema version.
+    # Map of schema version -> Relapse versions which are at that schema version.
     schema_versions = defaultdict(list)
-    # Map of schema version -> Synapse versions which are compatible with that
+    # Map of schema version -> Relapse versions which are compatible with that
     # schema version.
     schema_compat_versions = defaultdict(list)
 
@@ -134,11 +134,11 @@ def calculate_version_chart() -> str:
     # There are two modes of operation:
     #
     # 1. Pre-schema_compat_version (i.e. schema_compat_version of None), then
-    #    Synapse is compatible up/downgrading to a version with
+    #    Relapse is compatible up/downgrading to a version with
     #    schema_version >= its current version.
     #
     # 2. Post-schema_compat_version (i.e. schema_compat_version is *not* None),
-    #    then Synapse is compatible up/downgrading to a version with
+    #    then Relapse is compatible up/downgrading to a version with
     #    schema version >= schema_compat_version.
     #
     #    This is more generous and avoids versions that cannot be rolled back.
@@ -151,12 +151,12 @@ def calculate_version_chart() -> str:
         schema_versions[schema_version].append(tag.name)
         schema_compat_versions[schema_compat_version or schema_version].append(tag.name)
 
-    # Generate a table which maps the latest Synapse version compatible with each
+    # Generate a table which maps the latest Relapse version compatible with each
     # schema version.
     result = f"| {'Versions': ^19} | Compatible version |\n"
     result += f"|{'-' * (19 + 2)}|{'-' * (18 + 2)}|\n"
-    for schema_version, synapse_versions in schema_compat_versions.items():
-        result += f"| {synapse_versions[0] + ' – ' + synapse_versions[-1]: ^19} | {schema_versions[schema_version][0]: ^18} |\n"
+    for schema_version, relapse_versions in schema_compat_versions.items():
+        result += f"| {relapse_versions[0] + ' – ' + relapse_versions[-1]: ^19} | {schema_versions[schema_version][0]: ^18} |\n"
 
     return result
 

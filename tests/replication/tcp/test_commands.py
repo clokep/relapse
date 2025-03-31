@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from synapse.replication.tcp.commands import (
+from relapse.replication.tcp.commands import (
     RdataCommand,
     ReplicateCommand,
     parse_command_from_line,

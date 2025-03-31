@@ -17,13 +17,13 @@ from typing import Any, Collection, Dict, Iterable, List, Optional
 
 from parameterized import parameterized
 
-from synapse import event_auth
-from synapse.api.constants import EventContentFields
-from synapse.api.errors import AuthError, SynapseError
-from synapse.api.room_versions import EventFormatVersions, RoomVersion, RoomVersions
-from synapse.events import EventBase, make_event_from_dict
-from synapse.storage.databases.main.events_worker import EventRedactBehaviour
-from synapse.types import JsonDict, get_domain_from_id
+from relapse import event_auth
+from relapse.api.constants import EventContentFields
+from relapse.api.errors import AuthError, RelapseError
+from relapse.api.room_versions import EventFormatVersions, RoomVersion, RoomVersions
+from relapse.events import EventBase, make_event_from_dict
+from relapse.storage.databases.main.events_worker import EventRedactBehaviour
+from relapse.types import JsonDict, get_domain_from_id
 
 from tests.test_utils import get_awaitable_result
 
@@ -720,12 +720,12 @@ class EventAuthTestCase(unittest.TestCase):
             room_version=RoomVersions.V10,
         )
 
-        with self.assertRaises(SynapseError):
+        with self.assertRaises(RelapseError):
             event_auth._check_power_levels(
                 pl_event.room_version, pl_event, {("fake_type", "fake_key"): pl_event2}
             )
 
-        with self.assertRaises(SynapseError):
+        with self.assertRaises(RelapseError):
             event_auth._check_power_levels(
                 pl_event.room_version, pl_event2, {("fake_type", "fake_key"): pl_event}
             )
@@ -757,7 +757,7 @@ class EventAuthTestCase(unittest.TestCase):
         ]
         for content in contents:
             event = create_event(content)
-            with self.assertRaises(SynapseError):
+            with self.assertRaises(RelapseError):
                 event_auth._check_power_levels(event.room_version, event, {})
 
 

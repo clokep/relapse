@@ -36,14 +36,14 @@ from twisted.python.failure import Failure
 from twisted.test.proto_helpers import MemoryReactorClock
 from twisted.web.server import Site
 
-from synapse.http.server import (
+from relapse.http.server import (
     HTTP_STATUS_REQUEST_CANCELLED,
     respond_with_html_bytes,
     respond_with_json,
 )
-from synapse.http.site import SynapseRequest
-from synapse.logging.context import LoggingContext, make_deferred_yieldable
-from synapse.types import JsonDict
+from relapse.http.site import RelapseRequest
+from relapse.logging.context import LoggingContext, make_deferred_yieldable
+from relapse.types import JsonDict
 
 from tests.server import FakeChannel, make_request
 from tests.unittest import logcontext_clean
@@ -95,7 +95,7 @@ def test_disconnect(
         respond_method = respond_with_json
 
     with mock.patch(
-        f"synapse.http.server.{respond_method.__name__}", wraps=respond_method
+        f"relapse.http.server.{respond_method.__name__}", wraps=respond_method
     ) as respond_mock:
         # Disconnect the request.
         request.connectionLost(reason=ConnectionDone())
@@ -169,7 +169,7 @@ def make_request_with_cancellation_test(
     that an endpoint is compatible with cancellation on every code path.
     To allow inspection of the code path that is being tested, this function will
     log the stack trace at every `await` that gets cancelled. To view these log
-    lines, `trial` can be run with the `SYNAPSE_TEST_LOG_LEVEL=INFO` environment
+    lines, `trial` can be run with the `RELAPSE_TEST_LOG_LEVEL=INFO` environment
     variable, which will include the log lines in `_trial_temp/test.log`.
     Alternatively, `_log_for_request` can be modified to write to `sys.stdout`.
 
@@ -208,7 +208,7 @@ def make_request_with_cancellation_test(
 
         try:
             with mock.patch(
-                "synapse.http.server.respond_with_json", wraps=respond_with_json
+                "relapse.http.server.respond_with_json", wraps=respond_with_json
             ) as respond_mock:
                 with deferred_patch.patch():
                     # Start the request.
@@ -284,7 +284,7 @@ def make_request_with_cancellation_test(
                 # caught. Eventually some other code will deactivate the logging
                 # context which will raise a different `AssertionError` because
                 # resource usage won't have been correctly tracked.
-                if isinstance(request, SynapseRequest) and request.logcontext:
+                if isinstance(request, RelapseRequest) and request.logcontext:
                     request.logcontext.finished = True
 
                 # Check that the request finished with a 499,
@@ -452,9 +452,9 @@ def _log_await_stack(
 
     Example output looks like:
     ```
-    delay_cancellation:750 (synapse/util/async_helpers.py:750)
-        DatabasePool._runInteraction:768 (synapse/storage/database.py:768)
-            > *blocked on await* at DatabasePool.runWithConnection:891 (synapse/storage/database.py:891)
+    delay_cancellation:750 (relapse/util/async_helpers.py:750)
+        DatabasePool._runInteraction:768 (relapse/storage/database.py:768)
+            > *blocked on await* at DatabasePool.runWithConnection:891 (relapse/storage/database.py:891)
     ```
 
     Args:
@@ -491,7 +491,7 @@ def _format_stack_frame(frame_info: inspect.FrameInfo) -> str:
 
     Returns:
         A string, formatted like
-        "JsonResource._async_render:559 (synapse/http/server.py:559)".
+        "JsonResource._async_render:559 (relapse/http/server.py:559)".
     """
     method_name = _get_stack_frame_method_name(frame_info)
 

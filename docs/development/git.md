@@ -14,11 +14,11 @@ b2dba0607`:
 Note how the commit comment explains clearly what is changing and why. Also
 note the *absence* of merge commits, as well as the absence of commits called
 things like (to pick a few culprits):
-[“pep8”](https://github.com/matrix-org/synapse/commit/84691da6c), [“fix broken
-test”](https://github.com/matrix-org/synapse/commit/474810d9d),
-[“oops”](https://github.com/matrix-org/synapse/commit/c9d72e457),
-[“typo”](https://github.com/matrix-org/synapse/commit/836358823), or [“Who's
-the president?”](https://github.com/matrix-org/synapse/commit/707374d5d).
+[“pep8”](https://github.com/clokep/relapse/commit/84691da6c), [“fix broken
+test”](https://github.com/clokep/relapse/commit/474810d9d),
+[“oops”](https://github.com/clokep/relapse/commit/c9d72e457),
+[“typo”](https://github.com/clokep/relapse/commit/836358823), or [“Who's
+the president?”](https://github.com/clokep/relapse/commit/707374d5d).
 
 There are a number of reasons why keeping a clean commit history is a good
 thing:
@@ -82,9 +82,9 @@ sometimes that's not possible and doing a regular merge is the lesser evil.
 Another occasion in which a regular merge makes more sense is a PR where you've
 deliberately created a series of commits each of which makes sense in its own
 right. For example: [a PR which gradually propagates a refactoring operation
-through the codebase](https://github.com/matrix-org/synapse/pull/6837), or [a
+through the codebase](https://github.com/clokep/relapse/pull/6837), or [a
 PR which is the culmination of several other
-PRs](https://github.com/matrix-org/synapse/pull/5987). In this case the ability
+PRs](https://github.com/clokep/relapse/pull/5987). In this case the ability
 to figure out when a particular change/bug was introduced could be very useful.
 
 Ultimately: **this is not a hard-and-fast-rule**. If in doubt, ask yourself “do
@@ -144,5 +144,5 @@ most intuitive name. [^](#a1)
 <b id="f2">[2]</b>: Well, anyone with commit access.[^](#a2)
 
 <b id="f3">[3]</b>: Very, very occasionally (I think this has happened once in
-the history of Synapse), we've had two releases in flight at once. Obviously,
+the history of Relapse), we've had two releases in flight at once. Obviously,
 `release-v1.2` is more-stable than `release-v1.3`. [^](#a3)

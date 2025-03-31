@@ -1,19 +1,19 @@
-# How to monitor Synapse metrics using Prometheus
+# How to monitor Relapse metrics using Prometheus
 
 1.  Install Prometheus:
 
     Follow instructions at
     <http://prometheus.io/docs/introduction/install/>
 
-1.  Enable Synapse metrics:
+1.  Enable Relapse metrics:
 
     In `homeserver.yaml`, make sure `enable_metrics` is
     set to `True`.
 
-1.  Enable the `/_synapse/metrics` Synapse endpoint that Prometheus uses to
+1.  Enable the `/_relapse/metrics` Relapse endpoint that Prometheus uses to
     collect data:
 
-    There are two methods of enabling the metrics endpoint in Synapse.
+    There are two methods of enabling the metrics endpoint in Relapse.
 
     The first serves the metrics as a part of the usual web server and
     can be enabled by adding the `metrics` resource to the existing
@@ -33,16 +33,16 @@
             compress: false
     ```
 
-    This provides a simple way of adding metrics to your Synapse
-    installation, and serves under `/_synapse/metrics`. If you do not
+    This provides a simple way of adding metrics to your Relapse
+    installation, and serves under `/_relapse/metrics`. If you do not
     wish your metrics be publicly exposed, you will need to either
     filter it out at your load balancer, or use the second method.
 
     The second method runs the metrics server on a different port, in a
-    different thread to Synapse. This can make it more resilient to
+    different thread to Relapse. This can make it more resilient to
     heavy load meaning metrics cannot be retrieved, and can be exposed
     to just internal networks easier. The served metrics are available
-    over HTTP only, and will be available at `/_synapse/metrics`.
+    over HTTP only, and will be available at `/_relapse/metrics`.
 
     Add a new listener to homeserver.yaml as in this example:
 
@@ -64,22 +64,22 @@
         bind_addresses: ['::1', '127.0.0.1']
     ```
 
-1.  Restart Synapse.
+1.  Restart Relapse.
 
-1.  Add a Prometheus target for Synapse.
+1.  Add a Prometheus target for Relapse.
 
     It needs to set the `metrics_path` to a non-default value (under
     `scrape_configs`):
 
     ```yaml
-      - job_name: "synapse"
+      - job_name: "relapse"
         scrape_interval: 15s
-        metrics_path: "/_synapse/metrics"
+        metrics_path: "/_relapse/metrics"
         static_configs:
           - targets: ["my.server.here:port"]
     ```
 
-    where `my.server.here` is the IP address of Synapse, and `port` is
+    where `my.server.here` is the IP address of Relapse, and `port` is
     the listener port configured with the `metrics` resource.
 
     If your prometheus is older than 1.5.2, you will need to replace
@@ -87,12 +87,12 @@
 
 1.  Restart Prometheus.
 
-1.  Consider using the [grafana dashboard](https://github.com/matrix-org/synapse/tree/master/contrib/grafana/)
-    and required [recording rules](https://github.com/matrix-org/synapse/tree/master/contrib/prometheus/) 
+1.  Consider using the [grafana dashboard](https://github.com/clokep/relapse/tree/master/contrib/grafana/)
+    and required [recording rules](https://github.com/clokep/relapse/tree/master/contrib/prometheus/) 
 
 ## Monitoring workers
 
-To monitor a Synapse installation using [workers](workers.md),
+To monitor a Relapse installation using [workers](workers.md),
 every worker needs to be monitored independently, in addition to
 the main homeserver process. This is because workers don't send
 their metrics to the main homeserver process, but expose them
@@ -114,12 +114,12 @@ don't clash with an existing worker.
 With this example, the worker's metrics would then be available
 on `http://127.0.0.1:9101`.
 
-Example Prometheus target for Synapse with workers:
+Example Prometheus target for Relapse with workers:
 
 ```yaml
-  - job_name: "synapse"
+  - job_name: "relapse"
     scrape_interval: 15s
-    metrics_path: "/_synapse/metrics"
+    metrics_path: "/_relapse/metrics"
     static_configs:
       - targets: ["my.server.here:port"]
         labels:
@@ -148,12 +148,12 @@ The labels are used to group graphs in grafana.
 
 ## Renaming of metrics & deprecation of old names in 1.2
 
-Synapse 1.2 updates the Prometheus metrics to match the naming
+Relapse 1.2 updates the Prometheus metrics to match the naming
 convention of the upstream `prometheus_client`. The old names are
 considered deprecated and will be removed in a future version of
-Synapse.
-**The old names will be disabled by default in Synapse v1.71.0 and removed
-altogether in Synapse v1.73.0.**
+Relapse.
+**The old names will be disabled by default in Relapse v1.71.0 and removed
+altogether in Relapse v1.73.0.**
 
 | New Name                                                                     | Old Name                                                               |
 | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
@@ -161,62 +161,62 @@ altogether in Synapse v1.73.0.**
 | python_gc_objects_uncollectable_total                                        | python_gc_objects_uncollectable                                        |
 | python_gc_collections_total                                                  | python_gc_collections                                                  |
 | process_cpu_seconds_total                                                    | process_cpu_seconds                                                    |
-| synapse_federation_client_sent_transactions_total                            | synapse_federation_client_sent_transactions                            |
-| synapse_federation_client_events_processed_total                             | synapse_federation_client_events_processed                             |
-| synapse_event_processing_loop_count_total                                    | synapse_event_processing_loop_count                                    |
-| synapse_event_processing_loop_room_count_total                               | synapse_event_processing_loop_room_count                               |
-| synapse_util_caches_cache_hits                                               | synapse_util_caches_cache:hits                                         |
-| synapse_util_caches_cache_size                                               | synapse_util_caches_cache:size                                         |
-| synapse_util_caches_cache_evicted_size                                       | synapse_util_caches_cache:evicted_size                                 |
-| synapse_util_caches_cache                                                    | synapse_util_caches_cache:total                                        |
-| synapse_util_caches_response_cache_size                                      | synapse_util_caches_response_cache:size                                |
-| synapse_util_caches_response_cache_hits                                      | synapse_util_caches_response_cache:hits                                |
-| synapse_util_caches_response_cache_evicted_size                              | synapse_util_caches_response_cache:evicted_size                        |
-| synapse_util_metrics_block_count_total                                       | synapse_util_metrics_block_count                                       |
-| synapse_util_metrics_block_time_seconds_total                                | synapse_util_metrics_block_time_seconds                                |
-| synapse_util_metrics_block_ru_utime_seconds_total                            | synapse_util_metrics_block_ru_utime_seconds                            |
-| synapse_util_metrics_block_ru_stime_seconds_total                            | synapse_util_metrics_block_ru_stime_seconds                            |
-| synapse_util_metrics_block_db_txn_count_total                                | synapse_util_metrics_block_db_txn_count                                |
-| synapse_util_metrics_block_db_txn_duration_seconds_total                     | synapse_util_metrics_block_db_txn_duration_seconds                     |
-| synapse_util_metrics_block_db_sched_duration_seconds_total                   | synapse_util_metrics_block_db_sched_duration_seconds                   |
-| synapse_background_process_start_count_total                                 | synapse_background_process_start_count                                 |
-| synapse_background_process_ru_utime_seconds_total                            | synapse_background_process_ru_utime_seconds                            |
-| synapse_background_process_ru_stime_seconds_total                            | synapse_background_process_ru_stime_seconds                            |
-| synapse_background_process_db_txn_count_total                                | synapse_background_process_db_txn_count                                |
-| synapse_background_process_db_txn_duration_seconds_total                     | synapse_background_process_db_txn_duration_seconds                     |
-| synapse_background_process_db_sched_duration_seconds_total                   | synapse_background_process_db_sched_duration_seconds                   |
-| synapse_storage_events_persisted_events_total                                | synapse_storage_events_persisted_events                                |
-| synapse_storage_events_persisted_events_sep_total                            | synapse_storage_events_persisted_events_sep                            |
-| synapse_storage_events_state_delta_total                                     | synapse_storage_events_state_delta                                     |
-| synapse_storage_events_state_delta_single_event_total                        | synapse_storage_events_state_delta_single_event                        |
-| synapse_storage_events_state_delta_reuse_delta_total                         | synapse_storage_events_state_delta_reuse_delta                         |
-| synapse_federation_server_received_pdus_total                                | synapse_federation_server_received_pdus                                |
-| synapse_federation_server_received_edus_total                                | synapse_federation_server_received_edus                                |
-| synapse_handler_presence_notified_presence_total                             | synapse_handler_presence_notified_presence                             |
-| synapse_handler_presence_federation_presence_out_total                       | synapse_handler_presence_federation_presence_out                       |
-| synapse_handler_presence_presence_updates_total                              | synapse_handler_presence_presence_updates                              |
-| synapse_handler_presence_timers_fired_total                                  | synapse_handler_presence_timers_fired                                  |
-| synapse_handler_presence_federation_presence_total                           | synapse_handler_presence_federation_presence                           |
-| synapse_handler_presence_bump_active_time_total                              | synapse_handler_presence_bump_active_time                              |
-| synapse_federation_client_sent_edus_total                                    | synapse_federation_client_sent_edus                                    |
-| synapse_federation_client_sent_pdu_destinations_count_total                  | synapse_federation_client_sent_pdu_destinations:count                  |
-| synapse_federation_client_sent_pdu_destinations_total                        | synapse_federation_client_sent_pdu_destinations:total                  |
-| synapse_handlers_appservice_events_processed_total                           | synapse_handlers_appservice_events_processed                           |
-| synapse_notifier_notified_events_total                                       | synapse_notifier_notified_events                                       |
-| synapse_push_bulk_push_rule_evaluator_push_rules_invalidation_counter_total  | synapse_push_bulk_push_rule_evaluator_push_rules_invalidation_counter  |
-| synapse_push_bulk_push_rule_evaluator_push_rules_state_size_counter_total    | synapse_push_bulk_push_rule_evaluator_push_rules_state_size_counter    |
-| synapse_http_httppusher_http_pushes_processed_total                          | synapse_http_httppusher_http_pushes_processed                          |
-| synapse_http_httppusher_http_pushes_failed_total                             | synapse_http_httppusher_http_pushes_failed                             |
-| synapse_http_httppusher_badge_updates_processed_total                        | synapse_http_httppusher_badge_updates_processed                        |
-| synapse_http_httppusher_badge_updates_failed_total                           | synapse_http_httppusher_badge_updates_failed                           |
-| synapse_admin_mau_current                                                    | synapse_admin_mau:current                                              |
-| synapse_admin_mau_max                                                        | synapse_admin_mau:max                                                  |
-| synapse_admin_mau_registered_reserved_users                                  | synapse_admin_mau:registered_reserved_users                            |
+| relapse_federation_client_sent_transactions_total                            | relapse_federation_client_sent_transactions                            |
+| relapse_federation_client_events_processed_total                             | relapse_federation_client_events_processed                             |
+| relapse_event_processing_loop_count_total                                    | relapse_event_processing_loop_count                                    |
+| relapse_event_processing_loop_room_count_total                               | relapse_event_processing_loop_room_count                               |
+| relapse_util_caches_cache_hits                                               | relapse_util_caches_cache:hits                                         |
+| relapse_util_caches_cache_size                                               | relapse_util_caches_cache:size                                         |
+| relapse_util_caches_cache_evicted_size                                       | relapse_util_caches_cache:evicted_size                                 |
+| relapse_util_caches_cache                                                    | relapse_util_caches_cache:total                                        |
+| relapse_util_caches_response_cache_size                                      | relapse_util_caches_response_cache:size                                |
+| relapse_util_caches_response_cache_hits                                      | relapse_util_caches_response_cache:hits                                |
+| relapse_util_caches_response_cache_evicted_size                              | relapse_util_caches_response_cache:evicted_size                        |
+| relapse_util_metrics_block_count_total                                       | relapse_util_metrics_block_count                                       |
+| relapse_util_metrics_block_time_seconds_total                                | relapse_util_metrics_block_time_seconds                                |
+| relapse_util_metrics_block_ru_utime_seconds_total                            | relapse_util_metrics_block_ru_utime_seconds                            |
+| relapse_util_metrics_block_ru_stime_seconds_total                            | relapse_util_metrics_block_ru_stime_seconds                            |
+| relapse_util_metrics_block_db_txn_count_total                                | relapse_util_metrics_block_db_txn_count                                |
+| relapse_util_metrics_block_db_txn_duration_seconds_total                     | relapse_util_metrics_block_db_txn_duration_seconds                     |
+| relapse_util_metrics_block_db_sched_duration_seconds_total                   | relapse_util_metrics_block_db_sched_duration_seconds                   |
+| relapse_background_process_start_count_total                                 | relapse_background_process_start_count                                 |
+| relapse_background_process_ru_utime_seconds_total                            | relapse_background_process_ru_utime_seconds                            |
+| relapse_background_process_ru_stime_seconds_total                            | relapse_background_process_ru_stime_seconds                            |
+| relapse_background_process_db_txn_count_total                                | relapse_background_process_db_txn_count                                |
+| relapse_background_process_db_txn_duration_seconds_total                     | relapse_background_process_db_txn_duration_seconds                     |
+| relapse_background_process_db_sched_duration_seconds_total                   | relapse_background_process_db_sched_duration_seconds                   |
+| relapse_storage_events_persisted_events_total                                | relapse_storage_events_persisted_events                                |
+| relapse_storage_events_persisted_events_sep_total                            | relapse_storage_events_persisted_events_sep                            |
+| relapse_storage_events_state_delta_total                                     | relapse_storage_events_state_delta                                     |
+| relapse_storage_events_state_delta_single_event_total                        | relapse_storage_events_state_delta_single_event                        |
+| relapse_storage_events_state_delta_reuse_delta_total                         | relapse_storage_events_state_delta_reuse_delta                         |
+| relapse_federation_server_received_pdus_total                                | relapse_federation_server_received_pdus                                |
+| relapse_federation_server_received_edus_total                                | relapse_federation_server_received_edus                                |
+| relapse_handler_presence_notified_presence_total                             | relapse_handler_presence_notified_presence                             |
+| relapse_handler_presence_federation_presence_out_total                       | relapse_handler_presence_federation_presence_out                       |
+| relapse_handler_presence_presence_updates_total                              | relapse_handler_presence_presence_updates                              |
+| relapse_handler_presence_timers_fired_total                                  | relapse_handler_presence_timers_fired                                  |
+| relapse_handler_presence_federation_presence_total                           | relapse_handler_presence_federation_presence                           |
+| relapse_handler_presence_bump_active_time_total                              | relapse_handler_presence_bump_active_time                              |
+| relapse_federation_client_sent_edus_total                                    | relapse_federation_client_sent_edus                                    |
+| relapse_federation_client_sent_pdu_destinations_count_total                  | relapse_federation_client_sent_pdu_destinations:count                  |
+| relapse_federation_client_sent_pdu_destinations_total                        | relapse_federation_client_sent_pdu_destinations:total                  |
+| relapse_handlers_appservice_events_processed_total                           | relapse_handlers_appservice_events_processed                           |
+| relapse_notifier_notified_events_total                                       | relapse_notifier_notified_events                                       |
+| relapse_push_bulk_push_rule_evaluator_push_rules_invalidation_counter_total  | relapse_push_bulk_push_rule_evaluator_push_rules_invalidation_counter  |
+| relapse_push_bulk_push_rule_evaluator_push_rules_state_size_counter_total    | relapse_push_bulk_push_rule_evaluator_push_rules_state_size_counter    |
+| relapse_http_httppusher_http_pushes_processed_total                          | relapse_http_httppusher_http_pushes_processed                          |
+| relapse_http_httppusher_http_pushes_failed_total                             | relapse_http_httppusher_http_pushes_failed                             |
+| relapse_http_httppusher_badge_updates_processed_total                        | relapse_http_httppusher_badge_updates_processed                        |
+| relapse_http_httppusher_badge_updates_failed_total                           | relapse_http_httppusher_badge_updates_failed                           |
+| relapse_admin_mau_current                                                    | relapse_admin_mau:current                                              |
+| relapse_admin_mau_max                                                        | relapse_admin_mau:max                                                  |
+| relapse_admin_mau_registered_reserved_users                                  | relapse_admin_mau:registered_reserved_users                            |
 
 Removal of deprecated metrics & time based counters becoming histograms in 0.31.0
 ---------------------------------------------------------------------------------
 
-The duplicated metrics deprecated in Synapse 0.27.0 have been removed.
+The duplicated metrics deprecated in Relapse 0.27.0 have been removed.
 
 All time duration-based metrics have been changed to be seconds. This
 affects:
@@ -225,9 +225,9 @@ affects:
 | -------------------------------------- |
 | python_gc_time                         |
 | python_twisted_reactor_tick_time       |
-| synapse_storage_query_time             |
-| synapse_storage_schedule_time          |
-| synapse_storage_transaction_time       |
+| relapse_storage_query_time             |
+| relapse_storage_schedule_time          |
+| relapse_storage_transaction_time       |
 
 Several metrics have been changed to be histograms, which sort entries
 into buckets and allow better analysis. The following metrics are now
@@ -238,15 +238,15 @@ histograms:
 | python_gc_time                                   |
 | python_twisted_reactor_pending_calls             |
 | python_twisted_reactor_tick_time                 |
-| synapse_http_server_response_time_seconds        |
-| synapse_storage_query_time                       |
-| synapse_storage_schedule_time                    |
-| synapse_storage_transaction_time                 |
+| relapse_http_server_response_time_seconds        |
+| relapse_storage_query_time                       |
+| relapse_storage_schedule_time                    |
+| relapse_storage_transaction_time                 |
 
 Block and response metrics renamed for 0.27.0
 ---------------------------------------------
 
-Synapse 0.27.0 begins the process of rationalising the duplicate
+Relapse 0.27.0 begins the process of rationalising the duplicate
 `*:count` metrics reported for the resource tracking for code blocks and
 HTTP requests.
 
@@ -263,32 +263,32 @@ they are replacing.
 
 | New name                                                      | Old name                                                   |
 | ------------------------------------------------------------- | ---------------------------------------------------------- |
-| synapse_util_metrics_block_count                              | synapse_util_metrics_block_timer:count                     |
-| synapse_util_metrics_block_count                              | synapse_util_metrics_block_ru_utime:count                  |
-| synapse_util_metrics_block_count                              | synapse_util_metrics_block_ru_stime:count                  |
-| synapse_util_metrics_block_count                              | synapse_util_metrics_block_db_txn_count:count              |
-| synapse_util_metrics_block_count                              | synapse_util_metrics_block_db_txn_duration:count           |
-| synapse_util_metrics_block_time_seconds                       | synapse_util_metrics_block_timer:total                     |
-| synapse_util_metrics_block_ru_utime_seconds                   | synapse_util_metrics_block_ru_utime:total                  |
-| synapse_util_metrics_block_ru_stime_seconds                   | synapse_util_metrics_block_ru_stime:total                  |
-| synapse_util_metrics_block_db_txn_count                       | synapse_util_metrics_block_db_txn_count:total              |
-| synapse_util_metrics_block_db_txn_duration_seconds            | synapse_util_metrics_block_db_txn_duration:total           |
-| synapse_http_server_response_count                            | synapse_http_server_requests                               |
-| synapse_http_server_response_count                            | synapse_http_server_response_time:count                    |
-| synapse_http_server_response_count                            | synapse_http_server_response_ru_utime:count                |
-| synapse_http_server_response_count                            | synapse_http_server_response_ru_stime:count                |
-| synapse_http_server_response_count                            | synapse_http_server_response_db_txn_count:count            |
-| synapse_http_server_response_count                            | synapse_http_server_response_db_txn_duration:count         |
-| synapse_http_server_response_time_seconds                     | synapse_http_server_response_time:total                    |
-| synapse_http_server_response_ru_utime_seconds                 | synapse_http_server_response_ru_utime:total                |
-| synapse_http_server_response_ru_stime_seconds                 | synapse_http_server_response_ru_stime:total                |
-| synapse_http_server_response_db_txn_count                     | synapse_http_server_response_db_txn_count:total            |
-| synapse_http_server_response_db_txn_duration_seconds          | synapse_http_server_response_db_txn_duration:total         |
+| relapse_util_metrics_block_count                              | relapse_util_metrics_block_timer:count                     |
+| relapse_util_metrics_block_count                              | relapse_util_metrics_block_ru_utime:count                  |
+| relapse_util_metrics_block_count                              | relapse_util_metrics_block_ru_stime:count                  |
+| relapse_util_metrics_block_count                              | relapse_util_metrics_block_db_txn_count:count              |
+| relapse_util_metrics_block_count                              | relapse_util_metrics_block_db_txn_duration:count           |
+| relapse_util_metrics_block_time_seconds                       | relapse_util_metrics_block_timer:total                     |
+| relapse_util_metrics_block_ru_utime_seconds                   | relapse_util_metrics_block_ru_utime:total                  |
+| relapse_util_metrics_block_ru_stime_seconds                   | relapse_util_metrics_block_ru_stime:total                  |
+| relapse_util_metrics_block_db_txn_count                       | relapse_util_metrics_block_db_txn_count:total              |
+| relapse_util_metrics_block_db_txn_duration_seconds            | relapse_util_metrics_block_db_txn_duration:total           |
+| relapse_http_server_response_count                            | relapse_http_server_requests                               |
+| relapse_http_server_response_count                            | relapse_http_server_response_time:count                    |
+| relapse_http_server_response_count                            | relapse_http_server_response_ru_utime:count                |
+| relapse_http_server_response_count                            | relapse_http_server_response_ru_stime:count                |
+| relapse_http_server_response_count                            | relapse_http_server_response_db_txn_count:count            |
+| relapse_http_server_response_count                            | relapse_http_server_response_db_txn_duration:count         |
+| relapse_http_server_response_time_seconds                     | relapse_http_server_response_time:total                    |
+| relapse_http_server_response_ru_utime_seconds                 | relapse_http_server_response_ru_utime:total                |
+| relapse_http_server_response_ru_stime_seconds                 | relapse_http_server_response_ru_stime:total                |
+| relapse_http_server_response_db_txn_count                     | relapse_http_server_response_db_txn_count:total            |
+| relapse_http_server_response_db_txn_duration_seconds          | relapse_http_server_response_db_txn_duration:total         |
 
 Standard Metric Names
 ---------------------
 
-As of synapse version 0.18.2, the format of the process-wide metrics has
+As of relapse version 0.18.2, the format of the process-wide metrics has
 been changed to fit prometheus standard naming conventions. Additionally
 the units have been changed to seconds, from milliseconds.
 

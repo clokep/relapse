@@ -1,14 +1,14 @@
 # Password auth provider callbacks
 
 Password auth providers offer a way for server administrators to integrate
-their Synapse installation with an external authentication system. The callbacks can be
+their Relapse installation with an external authentication system. The callbacks can be
 registered by using the Module API's `register_password_auth_provider_callbacks` method.
 
 ## Callbacks
 
 ### `auth_checkers`
 
-_First introduced in Synapse v1.46.0_
+_First introduced in Relapse v1.46.0_
 
 ```python
 auth_checkers: Dict[Tuple[str, Tuple[str, ...]], Callable]
@@ -22,11 +22,11 @@ callbacks, which should be of the following form:
 async def check_auth(
     user: str,
     login_type: str,
-    login_dict: "synapse.module_api.JsonDict",
+    login_dict: "relapse.module_api.JsonDict",
 ) -> Optional[
     Tuple[
         str, 
-        Optional[Callable[["synapse.module_api.LoginResponse"], Awaitable[None]]]
+        Optional[Callable[["relapse.module_api.LoginResponse"], Awaitable[None]]]
     ]
 ]
 ```
@@ -50,7 +50,7 @@ Note that the user is not automatically registered, the `register_user(..)` meth
 the [module API](writing_a_module.html) can be used to lazily create users.
 
 If multiple modules register an auth checker for the same login type but with different
-fields, Synapse will refuse to start.
+fields, Relapse will refuse to start.
 
 If multiple modules register an auth checker for the same login type with the same fields,
 then the callbacks will be executed in order, until one returns a Matrix User ID (and
@@ -60,7 +60,7 @@ authentication fails.
 
 ### `check_3pid_auth`
 
-_First introduced in Synapse v1.46.0_
+_First introduced in Relapse v1.46.0_
 
 ```python
 async def check_3pid_auth(
@@ -70,7 +70,7 @@ async def check_3pid_auth(
 ) -> Optional[
     Tuple[
         str, 
-        Optional[Callable[["synapse.module_api.LoginResponse"], Awaitable[None]]]
+        Optional[Callable[["relapse.module_api.LoginResponse"], Awaitable[None]]]
     ]
 ]
 ```
@@ -86,14 +86,14 @@ If the module doesn't wish to return a callback, it must return None instead.
 If the authentication is unsuccessful, the module must return `None`.
 
 If multiple modules implement this callback, they will be considered in order. If a
-callback returns `None`, Synapse falls through to the next one. The value of the first
-callback that does not return `None` will be used. If this happens, Synapse will not call
+callback returns `None`, Relapse falls through to the next one. The value of the first
+callback that does not return `None` will be used. If this happens, Relapse will not call
 any of the subsequent implementations of this callback. If every callback returns `None`,
 the authentication is denied.
 
 ### `on_logged_out`
 
-_First introduced in Synapse v1.46.0_
+_First introduced in Relapse v1.46.0_
 
 ```python
 async def on_logged_out(
@@ -109,11 +109,11 @@ device ID), and the (now deactivated) access token.
 Deleting the related pushers is done after calling `on_logged_out`, so you can rely on them
 to still be present.
 
-If multiple modules implement this callback, Synapse runs them all in order.
+If multiple modules implement this callback, Relapse runs them all in order.
 
 ### `get_username_for_registration`
 
-_First introduced in Synapse v1.52.0_
+_First introduced in Relapse v1.52.0_
 
 ```python
 async def get_username_for_registration(
@@ -166,15 +166,15 @@ If the module cannot, or does not wish to, generate a username for this user, it
 return `None`.
 
 If multiple modules implement this callback, they will be considered in order. If a
-callback returns `None`, Synapse falls through to the next one. The value of the first
-callback that does not return `None` will be used. If this happens, Synapse will not call
+callback returns `None`, Relapse falls through to the next one. The value of the first
+callback that does not return `None` will be used. If this happens, Relapse will not call
 any of the subsequent implementations of this callback. If every callback returns `None`,
 the username provided by the user is used, if any (otherwise one is automatically
 generated).
 
 ### `get_displayname_for_registration`
 
-_First introduced in Synapse v1.54.0_
+_First introduced in Relapse v1.54.0_
 
 ```python
 async def get_displayname_for_registration(
@@ -195,14 +195,14 @@ the registration process. These dictionaries are identical to the ones passed to
 documentation of this callback for more information about them.
 
 If multiple modules implement this callback, they will be considered in order. If a
-callback returns `None`, Synapse falls through to the next one. The value of the first
-callback that does not return `None` will be used. If this happens, Synapse will not call
+callback returns `None`, Relapse falls through to the next one. The value of the first
+callback that does not return `None` will be used. If this happens, Relapse will not call
 any of the subsequent implementations of this callback. If every callback returns `None`,
 the username will be used (e.g. `alice` if the user being registered is `@alice:example.com`).
 
 ## `is_3pid_allowed`
 
-_First introduced in Synapse v1.53.0_
+_First introduced in Relapse v1.53.0_
 
 ```python
 async def is_3pid_allowed(self, medium: str, address: str, registration: bool) -> bool
@@ -216,8 +216,8 @@ part of registering a new user. The module must return a boolean indicating whet
 identifier can be allowed to be bound to an account on the local homeserver.
 
 If multiple modules implement this callback, they will be considered in order. If a
-callback returns `True`, Synapse falls through to the next one. The value of the first
-callback that does not return `True` will be used. If this happens, Synapse will not call
+callback returns `True`, Relapse falls through to the next one. The value of the first
+callback that does not return `True` will be used. If this happens, Relapse will not call
 any of the subsequent implementations of this callback.
 
 ## Example
@@ -233,8 +233,8 @@ The example module below implements authentication checkers for two different lo
 ```python
 from typing import Awaitable, Callable, Optional, Tuple
 
-import synapse
-from synapse import module_api
+import relapse
+from relapse import module_api
 
 
 class MyAuthProvider:
@@ -258,11 +258,11 @@ class MyAuthProvider:
         self,
         username: str,
         login_type: str,
-        login_dict: "synapse.module_api.JsonDict",
+        login_dict: "relapse.module_api.JsonDict",
     ) -> Optional[
         Tuple[
             str,
-            Optional[Callable[["synapse.module_api.LoginResponse"], Awaitable[None]]],
+            Optional[Callable[["relapse.module_api.LoginResponse"], Awaitable[None]]],
         ]
     ]:
         if login_type != "my.login_type":
@@ -275,11 +275,11 @@ class MyAuthProvider:
         self,
         username: str,
         login_type: str,
-        login_dict: "synapse.module_api.JsonDict",
+        login_dict: "relapse.module_api.JsonDict",
     ) -> Optional[
         Tuple[
             str,
-            Optional[Callable[["synapse.module_api.LoginResponse"], Awaitable[None]]],
+            Optional[Callable[["relapse.module_api.LoginResponse"], Awaitable[None]]],
         ]
     ]:
         if login_type != "m.login.password":

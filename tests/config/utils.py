@@ -19,7 +19,7 @@ from contextlib import redirect_stdout
 from io import StringIO
 from typing import List
 
-from synapse.config.homeserver import HomeServerConfig
+from relapse.config.homeserver import HomeServerConfig
 
 
 class ConfigFileTestCase(unittest.TestCase):

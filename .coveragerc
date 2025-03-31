@@ -1,7 +1,7 @@
 [run]
 branch = True
 parallel = True
-include=$TOP/synapse/*
+include=$TOP/relapse/*
 data_file = $TOP/.coverage
 
 [report]

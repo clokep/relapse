@@ -19,11 +19,11 @@ import attr
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.errors import RedirectException
-from synapse.module_api import ModuleApi
-from synapse.server import HomeServer
-from synapse.types import JsonDict
-from synapse.util import Clock
+from relapse.api.errors import RedirectException
+from relapse.module_api import ModuleApi
+from relapse.server import HomeServer
+from relapse.types import JsonDict
+from relapse.util import Clock
 
 from tests.unittest import HomeserverTestCase, override_config
 
@@ -47,7 +47,7 @@ except ImportError:
     has_xmlsec1 = False
 
 # These are a few constants that are used as config parameters in the tests.
-BASE_URL = "https://synapse/"
+BASE_URL = "https://relapse/"
 
 
 @attr.s
@@ -358,7 +358,7 @@ class SamlHandlerTestCase(HomeserverTestCase):
 
 
 def _mock_request() -> Mock:
-    """Returns a mock which will stand in as a SynapseRequest"""
+    """Returns a mock which will stand in as a RelapseRequest"""
     mock = Mock(
         spec=[
             "finish",

@@ -24,7 +24,7 @@ with the `SERVER` command, followed by the client server to respond with the
 position of all streams. The server then periodically sends `RDATA` commands
 which have the format `RDATA <stream_name> <instance_name> <token> <row>`, where
 the format of `<row>` is defined by the individual streams. The
-`<instance_name>` is the name of the Synapse process that generated the data
+`<instance_name>` is the name of the Relapse process that generated the data
 (usually "master"). We expect an RDATA for every row in the DB.
 
 Error reporting happens by either the client or server sending an ERROR
@@ -135,7 +135,7 @@ the wire:
     * connection established *
     > SERVER localhost:8823
     > PING 1490197665618
-    < NAME synapse.app.appservice
+    < NAME relapse.app.appservice
     < PING 1490197665618
     < REPLICATE
     > POSITION events master 1 1
@@ -225,7 +225,7 @@ Asks the server for the current position of all streams.
 
    Inform other processes that a remote server may have come back online.
 
-See `synapse/replication/tcp/commands.py` for a detailed description and
+See `relapse/replication/tcp/commands.py` for a detailed description and
 the format of each command.
 
 ### Cache Invalidation Stream
@@ -252,7 +252,7 @@ invalidations into a single poke by defining a special cache name that
 workers understand to mean to expand to invalidate the correct caches.
 
 Currently the special cache names are declared in
-`synapse/storage/_base.py` and are:
+`relapse/storage/_base.py` and are:
 
 1.  `cs_cache_fake` ─ invalidates caches that depend on the current
     state

@@ -18,13 +18,13 @@ from typing import List, Optional
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.constants import APP_SERVICE_REGISTRATION_TYPE, LoginType
-from synapse.api.errors import Codes, HttpResponseException, SynapseError
-from synapse.appservice import ApplicationService
-from synapse.rest.client import register, sync
-from synapse.server import HomeServer
-from synapse.types import JsonDict
-from synapse.util import Clock
+from relapse.api.constants import APP_SERVICE_REGISTRATION_TYPE, LoginType
+from relapse.api.errors import Codes, HttpResponseException, RelapseError
+from relapse.appservice import ApplicationService
+from relapse.rest.client import register, sync
+from relapse.server import HomeServer
+from relapse.types import JsonDict
+from relapse.util import Clock
 
 from tests import unittest
 from tests.unittest import override_config
@@ -74,7 +74,7 @@ class TestMauLimit(unittest.HomeserverTestCase):
 
         # We've created and activated two users, we shouldn't be able to
         # register new users
-        with self.assertRaises(SynapseError) as cm:
+        with self.assertRaises(RelapseError) as cm:
             self.create_user("kermit3")
 
         e = cm.exception
@@ -98,7 +98,7 @@ class TestMauLimit(unittest.HomeserverTestCase):
 
         # We've created and activated two users, we shouldn't be able to
         # register new users
-        with self.assertRaises(SynapseError) as cm:
+        with self.assertRaises(RelapseError) as cm:
             self.create_user("kermit3")
 
         e = cm.exception
@@ -155,7 +155,7 @@ class TestMauLimit(unittest.HomeserverTestCase):
         self.do_sync_for_user(token2)
 
         # But the third should fail
-        with self.assertRaises(SynapseError) as cm:
+        with self.assertRaises(RelapseError) as cm:
             self.do_sync_for_user(token3)
 
         e = cm.exception
@@ -163,7 +163,7 @@ class TestMauLimit(unittest.HomeserverTestCase):
         self.assertEqual(e.errcode, Codes.RESOURCE_LIMIT_EXCEEDED)
 
         # And new registrations are now denied too
-        with self.assertRaises(SynapseError) as cm:
+        with self.assertRaises(RelapseError) as cm:
             self.create_user("kermit4")
 
         e = cm.exception
@@ -211,7 +211,7 @@ class TestMauLimit(unittest.HomeserverTestCase):
         self.do_sync_for_user(token6)
 
         # But old user can't
-        with self.assertRaises(SynapseError) as cm:
+        with self.assertRaises(RelapseError) as cm:
             self.do_sync_for_user(token1)
 
         e = cm.exception
@@ -328,7 +328,7 @@ class TestMauLimit(unittest.HomeserverTestCase):
         if channel.code != 200:
             raise HttpResponseException(
                 channel.code, channel.result["reason"], channel.result["body"]
-            ).to_synapse_error()
+            ).to_relapse_error()
 
         access_token = channel.json_body["access_token"]
 
@@ -340,4 +340,4 @@ class TestMauLimit(unittest.HomeserverTestCase):
         if channel.code != 200:
             raise HttpResponseException(
                 channel.code, channel.result["reason"], channel.result["body"]
-            ).to_synapse_error()
+            ).to_relapse_error()

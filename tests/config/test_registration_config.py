@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import synapse.app.homeserver
-from synapse.config import ConfigError
-from synapse.config.homeserver import HomeServerConfig
+import relapse.app.homeserver
+from relapse.config import ConfigError
+from relapse.config.homeserver import HomeServerConfig
 
 from tests.config.utils import ConfigFileTestCase
 from tests.utils import default_config
@@ -105,4 +105,4 @@ class RegistrationConfigTestCase(ConfigFileTestCase):
 
         # Test that allowing open registration without verification raises an error
         with self.assertRaises(ConfigError):
-            synapse.app.homeserver.setup(["-c", self.config_file])
+            relapse.app.homeserver.setup(["-c", self.config_file])

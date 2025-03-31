@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from synapse.types import UserID
+from relapse.types import UserID
 
 from tests import unittest
 

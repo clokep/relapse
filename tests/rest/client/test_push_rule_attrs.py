@@ -11,16 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import synapse
-from synapse.api.errors import Codes
-from synapse.rest.client import login, push_rule, room
+import relapse
+from relapse.api.errors import Codes
+from relapse.rest.client import login, push_rule, room
 
 from tests.unittest import HomeserverTestCase
 
 
 class PushRuleAttributesTestCase(HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        relapse.rest.admin.register_servlets_for_client_rest_resource,
         room.register_servlets,
         login.register_servlets,
         push_rule.register_servlets,

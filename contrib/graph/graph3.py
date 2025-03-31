@@ -19,9 +19,9 @@ import json
 
 import pydot
 
-from synapse.api.room_versions import KNOWN_ROOM_VERSIONS
-from synapse.events import make_event_from_dict
-from synapse.util.frozenutils import unfreeze
+from relapse.api.room_versions import KNOWN_ROOM_VERSIONS
+from relapse.events import make_event_from_dict
+from relapse.util.frozenutils import unfreeze
 
 
 def make_graph(file_name: str, file_prefix: str, limit: int) -> None:

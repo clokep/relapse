@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from synapse.api.constants import EduTypes
-from synapse.rest import admin
-from synapse.rest.client import login, sendtodevice, sync
+from relapse.api.constants import EduTypes
+from relapse.rest import admin
+from relapse.rest.client import login, sendtodevice, sync
 
 from tests.unittest import HomeserverTestCase, override_config
 

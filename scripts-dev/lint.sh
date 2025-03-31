@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Runs linting scripts over the local Synapse checkout
+# Runs linting scripts over the local Relapse checkout
 # black - opinionated code formatter
 # ruff - lints and finds mistakes
 
@@ -88,9 +88,9 @@ else
       #     flake8 --verbose .  # This isn't a great option
       #     mypy has explicit config in mypy.ini; there is also mypy --verbose
       files=(
-          "synapse" "docker" "tests"
+          "relapse" "docker" "tests"
           "scripts-dev"
-          "contrib" "synmark" "stubs" ".ci"
+          "contrib" "remark" "stubs" ".ci"
           "dev-docs"
       )
   fi

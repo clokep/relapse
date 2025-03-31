@@ -12,7 +12,7 @@ other servers will try to connect to yours at `https://example.com:8448/`.
 Delegation is a Matrix feature allowing a homeserver admin to retain a
 `server_name` of `example.com` so that user IDs, room aliases, etc continue
 to look like `*:example.com`, whilst having federation traffic routed
-to a different server and/or port (e.g. `synapse.example.com:443`).
+to a different server and/or port (e.g. `relapse.example.com:443`).
 
 ## .well-known delegation
 
@@ -34,28 +34,28 @@ return a JSON structure containing the key `m.server` like this:
 
 ```json
 {
-    "m.server": "<synapse.server.name>[:<yourport>]"
+    "m.server": "<relapse.server.name>[:<yourport>]"
 }
 ```
 
 In our example (where we want federation traffic to be routed to
-`https://synapse.example.com`, on port 443), this would mean that
+`https://relapse.example.com`, on port 443), this would mean that
 `https://example.com/.well-known/matrix/server` should return:
 
 ```json
 {
-    "m.server": "synapse.example.com:443"
+    "m.server": "relapse.example.com:443"
 }
 ```
 
 Note, specifying a port is optional. If no port is specified, then it defaults
 to 8448.
 
-### Serving a `.well-known/matrix/server` file with Synapse
+### Serving a `.well-known/matrix/server` file with Relapse
 
 If you are able to set up your domain so that `https://<server_name>` is routed to
-Synapse (i.e., the only change needed is to direct federation traffic to port 443
-instead of port 8448), then it is possible to configure Synapse to serve a suitable
+Relapse (i.e., the only change needed is to direct federation traffic to port 443
+instead of port 8448), then it is possible to configure Relapse to serve a suitable
 `.well-known/matrix/server` file. To do so, add the following to your `homeserver.yaml`
 file:
 
@@ -63,9 +63,9 @@ file:
 serve_server_wellknown: true
 ```
 
-**Note**: this *only* works if `https://<server_name>` is routed to Synapse, so is
-generally not suitable if Synapse is hosted at a subdomain such as
-`https://synapse.example.com`.
+**Note**: this *only* works if `https://<server_name>` is routed to Relapse, so is
+generally not suitable if Relapse is hosted at a subdomain such as
+`https://relapse.example.com`.
 
 ## SRV DNS record delegation
 
@@ -83,7 +83,7 @@ the impact that you will not be able to change those client-based default values
 and will be relegated to the featureset of the configuration of each individual client.
 
 However, if you really need it, you can find some documentation on what such a
-record should look like and how Synapse will use it in [the Matrix
+record should look like and how Relapse will use it in [the Matrix
 specification](https://matrix.org/docs/spec/server_server/latest#resolving-server-names).
 
 ## Delegation FAQ
@@ -94,7 +94,7 @@ If your homeserver's APIs are accessible on the default federation port (8448)
 and the domain your `server_name` points to, you do not need any delegation.
 
 For instance, if you registered `example.com` and pointed its DNS A record at a
-fresh server, you could install Synapse on that host, giving it a `server_name`
+fresh server, you could install Relapse on that host, giving it a `server_name`
 of `example.com`, and once a reverse proxy has been set up to proxy all requests
 sent to the port `8448` and serve TLS certificates for `example.com`, you
 wouldn't need any delegation set up.
@@ -106,6 +106,6 @@ find it using delegation.
 ### Should I use a reverse proxy for federation traffic?
 
 Generally, using a reverse proxy for both the federation and client traffic is a good
-idea, since it saves handling TLS traffic in Synapse. See
+idea, since it saves handling TLS traffic in Relapse. See
 [the reverse proxy documentation](reverse_proxy.md) for information on setting up a
 reverse proxy.

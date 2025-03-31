@@ -16,9 +16,9 @@ from typing import Dict
 from twisted.test.proto_helpers import MemoryReactor
 from twisted.web.resource import Resource
 
-from synapse.media._base import FileInfo
-from synapse.server import HomeServer
-from synapse.util import Clock
+from relapse.media._base import FileInfo
+from relapse.server import HomeServer
+from relapse.util import Clock
 
 from tests import unittest
 from tests.test_utils import SMALL_PNG

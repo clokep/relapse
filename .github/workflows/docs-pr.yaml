@@ -26,7 +26,7 @@ jobs:
       - name: Setup python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.x"
+          python-version: "3.12.x"
 
       - run: "pip install 'packaging>=20.0' 'GitPython>=3.1.20'"
 
@@ -39,7 +39,7 @@ jobs:
           cp book/welcome_and_overview.html book/index.html
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: book
           path: book

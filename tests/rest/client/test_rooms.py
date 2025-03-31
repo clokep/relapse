@@ -28,8 +28,8 @@ from typing_extensions import Literal
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import synapse.rest.admin
-from synapse.api.constants import (
+import relapse.rest.admin
+from relapse.api.constants import (
     EduTypes,
     EventContentFields,
     EventTypes,
@@ -37,16 +37,16 @@ from synapse.api.constants import (
     PublicRoomsFilterFields,
     RoomTypes,
 )
-from synapse.api.errors import Codes, HttpResponseException
-from synapse.appservice import ApplicationService
-from synapse.events import EventBase
-from synapse.events.snapshot import EventContext
-from synapse.rest import admin
-from synapse.rest.client import account, directory, login, profile, register, room, sync
-from synapse.server import HomeServer
-from synapse.types import JsonDict, RoomAlias, UserID, create_requester
-from synapse.util import Clock
-from synapse.util.stringutils import random_string
+from relapse.api.errors import Codes, HttpResponseException
+from relapse.appservice import ApplicationService
+from relapse.events import EventBase
+from relapse.events.snapshot import EventContext
+from relapse.rest import admin
+from relapse.rest.client import account, directory, login, profile, register, room, sync
+from relapse.server import HomeServer
+from relapse.types import JsonDict, RoomAlias, UserID, create_requester
+from relapse.util import Clock
+from relapse.util.stringutils import random_string
 
 from tests import unittest
 from tests.http.server._base import make_request_with_cancellation_test
@@ -1218,7 +1218,7 @@ class RoomJoinTestCase(RoomBase):
         # Register a dummy callback. Make it allow all room joins for now.
         return_value: Union[
             Literal["NOT_SPAM"], Tuple[Codes, dict], Codes
-        ] = synapse.module_api.NOT_SPAM
+        ] = relapse.module_api.NOT_SPAM
 
         async def user_may_join_room(
             userid: str,
@@ -1297,7 +1297,7 @@ class RoomJoinTestCase(RoomBase):
 class RoomAppserviceTsParamTestCase(unittest.HomeserverTestCase):
     servlets = [
         room.register_servlets,
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         register.register_servlets,
     ]
 
@@ -1335,7 +1335,7 @@ class RoomAppserviceTsParamTestCase(unittest.HomeserverTestCase):
 
         mock_load_appservices = Mock(return_value=[self.appservice])
         with patch(
-            "synapse.storage.databases.main.appservice.load_appservices",
+            "relapse.storage.databases.main.appservice.load_appservices",
             mock_load_appservices,
         ):
             hs = self.setup_test_homeserver(config=config)
@@ -1665,7 +1665,7 @@ class RoomMessagesTestCase(RoomBase):
 
             async def check_event_for_spam(
                 self,
-                event: synapse.events.EventBase,
+                event: relapse.events.EventBase,
             ) -> Union[str, Codes, Tuple[Codes, JsonDict], bool]:
                 self.mock_content = event.content
                 return self.mock_return_value
@@ -2154,7 +2154,7 @@ class RoomMessageListTestCase(RoomBase):
 
 class RoomSearchTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        relapse.rest.admin.register_servlets_for_client_rest_resource,
         room.register_servlets,
         login.register_servlets,
     ]
@@ -2255,7 +2255,7 @@ class RoomSearchTestCase(unittest.HomeserverTestCase):
 
 class PublicRoomsRestrictedTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        relapse.rest.admin.register_servlets_for_client_rest_resource,
         room.register_servlets,
         login.register_servlets,
     ]
@@ -2283,7 +2283,7 @@ class PublicRoomsRestrictedTestCase(unittest.HomeserverTestCase):
 
 class PublicRoomsRoomTypeFilterTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        relapse.rest.admin.register_servlets_for_client_rest_resource,
         room.register_servlets,
         login.register_servlets,
     ]
@@ -2389,7 +2389,7 @@ class PublicRoomsTestRemoteSearchFallbackTestCase(unittest.HomeserverTestCase):
     """
 
     servlets = [
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        relapse.rest.admin.register_servlets_for_client_rest_resource,
         room.register_servlets,
         login.register_servlets,
     ]
@@ -2470,7 +2470,7 @@ class PublicRoomsTestRemoteSearchFallbackTestCase(unittest.HomeserverTestCase):
 
 class PerRoomProfilesForbiddenTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        relapse.rest.admin.register_servlets_for_client_rest_resource,
         room.register_servlets,
         login.register_servlets,
         profile.register_servlets,
@@ -2529,7 +2529,7 @@ class RoomMembershipReasonTestCase(unittest.HomeserverTestCase):
     """
 
     servlets = [
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        relapse.rest.admin.register_servlets_for_client_rest_resource,
         room.register_servlets,
         login.register_servlets,
     ]
@@ -2657,7 +2657,7 @@ class RoomMembershipReasonTestCase(unittest.HomeserverTestCase):
 
 class LabelsTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        relapse.rest.admin.register_servlets_for_client_rest_resource,
         room.register_servlets,
         login.register_servlets,
         profile.register_servlets,
@@ -3038,7 +3038,7 @@ class RelationsTestCase(PaginationTestCase):
 
 class ContextTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        relapse.rest.admin.register_servlets_for_client_rest_resource,
         room.register_servlets,
         login.register_servlets,
         account.register_servlets,
@@ -3165,7 +3165,7 @@ class ContextTestCase(unittest.HomeserverTestCase):
 
 class RoomAliasListTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        relapse.rest.admin.register_servlets_for_client_rest_resource,
         directory.register_servlets,
         login.register_servlets,
         room.register_servlets,
@@ -3255,7 +3255,7 @@ class RoomAliasListTestCase(unittest.HomeserverTestCase):
 
 class RoomCanonicalAliasTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        relapse.rest.admin.register_servlets_for_client_rest_resource,
         directory.register_servlets,
         login.register_servlets,
         room.register_servlets,
@@ -3406,7 +3406,7 @@ class RoomCanonicalAliasTestCase(unittest.HomeserverTestCase):
         self._set_canonical_alias({"alt_aliases": {}}, expected_code=400)
 
     def test_bad_alias(self) -> None:
-        """An alias which does not point to the room raises a SynapseError."""
+        """An alias which does not point to the room raises a RelapseError."""
         self._set_canonical_alias({"alias": "@unknown:test"}, expected_code=400)
         self._set_canonical_alias({"alt_aliases": ["@unknown:test"]}, expected_code=400)
 
@@ -3508,7 +3508,7 @@ class ThreepidInviteTestCase(unittest.HomeserverTestCase):
         # `spec` argument is needed for this function mock to have `__qualname__`, which
         # is needed for `Measure` metrics buried in SpamChecker.
         mock = AsyncMock(
-            return_value=synapse.module_api.NOT_SPAM,
+            return_value=relapse.module_api.NOT_SPAM,
             spec=lambda *x: None,
         )
         self.hs.get_module_api_callbacks().spam_checker._user_may_send_3pid_invite_callbacks.append(

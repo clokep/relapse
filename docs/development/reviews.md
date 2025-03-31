@@ -1,8 +1,8 @@
 Some notes on how we do reviews
 ===============================
 
-The Synapse team works off a shared review queue -- any new pull requests for
-Synapse (or related projects) has a review requested from the entire team. Team
+The Relapse team works off a shared review queue -- any new pull requests for
+Relapse (or related projects) has a review requested from the entire team. Team
 members should process this queue using the following rules:
 
 * Any high urgency pull requests (e.g. fixes for broken continuous integration
@@ -14,7 +14,7 @@ For the latter two categories above, older pull requests should be prioritised.
 
 It is explicit that there is no priority given to pull requests from the team
 (vs from the community). If a pull request requires a quick turn around, please
-explicitly communicate this via [#synapse-dev:matrix.org](https://matrix.to/#/#synapse-dev:matrix.org)
+explicitly communicate this via [#relapse:matrix.org](https://matrix.to/#/#relapse:matrix.org)
 or as a comment on the pull request.
 
 Once an initial review has been completed and the author has made additional changes,

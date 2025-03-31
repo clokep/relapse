@@ -14,20 +14,20 @@
 # limitations under the License.
 
 # This script is meant to be used inside a Docker container to run the `dch` incantations
-# needed to release Synapse. This is useful on systems like macOS where such scripts are
+# needed to release Relapse. This is useful on systems like macOS where such scripts are
 # not easily accessible.
 #
-# Running it (when if the current working directory is the root of the Synapse checkout):
-#   docker run --rm -v $PWD:/synapse ubuntu:latest /synapse/scripts-dev/docker_update_debian_changelog.sh VERSION
+# Running it (when if the current working directory is the root of the Relapse checkout):
+#   docker run --rm -v $PWD:/relapse ubuntu:latest /relapse/scripts-dev/docker_update_debian_changelog.sh VERSION
 #
 # The image can be replaced by any other Debian-based image (as long as the `devscripts`
 # package exists in the default repository).
-# `VERSION` is the version of Synapse being released without the leading "v" (e.g. 1.42.0).
+# `VERSION` is the version of Relapse being released without the leading "v" (e.g. 1.42.0).
 
 # Check if a version was provided.
 if [ "$#" -ne 1 ]; then
   echo "Usage: update_debian_changelog.sh VERSION"
-  echo "VERSION is the version of Synapse being released in the form 1.42.0 (without the leading \"v\")"
+  echo "VERSION is the version of Relapse being released in the form 1.42.0 (without the leading \"v\")"
   exit 1
 fi
 
@@ -51,8 +51,8 @@ fi
 # version was provided, the message doesn't get drowned in useless output.
 set -x
 
-# Make the root of the Synapse checkout the current working directory.
-cd /synapse
+# Make the root of the Relapse checkout the current working directory.
+cd /relapse
 
 # Install devscripts (which provides dch). We need to make the Debian frontend
 # noninteractive because installing devscripts otherwise asks for the machine's location.
@@ -60,5 +60,5 @@ DEBIAN_FRONTEND=noninteractive apt-get install -y devscripts
 
 # Update the Debian changelog.
 ver=${1}
-dch -M -v "$(sed -Ee 's/(rc|a|b|c)/~\1/' <<<"$ver")" "New synapse release $ver."
+dch -M -v "$(sed -Ee 's/(rc|a|b|c)/~\1/' <<<"$ver")" "New relapse release $ver."
 dch -M -r -D stable ""

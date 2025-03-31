@@ -34,7 +34,7 @@ server {
 {{ worker_locations }}
 
     # Send all other traffic to the main process
-    location ~* ^(\\/_matrix|\\/_synapse) {
+    location ~* ^(\\/_matrix|\\/_relapse) {
 {% if using_unix_sockets %}
         proxy_pass http://unix:/run/main_public.sock;
 {% else %}

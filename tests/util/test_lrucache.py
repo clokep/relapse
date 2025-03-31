@@ -16,10 +16,10 @@
 from typing import List, Tuple
 from unittest.mock import Mock, patch
 
-from synapse.metrics.jemalloc import JemallocStats
-from synapse.types import JsonDict
-from synapse.util.caches.lrucache import LruCache, setup_expire_lru_cache_entries
-from synapse.util.caches.treecache import TreeCache
+from relapse.metrics.jemalloc import JemallocStats
+from relapse.types import JsonDict
+from relapse.util.caches.lrucache import LruCache, setup_expire_lru_cache_entries
+from relapse.util.caches.treecache import TreeCache
 
 from tests import unittest
 from tests.unittest import override_config
@@ -335,7 +335,7 @@ class MemoryEvictionTestCase(unittest.HomeserverTestCase):
             }
         }
     )
-    @patch("synapse.util.caches.lrucache.get_jemalloc_stats")
+    @patch("relapse.util.caches.lrucache.get_jemalloc_stats")
     def test_evict_memory(self, jemalloc_interface: Mock) -> None:
         mock_jemalloc_class = Mock(spec=JemallocStats)
         jemalloc_interface.return_value = mock_jemalloc_class

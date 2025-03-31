@@ -1,6 +1,6 @@
 # Monthly Active Users
 
-Synapse can be configured to record the number of monthly active users (also referred to as MAU) on a given homeserver.
+Relapse can be configured to record the number of monthly active users (also referred to as MAU) on a given homeserver.
 For clarity's sake, MAU only tracks local users.
 
 Please note that the metrics recorded by the [Homeserver Usage Stats](../../usage/administration/monitoring/reporting_homeserver_usage_statistics.md)
@@ -15,7 +15,7 @@ Individual user activity is measured in active days. If a user performs an actio
 calculating the MAU figure, any users with a recorded action in the last 30 days are considered part of the cohort. Days are measured
 as a rolling window from the current system time to 30 days ago.
 
-So for example, if Synapse were to calculate the active users on the 15th July at 13:25, it would include any activity from 15th June 13:25 onwards.
+So for example, if Relapse were to calculate the active users on the 15th July at 13:25, it would include any activity from 15th June 13:25 onwards.
 
 A user is **never** considered active if they are either:
  - Part of the trial day cohort (described below)
@@ -23,12 +23,12 @@ A user is **never** considered active if they are either:
    - Note: This **only** covers users that are part of an application service `namespaces.users` registration. The namespace
      must also be marked as `exclusive`.
 
-Otherwise, any request to Synapse will mark the user as active. Please note that registration will not mark a user as active *unless* 
+Otherwise, any request to Relapse will mark the user as active. Please note that registration will not mark a user as active *unless* 
 they register with a 3pid that is included in the config field `mau_limits_reserved_threepids`.
 
 The Prometheus metric for MAU is refreshed every 5 minutes.
 
-Once an hour, Synapse checks to see if any users are inactive (with only activity timestamps later than 30 days). These users
+Once an hour, Relapse checks to see if any users are inactive (with only activity timestamps later than 30 days). These users
 are removed from the active users cohort. If they then become active, they are immediately restored to the cohort.
 
 It is important to note that **deactivated** users are not immediately removed from the pool of active users, but as these users won't
@@ -71,14 +71,14 @@ When a request is blocked, the response will have the `errcode` `M_RESOURCE_LIMI
 
 ## Metrics
 
-Synapse records several different prometheus metrics for MAU.
+Relapse records several different prometheus metrics for MAU.
 
-`synapse_admin_mau_current` records the current MAU figure for native (non-application-service) users.
+`relapse_admin_mau_current` records the current MAU figure for native (non-application-service) users.
 
-`synapse_admin_mau_max` records the maximum MAU as dictated by the `max_mau_value` config value.
+`relapse_admin_mau_max` records the maximum MAU as dictated by the `max_mau_value` config value.
 
-`synapse_admin_mau_current_mau_by_service` records the current MAU including application service users. The label `app_service` can be used
+`relapse_admin_mau_current_mau_by_service` records the current MAU including application service users. The label `app_service` can be used
 to filter by a specific service ID. This *also* includes non-application-service users under `app_service=native` .
 
-`synapse_admin_mau_registered_reserved_users` records the number of users specified in `mau_limits_reserved_threepids` which have
+`relapse_admin_mau_registered_reserved_users` records the number of users specified in `mau_limits_reserved_threepids` which have
 registered accounts on the homeserver.

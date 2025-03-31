@@ -15,19 +15,19 @@ from typing import List
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import synapse.rest.admin
-from synapse.api.errors import Codes
-from synapse.rest.client import login, report_event, room
-from synapse.server import HomeServer
-from synapse.types import JsonDict
-from synapse.util import Clock
+import relapse.rest.admin
+from relapse.api.errors import Codes
+from relapse.rest.client import login, report_event, room
+from relapse.server import HomeServer
+from relapse.types import JsonDict
+from relapse.util import Clock
 
 from tests import unittest
 
 
 class EventReportsTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         login.register_servlets,
         room.register_servlets,
         report_event.register_servlets,
@@ -72,7 +72,7 @@ class EventReportsTestCase(unittest.HomeserverTestCase):
                 user_tok=self.admin_user_tok,
             )
 
-        self.url = "/_synapse/admin/v1/event_reports"
+        self.url = "/_relapse/admin/v1/event_reports"
 
     def test_no_auth(self) -> None:
         """
@@ -443,7 +443,7 @@ class EventReportsTestCase(unittest.HomeserverTestCase):
 
 class EventReportDetailTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         login.register_servlets,
         room.register_servlets,
         report_event.register_servlets,
@@ -467,7 +467,7 @@ class EventReportDetailTestCase(unittest.HomeserverTestCase):
         )
 
         # first created event report gets `id`=2
-        self.url = "/_synapse/admin/v1/event_reports/2"
+        self.url = "/_relapse/admin/v1/event_reports/2"
 
     def test_no_auth(self) -> None:
         """
@@ -514,7 +514,7 @@ class EventReportDetailTestCase(unittest.HomeserverTestCase):
         # `report_id` is negative
         channel = self.make_request(
             "GET",
-            "/_synapse/admin/v1/event_reports/-123",
+            "/_relapse/admin/v1/event_reports/-123",
             access_token=self.admin_user_tok,
         )
 
@@ -528,7 +528,7 @@ class EventReportDetailTestCase(unittest.HomeserverTestCase):
         # `report_id` is a non-numerical string
         channel = self.make_request(
             "GET",
-            "/_synapse/admin/v1/event_reports/abcdef",
+            "/_relapse/admin/v1/event_reports/abcdef",
             access_token=self.admin_user_tok,
         )
 
@@ -542,7 +542,7 @@ class EventReportDetailTestCase(unittest.HomeserverTestCase):
         # `report_id` is undefined
         channel = self.make_request(
             "GET",
-            "/_synapse/admin/v1/event_reports/",
+            "/_relapse/admin/v1/event_reports/",
             access_token=self.admin_user_tok,
         )
 
@@ -560,7 +560,7 @@ class EventReportDetailTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "GET",
-            "/_synapse/admin/v1/event_reports/123",
+            "/_relapse/admin/v1/event_reports/123",
             access_token=self.admin_user_tok,
         )
 
@@ -603,7 +603,7 @@ class EventReportDetailTestCase(unittest.HomeserverTestCase):
 
 class DeleteEventReportTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         login.register_servlets,
     ]
 
@@ -628,7 +628,7 @@ class DeleteEventReportTestCase(unittest.HomeserverTestCase):
             )
         )
 
-        self.url = f"/_synapse/admin/v1/event_reports/{event_id}"
+        self.url = f"/_relapse/admin/v1/event_reports/{event_id}"
 
     def test_no_auth(self) -> None:
         """
@@ -685,7 +685,7 @@ class DeleteEventReportTestCase(unittest.HomeserverTestCase):
         # `report_id` is negative
         channel = self.make_request(
             "DELETE",
-            "/_synapse/admin/v1/event_reports/-123",
+            "/_relapse/admin/v1/event_reports/-123",
             access_token=self.admin_user_tok,
         )
 
@@ -699,7 +699,7 @@ class DeleteEventReportTestCase(unittest.HomeserverTestCase):
         # `report_id` is a non-numerical string
         channel = self.make_request(
             "DELETE",
-            "/_synapse/admin/v1/event_reports/abcdef",
+            "/_relapse/admin/v1/event_reports/abcdef",
             access_token=self.admin_user_tok,
         )
 
@@ -713,7 +713,7 @@ class DeleteEventReportTestCase(unittest.HomeserverTestCase):
         # `report_id` is undefined
         channel = self.make_request(
             "DELETE",
-            "/_synapse/admin/v1/event_reports/",
+            "/_relapse/admin/v1/event_reports/",
             access_token=self.admin_user_tok,
         )
 
@@ -731,7 +731,7 @@ class DeleteEventReportTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "DELETE",
-            "/_synapse/admin/v1/event_reports/123",
+            "/_relapse/admin/v1/event_reports/123",
             access_token=self.admin_user_tok,
         )
 

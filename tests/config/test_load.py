@@ -14,8 +14,8 @@
 # limitations under the License.
 import yaml
 
-from synapse.config import ConfigError
-from synapse.config.homeserver import HomeServerConfig
+from relapse.config import ConfigError
+from relapse.config.homeserver import HomeServerConfig
 
 from tests.config.utils import ConfigFileTestCase
 

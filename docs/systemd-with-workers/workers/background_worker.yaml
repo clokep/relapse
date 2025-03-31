@@ -1,4 +1,4 @@
-worker_app: synapse.app.generic_worker
+worker_app: relapse.app.generic_worker
 worker_name: background_worker
 
-worker_log_config: /etc/matrix-synapse/background-worker-log.yaml
+worker_log_config: /etc/matrix-relapse/background-worker-log.yaml

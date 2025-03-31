@@ -15,7 +15,7 @@ from typing import Set
 
 from parameterized import parameterized
 
-from synapse.http.proxy import parse_connection_header_value
+from relapse.http.proxy import parse_connection_header_value
 
 from tests.unittest import TestCase
 

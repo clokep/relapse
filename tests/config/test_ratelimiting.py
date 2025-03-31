@@ -11,8 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from synapse.config.homeserver import HomeServerConfig
-from synapse.config.ratelimiting import RatelimitSettings
+from relapse.config.homeserver import HomeServerConfig
+from relapse.config.ratelimiting import RatelimitSettings
 
 from tests.unittest import TestCase
 from tests.utils import default_config

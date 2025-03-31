@@ -14,7 +14,7 @@
 
 #![feature(test)]
 
-use synapse::push::utils::{glob_to_regex, GlobMatchType};
+use relapse::push::utils::{glob_to_regex, GlobMatchType};
 use test::Bencher;
 
 extern crate test;

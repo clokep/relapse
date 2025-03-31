@@ -25,21 +25,21 @@ from twisted.web.client import Agent, ResponseNeverReceived
 from twisted.web.http import HTTPChannel
 from twisted.web.http_headers import Headers
 
-from synapse.api.errors import HttpResponseException, RequestSendFailed
-from synapse.config._base import ConfigError
-from synapse.http.matrixfederationclient import (
+from relapse.api.errors import HttpResponseException, RequestSendFailed
+from relapse.config._base import ConfigError
+from relapse.http.matrixfederationclient import (
     ByteParser,
     MatrixFederationHttpClient,
     MatrixFederationRequest,
 )
-from synapse.logging.context import (
+from relapse.logging.context import (
     SENTINEL_CONTEXT,
     LoggingContext,
     LoggingContextOrSentinel,
     current_context,
 )
-from synapse.server import HomeServer
-from synapse.util import Clock
+from relapse.server import HomeServer
+from relapse.util import Clock
 
 from tests.replication._base import BaseMultiWorkerStreamTestCase
 from tests.server import FakeTransport
@@ -236,7 +236,7 @@ class FederationClientTests(HomeserverTestCase):
         self.assertIsInstance(f.value.inner_exception, ResponseNeverReceived)
 
     def test_client_ip_range_blocklist(self) -> None:
-        """Ensure that Synapse does not try to connect to blocked IPs"""
+        """Ensure that Relapse does not try to connect to blocked IPs"""
 
         # Set up the ip_range blocklist
         self.hs.config.server.federation_ip_range_blocklist = IPSet(
@@ -368,7 +368,7 @@ class FederationClientTests(HomeserverTestCase):
         """
         If a connection is made to a client but the client rejects it due to
         requiring a trailing slash. We need to retry the request with a
-        trailing slash. Workaround for Synapse <= v0.99.3, explained in
+        trailing slash. Workaround for Relapse <= v0.99.3, explained in
         https://github.com/matrix-org/synapse/issues/3622.
         """
         d = defer.ensureDeferred(
@@ -693,7 +693,7 @@ class FederationClientProxyTests(BaseMultiWorkerStreamTestCase):
 
         # Create the `federation_sender` worker
         self.make_worker_hs(
-            "synapse.app.generic_worker",
+            "relapse.app.generic_worker",
             {"worker_name": "federation_sender"},
             federation_http_client=mock_client_on_federation_sender,
         )
@@ -751,7 +751,7 @@ class FederationClientProxyTests(BaseMultiWorkerStreamTestCase):
 
         # Create the `federation_sender` worker
         self.make_worker_hs(
-            "synapse.app.generic_worker",
+            "relapse.app.generic_worker",
             {"worker_name": "federation_sender"},
             federation_http_client=mock_client_on_federation_sender,
         )
@@ -805,7 +805,7 @@ class FederationClientProxyTests(BaseMultiWorkerStreamTestCase):
 
         # Create the `federation_sender` worker
         self.make_worker_hs(
-            "synapse.app.generic_worker",
+            "relapse.app.generic_worker",
             {"worker_name": "federation_sender"},
             federation_http_client=mock_client_on_federation_sender,
         )
@@ -876,7 +876,7 @@ class FederationClientProxyTests(BaseMultiWorkerStreamTestCase):
         with self.assertRaises(ConfigError):
             # Create the `federation_sender` worker
             self.make_worker_hs(
-                "synapse.app.generic_worker",
+                "relapse.app.generic_worker",
                 {
                     "worker_name": "federation_sender",
                     # Test that we aren't able to proxy any outbound federation requests
@@ -906,7 +906,7 @@ class FederationClientProxyTests(BaseMultiWorkerStreamTestCase):
 
         # Create the `federation_sender` worker
         self.make_worker_hs(
-            "synapse.app.generic_worker",
+            "relapse.app.generic_worker",
             {
                 "worker_name": "federation_sender",
                 # Test that we aren't able to proxy any outbound federation requests

@@ -22,17 +22,17 @@ import yaml
 from twisted.internet import defer
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.appservice import ApplicationService, ApplicationServiceState
-from synapse.config._base import ConfigError
-from synapse.events import EventBase
-from synapse.server import HomeServer
-from synapse.storage.database import DatabasePool, LoggingDatabaseConnection, make_conn
-from synapse.storage.databases.main.appservice import (
+from relapse.appservice import ApplicationService, ApplicationServiceState
+from relapse.config._base import ConfigError
+from relapse.events import EventBase
+from relapse.server import HomeServer
+from relapse.storage.database import DatabasePool, LoggingDatabaseConnection, make_conn
+from relapse.storage.databases.main.appservice import (
     ApplicationServiceStore,
     ApplicationServiceTransactionStore,
 )
-from synapse.types import DeviceListUpdates
-from synapse.util import Clock
+from relapse.types import DeviceListUpdates
+from relapse.util import Clock
 
 from tests import unittest
 

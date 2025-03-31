@@ -17,15 +17,15 @@ from parameterized import parameterized
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.constants import EventTypes, RelationTypes
-from synapse.api.room_versions import RoomVersion, RoomVersions
-from synapse.rest import admin
-from synapse.rest.client import login, room, sync
-from synapse.server import HomeServer
-from synapse.storage._base import db_to_json
-from synapse.storage.database import LoggingTransaction
-from synapse.types import JsonDict
-from synapse.util import Clock
+from relapse.api.constants import EventTypes, RelationTypes
+from relapse.api.room_versions import RoomVersion, RoomVersions
+from relapse.rest import admin
+from relapse.rest.client import login, room, sync
+from relapse.server import HomeServer
+from relapse.storage._base import db_to_json
+from relapse.storage.database import LoggingTransaction
+from relapse.types import JsonDict
+from relapse.util import Clock
 
 from tests.unittest import HomeserverTestCase, override_config
 

@@ -20,13 +20,13 @@ import pymacaroons
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.handlers.sso import MappingException
-from synapse.http.site import SynapseRequest
-from synapse.server import HomeServer
-from synapse.types import JsonDict, UserID
-from synapse.util import Clock
-from synapse.util.macaroons import get_value_from_macaroon
-from synapse.util.stringutils import random_string
+from relapse.handlers.sso import MappingException
+from relapse.http.site import RelapseRequest
+from relapse.server import HomeServer
+from relapse.types import JsonDict, UserID
+from relapse.util import Clock
+from relapse.util.macaroons import get_value_from_macaroon
+from relapse.util.stringutils import random_string
 
 from tests.test_utils import FakeResponse, get_awaitable_result
 from tests.test_utils.oidc import FakeAuthorizationGrant, FakeOidcServer
@@ -37,7 +37,7 @@ try:
     from authlib.oidc.core import UserInfo
     from authlib.oidc.discovery import OpenIDProviderMetadata
 
-    from synapse.handlers.oidc import Token, UserAttributeDict
+    from relapse.handlers.oidc import Token, UserAttributeDict
 
     HAS_OIDC = True
 except ImportError:
@@ -48,8 +48,8 @@ except ImportError:
 ISSUER = "https://issuer/"
 CLIENT_ID = "test-client-id"
 CLIENT_SECRET = "test-client-secret"
-BASE_URL = "https://synapse/"
-CALLBACK_URL = BASE_URL + "_synapse/client/oidc/callback"
+BASE_URL = "https://relapse/"
+CALLBACK_URL = BASE_URL + "_relapse/client/oidc/callback"
 SCOPES = ["openid"]
 
 # config for common cases
@@ -192,7 +192,7 @@ class OidcHandlerTestCase(HomeserverTestCase):
         client_redirect_url: str = "http://client/redirect",
         scope: str = "openid",
         with_sid: bool = False,
-    ) -> Tuple[SynapseRequest, FakeAuthorizationGrant]:
+    ) -> Tuple[RelapseRequest, FakeAuthorizationGrant]:
         """Start an authorization request, and get the callback request back."""
         nonce = random_string(10)
         state = random_string(10)
@@ -405,7 +405,7 @@ class OidcHandlerTestCase(HomeserverTestCase):
         # The cookie name and path don't really matter, just that it has to be coherent
         # between the callback & redirect handlers.
         parts = [p.strip() for p in cookie_header.split(b";")]
-        self.assertIn(b"Path=/_synapse/client/oidc", parts)
+        self.assertIn(b"Path=/_relapse/client/oidc", parts)
         name, cookie = parts[0].split(b"=")
         self.assertEqual(name, b"oidc_session")
 
@@ -446,7 +446,7 @@ class OidcHandlerTestCase(HomeserverTestCase):
         # The cookie name and path don't really matter, just that it has to be coherent
         # between the callback & redirect handlers.
         parts = [p.strip() for p in cookie_header.split(b";")]
-        self.assertIn(b"Path=/_synapse/client/oidc", parts)
+        self.assertIn(b"Path=/_relapse/client/oidc", parts)
         name, cookie = parts[0].split(b"=")
         self.assertEqual(name, b"oidc_session")
 
@@ -478,7 +478,7 @@ class OidcHandlerTestCase(HomeserverTestCase):
         # The cookie name and path don't really matter, just that it has to be coherent
         # between the callback & redirect handlers.
         parts = [p.strip() for p in cookie_header.split(b";")]
-        self.assertIn(b"Path=/_synapse/client/oidc", parts)
+        self.assertIn(b"Path=/_relapse/client/oidc", parts)
         name, cookie = parts[0].split(b"=")
         self.assertEqual(name, b"oidc_session")
 
@@ -514,7 +514,7 @@ class OidcHandlerTestCase(HomeserverTestCase):
         # The cookie name and path don't really matter, just that it has to be coherent
         # between the callback & redirect handlers.
         parts = [p.strip() for p in cookie_header.split(b";")]
-        self.assertIn(b"Path=/_synapse/client/oidc", parts)
+        self.assertIn(b"Path=/_relapse/client/oidc", parts)
         name, cookie = parts[0].split(b"=")
         self.assertEqual(name, b"oidc_session")
 
@@ -744,7 +744,7 @@ class OidcHandlerTestCase(HomeserverTestCase):
         self.fake_server.post_token_handler.return_value = FakeResponse.json(
             code=400, payload={"error": "foo", "error_description": "bar"}
         )
-        from synapse.handlers.oidc import OidcError
+        from relapse.handlers.oidc import OidcError
 
         exc = self.get_failure(
             self.provider._exchange_code(code, code_verifier=""), OidcError
@@ -1344,7 +1344,7 @@ class OidcHandlerTestCase(HomeserverTestCase):
         client_redirect_url: str,
         ui_auth_session_id: str = "",
     ) -> str:
-        from synapse.handlers.oidc import OidcSessionData
+        from relapse.handlers.oidc import OidcSessionData
 
         return self.handler._macaroon_generator.generate_oidc_session_token(
             state=state,
@@ -1364,9 +1364,9 @@ def _build_callback_request(
     session: str,
     ip_address: str = "10.0.0.1",
 ) -> Mock:
-    """Builds a fake SynapseRequest to mock the browser callback
+    """Builds a fake RelapseRequest to mock the browser callback
 
-    Returns a Mock object which looks like the SynapseRequest we get from a browser
+    Returns a Mock object which looks like the RelapseRequest we get from a browser
     after SSO (before we return to the client)
 
     Args:

@@ -24,7 +24,7 @@ from typing import Collection, Optional, Sequence, Set
 # e.g. docker.io/library/debian:bullseye
 #
 # If an EOL is forced by a Python version and we're dropping support for it, make sure
-# to remove references to the distibution across Synapse (search for "bullseye" for
+# to remove references to the distibution across Relapse (search for "bullseye" for
 # example)
 DISTS = (
     "debian:bullseye",  # (EOL ~2024-07) (our EOL forced by Python 3.9 is 2025-10-05)
@@ -38,7 +38,7 @@ DISTS = (
 )
 
 DESC = """\
-Builds .debs for synapse, using a Docker image for the build environment.
+Builds .debs for relapse, using a Docker image for the build environment.
 
 By default, builds for all known distributions, but a list of distributions
 can be passed on the commandline for debugging.
@@ -115,7 +115,7 @@ class Builder:
             cwd=projdir,
         )
 
-        container_name = "synapse_build_" + tag
+        container_name = "relapse_build_" + tag
         with self._lock:
             self.active_containers.add(container_name)
 
@@ -127,7 +127,7 @@ class Builder:
                 "--rm",
                 "--name",
                 container_name,
-                "--volume=" + projdir + ":/synapse/source:ro",
+                "--volume=" + projdir + ":/relapse/source:ro",
                 "--volume=" + debsdir + ":/debs",
                 "-e",
                 "TARGET_USERID=%i" % (os.getuid(),),

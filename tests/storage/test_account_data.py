@@ -16,9 +16,9 @@ from typing import Iterable, Optional, Set
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.constants import AccountDataTypes
-from synapse.server import HomeServer
-from synapse.util import Clock
+from relapse.api.constants import AccountDataTypes
+from relapse.server import HomeServer
+from relapse.util import Clock
 
 from tests import unittest
 

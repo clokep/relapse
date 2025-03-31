@@ -24,7 +24,7 @@
 //! bump in notification counts).
 //!
 //! This consists of a list of "push rules" for each user, where a push rule is a
-//! pair of "conditions" and "actions". When a user receives an event Synapse
+//! pair of "conditions" and "actions". When a user receives an event Relapse
 //! iterates over the list of push rules until it finds one where all the conditions
 //! match the event, at which point "actions" describe the outcome (e.g. notify,
 //! highlight, etc).
@@ -82,10 +82,10 @@ pub fn register_module(py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_submodule(child_module)?;
 
     // We need to manually add the module to sys.modules to make `from
-    // synapse.synapse_rust import push` work.
+    // relapse.relapse_rust import push` work.
     py.import("sys")?
         .getattr("modules")?
-        .set_item("synapse.synapse_rust.push", child_module)?;
+        .set_item("relapse.relapse_rust.push", child_module)?;
 
     Ok(())
 }
@@ -161,7 +161,7 @@ impl PushRule {
     }
 }
 
-/// The "action" Synapse should perform for a matching push rule.
+/// The "action" Relapse should perform for a matching push rule.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Action {
     Notify,
@@ -387,7 +387,7 @@ pub enum EventMatchPatternType {
 pub struct EventMatchTypeCondition {
     pub key: Cow<'static, str>,
     // During serialization, the pattern_type property gets replaced with a
-    // pattern property of the correct value in synapse.push.clientformat.format_push_rules_for_user.
+    // pattern property of the correct value in relapse.push.clientformat.format_push_rules_for_user.
     pub pattern_type: Cow<'static, EventMatchPatternType>,
 }
 
@@ -403,7 +403,7 @@ pub struct EventPropertyIsCondition {
 pub struct EventPropertyIsTypeCondition {
     pub key: Cow<'static, str>,
     // During serialization, the pattern_type property gets replaced with a
-    // pattern property of the correct value in synapse.push.clientformat.format_push_rules_for_user.
+    // pattern property of the correct value in relapse.push.clientformat.format_push_rules_for_user.
     pub value_type: Cow<'static, EventMatchPatternType>,
 }
 

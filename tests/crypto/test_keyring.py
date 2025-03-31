@@ -26,23 +26,23 @@ from twisted.internet import defer
 from twisted.internet.defer import Deferred, ensureDeferred
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.errors import SynapseError
-from synapse.crypto import keyring
-from synapse.crypto.keyring import (
+from relapse.api.errors import RelapseError
+from relapse.crypto import keyring
+from relapse.crypto.keyring import (
     PerspectivesKeyFetcher,
     ServerKeyFetcher,
     StoreKeyFetcher,
 )
-from synapse.logging.context import (
+from relapse.logging.context import (
     ContextRequest,
     LoggingContext,
     current_context,
     make_deferred_yieldable,
 )
-from synapse.server import HomeServer
-from synapse.storage.keys import FetchKeyResult
-from synapse.types import JsonDict
-from synapse.util import Clock
+from relapse.server import HomeServer
+from relapse.storage.keys import FetchKeyResult
+from relapse.types import JsonDict
+from relapse.util import Clock
 
 from tests import unittest
 from tests.unittest import logcontext_clean, override_config
@@ -125,7 +125,7 @@ class KeyringTestCase(unittest.HomeserverTestCase):
                 try:
                     await res_deferreds[1]
                     self.assertFalse("unsigned json didn't cause a failure")
-                except SynapseError:
+                except RelapseError:
                     pass
 
                 self.assertFalse(res_deferreds[0].called)
@@ -215,7 +215,7 @@ class KeyringTestCase(unittest.HomeserverTestCase):
 
         # should fail immediately on an unsigned object
         d = kr.verify_json_for_server("server9", {}, 0)
-        self.get_failure(d, SynapseError)
+        self.get_failure(d, RelapseError)
 
         # should succeed on a signed object
         d = kr.verify_json_for_server("server9", json1, 500)
@@ -321,7 +321,7 @@ class KeyringTestCase(unittest.HomeserverTestCase):
         )
         self.assertEqual(len(results), 2)
         self.get_success(results[0])
-        e = self.get_failure(results[1], SynapseError).value
+        e = self.get_failure(results[1], RelapseError).value
         self.assertEqual(e.errcode, "M_UNAUTHORIZED")
         self.assertEqual(e.code, 401)
 
@@ -373,7 +373,7 @@ class KeyringTestCase(unittest.HomeserverTestCase):
         )
         self.assertEqual(len(results), 2)
         self.get_success(results[0])
-        e = self.get_failure(results[1], SynapseError).value
+        e = self.get_failure(results[1], RelapseError).value
         self.assertEqual(e.errcode, "M_UNAUTHORIZED")
         self.assertEqual(e.code, 401)
 

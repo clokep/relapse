@@ -1,6 +1,6 @@
 # Registration Tokens
 
-**Note:** This API is disabled when MSC3861 is enabled. [See #15582](https://github.com/matrix-org/synapse/pull/15582)
+**Note:** This API is disabled when MSC3861 is enabled. [See #15582](https://github.com/clokep/relapse/pull/15582)
 
 This API allows you to manage tokens which can be used to authenticate
 registration requests, as proposed in
@@ -38,7 +38,7 @@ level JSON object will have a `registration_tokens` key which is an array of
 registration token objects.
 
 ```
-GET /_synapse/admin/v1/registration_tokens
+GET /_relapse/admin/v1/registration_tokens
 ```
 
 Optional query parameters:
@@ -49,7 +49,7 @@ Optional query parameters:
 Example:
 
 ```
-GET /_synapse/admin/v1/registration_tokens
+GET /_relapse/admin/v1/registration_tokens
 ```
 ```
 200 OK
@@ -84,7 +84,7 @@ GET /_synapse/admin/v1/registration_tokens
 Example using the `valid` query parameter:
 
 ```
-GET /_synapse/admin/v1/registration_tokens?valid=false
+GET /_relapse/admin/v1/registration_tokens?valid=false
 ```
 ```
 200 OK
@@ -116,7 +116,7 @@ Get details about a single token. If the request is successful, the response
 body will be a registration token object.
 
 ```
-GET /_synapse/admin/v1/registration_tokens/<token>
+GET /_relapse/admin/v1/registration_tokens/<token>
 ```
 
 Path parameters:
@@ -125,7 +125,7 @@ Path parameters:
 Example:
 
 ```
-GET /_synapse/admin/v1/registration_tokens/abcd
+GET /_relapse/admin/v1/registration_tokens/abcd
 ```
 ```
 200 OK
@@ -146,7 +146,7 @@ Create a new registration token. If the request is successful, the newly created
 token will be returned as a registration token object in the response body.
 
 ```
-POST /_synapse/admin/v1/registration_tokens/new
+POST /_relapse/admin/v1/registration_tokens/new
 ```
 
 The request body must be a JSON object and can contain the following fields:
@@ -168,7 +168,7 @@ If a field is omitted the default is used.
 Example using defaults:
 
 ```
-POST /_synapse/admin/v1/registration_tokens/new
+POST /_relapse/admin/v1/registration_tokens/new
 
 {}
 ```
@@ -187,7 +187,7 @@ POST /_synapse/admin/v1/registration_tokens/new
 Example specifying some fields:
 
 ```
-POST /_synapse/admin/v1/registration_tokens/new
+POST /_relapse/admin/v1/registration_tokens/new
 
 {
     "token": "defg",
@@ -214,7 +214,7 @@ successful, the updated token will be returned as a registration token object
 in the response body.
 
 ```
-PUT /_synapse/admin/v1/registration_tokens/<token>
+PUT /_relapse/admin/v1/registration_tokens/<token>
 ```
 
 Path parameters:
@@ -234,7 +234,7 @@ If a field is omitted its value is not modified.
 Example:
 
 ```
-PUT /_synapse/admin/v1/registration_tokens/defg
+PUT /_relapse/admin/v1/registration_tokens/defg
 
 {
     "expiry_time": 4781243146000    // 2121-07-06 11:05:46 UTC
@@ -259,7 +259,7 @@ Delete a registration token. If the request is successful, the response body
 will be an empty JSON object.
 
 ```
-DELETE /_synapse/admin/v1/registration_tokens/<token>
+DELETE /_relapse/admin/v1/registration_tokens/<token>
 ```
 
 Path parameters:
@@ -268,7 +268,7 @@ Path parameters:
 Example:
 
 ```
-DELETE /_synapse/admin/v1/registration_tokens/wxyz
+DELETE /_relapse/admin/v1/registration_tokens/wxyz
 ```
 ```
 200 OK
@@ -286,7 +286,7 @@ For example, if the token specified in a path parameter does not exist a
 `404 Not Found` error will be returned.
 
 ```
-GET /_synapse/admin/v1/registration_tokens/1234
+GET /_relapse/admin/v1/registration_tokens/1234
 ```
 ```
 404 Not Found

@@ -33,7 +33,7 @@ the process of indexing it).
 
 ## Chain Cover Index
 
-Synapse computes auth chain differences by pre-computing a "chain cover" index
+Relapse computes auth chain differences by pre-computing a "chain cover" index
 for the auth chain in a room, allowing us to efficiently make reachability queries
 like "is event `A` in the auth chain of event `B`?". We could do this with an index
 that tracks all pairs `(A, B)` such that `A` is in the auth chain of `B`. However, this
@@ -49,7 +49,7 @@ chain has sequence number 1. If `E` has a child `F` in the chain, then `F` has
 sequence number 2. If `E` has a grandchild `G` in the chain, then `G` has
 sequence number 3; and so on.
 
-Synapse ensures that each persisted event belongs to exactly one chain, and
+Relapse ensures that each persisted event belongs to exactly one chain, and
 tracks how the chains are connected to one another. This allows us to
 efficiently answer reachability queries. Doing so uses less storage than
 tracking reachability on an event-by-event basis, particularly when we have
@@ -81,7 +81,7 @@ There are actually two potential implementations, one where we store links from
 each chain to every other reachable chain (the transitive closure of the links
 graph), and one where we remove redundant links (the transitive reduction of the
 links graph) e.g. if we have chains `C3 -> C2 -> C1` then the link `C3 -> C1`
-would not be stored. Synapse uses the former implementation so that it doesn't
+would not be stored. Relapse uses the former implementation so that it doesn't
 need to recurse to test reachability between chains. This trades-off extra storage
 in order to save CPU cycles and DB queries.
 

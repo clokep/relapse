@@ -18,21 +18,21 @@ import pymacaroons
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.auth.internal import InternalAuth
-from synapse.api.auth_blocking import AuthBlocking
-from synapse.api.constants import UserTypes
-from synapse.api.errors import (
+from relapse.api.auth.internal import InternalAuth
+from relapse.api.auth_blocking import AuthBlocking
+from relapse.api.constants import UserTypes
+from relapse.api.errors import (
     AuthError,
     Codes,
     InvalidClientTokenError,
     MissingClientTokenError,
     ResourceLimitError,
 )
-from synapse.appservice import ApplicationService
-from synapse.server import HomeServer
-from synapse.storage.databases.main.registration import TokenLookupResult
-from synapse.types import Requester, UserID
-from synapse.util import Clock
+from relapse.appservice import ApplicationService
+from relapse.server import HomeServer
+from relapse.storage.databases.main.registration import TokenLookupResult
+from relapse.types import Requester, UserID
+from relapse.util import Clock
 
 from tests import unittest
 from tests.unittest import override_config

@@ -1,8 +1,8 @@
-# Synapse Architecture
+# Relapse Architecture
 
-As of the end of Oct 2014, Synapse's overall architecture looks like:
+As of the end of Oct 2014, Relapse's overall architecture looks like:
 
-        synapse
+        relapse
         .-----------------------------------------------------.
         |                          Notifier                   |
         |                            ^  |                     |
@@ -28,7 +28,7 @@ As of the end of Oct 2014, Synapse's overall architecture looks like:
                                 | DB |
                                 '----'
 
--   Handlers: business logic of synapse itself. Follows a set contract of BaseHandler:
+-   Handlers: business logic of relapse itself. Follows a set contract of BaseHandler:
     -   BaseHandler gives us onNewRoomEvent which: (TODO: flesh this out and make it less cryptic):
         -   handle_state(event)
         -   auth(event)

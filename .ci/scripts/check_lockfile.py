@@ -17,7 +17,7 @@ except Exception:
         """\
     Lockfile is not version 2.0. You probably need to upgrade poetry on your local box
     and re-run `poetry lock --no-update`. See the Poetry cheat sheet at
-    https://matrix-org.github.io/synapse/develop/development/dependencies.html
+    https://clokep.github.io/relapse/develop/development/dependencies.html
     """
     )
     raise

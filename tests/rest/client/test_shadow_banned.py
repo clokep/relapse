@@ -16,18 +16,18 @@ from unittest.mock import Mock, patch
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import synapse.rest.admin
-from synapse.api.constants import EduTypes, EventTypes
-from synapse.rest.client import (
+import relapse.rest.admin
+from relapse.api.constants import EduTypes, EventTypes
+from relapse.rest.client import (
     directory,
     login,
     profile,
     room,
     room_upgrade_rest_servlet,
 )
-from synapse.server import HomeServer
-from synapse.types import UserID, create_requester
-from synapse.util import Clock
+from relapse.server import HomeServer
+from relapse.types import UserID, create_requester
+from relapse.util import Clock
 
 from tests import unittest
 
@@ -52,7 +52,7 @@ class _ShadowBannedBase(unittest.HomeserverTestCase):
 @patch("random.randint", new=lambda a, b: 0)
 class RoomTestCase(_ShadowBannedBase):
     servlets = [
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        relapse.rest.admin.register_servlets_for_client_rest_resource,
         directory.register_servlets,
         login.register_servlets,
         room.register_servlets,
@@ -243,7 +243,7 @@ class RoomTestCase(_ShadowBannedBase):
 @patch("random.randint", new=lambda a, b: 0)
 class ProfileTestCase(_ShadowBannedBase):
     servlets = [
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        relapse.rest.admin.register_servlets_for_client_rest_resource,
         login.register_servlets,
         profile.register_servlets,
         room.register_servlets,

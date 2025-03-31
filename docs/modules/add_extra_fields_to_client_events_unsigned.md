@@ -1,6 +1,6 @@
 # Add extra fields to client events unsigned section callbacks
 
-_First introduced in Synapse v1.96.0_
+_First introduced in Relapse v1.96.0_
 
 This callback allows modules to add extra fields to the unsigned section of
 events when they get sent down to clients.
@@ -26,7 +26,7 @@ where the extra fields to add to the event's unsigned section is returned.
 (Modules must not attempt to modify the `event` directly).
 
 This cannot be used to alter the "core" fields in the unsigned section emitted
-by Synapse itself.
+by Relapse itself.
 
 If multiple such callbacks try to add the same field to an event's unsigned
 section, the last-registered callback wins.

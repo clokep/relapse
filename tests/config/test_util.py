@@ -12,14 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from synapse.config import ConfigError
-from synapse.config._util import validate_config
+from relapse.config import ConfigError
+from relapse.config._util import validate_config
 
 from tests.unittest import TestCase
 
 
 class ValidateConfigTestCase(TestCase):
-    """Test cases for synapse.config._util.validate_config"""
+    """Test cases for relapse.config._util.validate_config"""
 
     def test_bad_object_in_array(self) -> None:
         """malformed objects within an array should be validated correctly"""

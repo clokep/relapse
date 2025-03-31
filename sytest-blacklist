@@ -1,5 +1,5 @@
 # This file serves as a blacklist for SyTest tests that we expect will fail in
-# Synapse. This doesn't include flakey tests---better to deflake them instead.
+# Relapse. This doesn't include flakey tests---better to deflake them instead.
 #
 # Each line of this file is scanned by sytest during a run and if the line
 # exactly matches the name of a test, it will be marked as "expected fail",
@@ -29,5 +29,9 @@ We can't peek into rooms with joined history_visibility
 Local users can peek by room alias
 Peeked rooms only turn up in the sync for the device who peeked them
 
-# Validation needs to be added to Synapse: https://github.com/matrix-org/synapse/issues/10554
+# Validation needs to be added to Relapse: https://github.com/matrix-org/synapse/issues/10554
 Rejects invalid device keys
+
+# Broken after Synapse 1.98
+Can upload self-signing keys
+uploading signed devices gets propagated over federation

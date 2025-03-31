@@ -31,7 +31,7 @@ easy to run CAS implementation built on top of Django.
 You should now have a Django project configured to serve CAS authentication with
 a single user created.
 
-## Configure Synapse (and Element) to use CAS
+## Configure Relapse (and Element) to use CAS
 
 1. Modify your `homeserver.yaml` to enable CAS and point it to your locally
    running Django test server:
@@ -44,7 +44,7 @@ a single user created.
      #required_attributes:
      #    name: value
    ```
-2. Restart Synapse.
+2. Restart Relapse.
 
 Note that the above configuration assumes the homeserver is running on port 8081
 and that the CAS server is on port 8000, both on localhost.

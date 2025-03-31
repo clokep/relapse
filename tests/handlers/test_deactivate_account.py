@@ -14,13 +14,13 @@
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.constants import AccountDataTypes
-from synapse.push.rulekinds import PRIORITY_CLASS_MAP
-from synapse.rest import admin
-from synapse.rest.client import account, login
-from synapse.server import HomeServer
-from synapse.synapse_rust.push import PushRule
-from synapse.util import Clock
+from relapse.api.constants import AccountDataTypes
+from relapse.push.rulekinds import PRIORITY_CLASS_MAP
+from relapse.relapse_rust.push import PushRule
+from relapse.rest import admin
+from relapse.rest.client import account, login
+from relapse.server import HomeServer
+from relapse.util import Clock
 
 from tests.unittest import HomeserverTestCase
 

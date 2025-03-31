@@ -20,15 +20,15 @@ from unittest.mock import AsyncMock, Mock
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import synapse
-from synapse.api.constants import LoginType
-from synapse.api.errors import Codes
-from synapse.handlers.account import AccountHandler
-from synapse.module_api import ModuleApi
-from synapse.rest.client import account, devices, login, logout, register
-from synapse.server import HomeServer
-from synapse.types import JsonDict, UserID
-from synapse.util import Clock
+import relapse
+from relapse.api.constants import LoginType
+from relapse.api.errors import Codes
+from relapse.handlers.account import AccountHandler
+from relapse.module_api import ModuleApi
+from relapse.rest.client import account, devices, login, logout, register
+from relapse.server import HomeServer
+from relapse.types import JsonDict, UserID
+from relapse.util import Clock
 
 from tests import unittest
 from tests.server import FakeChannel
@@ -154,7 +154,7 @@ def providers_config(*providers: Type[Any]) -> dict:
 
 class PasswordAuthProviderTests(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         login.register_servlets,
         devices.register_servlets,
         logout.register_servlets,
@@ -764,8 +764,8 @@ class PasswordAuthProviderTests(unittest.HomeserverTestCase):
     # Set some email configuration so the test doesn't fail because of its absence.
     @override_config({"email": {"notif_from": "noreply@test"}})
     def test_3pid_allowed(self) -> None:
-        """Tests that an is_3pid_allowed_callbacks forbidding a 3PID makes Synapse refuse
-        to bind the new 3PID, and that one allowing a 3PID makes Synapse accept to bind
+        """Tests that an is_3pid_allowed_callbacks forbidding a 3PID makes Relapse refuse
+        to bind the new 3PID, and that one allowing a 3PID makes Relapse accept to bind
         the 3PID. Also checks that the module is passed a boolean indicating whether the
         user to bind this 3PID to is currently registering.
         """

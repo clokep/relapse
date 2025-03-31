@@ -6,10 +6,10 @@ user attributes. Details such as user ID localpart, displayname, and even avatar
 URLs are all things that can be mapped from talking to a SSO service.
 
 As an example, a SSO service may return the email address
-"john.smith@example.com" for a user, whereas Synapse will need to figure out how
+"john.smith@example.com" for a user, whereas Relapse will need to figure out how
 to turn that into a displayname when creating a Matrix user for this individual.
 It may choose `John Smith`, or `Smith, John [Example.com]` or any number of
-variations. As each Synapse configuration may want something different, this is
+variations. As each Relapse configuration may want something different, this is
 where SAML mapping providers come into play.
 
 SSO mapping providers are currently supported for OpenID and SAML SSO
@@ -25,13 +25,13 @@ map them to a valid Matrix ID. The [specification for Matrix
 IDs](https://spec.matrix.org/latest/appendices/#user-identifiers) has some
 information about what is considered valid.
 
-If the mapping provider does not assign a Matrix ID, then Synapse will
+If the mapping provider does not assign a Matrix ID, then Relapse will
 automatically serve an HTML page allowing the user to pick their own username.
 
-External mapping providers are provided to Synapse in the form of an external
+External mapping providers are provided to Relapse in the form of an external
 Python module. You can retrieve this module from [PyPI](https://pypi.org) or elsewhere,
-but it must be importable via Synapse (e.g. it must be in the same virtualenv
-as Synapse). The Synapse config is then modified to point to the mapping provider
+but it must be importable via Relapse (e.g. it must be in the same virtualenv
+as Relapse). The Relapse config is then modified to point to the mapping provider
 (and optionally provide additional configuration for it).
 
 ## OpenID Mapping Providers
@@ -43,7 +43,7 @@ config option.
 `oidc_providers.user_mapping_provider.config` allows you to provide custom
 configuration options to the module. Check with the module's documentation for
 what options it provides (if any). The options listed by default are for the
-user mapping provider built in to Synapse. If using a custom module, you should
+user mapping provider built in to Relapse. If using a custom module, you should
 comment these options out and use those specified by the module instead.
 
 ### Building a Custom OpenID Mapping Provider
@@ -92,7 +92,7 @@ A custom mapping provider must specify the following methods:
         during a user's first login. Once a localpart has been associated with a
         remote user ID (see `get_remote_user_id`) it cannot be updated.
       - `confirm_localpart`: A boolean. If set to `True`, when a `localpart`
-        string is returned from this method, Synapse will prompt the user to
+        string is returned from this method, Relapse will prompt the user to
         either accept this localpart or pick their own username. Otherwise this
         option has no effect. If omitted, defaults to `False`.
       - `display_name`: An optional string, the display name for the user.
@@ -113,9 +113,9 @@ A custom mapping provider must specify the following methods:
 
 ### Default OpenID Mapping Provider
 
-Synapse has a built-in OpenID mapping provider if a custom provider isn't
+Relapse has a built-in OpenID mapping provider if a custom provider isn't
 specified in the config. It is located at
-[`synapse.handlers.oidc.JinjaOidcMappingProvider`](https://github.com/matrix-org/synapse/blob/develop/synapse/handlers/oidc.py).
+[`relapse.handlers.oidc.JinjaOidcMappingProvider`](https://github.com/clokep/relapse/blob/develop/relapse/handlers/oidc.py).
 
 ## SAML Mapping Providers
 
@@ -126,7 +126,7 @@ config option.
 `saml2_config.user_mapping_provider.config` allows you to provide custom
 configuration options to the module. Check with the module's documentation for
 what options it provides (if any). The options listed by default are for the
-user mapping provider built in to Synapse. If using a custom module, you should
+user mapping provider built in to Relapse. If using a custom module, you should
 comment these options out and use those specified by the module instead.
 
 ### Building a Custom SAML Mapping Provider
@@ -138,7 +138,7 @@ A custom mapping provider must specify the following methods:
      - `parsed_config` - A configuration object that is the return value of the
        `parse_config` method. You should set any configuration options needed by
        the module here.
-     - `module_api` - a `synapse.module_api.ModuleApi` object which provides the
+     - `module_api` - a `relapse.module_api.ModuleApi` object which provides the
        stable API available for extension modules.
 * `def parse_config(config)`
     - **This method should have the `@staticmethod` decoration.**
@@ -180,7 +180,7 @@ A custom mapping provider must specify the following methods:
                      `mxid_localpart` value, such as `john.doe1`.
       - `client_redirect_url` - A string, the URL that the client will be
                                 redirected to.
-    - This method must return a dictionary, which will then be used by Synapse
+    - This method must return a dictionary, which will then be used by Relapse
       to build a new user. The following keys are allowed:
        * `mxid_localpart` - A string, the mxid localpart of the new user. If this is
          `None`, the user is prompted to pick their own username. This is only used
@@ -191,7 +191,7 @@ A custom mapping provider must specify the following methods:
        * `emails` - A list of emails for the new user. If not provided, will
                     default to an empty list.
 
-       Alternatively it can raise a `synapse.api.errors.RedirectException` to
+       Alternatively it can raise a `relapse.api.errors.RedirectException` to
        redirect the user to another page. This is useful to prompt the user for
        additional information, e.g. if you want them to provide their own username.
        It is the responsibility of the mapping provider to either redirect back
@@ -200,6 +200,6 @@ A custom mapping provider must specify the following methods:
 
 ### Default SAML Mapping Provider
 
-Synapse has a built-in SAML mapping provider if a custom provider isn't
+Relapse has a built-in SAML mapping provider if a custom provider isn't
 specified in the config. It is located at
-[`synapse.handlers.saml.DefaultSamlMappingProvider`](https://github.com/matrix-org/synapse/blob/develop/synapse/handlers/saml.py).
+[`relapse.handlers.saml.DefaultSamlMappingProvider`](https://github.com/clokep/relapse/blob/develop/relapse/handlers/saml.py).

@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-""" Starts a synapse client console. """
+""" Starts a relapse client console. """
 import argparse
 import binascii
 import cmd
@@ -40,8 +40,8 @@ CONFIG_JSON = "cmdclient_config.json"
 TRUSTED_ID_SERVERS = ["localhost:8001"]
 
 
-class SynapseCmd(cmd.Cmd):
-    """Basic synapse command-line processor.
+class RelapseCmd(cmd.Cmd):
+    """Basic relapse command-line processor.
 
     This processes commands from the user and calls the relevant HTTP methods.
     """
@@ -750,7 +750,7 @@ def save_config(config):
 
 
 def main(server_url, identity_server_url, username, token, config_path):
-    print("Synapse command line client")
+    print("Relapse command line client")
     print("===========================")
     print("Server: %s" % server_url)
     print("Type 'help' to get started.")
@@ -763,9 +763,9 @@ def main(server_url, identity_server_url, username, token, config_path):
     http_client = TwistedHttpClient()
 
     # the command line client
-    syn_cmd = SynapseCmd(http_client, server_url, identity_server_url, username, token)
+    syn_cmd = RelapseCmd(http_client, server_url, identity_server_url, username, token)
 
-    # load synapse.json config from a previous session
+    # load relapse.json config from a previous session
     global CONFIG_JSON
     CONFIG_JSON = config_path  # bit cheeky, but just overwrite the global
     try:
@@ -787,7 +787,7 @@ def main(server_url, identity_server_url, username, token, config_path):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser("Starts a synapse client.")
+    parser = argparse.ArgumentParser("Starts a relapse client.")
     parser.add_argument(
         "-s",
         "--server",

@@ -1,4 +1,4 @@
-# A Nix flake that sets up a complete Synapse development environment. Dependencies
+# A Nix flake that sets up a complete Relapse development environment. Dependencies
 # for the SyTest (https://github.com/matrix-org/sytest) and Complement
 # (https://github.com/matrix-org/complement) Matrix homeserver test suites are also
 # installed automatically.
@@ -22,7 +22,7 @@
 # You should now be dropped into a new shell with all programs and dependencies
 # availabile to you!
 #
-# You can start up pre-configured local Synapse, PostgreSQL and Redis instances by
+# You can start up pre-configured local Relapse, PostgreSQL and Redis instances by
 # running: `devenv up`. To stop them, use Ctrl-C.
 #
 # All state (the venv, postgres and redis data and config) are stored in
@@ -34,7 +34,7 @@
 # If you would like this development environment to activate automatically
 # upon entering this directory in your terminal, first install `direnv`
 # (https://direnv.net/). Then run `echo 'use flake . --impure' >> .envrc` at
-# the root of the Synapse repo. Finally, run `direnv allow .` to allow the
+# the root of the Relapse repo. Finally, run `direnv allow .` to allow the
 # contents of '.envrc' to run every time you enter this directory. Voilà!
 
 {
@@ -95,7 +95,7 @@
                   # Needed for building `ruff`
                   gnumake
 
-                  # Native dependencies for running Synapse.
+                  # Native dependencies for running Relapse.
                   icu
                   libffi
                   libjpeg
@@ -112,10 +112,10 @@
                   # Native dependencies for running Complement.
                   olm
 
-                  # For building the Synapse documentation website.
+                  # For building the Relapse documentation website.
                   mdbook
 
-                  # For releasing Synapse
+                  # For releasing Relapse
                   debian-devscripts # (`dch` for manipulating the Debian changelog)
                   libnotify # (the release script uses `notify-send` to tell you when CI jobs are done)
                 ];
@@ -126,9 +126,9 @@
                 # Automatically activate the poetry virtualenv upon entering the shell.
                 languages.python.poetry.activate.enable = true;
                 # Install all extra Python dependencies; this is needed to run the unit
-                # tests and utilitise all Synapse features.
+                # tests and utilitise all Relapse features.
                 languages.python.poetry.install.arguments = ["--extras all"];
-                # Install the 'matrix-synapse' package from the local checkout.
+                # Install the 'matrix-relapse' package from the local checkout.
                 languages.python.poetry.install.installRootPackage = true;
 
                 # This is a work-around for NixOS systems. NixOS is special in
@@ -141,50 +141,50 @@
                 env.POETRY_INSTALLER_NO_BINARY = "ruff";
 
                 # Install dependencies for the additional programming languages
-                # involved with Synapse development.
+                # involved with Relapse development.
                 #
                 # * Golang is needed to run the Complement test suite.
                 # * Perl is needed to run the SyTest test suite.
-                # * Rust is used for developing and running Synapse.
+                # * Rust is used for developing and running Relapse.
                 #   It is installed manually with `packages` above.
                 languages.go.enable = true;
                 languages.perl.enable = true;
 
-                # Postgres is needed to run Synapse with postgres support and
+                # Postgres is needed to run Relapse with postgres support and
                 # to run certain unit tests that require postgres.
                 services.postgres.enable = true;
 
                 # On the first invocation of `devenv up`, create a database for
-                # Synapse to store data in.
+                # Relapse to store data in.
                 services.postgres.initdbArgs = ["--locale=C" "--encoding=UTF8"];
                 services.postgres.initialDatabases = [
-                  { name = "synapse"; }
+                  { name = "relapse"; }
                 ];
-                # Create a postgres user called 'synapse_user' which has ownership
-                # over the 'synapse' database.
+                # Create a postgres user called 'relapse_user' which has ownership
+                # over the 'relapse' database.
                 services.postgres.initialScript = ''
-                CREATE USER synapse_user;
-                ALTER DATABASE synapse OWNER TO synapse_user;
+                CREATE USER relapse_user;
+                ALTER DATABASE relapse OWNER TO relapse_user;
                 '';
 
-                # Redis is needed in order to run Synapse in worker mode.
+                # Redis is needed in order to run Relapse in worker mode.
                 services.redis.enable = true;
 
-                # Configure and start Synapse. Before starting Synapse, this shell code:
+                # Configure and start Relapse. Before starting Relapse, this shell code:
                 #  * generates a default homeserver.yaml config file if one does not exist, and
                 #  * ensures a directory containing two additional homeserver config files exists;
                 #    one to configure using the development environment's PostgreSQL as the
                 #    database backend and another for enabling Redis support.
                 process.before = ''
-                  python -m synapse.app.homeserver -c homeserver.yaml --generate-config --server-name=synapse.dev --report-stats=no
+                  python -m relapse.app.homeserver -c homeserver.yaml --generate-config --server-name=relapse.dev --report-stats=no
                   mkdir -p homeserver-config-overrides.d
                   cat > homeserver-config-overrides.d/database.yaml << EOF
                   ## Do not edit this file. This file is generated by flake.nix
                   database:
                     name: psycopg2
                     args:
-                      user: synapse_user
-                      database: synapse
+                      user: relapse_user
+                      database: relapse
                       host: $PGHOST
                       cp_min: 5
                       cp_max: 10
@@ -195,8 +195,8 @@
                     enabled: true
                   EOF
                 '';
-                # Start synapse when `devenv up` is run.
-                processes.synapse.exec = "poetry run python -m synapse.app.homeserver -c homeserver.yaml -c homeserver-config-overrides.d";
+                # Start relapse when `devenv up` is run.
+                processes.relapse.exec = "poetry run python -m relapse.app.homeserver -c homeserver.yaml -c homeserver-config-overrides.d";
 
                 # Define the perl modules we require to run SyTest.
                 #

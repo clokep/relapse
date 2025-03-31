@@ -1,7 +1,7 @@
 # This task does not run complement tests, see tests.yaml instead.
-# This task does not build docker images for synapse for use on docker hub, see docker.yaml instead
+# This task does not build docker images for relapse for use on docker hub, see docker.yaml instead
 
-name: Store complement-synapse image in ghcr.io
+name: Store complement-relapse image in ghcr.io
 on:
   push:
     branches: [ "master" ]
@@ -57,18 +57,18 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }}/complement-synapse
+          images: ghcr.io/${{ github.repository }}/complement-relapse
           tags: |
             type=schedule,pattern=nightly,enable=${{ github.event_name == 'schedule'}}
             type=raw,value=develop,enable=${{ github.event_name == 'schedule' || inputs.branch == 'develop' }}
             type=raw,value=latest,enable=${{ github.event_name == 'push' || inputs.branch == 'master' }}
             type=sha,format=long
-      - name: Run scripts-dev/complement.sh to generate complement-synapse:latest image.
+      - name: Run scripts-dev/complement.sh to generate complement-relapse:latest image.
         run: scripts-dev/complement.sh --build-only
       - name: Tag and push generated image
         run: |
           for TAG in ${{ join(fromJson(steps.meta.outputs.json).tags, ' ') }}; do 
             echo "tag and push $TAG"
-            docker tag complement-synapse $TAG
+            docker tag complement-relapse $TAG
             docker push $TAG
           done

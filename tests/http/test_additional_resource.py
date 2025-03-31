@@ -15,10 +15,10 @@ from typing import Any
 
 from twisted.web.server import Request
 
-from synapse.http.additional_resource import AdditionalResource
-from synapse.http.server import respond_with_json
-from synapse.http.site import SynapseRequest
-from synapse.types import JsonDict
+from relapse.http.additional_resource import AdditionalResource
+from relapse.http.server import respond_with_json
+from relapse.http.site import RelapseRequest
+from relapse.types import JsonDict
 
 from tests.server import FakeSite, make_request
 from tests.unittest import HomeserverTestCase
@@ -29,7 +29,7 @@ class _AsyncTestCustomEndpoint:
         pass
 
     async def handle_request(self, request: Request) -> None:
-        assert isinstance(request, SynapseRequest)
+        assert isinstance(request, RelapseRequest)
         respond_with_json(request, 200, {"some_key": "some_value_async"})
 
 
@@ -38,7 +38,7 @@ class _SyncTestCustomEndpoint:
         pass
 
     async def handle_request(self, request: Request) -> None:
-        assert isinstance(request, SynapseRequest)
+        assert isinstance(request, RelapseRequest)
         respond_with_json(request, 200, {"some_key": "some_value_sync"})
 
 

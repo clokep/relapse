@@ -17,18 +17,18 @@ from typing import Dict, List, Set, Tuple, cast
 from twisted.test.proto_helpers import MemoryReactor
 from twisted.trial import unittest
 
-from synapse.api.constants import EventTypes
-from synapse.api.room_versions import RoomVersions
-from synapse.events import EventBase
-from synapse.events.snapshot import EventContext
-from synapse.rest import admin
-from synapse.rest.client import login, room
-from synapse.server import HomeServer
-from synapse.storage.database import LoggingTransaction
-from synapse.storage.databases.main.events import _LinkMap
-from synapse.storage.types import Cursor
-from synapse.types import create_requester
-from synapse.util import Clock
+from relapse.api.constants import EventTypes
+from relapse.api.room_versions import RoomVersions
+from relapse.events import EventBase
+from relapse.events.snapshot import EventContext
+from relapse.rest import admin
+from relapse.rest.client import login, room
+from relapse.server import HomeServer
+from relapse.storage.database import LoggingTransaction
+from relapse.storage.databases.main.events import _LinkMap
+from relapse.storage.types import Cursor
+from relapse.types import create_requester
+from relapse.util import Clock
 
 from tests.unittest import HomeserverTestCase
 

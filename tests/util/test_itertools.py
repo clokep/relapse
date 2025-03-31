@@ -13,7 +13,7 @@
 # limitations under the License.
 from typing import Dict, Iterable, List, Sequence
 
-from synapse.util.iterutils import (
+from relapse.util.iterutils import (
     chunk_seq,
     sorted_topologically,
     sorted_topologically_batched,

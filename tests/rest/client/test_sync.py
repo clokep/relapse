@@ -19,17 +19,17 @@ from parameterized import parameterized
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import synapse.rest.admin
-from synapse.api.constants import (
+import relapse.rest.admin
+from relapse.api.constants import (
     EventContentFields,
     EventTypes,
     ReceiptTypes,
     RelationTypes,
 )
-from synapse.rest.client import devices, knock, login, read_marker, receipts, room, sync
-from synapse.server import HomeServer
-from synapse.types import JsonDict
-from synapse.util import Clock
+from relapse.rest.client import devices, knock, login, read_marker, receipts, room, sync
+from relapse.server import HomeServer
+from relapse.types import JsonDict
+from relapse.util import Clock
 
 from tests import unittest
 from tests.federation.transport.test_knocking import (
@@ -41,7 +41,7 @@ from tests.server import TimedOutException
 class FilterTestCase(unittest.HomeserverTestCase):
     user_id = "@apple:test"
     servlets = [
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        relapse.rest.admin.register_servlets_for_client_rest_resource,
         room.register_servlets,
         login.register_servlets,
         sync.register_servlets,
@@ -56,7 +56,7 @@ class FilterTestCase(unittest.HomeserverTestCase):
 
 class SyncFilterTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        relapse.rest.admin.register_servlets_for_client_rest_resource,
         room.register_servlets,
         login.register_servlets,
         sync.register_servlets,
@@ -189,7 +189,7 @@ class SyncFilterTestCase(unittest.HomeserverTestCase):
 
 class SyncTypingTests(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        relapse.rest.admin.register_servlets_for_client_rest_resource,
         room.register_servlets,
         login.register_servlets,
         sync.register_servlets,
@@ -292,7 +292,7 @@ class SyncTypingTests(unittest.HomeserverTestCase):
 
 class SyncKnockTestCase(KnockingStrippedStateEventHelperMixin):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         login.register_servlets,
         room.register_servlets,
         sync.register_servlets,
@@ -376,7 +376,7 @@ class SyncKnockTestCase(KnockingStrippedStateEventHelperMixin):
 
 class UnreadMessagesTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         login.register_servlets,
         read_marker.register_servlets,
         room.register_servlets,
@@ -634,7 +634,7 @@ class UnreadMessagesTestCase(unittest.HomeserverTestCase):
 
 class SyncCacheTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         login.register_servlets,
         sync.register_servlets,
     ]
@@ -684,7 +684,7 @@ class SyncCacheTestCase(unittest.HomeserverTestCase):
 
 class DeviceListSyncTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         login.register_servlets,
         sync.register_servlets,
         devices.register_servlets,
@@ -739,7 +739,7 @@ class DeviceListSyncTestCase(unittest.HomeserverTestCase):
 
 class ExcludeRoomTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         login.register_servlets,
         sync.register_servlets,
         room.register_servlets,

@@ -1333,7 +1333,7 @@ service-identity = "*"
 Twisted = ">=15.1.0"
 
 [package.extras]
-dev = ["black (==22.3.0)", "flake8 (==4.0.1)", "isort (==5.9.3)", "ldaptor", "matrix-synapse", "mypy (==0.910)", "tox", "types-setuptools"]
+dev = ["black (==22.3.0)", "flake8 (==4.0.1)", "isort (==5.9.3)", "ldaptor", "matrix-relapse", "mypy (==0.910)", "tox", "types-setuptools"]
 
 [[package]]
 name = "mdit-py-plugins"

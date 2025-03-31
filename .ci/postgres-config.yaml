@@ -1,4 +1,4 @@
-# Configuration file used for testing the 'synapse_port_db' script.
+# Configuration file used for testing the 'relapse_port_db' script.
 # Tells the script to connect to the postgresql database that will be available in the
 # CI's Docker setup at the point where this file is considered.
 server_name: "localhost:8800"
@@ -13,7 +13,7 @@ database:
     user: postgres
     host: localhost
     password: postgres
-    database: synapse
+    database: relapse
 
 # Suppress the key server warning.
 trusted_key_servers: []

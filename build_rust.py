@@ -11,7 +11,7 @@ def build(setup_kwargs: Dict[str, Any]) -> None:
     cargo_toml_path = os.path.join(original_project_dir, "rust", "Cargo.toml")
 
     extension = RustExtension(
-        target="synapse.synapse_rust",
+        target="relapse.relapse_rust",
         path=cargo_toml_path,
         binding=Binding.PyO3,
         py_limited_api=True,

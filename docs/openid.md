@@ -1,19 +1,19 @@
-# Configuring Synapse to authenticate against an OpenID Connect provider
+# Configuring Relapse to authenticate against an OpenID Connect provider
 
-Synapse can be configured to use an OpenID Connect Provider (OP) for
+Relapse can be configured to use an OpenID Connect Provider (OP) for
 authentication, instead of its own local password database.
 
-Any OP should work with Synapse, as long as it supports the authorization code
+Any OP should work with Relapse, as long as it supports the authorization code
 flow. There are a few options for that:
 
- - start a local OP. Synapse has been tested with [Hydra][hydra] and
+ - start a local OP. Relapse has been tested with [Hydra][hydra] and
    [Dex][dex-idp].  Note that for an OP to work, it should be served under a
    secure (HTTPS) origin.  A certificate signed with a self-signed, locally
-   trusted CA should work. In that case, start Synapse with a `SSL_CERT_FILE`
+   trusted CA should work. In that case, start Relapse with a `SSL_CERT_FILE`
    environment variable set to the path of the CA.
 
  - set up a SaaS OP, like [Google][google-idp], [Auth0][auth0] or
-   [Okta][okta]. Synapse has been tested with Auth0 and Google.
+   [Okta][okta]. Relapse has been tested with Auth0 and Google.
 
 It may also be possible to use other OAuth2 providers which provide the
 [authorization code grant type](https://tools.ietf.org/html/rfc6749#section-4.1),
@@ -29,17 +29,17 @@ such as [Github][github-idp].
 [hydra]: https://www.ory.sh/docs/hydra/
 [github-idp]: https://developer.github.com/apps/building-oauth-apps/authorizing-oauth-apps
 
-## Preparing Synapse
+## Preparing Relapse
 
-The OpenID integration in Synapse uses the
+The OpenID integration in Relapse uses the
 [`authlib`](https://pypi.org/project/Authlib/) library, which must be installed
 as follows:
 
  * The relevant libraries are included in the Docker images and Debian packages
    provided by `matrix.org` so no further action is needed.
 
- * If you installed Synapse into a virtualenv, run `/path/to/env/bin/pip
-   install matrix-synapse[oidc]` to install the necessary dependencies.
+ * If you installed Relapse into a virtualenv, run `/path/to/env/bin/pip
+   install matrix-relapse[oidc]` to install the necessary dependencies.
 
  * For other installation mechanisms, see the documentation provided by the
    maintainer.
@@ -51,24 +51,24 @@ the text below for example configurations for specific providers.
 
 ## OIDC Back-Channel Logout
 
-Synapse supports receiving [OpenID Connect Back-Channel Logout](https://openid.net/specs/openid-connect-backchannel-1_0.html) notifications.
+Relapse supports receiving [OpenID Connect Back-Channel Logout](https://openid.net/specs/openid-connect-backchannel-1_0.html) notifications.
 
-This lets the OpenID Connect Provider notify Synapse when a user logs out, so that Synapse can end that user session.
-This feature can be enabled by setting the `backchannel_logout_enabled` property to `true` in the provider configuration, and setting the following URL as destination for Back-Channel Logout notifications in your OpenID Connect Provider: `[synapse public baseurl]/_synapse/client/oidc/backchannel_logout`
+This lets the OpenID Connect Provider notify Relapse when a user logs out, so that Relapse can end that user session.
+This feature can be enabled by setting the `backchannel_logout_enabled` property to `true` in the provider configuration, and setting the following URL as destination for Back-Channel Logout notifications in your OpenID Connect Provider: `[relapse public baseurl]/_relapse/client/oidc/backchannel_logout`
 
 ## Sample configs
 
-Here are a few configs for providers that should work with Synapse.
+Here are a few configs for providers that should work with Relapse.
 
 ### Microsoft Azure Active Directory
 Azure AD can act as an OpenID Connect Provider. Register a new application under
 *App registrations* in the Azure AD management console. The RedirectURI for your
 application should point to your matrix server:
-`[synapse public baseurl]/_synapse/client/oidc/callback`
+`[relapse public baseurl]/_relapse/client/oidc/callback`
 
 Go to *Certificates & secrets* and register a new client secret. Make note of your
 Directory (tenant) ID as it will be used in the Azure links.
-Edit your Synapse config file and change the `oidc_config` section:
+Edit your Relapse config file and change the `oidc_config` section:
 
 ```yaml
 oidc_providers:
@@ -103,7 +103,7 @@ As well as the private key file, you will need:
 [Apple's developer documentation](https://help.apple.com/developer-account/?lang=en#/dev77c875b7e)
 has more information on setting up SiWA.
 
-The synapse config will look like this:
+The relapse config will look like this:
 
 ```yaml
   - idp_id: apple
@@ -129,8 +129,8 @@ The synapse config will look like this:
 
 [Auth0][auth0] is a hosted SaaS IdP solution.
 
-1. Create a regular web application for Synapse
-2. Set the Allowed Callback URLs to `[synapse public baseurl]/_synapse/client/oidc/callback`
+1. Create a regular web application for Relapse
+2. Set the Allowed Callback URLs to `[relapse public baseurl]/_relapse/client/oidc/callback`
 3. Add a rule with any name to add the `preferred_username` claim. 
 (See https://auth0.com/docs/customize/rules/create-rules for more information on how to create rules.)
    
@@ -154,7 +154,7 @@ The synapse config will look like this:
     ```
   </details>
 
-Synapse config:
+Relapse config:
 
 ```yaml
 oidc_providers:
@@ -180,13 +180,13 @@ oidc_providers:
 - JWT Algorithm: RS256
 - Scopes: OpenID, Email and Profile
 - RSA Key: Select any available key
-- Redirect URIs: `[synapse public baseurl]/_synapse/client/oidc/callback`
-3. Create an application for synapse in Authentik and link it to the provider.
+- Redirect URIs: `[relapse public baseurl]/_relapse/client/oidc/callback`
+3. Create an application for relapse in Authentik and link it to the provider.
 4. Note the slug of your application, Client ID and Client Secret.
 
 Note: RSA keys must be used for signing for Authentik, ECC keys do not work.
 
-Synapse config:
+Relapse config:
 ```yaml
 oidc_providers:
   - idp_id: authentik
@@ -202,7 +202,7 @@ oidc_providers:
     user_mapping_provider:
       config:
         localpart_template: "{{ user.preferred_username }}"
-        display_name_template: "{{ user.preferred_username|capitalize }}" # TO BE FILLED: If your users have names in Authentik and you want those in Synapse, this should be replaced with user.name|capitalize.
+        display_name_template: "{{ user.preferred_username|capitalize }}" # TO BE FILLED: If your users have names in Authentik and you want those in Relapse, this should be replaced with user.name|capitalize.
 ```
 
 ### Dex
@@ -218,16 +218,16 @@ Edit `examples/config-dev.yaml` config file from the Dex repo to add a client:
 
 ```yaml
 staticClients:
-- id: synapse
+- id: relapse
   secret: secret
   redirectURIs:
-  - '[synapse public baseurl]/_synapse/client/oidc/callback'
-  name: 'Synapse'
+  - '[relapse public baseurl]/_relapse/client/oidc/callback'
+  name: 'Relapse'
 ```
 
 Run with `dex serve examples/config-dev.yaml`.
 
-Synapse config:
+Relapse config:
 
 ```yaml
 oidc_providers:
@@ -235,7 +235,7 @@ oidc_providers:
     idp_name: "My Dex server"
     skip_verification: true # This is needed as Dex is served on an insecure endpoint
     issuer: "http://127.0.0.1:5556/dex"
-    client_id: "synapse"
+    client_id: "relapse"
     client_secret: "secret"
     scopes: ["openid", "profile"]
     user_mapping_provider:
@@ -254,11 +254,11 @@ needed to add OAuth2 capabilities to your Django projects. It supports
 Configuration on Django's side:
 
 1. Add an application: `https://example.com/admin/oauth2_provider/application/add/` and choose parameters like this:
-* `Redirect uris`: `https://synapse.example.com/_synapse/client/oidc/callback`
+* `Redirect uris`: `https://relapse.example.com/_relapse/client/oidc/callback`
 * `Client type`: `Confidential`
 * `Authorization grant type`: `Authorization code`
 * `Algorithm`: `HMAC with SHA-2 256`
-2. You can [customize the claims](https://django-oauth-toolkit.readthedocs.io/en/latest/oidc.html#customizing-the-oidc-responses) Django gives to synapse (optional):
+2. You can [customize the claims](https://django-oauth-toolkit.readthedocs.io/en/latest/oidc.html#customizing-the-oidc-responses) Django gives to relapse (optional):
    <details>
     <summary>Code sample</summary>
 
@@ -274,7 +274,7 @@ Configuration on Django's side:
             }
     ```
    </details>
-Your synapse config is then:
+Your relapse config is then:
 
 ```yaml
 oidc_providers:
@@ -301,12 +301,12 @@ oidc_providers:
 2. Once the app is created, add "Facebook Login" and choose "Web". You don't
    need to go through the whole form here.
 3. In the left-hand menu, open "Products"/"Facebook Login"/"Settings".
-   * Add `[synapse public baseurl]/_synapse/client/oidc/callback` as an OAuth Redirect
+   * Add `[relapse public baseurl]/_relapse/client/oidc/callback` as an OAuth Redirect
      URL.
 4. In the left-hand menu, open "Settings/Basic". Here you can copy the "App ID"
    and "App Secret" for use below.
 
-Synapse config:
+Relapse config:
 
 ```yaml
   - idp_id: facebook
@@ -342,14 +342,14 @@ so we have to disable discovery and configure the URIs manually.
 just a regular OAuth2 provider.
 
 The [`/user` API endpoint](https://developer.github.com/v3/users/#get-the-authenticated-user)
-can be used to retrieve information on the authenticated user. As the Synapse
+can be used to retrieve information on the authenticated user. As the Relapse
 login mechanism needs an attribute to uniquely identify users, and that endpoint
 does not return a `sub` property, an alternative `subject_claim` has to be set.
 
 1. Create a new OAuth application: [https://github.com/settings/applications/new](https://github.com/settings/applications/new).
-2. Set the callback URL to `[synapse public baseurl]/_synapse/client/oidc/callback`.
+2. Set the callback URL to `[relapse public baseurl]/_relapse/client/oidc/callback`.
 
-Synapse config:
+Relapse config:
 
 ```yaml
 oidc_providers:
@@ -375,9 +375,9 @@ oidc_providers:
 
 1. Create a [new application](https://gitlab.com/profile/applications).
 2. Add the `read_user` and `openid` scopes.
-3. Add this Callback URL: `[synapse public baseurl]/_synapse/client/oidc/callback`
+3. Add this Callback URL: `[relapse public baseurl]/_relapse/client/oidc/callback`
 
-Synapse config:
+Relapse config:
 
 ```yaml
 oidc_providers:
@@ -401,14 +401,14 @@ oidc_providers:
 Gitea is, like Github, not an OpenID provider, but just an OAuth2 provider.
 
 The [`/user` API endpoint](https://try.gitea.io/api/swagger#/user/userGetCurrent)
-can be used to retrieve information on the authenticated user. As the Synapse
+can be used to retrieve information on the authenticated user. As the Relapse
 login mechanism needs an attribute to uniquely identify users, and that endpoint
 does not return a `sub` property, an alternative `subject_claim` has to be set.
 
 1. Create a new application.
-2. Add this Callback URL: `[synapse public baseurl]/_synapse/client/oidc/callback`
+2. Add this Callback URL: `[relapse public baseurl]/_relapse/client/oidc/callback`
 
-Synapse config:
+Relapse config:
 
 ```yaml
 oidc_providers:
@@ -437,7 +437,7 @@ oidc_providers:
 1. Set up a project in the Google API Console (see 
    [documentation](https://developers.google.com/identity/protocols/oauth2/openid-connect#appsetup)).
 3. Add an "OAuth Client ID" for a Web Application under "Credentials".
-4. Copy the Client ID and Client Secret, and add the following to your synapse config:
+4. Copy the Client ID and Client Secret, and add the following to your relapse config:
    ```yaml
    oidc_providers:
      - idp_id: google
@@ -453,15 +453,15 @@ oidc_providers:
            display_name_template: "{{ user.name }}"
            email_template: "{{ user.email }}" # needs "email" in scopes above
    ```
-4. Back in the Google console, add this Authorized redirect URI: `[synapse
-   public baseurl]/_synapse/client/oidc/callback`.
+4. Back in the Google console, add this Authorized redirect URI: `[relapse
+   public baseurl]/_relapse/client/oidc/callback`.
 
 ### Keycloak
 
 [Keycloak][keycloak-idp] is an opensource IdP maintained by Red Hat.
 
-Keycloak supports OIDC Back-Channel Logout, which sends logout notification to Synapse, so that Synapse users get logged out when they log out from Keycloak.
-This can be optionally enabled by setting `backchannel_logout_enabled` to `true` in the Synapse configuration, and by setting the "Backchannel Logout URL" in Keycloak.
+Keycloak supports OIDC Back-Channel Logout, which sends logout notification to Relapse, so that Relapse users get logged out when they log out from Keycloak.
+This can be optionally enabled by setting `backchannel_logout_enabled` to `true` in the Relapse configuration, and by setting the "Backchannel Logout URL" in Keycloak.
 
 Follow the [Getting Started Guide](https://www.keycloak.org/guides) to install Keycloak and set up a realm.
 
@@ -471,7 +471,7 @@ Follow the [Getting Started Guide](https://www.keycloak.org/guides) to install K
 
 | Field | Value |
 |-----------|-----------|
-| Client ID | `synapse` |
+| Client ID | `relapse` |
 | Client Protocol | `openid-connect` |
 
 3. Click `Save`
@@ -479,12 +479,12 @@ Follow the [Getting Started Guide](https://www.keycloak.org/guides) to install K
 
 | Field | Value |
 |-----------|-----------|
-| Client ID | `synapse` |
+| Client ID | `relapse` |
 | Enabled | `On` |
 | Client Protocol | `openid-connect` |
 | Access Type | `confidential` |
-| Valid Redirect URIs | `[synapse public baseurl]/_synapse/client/oidc/callback` |
-| Backchannel Logout URL (optional) | `[synapse public baseurl]/_synapse/client/oidc/backchannel_logout` |
+| Valid Redirect URIs | `[relapse public baseurl]/_relapse/client/oidc/callback` |
+| Backchannel Logout URL (optional) | `[relapse public baseurl]/_relapse/client/oidc/backchannel_logout` |
 | Backchannel Logout Session Required (optional) | `On` |
 
 5. Click `Save`
@@ -502,7 +502,7 @@ oidc_providers:
   - idp_id: keycloak
     idp_name: "My KeyCloak server"
     issuer: "https://127.0.0.1:8443/realms/{realm_name}"
-    client_id: "synapse"
+    client_id: "relapse"
     client_secret: "copy secret generated from above"
     scopes: ["openid", "profile"]
     user_mapping_provider:
@@ -527,9 +527,9 @@ oidc_providers:
 - Scopes: OpenID, Email and Profile
 - Allowed redirection addresses for login (`Options > Basic > Allowed
   redirection addresses for login` ) :
-  `[synapse public baseurl]/_synapse/client/oidc/callback`
+  `[relapse public baseurl]/_relapse/client/oidc/callback`
 
-Synapse config:
+Relapse config:
 ```yaml
 oidc_providers:
   - idp_id: lemonldap
@@ -545,31 +545,31 @@ oidc_providers:
     user_mapping_provider:
       config:
         localpart_template: "{{ user.preferred_username }}}"
-        # TO BE FILLED: If your users have names in LemonLDAP::NG and you want those in Synapse, this should be replaced with user.name|capitalize or any valid filter.
+        # TO BE FILLED: If your users have names in LemonLDAP::NG and you want those in Relapse, this should be replaced with user.name|capitalize or any valid filter.
         display_name_template: "{{ user.preferred_username|capitalize }}"
 ```
 
 ### Mastodon
 
-[Mastodon](https://docs.joinmastodon.org/) instances provide an [OAuth API](https://docs.joinmastodon.org/spec/oauth/), allowing those instances to be used as a single sign-on provider for Synapse.
+[Mastodon](https://docs.joinmastodon.org/) instances provide an [OAuth API](https://docs.joinmastodon.org/spec/oauth/), allowing those instances to be used as a single sign-on provider for Relapse.
 
-The first step is to register Synapse as an application with your Mastodon instance, using the [Create an application API](https://docs.joinmastodon.org/methods/apps/#create) (see also [here](https://docs.joinmastodon.org/client/token/)). There are several ways to do this, but in the example below we are using CURL.
+The first step is to register Relapse as an application with your Mastodon instance, using the [Create an application API](https://docs.joinmastodon.org/methods/apps/#create) (see also [here](https://docs.joinmastodon.org/client/token/)). There are several ways to do this, but in the example below we are using CURL.
 
 This example assumes that:
 * the Mastodon instance website URL is `https://your.mastodon.instance.url`, and
-* Synapse will be registered as an app named `my_synapse_app`.
+* Relapse will be registered as an app named `my_relapse_app`.
 
-Send the following request, substituting the value of `synapse_public_baseurl` from your Synapse installation.
+Send the following request, substituting the value of `relapse_public_baseurl` from your Relapse installation.
 ```sh
-curl -d "client_name=my_synapse_app&redirect_uris=https://[synapse_public_baseurl]/_synapse/client/oidc/callback" -X POST https://your.mastodon.instance.url/api/v1/apps
+curl -d "client_name=my_relapse_app&redirect_uris=https://[relapse_public_baseurl]/_relapse/client/oidc/callback" -X POST https://your.mastodon.instance.url/api/v1/apps
 ```
 
 You should receive a response similar to the following. Make sure to save it.
 ```json
-{"client_id":"someclientid_123","client_secret":"someclientsecret_123","id":"12345","name":"my_synapse_app","redirect_uri":"https://[synapse_public_baseurl]/_synapse/client/oidc/callback","website":null,"vapid_key":"somerandomvapidkey_123"}
+{"client_id":"someclientid_123","client_secret":"someclientsecret_123","id":"12345","name":"my_relapse_app","redirect_uri":"https://[relapse_public_baseurl]/_relapse/client/oidc/callback","website":null,"vapid_key":"somerandomvapidkey_123"}
 ```
 
-As the Synapse login mechanism needs an attribute to uniquely identify users, and Mastodon's endpoint does not return a `sub` property, an alternative `subject_template` has to be set. Your Synapse configuration should include the following:
+As the Relapse login mechanism needs an attribute to uniquely identify users, and Mastodon's endpoint does not return a `sub` property, an alternative `subject_template` has to be set. Your Relapse configuration should include the following:
 
 ```yaml
 oidc_providers:
@@ -606,11 +606,11 @@ Note that the fields `client_id` and `client_secret` are taken from the CURL res
     "response_types": ["code"],
     "grant_types": ["authorization_code"],
     "scope": "openid profile email",
-    "redirect_uris": ["https://[synapse public baseurl]/_synapse/client/oidc/callback"]
+    "redirect_uris": ["https://[relapse public baseurl]/_relapse/client/oidc/callback"]
 }
 ```
 
-Synapse config:
+Relapse config:
 
 ```yaml
 oidc_providers:
@@ -637,9 +637,9 @@ oidc_providers:
 
 1. Setup a developer account on [Twitch](https://dev.twitch.tv/)
 2. Obtain the OAuth 2.0 credentials by [creating an app](https://dev.twitch.tv/console/apps/)
-3. Add this OAuth Redirect URL: `[synapse public baseurl]/_synapse/client/oidc/callback`
+3. Add this OAuth Redirect URL: `[relapse public baseurl]/_relapse/client/oidc/callback`
 
-Synapse config:
+Relapse config:
 
 ```yaml
 oidc_providers:
@@ -657,15 +657,15 @@ oidc_providers:
 
 ### Twitter
 
-*Using Twitter as an identity provider requires using Synapse 1.75.0 or later.*
+*Using Twitter as an identity provider requires using Relapse 1.75.0 or later.*
 
 1. Setup a developer account on [Twitter](https://developer.twitter.com/en/portal/dashboard)
 2. Create a project & app.
 3. Enable user authentication and under "Type of App" choose "Web App, Automated App or Bot".
-4. Under "App info" set the callback URL to `[synapse public baseurl]/_synapse/client/oidc/callback`.
+4. Under "App info" set the callback URL to `[relapse public baseurl]/_relapse/client/oidc/callback`.
 5. Obtain the OAuth 2.0 credentials under the "Keys and tokens" tab, copy the "OAuth 2.0 Client ID and Client Secret"
 
-Synapse config:
+Relapse config:
 
 ```yaml
 oidc_providers:
@@ -694,7 +694,7 @@ oidc_providers:
 
 Install [OpenID Connect Provider](https://extensions.xwiki.org/xwiki/bin/view/Extension/OpenID%20Connect/OpenID%20Connect%20Provider/) extension in your [XWiki](https://www.xwiki.org) instance.
 
-Synapse config:
+Relapse config:
 
 ```yaml
 oidc_providers:

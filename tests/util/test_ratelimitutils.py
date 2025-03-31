@@ -16,9 +16,9 @@ from typing import Optional
 from twisted.internet import defer
 from twisted.internet.defer import Deferred
 
-from synapse.config.homeserver import HomeServerConfig
-from synapse.config.ratelimiting import FederationRatelimitSettings
-from synapse.util.ratelimitutils import FederationRateLimiter
+from relapse.config.homeserver import HomeServerConfig
+from relapse.config.ratelimiting import FederationRatelimitSettings
+from relapse.util.ratelimitutils import FederationRateLimiter
 
 from tests.server import ThreadedMemoryReactorClock, get_clock
 from tests.unittest import TestCase

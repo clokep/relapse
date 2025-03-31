@@ -21,14 +21,14 @@ import jsonschema
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.constants import EduTypes, EventContentFields
-from synapse.api.errors import SynapseError
-from synapse.api.filtering import Filter
-from synapse.api.presence import UserPresenceState
-from synapse.server import HomeServer
-from synapse.types import JsonDict, UserID
-from synapse.util import Clock
-from synapse.util.frozenutils import freeze
+from relapse.api.constants import EduTypes, EventContentFields
+from relapse.api.errors import RelapseError
+from relapse.api.filtering import Filter
+from relapse.api.presence import UserPresenceState
+from relapse.server import HomeServer
+from relapse.types import JsonDict, UserID
+from relapse.util import Clock
+from relapse.util.frozenutils import freeze
 
 from tests import unittest
 from tests.events.test_utils import MockEvent
@@ -55,7 +55,7 @@ class FilteringTestCase(unittest.HomeserverTestCase):
             {"presence": {"senders": ["@bar;pik.test.com"]}},
         ]
         for filter in invalid_filters:
-            with self.assertRaises(SynapseError):
+            with self.assertRaises(RelapseError):
                 self.filtering.check_valid_filter(filter)
 
     def test_ignores_unknown_filter_fields(self) -> None:
@@ -112,7 +112,7 @@ class FilteringTestCase(unittest.HomeserverTestCase):
                 "event_fields": ["type", "content", "sender"],
             },
             # (note that event_fields is implemented in
-            # synapse.events.utils.serialize_event, and so whether this actually works
+            # relapse.events.utils.serialize_event, and so whether this actually works
             # is tested elsewhere. We just want to check that it is allowed through the
             # filter validation)
             {"event_fields": [r"foo\.bar"]},

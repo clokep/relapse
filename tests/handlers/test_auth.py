@@ -18,11 +18,11 @@ import pymacaroons
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.errors import AuthError, ResourceLimitError
-from synapse.rest import admin
-from synapse.rest.client import login
-from synapse.server import HomeServer
-from synapse.util import Clock
+from relapse.api.errors import AuthError, ResourceLimitError
+from relapse.rest import admin
+from relapse.rest.client import login
+from relapse.server import HomeServer
+from relapse.util import Clock
 
 from tests import unittest
 

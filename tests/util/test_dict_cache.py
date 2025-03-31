@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from synapse.util.caches.dictionary_cache import DictionaryCache
+from relapse.util.caches.dictionary_cache import DictionaryCache
 
 from tests import unittest
 

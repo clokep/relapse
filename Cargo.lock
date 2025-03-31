@@ -326,6 +326,23 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dbb5fb1acd8a1a18b3dd5be62d25485eb770e05afb408a9627d14d451bae12da"
 
 [[package]]
+name = "relapse"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "blake2",
+ "hex",
+ "lazy_static",
+ "log",
+ "pyo3",
+ "pyo3-log",
+ "pythonize",
+ "regex",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "ryu"
 version = "1.0.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -389,23 +406,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-ident",
-]
-
-[[package]]
-name = "synapse"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "blake2",
- "hex",
- "lazy_static",
- "log",
- "pyo3",
- "pyo3-log",
- "pythonize",
- "regex",
- "serde",
- "serde_json",
 ]
 
 [[package]]

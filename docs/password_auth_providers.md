@@ -1,5 +1,5 @@
 <h2 style="color:red">
-This page of the Synapse documentation is now deprecated. For up to date
+This page of the Relapse documentation is now deprecated. For up to date
 documentation on setting up or writing a password auth provider module, please see
 <a href="modules/index.md">this page</a>.
 </h2>
@@ -7,20 +7,20 @@ documentation on setting up or writing a password auth provider module, please s
 # Password auth provider modules
 
 Password auth providers offer a way for server administrators to
-integrate their Synapse installation with an existing authentication
+integrate their Relapse installation with an existing authentication
 system.
 
 A password auth provider is a Python class which is dynamically loaded
-into Synapse, and provides a number of methods by which it can integrate
+into Relapse, and provides a number of methods by which it can integrate
 with the authentication system.
 
 This document serves as a reference for those looking to implement their
 own password auth providers. Additionally, here is a list of known
 password auth provider module implementations:
 
-* [matrix-synapse-ldap3](https://github.com/matrix-org/matrix-synapse-ldap3/)
-* [matrix-synapse-shared-secret-auth](https://github.com/devture/matrix-synapse-shared-secret-auth)
-* [matrix-synapse-rest-password-provider](https://github.com/ma1uta/matrix-synapse-rest-password-provider)
+* [matrix-relapse-ldap3](https://github.com/matrix-org/matrix-relapse-ldap3/)
+* [matrix-relapse-shared-secret-auth](https://github.com/devture/matrix-relapse-shared-secret-auth)
+* [matrix-relapse-rest-password-provider](https://github.com/ma1uta/matrix-relapse-rest-password-provider)
 
 ## Required methods
 
@@ -39,7 +39,7 @@ Password auth provider classes must provide the following methods:
 * `__init__(self, config, account_handler)`
 
   The constructor is passed the config object returned by
-  `parse_config`, and a `synapse.module_api.ModuleApi` object which
+  `parse_config`, and a `relapse.module_api.ModuleApi` object which
   allows the password provider to check if accounts exist and/or create
   new ones.
 

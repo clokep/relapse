@@ -21,19 +21,19 @@ import pkg_resources
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import synapse.rest.admin
-from synapse.api.constants import (
+import relapse.rest.admin
+from relapse.api.constants import (
     APP_SERVICE_REGISTRATION_TYPE,
     ApprovalNoticeMedium,
     LoginType,
 )
-from synapse.api.errors import Codes
-from synapse.appservice import ApplicationService
-from synapse.rest.client import account, account_validity, login, logout, register, sync
-from synapse.server import HomeServer
-from synapse.storage._base import db_to_json
-from synapse.types import JsonDict
-from synapse.util import Clock
+from relapse.api.errors import Codes
+from relapse.appservice import ApplicationService
+from relapse.rest.client import account, account_validity, login, logout, register, sync
+from relapse.server import HomeServer
+from relapse.storage._base import db_to_json
+from relapse.types import JsonDict
+from relapse.util import Clock
 
 from tests import unittest
 from tests.unittest import override_config
@@ -43,7 +43,7 @@ class RegisterRestServletTestCase(unittest.HomeserverTestCase):
     servlets = [
         login.register_servlets,
         register.register_servlets,
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
     ]
     url = b"/_matrix/client/r0/register"
 
@@ -236,7 +236,7 @@ class RegisterRestServletTestCase(unittest.HomeserverTestCase):
         channel = self.make_request(b"POST", self.url, params)
         self.assertEqual(channel.code, 401, msg=channel.result)
         flows = channel.json_body["flows"]
-        # Synapse adds a dummy stage to differentiate flows where otherwise one
+        # Relapse adds a dummy stage to differentiate flows where otherwise one
         # flow would be a subset of another flow.
         self.assertCountEqual(
             [[LoginType.REGISTRATION_TOKEN, LoginType.DUMMY]],
@@ -591,7 +591,7 @@ class RegisterRestServletTestCase(unittest.HomeserverTestCase):
             "account_threepid_delegates": {
                 "msisdn": "https://id_server",
             },
-            "email": {"notif_from": "Synapse <synapse@example.com>"},
+            "email": {"notif_from": "Relapse <relapse@example.com>"},
         }
     )
     def test_advertised_flows_captcha_and_terms_and_3pids(self) -> None:
@@ -798,7 +798,7 @@ class RegisterRestServletTestCase(unittest.HomeserverTestCase):
 class AccountValidityTestCase(unittest.HomeserverTestCase):
     servlets = [
         register.register_servlets,
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        relapse.rest.admin.register_servlets_for_client_rest_resource,
         login.register_servlets,
         sync.register_servlets,
         logout.register_servlets,
@@ -848,7 +848,7 @@ class AccountValidityTestCase(unittest.HomeserverTestCase):
         self.register_user("admin", "adminpassword", admin=True)
         admin_tok = self.login("admin", "adminpassword")
 
-        url = "/_synapse/admin/v1/account_validity/validity"
+        url = "/_relapse/admin/v1/account_validity/validity"
         request_data = {"user_id": user_id}
         channel = self.make_request(b"POST", url, request_data, access_token=admin_tok)
         self.assertEqual(channel.code, 200, msg=channel.result)
@@ -865,7 +865,7 @@ class AccountValidityTestCase(unittest.HomeserverTestCase):
         self.register_user("admin", "adminpassword", admin=True)
         admin_tok = self.login("admin", "adminpassword")
 
-        url = "/_synapse/admin/v1/account_validity/validity"
+        url = "/_relapse/admin/v1/account_validity/validity"
         request_data = {
             "user_id": user_id,
             "expiration_ts": 0,
@@ -889,7 +889,7 @@ class AccountValidityTestCase(unittest.HomeserverTestCase):
         self.register_user("admin", "adminpassword", admin=True)
         admin_tok = self.login("admin", "adminpassword")
 
-        url = "/_synapse/admin/v1/account_validity/validity"
+        url = "/_relapse/admin/v1/account_validity/validity"
         request_data = {
             "user_id": user_id,
             "expiration_ts": 0,
@@ -913,7 +913,7 @@ class AccountValidityTestCase(unittest.HomeserverTestCase):
 class AccountValidityRenewalByEmailTestCase(unittest.HomeserverTestCase):
     servlets = [
         register.register_servlets,
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        relapse.rest.admin.register_servlets_for_client_rest_resource,
         login.register_servlets,
         sync.register_servlets,
         account_validity.register_servlets,
@@ -941,7 +941,7 @@ class AccountValidityRenewalByEmailTestCase(unittest.HomeserverTestCase):
         config["email"] = {
             "enable_notifs": True,
             "template_dir": os.path.abspath(
-                pkg_resources.resource_filename("synapse", "res/templates")
+                pkg_resources.resource_filename("relapse", "res/templates")
             ),
             "expiry_template_html": "notice_expiry.html",
             "expiry_template_text": "notice_expiry.txt",
@@ -1129,7 +1129,7 @@ class AccountValidityRenewalByEmailTestCase(unittest.HomeserverTestCase):
 
 
 class AccountValidityBackgroundJobTestCase(unittest.HomeserverTestCase):
-    servlets = [synapse.rest.admin.register_servlets_for_client_rest_resource]
+    servlets = [relapse.rest.admin.register_servlets_for_client_rest_resource]
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         self.validity_period = 10
@@ -1144,7 +1144,7 @@ class AccountValidityBackgroundJobTestCase(unittest.HomeserverTestCase):
 
         # We need to set these directly, instead of in the homeserver config dict above.
         # This is due to account validity-related config options not being read by
-        # Synapse when account_validity.enabled is False.
+        # Relapse when account_validity.enabled is False.
         self.hs.get_datastores().main._account_validity_period = self.validity_period
         self.hs.get_datastores().main._account_validity_startup_job_max_delta = (
             self.max_delta

@@ -18,16 +18,16 @@ import attr
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.constants import EduTypes
-from synapse.events.presence_router import PresenceRouter, load_legacy_presence_router
-from synapse.federation.units import Transaction
-from synapse.handlers.presence import UserPresenceState
-from synapse.module_api import ModuleApi
-from synapse.rest import admin
-from synapse.rest.client import login, presence, room
-from synapse.server import HomeServer
-from synapse.types import JsonDict, StreamToken, create_requester
-from synapse.util import Clock
+from relapse.api.constants import EduTypes
+from relapse.events.presence_router import PresenceRouter, load_legacy_presence_router
+from relapse.federation.units import Transaction
+from relapse.handlers.presence import UserPresenceState
+from relapse.module_api import ModuleApi
+from relapse.rest import admin
+from relapse.rest.client import login, presence, room
+from relapse.server import HomeServer
+from relapse.types import JsonDict, StreamToken, create_requester
+from relapse.util import Clock
 
 from tests.handlers.test_sync import generate_sync_config
 from tests.unittest import (

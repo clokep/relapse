@@ -16,11 +16,11 @@ from unittest.mock import AsyncMock, Mock
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.handlers.presence import PresenceHandler
-from synapse.rest.client import presence
-from synapse.server import HomeServer
-from synapse.types import UserID
-from synapse.util import Clock
+from relapse.handlers.presence import PresenceHandler
+from relapse.rest.client import presence
+from relapse.server import HomeServer
+from relapse.types import UserID
+from relapse.util import Clock
 
 from tests import unittest
 

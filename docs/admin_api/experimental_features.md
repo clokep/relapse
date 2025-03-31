@@ -31,7 +31,7 @@ where true is  used to enable the feature, and false is used to disable the feat
 The API is:
 
 ```
-PUT /_synapse/admin/v1/experimental_features/<user_id>
+PUT /_relapse/admin/v1/experimental_features/<user_id>
 ```
 
 ## Listing Enabled Features
@@ -39,7 +39,7 @@ PUT /_synapse/admin/v1/experimental_features/<user_id>
 To list which features are enabled/disabled for a given user send a request to the following API:
 
 ```
-GET /_synapse/admin/v1/experimental_features/<user_id>
+GET /_relapse/admin/v1/experimental_features/<user_id>
 ```
 
 It will return a list of possible features and indicate whether they are enabled or disabled for the

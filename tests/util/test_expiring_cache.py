@@ -14,8 +14,8 @@
 
 from typing import List, cast
 
-from synapse.util import Clock
-from synapse.util.caches.expiringcache import ExpiringCache
+from relapse.util import Clock
+from relapse.util.caches.expiringcache import ExpiringCache
 
 from tests.utils import MockClock
 

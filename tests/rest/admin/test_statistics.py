@@ -17,12 +17,12 @@ from typing import Dict, List, Optional
 from twisted.test.proto_helpers import MemoryReactor
 from twisted.web.resource import Resource
 
-import synapse.rest.admin
-from synapse.api.errors import Codes
-from synapse.rest.client import login
-from synapse.server import HomeServer
-from synapse.types import JsonDict
-from synapse.util import Clock
+import relapse.rest.admin
+from relapse.api.errors import Codes
+from relapse.rest.client import login
+from relapse.server import HomeServer
+from relapse.types import JsonDict
+from relapse.util import Clock
 
 from tests import unittest
 from tests.test_utils import SMALL_PNG
@@ -30,7 +30,7 @@ from tests.test_utils import SMALL_PNG
 
 class UserMediaStatisticsTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         login.register_servlets,
     ]
 
@@ -41,7 +41,7 @@ class UserMediaStatisticsTestCase(unittest.HomeserverTestCase):
         self.other_user = self.register_user("user", "pass")
         self.other_user_tok = self.login("user", "pass")
 
-        self.url = "/_synapse/admin/v1/statistics/users/media"
+        self.url = "/_relapse/admin/v1/statistics/users/media"
 
     def create_resource_dict(self) -> Dict[str, Resource]:
         resources = super().create_resource_dict()

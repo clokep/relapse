@@ -14,7 +14,7 @@
 
 from unittest.mock import Mock
 
-from synapse.util.caches.ttlcache import TTLCache
+from relapse.util.caches.ttlcache import TTLCache
 
 from tests import unittest
 

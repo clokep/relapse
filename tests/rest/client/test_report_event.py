@@ -14,18 +14,18 @@
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import synapse.rest.admin
-from synapse.rest.client import login, report_event, room
-from synapse.server import HomeServer
-from synapse.types import JsonDict
-from synapse.util import Clock
+import relapse.rest.admin
+from relapse.rest.client import login, report_event, room
+from relapse.server import HomeServer
+from relapse.types import JsonDict
+from relapse.util import Clock
 
 from tests import unittest
 
 
 class ReportEventTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         login.register_servlets,
         room.register_servlets,
         report_event.register_servlets,

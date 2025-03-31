@@ -14,7 +14,7 @@
 
 import yaml
 
-from synapse.config.room_directory import RoomDirectoryConfig
+from relapse.config.room_directory import RoomDirectoryConfig
 
 from tests import unittest
 

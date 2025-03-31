@@ -19,12 +19,12 @@ from unittest.mock import AsyncMock, patch
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.constants import AccountDataTypes, EventTypes, RelationTypes
-from synapse.rest import admin
-from synapse.rest.client import login, register, relations, room, sync
-from synapse.server import HomeServer
-from synapse.types import JsonDict
-from synapse.util import Clock
+from relapse.api.constants import AccountDataTypes, EventTypes, RelationTypes
+from relapse.rest import admin
+from relapse.rest.client import login, register, relations, room, sync
+from relapse.server import HomeServer
+from relapse.types import JsonDict
+from relapse.util import Clock
 
 from tests import unittest
 from tests.server import FakeChannel
@@ -262,7 +262,7 @@ class RelationsTestCase(BaseRelationsTestCase):
 
         # Disable the validation to pretend this came over federation.
         with patch(
-            "synapse.handlers.message.EventCreationHandler._validate_event_relation",
+            "relapse.handlers.message.EventCreationHandler._validate_event_relation",
             new_callable=AsyncMock,
             return_value=None,
         ):
@@ -1299,7 +1299,7 @@ class BundledAggregationsTestCase(BaseRelationsTestCase):
         # Disable the validation to pretend this came over federation, since it is
         # not an event the Client-Server API will allow..
         with patch(
-            "synapse.handlers.message.EventCreationHandler._validate_event_relation",
+            "relapse.handlers.message.EventCreationHandler._validate_event_relation",
             new_callable=AsyncMock,
             return_value=None,
         ):

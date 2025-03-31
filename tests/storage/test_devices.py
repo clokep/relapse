@@ -16,11 +16,11 @@ from typing import Collection, List, Tuple
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import synapse.api.errors
-from synapse.api.constants import EduTypes
-from synapse.server import HomeServer
-from synapse.types import JsonDict
-from synapse.util import Clock
+import relapse.api.errors
+from relapse.api.constants import EduTypes
+from relapse.server import HomeServer
+from relapse.types import JsonDict
+from relapse.util import Clock
 
 from tests.unittest import HomeserverTestCase
 
@@ -333,6 +333,6 @@ class DeviceStoreTestCase(HomeserverTestCase):
             self.store.update_device(
                 "user_id", "unknown_device_id", new_display_name="display_name 2"
             ),
-            synapse.api.errors.StoreError,
+            relapse.api.errors.StoreError,
         )
         self.assertEqual(404, exc.value.code)

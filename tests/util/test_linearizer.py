@@ -21,8 +21,8 @@ from twisted.internet import defer, reactor
 from twisted.internet.base import ReactorBase
 from twisted.internet.defer import CancelledError, Deferred
 
-from synapse.logging.context import LoggingContext, current_context
-from synapse.util.async_helpers import Linearizer
+from relapse.logging.context import LoggingContext, current_context
+from relapse.util.async_helpers import Linearizer
 
 from tests import unittest
 

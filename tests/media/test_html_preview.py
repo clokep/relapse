@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from synapse.media.preview_html import (
+from relapse.media.preview_html import (
     _get_html_media_encodings,
     decode_body,
     parse_html_to_open_graph,

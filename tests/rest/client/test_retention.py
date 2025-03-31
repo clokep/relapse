@@ -16,13 +16,13 @@ from unittest.mock import Mock
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.constants import EventTypes
-from synapse.rest import admin
-from synapse.rest.client import login, room
-from synapse.server import HomeServer
-from synapse.types import JsonDict, create_requester
-from synapse.util import Clock
-from synapse.visibility import filter_events_for_client
+from relapse.api.constants import EventTypes
+from relapse.rest import admin
+from relapse.rest.client import login, room
+from relapse.server import HomeServer
+from relapse.types import JsonDict, create_requester
+from relapse.util import Clock
+from relapse.visibility import filter_events_for_client
 
 from tests import unittest
 from tests.unittest import override_config
@@ -124,7 +124,7 @@ class RetentionTestCase(unittest.HomeserverTestCase):
 
     @override_config({"retention": {"purge_jobs": [{"interval": "5d"}]}})
     def test_visibility(self) -> None:
-        """Tests that synapse.visibility.filter_events_for_client correctly filters out
+        """Tests that relapse.visibility.filter_events_for_client correctly filters out
         outdated events, even if the purge job hasn't got to them yet.
 
         We do this by setting a very long time between purge jobs.
@@ -175,7 +175,7 @@ class RetentionTestCase(unittest.HomeserverTestCase):
         5. Check that event 1 has been purged
         6. Check that event 2 has not been purged
         7. Check that state events that were sent before event 1 aren't purged.
-        The main reason for sending a second event is because currently Synapse won't
+        The main reason for sending a second event is because currently Relapse won't
         purge the latest message in a room because it would otherwise result in a lack of
         forward extremities for this room. It's also a good thing to ensure the purge jobs
         aren't too greedy and purge messages they shouldn't.

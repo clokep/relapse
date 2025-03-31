@@ -14,9 +14,9 @@
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.rest.client import rendezvous
-from synapse.server import HomeServer
-from synapse.util import Clock
+from relapse.rest.client import rendezvous
+from relapse.server import HomeServer
+from relapse.util import Clock
 
 from tests import unittest
 from tests.unittest import override_config

@@ -16,9 +16,9 @@ import os.path
 import tempfile
 from unittest.mock import Mock
 
-from synapse.config import ConfigError
-from synapse.config._base import Config
-from synapse.util.stringutils import random_string
+from relapse.config import ConfigError
+from relapse.config._base import Config
+from relapse.util.stringutils import random_string
 
 from tests import unittest
 

@@ -1,8 +1,8 @@
 # Internal Documentation
 
-This section covers implementation documentation for various parts of Synapse.
+This section covers implementation documentation for various parts of Relapse.
 
-If a developer is planning to make a change to a feature of Synapse, it can be useful for
+If a developer is planning to make a change to a feature of Relapse, it can be useful for
 general documentation of how that feature is implemented to be available. This saves the
 developer time in place of needing to understand how the feature works by reading the
 code.

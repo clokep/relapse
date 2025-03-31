@@ -1,12 +1,12 @@
 <h2 style="color:red">
-This page of the Synapse documentation is now deprecated. For up to date
+This page of the Relapse documentation is now deprecated. For up to date
 documentation on setting up or writing a presence router module, please see
 <a href="modules.md">this page</a>.
 </h2>
 
 # Presence Router Module
 
-Synapse supports configuring a module that can specify additional users
+Relapse supports configuring a module that can specify additional users
 (local or remote) to should receive certain presence updates from local
 users.
 
@@ -14,14 +14,14 @@ Note that routing presence via Application Service transactions is not
 currently supported.
 
 The presence routing module is implemented as a Python class, which will
-be imported by the running Synapse.
+be imported by the running Relapse.
 
 ## Python Presence Router Class
 
 The Python class is instantiated with two objects:
 
 * A configuration object of some type (see below).
-* An instance of `synapse.module_api.ModuleApi`.
+* An instance of `relapse.module_api.ModuleApi`.
 
 It then implements methods related to presence routing.
 
@@ -68,9 +68,9 @@ async def get_users_for_states(
 state. This method can determine whether a given presence update should be sent to certain
 users. It does this by returning a dictionary with keys representing local or remote
 Matrix User IDs, and values being a python set
-of `synapse.handlers.presence.UserPresenceState` instances.
+of `relapse.handlers.presence.UserPresenceState` instances.
 
-Synapse will then attempt to send the specified presence updates to each user when
+Relapse will then attempt to send the specified presence updates to each user when
 possible.
 
 #### `get_interested_users`
@@ -86,7 +86,7 @@ what this method returns is sent in addition to the updates already sent between
 that share a room together. Presence updates are deduplicated.
 
 This method should return a python set of Matrix User IDs, or the object
-`synapse.events.presence_router.PresenceRouter.ALL_USERS` to indicate that the passed
+`relapse.events.presence_router.PresenceRouter.ALL_USERS` to indicate that the passed
 user should receive presence information for *all* known users.
 
 For clarity, if the user `@alice:example.org` is passed to this method, and the Set
@@ -100,9 +100,9 @@ Below is an example implementation of a presence router class.
 
 ```python
 from typing import Dict, Iterable, Set, Union
-from synapse.events.presence_router import PresenceRouter
-from synapse.handlers.presence import UserPresenceState
-from synapse.module_api import ModuleApi
+from relapse.events.presence_router import PresenceRouter
+from relapse.handlers.presence import UserPresenceState
+from relapse.module_api import ModuleApi
 
 class PresenceRouterConfig:
     def __init__(self):
@@ -115,13 +115,13 @@ class PresenceRouterConfig:
         self.blacklisted_users = []  # type: List[str]
 
 class ExamplePresenceRouter:
-    """An example implementation of synapse.presence_router.PresenceRouter.
+    """An example implementation of relapse.presence_router.PresenceRouter.
     Supports routing all presence to a configured set of users, or a subset
     of presence from certain users to members of certain rooms.
 
     Args:
         config: A configuration object.
-        module_api: An instance of Synapse's ModuleApi.
+        module_api: An instance of Relapse's ModuleApi.
     """
     def __init__(self, config: PresenceRouterConfig, module_api: ModuleApi):
         self._config = config
@@ -144,7 +144,7 @@ class ExamplePresenceRouter:
         blacklisted_users = config_dict.get("blacklisted_users")
 
         # Do some validation of config options... otherwise raise a
-        # synapse.config.ConfigError.
+        # relapse.config.ConfigError.
         config.always_send_to_users = always_send_to_users
         config.blacklisted_users = blacklisted_users
 
@@ -224,7 +224,7 @@ Their routing logic should thus line up, else you may run into unintended behavi
 ## Configuration
 
 Once you've crafted your module and installed it into the same Python environment as
-Synapse, amend your homeserver config file with the following.
+Relapse, amend your homeserver config file with the following.
 
 ```yaml
 presence:

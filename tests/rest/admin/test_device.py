@@ -17,19 +17,19 @@ from parameterized import parameterized
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import synapse.rest.admin
-from synapse.api.errors import Codes
-from synapse.handlers.device import DeviceHandler
-from synapse.rest.client import login
-from synapse.server import HomeServer
-from synapse.util import Clock
+import relapse.rest.admin
+from relapse.api.errors import Codes
+from relapse.handlers.device import DeviceHandler
+from relapse.rest.client import login
+from relapse.server import HomeServer
+from relapse.util import Clock
 
 from tests import unittest
 
 
 class DeviceRestTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         login.register_servlets,
     ]
 
@@ -46,7 +46,7 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
         res = self.get_success(self.handler.get_devices_by_user(self.other_user))
         self.other_user_device_id = res[0]["device_id"]
 
-        self.url = "/_synapse/admin/v2/users/%s/devices/%s" % (
+        self.url = "/_relapse/admin/v2/users/%s/devices/%s" % (
             urllib.parse.quote(self.other_user),
             self.other_user_device_id,
         )
@@ -89,7 +89,7 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
         Tests that a lookup for a user that does not exist returns a 404
         """
         url = (
-            "/_synapse/admin/v2/users/@unknown_person:test/devices/%s"
+            "/_relapse/admin/v2/users/@unknown_person:test/devices/%s"
             % self.other_user_device_id
         )
 
@@ -108,7 +108,7 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
         Tests that a lookup for a user that is not a local returns a 400
         """
         url = (
-            "/_synapse/admin/v2/users/@unknown_person:unknown_domain/devices/%s"
+            "/_relapse/admin/v2/users/@unknown_person:unknown_domain/devices/%s"
             % self.other_user_device_id
         )
 
@@ -125,7 +125,7 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
         """
         Tests that a lookup for a device that does not exist returns either 404 or 200.
         """
-        url = "/_synapse/admin/v2/users/%s/devices/unknown_device" % urllib.parse.quote(
+        url = "/_relapse/admin/v2/users/%s/devices/unknown_device" % urllib.parse.quote(
             self.other_user
         )
 
@@ -170,7 +170,7 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
         # Request to update a device display name with a new value that is longer than allowed.
         update = {
             "display_name": "a"
-            * (synapse.handlers.device.MAX_DEVICE_DISPLAY_NAME_LEN + 1)
+            * (relapse.handlers.device.MAX_DEVICE_DISPLAY_NAME_LEN + 1)
         }
 
         channel = self.make_request(
@@ -291,7 +291,7 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
 
 class DevicesRestTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         login.register_servlets,
     ]
 
@@ -301,7 +301,7 @@ class DevicesRestTestCase(unittest.HomeserverTestCase):
 
         self.other_user = self.register_user("user", "pass")
 
-        self.url = "/_synapse/admin/v2/users/%s/devices" % urllib.parse.quote(
+        self.url = "/_relapse/admin/v2/users/%s/devices" % urllib.parse.quote(
             self.other_user
         )
 
@@ -341,7 +341,7 @@ class DevicesRestTestCase(unittest.HomeserverTestCase):
         """
         Tests that a lookup for a user that does not exist returns a 404
         """
-        url = "/_synapse/admin/v2/users/@unknown_person:test/devices"
+        url = "/_relapse/admin/v2/users/@unknown_person:test/devices"
         channel = self.make_request(
             "GET",
             url,
@@ -355,7 +355,7 @@ class DevicesRestTestCase(unittest.HomeserverTestCase):
         """
         Tests that a lookup for a user that is not a local returns a 400
         """
-        url = "/_synapse/admin/v2/users/@unknown_person:unknown_domain/devices"
+        url = "/_relapse/admin/v2/users/@unknown_person:unknown_domain/devices"
 
         channel = self.make_request(
             "GET",
@@ -414,7 +414,7 @@ class DevicesRestTestCase(unittest.HomeserverTestCase):
 
 class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         login.register_servlets,
     ]
 
@@ -426,7 +426,7 @@ class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
 
         self.other_user = self.register_user("user", "pass")
 
-        self.url = "/_synapse/admin/v2/users/%s/delete_devices" % urllib.parse.quote(
+        self.url = "/_relapse/admin/v2/users/%s/delete_devices" % urllib.parse.quote(
             self.other_user
         )
 
@@ -466,7 +466,7 @@ class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
         """
         Tests that a lookup for a user that does not exist returns a 404
         """
-        url = "/_synapse/admin/v2/users/@unknown_person:test/delete_devices"
+        url = "/_relapse/admin/v2/users/@unknown_person:test/delete_devices"
         channel = self.make_request(
             "POST",
             url,
@@ -480,7 +480,7 @@ class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
         """
         Tests that a lookup for a user that is not a local returns a 400
         """
-        url = "/_synapse/admin/v2/users/@unknown_person:unknown_domain/delete_devices"
+        url = "/_relapse/admin/v2/users/@unknown_person:unknown_domain/delete_devices"
 
         channel = self.make_request(
             "POST",

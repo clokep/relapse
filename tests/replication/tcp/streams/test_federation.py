@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from synapse.federation.send_queue import EduRow
-from synapse.replication.tcp.streams.federation import FederationStream
+from relapse.federation.send_queue import EduRow
+from relapse.replication.tcp.streams.federation import FederationStream
 
 from tests.replication._base import BaseStreamTestCase
 

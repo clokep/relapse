@@ -38,23 +38,23 @@ from twisted.web.http import HTTPChannel, Request
 from twisted.web.http_headers import Headers
 from twisted.web.iweb import IPolicyForHTTPS, IResponse
 
-from synapse.config.homeserver import HomeServerConfig
-from synapse.crypto.context_factory import FederationPolicyForHTTPS
-from synapse.http.federation.matrix_federation_agent import MatrixFederationAgent
-from synapse.http.federation.srv_resolver import Server, SrvResolver
-from synapse.http.federation.well_known_resolver import (
+from relapse.config.homeserver import HomeServerConfig
+from relapse.crypto.context_factory import FederationPolicyForHTTPS
+from relapse.http.federation.matrix_federation_agent import MatrixFederationAgent
+from relapse.http.federation.srv_resolver import Server, SrvResolver
+from relapse.http.federation.well_known_resolver import (
     WELL_KNOWN_MAX_SIZE,
     WellKnownResolver,
     _cache_period_from_headers,
 )
-from synapse.logging.context import (
+from relapse.logging.context import (
     SENTINEL_CONTEXT,
     LoggingContext,
     LoggingContextOrSentinel,
     current_context,
 )
-from synapse.types import ISynapseReactor
-from synapse.util.caches.ttlcache import TTLCache
+from relapse.types import IRelapseReactor
+from relapse.util.caches.ttlcache import TTLCache
 
 from tests import unittest
 from tests.http import dummy_address, get_test_ca_cert_file, wrap_server_factory_for_tls
@@ -263,7 +263,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
         because it is created too early during setUp
         """
         return MatrixFederationAgent(
-            reactor=cast(ISynapseReactor, self.reactor),
+            reactor=cast(IRelapseReactor, self.reactor),
             tls_client_options_factory=self.tls_factory,
             user_agent=b"test-agent",  # Note that this is unused since _well_known_resolver is provided.
             ip_allowlist=IPSet(),
@@ -1012,7 +1012,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
             ip_blocklist=IPSet(),
             _srv_resolver=self.mock_resolver,
             _well_known_resolver=WellKnownResolver(
-                cast(ISynapseReactor, self.reactor),
+                cast(IRelapseReactor, self.reactor),
                 Agent(self.reactor, contextFactory=tls_factory),
                 b"test-agent",
                 well_known_cache=self.well_known_cache,

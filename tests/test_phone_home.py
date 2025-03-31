@@ -17,12 +17,12 @@ from unittest import mock
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.app.phone_stats_home import phone_stats_home
-from synapse.rest import admin
-from synapse.rest.client import login, sync
-from synapse.server import HomeServer
-from synapse.types import JsonDict
-from synapse.util import Clock
+from relapse.app.phone_stats_home import phone_stats_home
+from relapse.rest import admin
+from relapse.rest.client import login, sync
+from relapse.server import HomeServer
+from relapse.types import JsonDict
+from relapse.util import Clock
 
 from tests.unittest import HomeserverTestCase
 

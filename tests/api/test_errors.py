@@ -14,7 +14,7 @@
 
 import json
 
-from synapse.api.errors import LimitExceededError
+from relapse.api.errors import LimitExceededError
 
 from tests import unittest
 

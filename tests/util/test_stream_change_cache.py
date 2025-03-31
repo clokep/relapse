@@ -1,4 +1,4 @@
-from synapse.util.caches.stream_change_cache import StreamChangeCache
+from relapse.util.caches.stream_change_cache import StreamChangeCache
 
 from tests import unittest
 

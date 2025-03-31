@@ -53,28 +53,28 @@ from twisted.trial import unittest
 from twisted.web.resource import Resource
 from twisted.web.server import Request
 
-from synapse import events
-from synapse.api.constants import EventTypes
-from synapse.api.room_versions import KNOWN_ROOM_VERSIONS, RoomVersion
-from synapse.config._base import Config, RootConfig
-from synapse.config.homeserver import HomeServerConfig
-from synapse.config.server import DEFAULT_ROOM_VERSION
-from synapse.crypto.event_signing import add_hashes_and_signatures
-from synapse.federation.transport.server import TransportLayerServer
-from synapse.http.server import JsonResource, OptionsResource
-from synapse.http.site import SynapseRequest, SynapseSite
-from synapse.logging.context import (
+from relapse import events
+from relapse.api.constants import EventTypes
+from relapse.api.room_versions import KNOWN_ROOM_VERSIONS, RoomVersion
+from relapse.config._base import Config, RootConfig
+from relapse.config.homeserver import HomeServerConfig
+from relapse.config.server import DEFAULT_ROOM_VERSION
+from relapse.crypto.event_signing import add_hashes_and_signatures
+from relapse.federation.transport.server import TransportLayerServer
+from relapse.http.server import JsonResource, OptionsResource
+from relapse.http.site import RelapseRequest, RelapseSite
+from relapse.logging.context import (
     SENTINEL_CONTEXT,
     LoggingContext,
     current_context,
     set_current_context,
 )
-from synapse.rest import RegisterServletsFunc
-from synapse.server import HomeServer
-from synapse.storage.keys import FetchKeyResult
-from synapse.types import JsonDict, Requester, UserID, create_requester
-from synapse.util import Clock
-from synapse.util.httpresourcetree import create_resource_tree
+from relapse.rest import RegisterServletsFunc
+from relapse.server import HomeServer
+from relapse.storage.keys import FetchKeyResult
+from relapse.types import JsonDict, Requester, UserID, create_requester
+from relapse.util import Clock
+from relapse.util.httpresourcetree import create_resource_tree
 
 from tests.server import (
     CustomHeaderType,
@@ -288,7 +288,7 @@ def logcontext_clean(target: TV) -> TV:
     def logcontext_error(msg: str) -> NoReturn:
         raise AssertionError("logcontext error: %s" % (msg))
 
-    patcher = patch("synapse.logging.context.logcontext_error", new=logcontext_error)
+    patcher = patch("relapse.logging.context.logcontext_error", new=logcontext_error)
     return patcher(target)  # type: ignore[call-overload]
 
 
@@ -352,8 +352,8 @@ class HomeserverTestCase(TestCase):
 
         # create the root resource, and a site to wrap it.
         self.resource = self.create_test_resource()
-        self.site = SynapseSite(
-            logger_name="synapse.access.http.fake",
+        self.site = RelapseSite(
+            logger_name="relapse.access.http.fake",
             site_tag=self.hs.config.server.server_name,
             config=self.hs.config.server.listeners[0],
             resource=self.resource,
@@ -477,7 +477,7 @@ class HomeserverTestCase(TestCase):
             servlet(self.hs, servlet_resource)
         return {
             "/_matrix/client": servlet_resource,
-            "/_synapse/admin": servlet_resource,
+            "/_relapse/admin": servlet_resource,
         }
 
     def default_config(self) -> JsonDict:
@@ -515,7 +515,7 @@ class HomeserverTestCase(TestCase):
         path: Union[bytes, str],
         content: Union[bytes, str, JsonDict] = b"",
         access_token: Optional[str] = None,
-        request: Type[Request] = SynapseRequest,
+        request: Type[Request] = RelapseRequest,
         shorthand: bool = True,
         federation_auth_origin: Optional[bytes] = None,
         content_is_form: bool = False,
@@ -524,7 +524,7 @@ class HomeserverTestCase(TestCase):
         client_ip: str = "127.0.0.1",
     ) -> FakeChannel:
         """
-        Create a SynapseRequest at the path using the method and containing the
+        Create a RelapseRequest at the path using the method and containing the
         given content.
 
         Args:
@@ -579,7 +579,7 @@ class HomeserverTestCase(TestCase):
             See tests.utils.setup_test_homeserver.
 
         Returns:
-            synapse.server.HomeServer
+            relapse.server.HomeServer
         """
         kwargs = dict(kwargs)
         kwargs.update(self._hs_args)
@@ -683,7 +683,7 @@ class HomeserverTestCase(TestCase):
         self.hs.config.registration.registration_shared_secret = "shared"
 
         # Create the user
-        channel = self.make_request("GET", "/_synapse/admin/v1/register")
+        channel = self.make_request("GET", "/_relapse/admin/v1/register")
         self.assertEqual(channel.code, 200, msg=channel.result)
         nonce = channel.json_body["nonce"]
 
@@ -706,7 +706,7 @@ class HomeserverTestCase(TestCase):
             "mac": want_mac_digest,
             "inhibit_login": True,
         }
-        channel = self.make_request("POST", "/_synapse/admin/v1/register", body)
+        channel = self.make_request("POST", "/_relapse/admin/v1/register", body)
         self.assertEqual(channel.code, 200, channel.json_body)
 
         user_id = channel.json_body["user_id"]

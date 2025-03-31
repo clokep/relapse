@@ -17,7 +17,7 @@ from typing import Callable, Generator, cast
 import twisted.python.failure
 from twisted.internet import defer, reactor as _reactor
 
-from synapse.logging.context import (
+from relapse.logging.context import (
     SENTINEL_CONTEXT,
     LoggingContext,
     PreserveLoggingContext,
@@ -26,12 +26,12 @@ from synapse.logging.context import (
     nested_logging_context,
     run_in_background,
 )
-from synapse.types import ISynapseReactor
-from synapse.util import Clock
+from relapse.types import IRelapseReactor
+from relapse.util import Clock
 
 from .. import unittest
 
-reactor = cast(ISynapseReactor, _reactor)
+reactor = cast(IRelapseReactor, _reactor)
 
 
 class LoggingContextTestCase(unittest.TestCase):
@@ -144,7 +144,7 @@ class LoggingContextTestCase(unittest.TestCase):
         self,
     ) -> Generator["defer.Deferred[object]", object, None]:
         # a function which returns an incomplete deferred, but doesn't follow
-        # the synapse rules.
+        # the relapse rules.
         def blocking_function() -> defer.Deferred:
             d: defer.Deferred = defer.Deferred()
             reactor.callLater(0, d.callback, None)

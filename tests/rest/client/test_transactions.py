@@ -18,15 +18,15 @@ from unittest.mock import AsyncMock, Mock, call
 
 from twisted.internet import defer, reactor as _reactor
 
-from synapse.logging.context import SENTINEL_CONTEXT, LoggingContext, current_context
-from synapse.rest.client.transactions import CLEANUP_PERIOD_MS, HttpTransactionCache
-from synapse.types import ISynapseReactor, JsonDict
-from synapse.util import Clock
+from relapse.logging.context import SENTINEL_CONTEXT, LoggingContext, current_context
+from relapse.rest.client.transactions import CLEANUP_PERIOD_MS, HttpTransactionCache
+from relapse.types import IRelapseReactor, JsonDict
+from relapse.util import Clock
 
 from tests import unittest
 from tests.utils import MockClock
 
-reactor = cast(ISynapseReactor, _reactor)
+reactor = cast(IRelapseReactor, _reactor)
 
 
 class HttpTransactionCacheTestCase(unittest.TestCase):

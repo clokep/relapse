@@ -14,8 +14,8 @@
 
 import yaml
 
-from synapse.config._base import ConfigError
-from synapse.config.server import ServerConfig, generate_ip_set, is_threepid_reserved
+from relapse.config._base import ConfigError
+from relapse.config.server import ServerConfig, generate_ip_set, is_threepid_reserved
 
 from tests import unittest
 

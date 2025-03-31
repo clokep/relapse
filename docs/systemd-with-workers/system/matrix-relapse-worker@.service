@@ -1,0 +1,26 @@
+[Unit]
+Description=Relapse %i
+AssertPathExists=/etc/matrix-relapse/workers/%i.yaml
+
+# This service should be restarted when the relapse target is restarted.
+PartOf=matrix-relapse.target
+ReloadPropagatedFrom=matrix-relapse.target
+
+# if this is started at the same time as the main, let the main process start
+# first, to initialise the database schema.
+After=matrix-relapse.service
+
+[Service]
+Type=notify
+NotifyAccess=main
+User=matrix-relapse
+WorkingDirectory=/var/lib/matrix-relapse
+EnvironmentFile=-/etc/default/matrix-relapse
+ExecStart=/opt/venvs/matrix-relapse/bin/python -m relapse.app.generic_worker --config-path=/etc/matrix-relapse/homeserver.yaml --config-path=/etc/matrix-relapse/conf.d/ --config-path=/etc/matrix-relapse/workers/%i.yaml
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=3
+SyslogIdentifier=matrix-relapse-%i
+
+[Install]
+WantedBy=matrix-relapse.target

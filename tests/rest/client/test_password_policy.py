@@ -16,12 +16,12 @@ from http import HTTPStatus
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.constants import LoginType
-from synapse.api.errors import Codes
-from synapse.rest import admin
-from synapse.rest.client import account, login, password_policy, register
-from synapse.server import HomeServer
-from synapse.util import Clock
+from relapse.api.constants import LoginType
+from relapse.api.errors import Codes
+from relapse.rest import admin
+from relapse.rest.client import account, login, password_policy, register
+from relapse.server import HomeServer
+from relapse.util import Clock
 
 from tests import unittest
 
@@ -29,7 +29,7 @@ from tests import unittest
 class PasswordPolicyTestCase(unittest.HomeserverTestCase):
     """Tests the password policy feature and its compliance with MSC2000.
 
-    When validating a password, Synapse does the necessary checks in this order:
+    When validating a password, Relapse does the necessary checks in this order:
 
         1. Password is long enough
         2. Password contains digit(s)

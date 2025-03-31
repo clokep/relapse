@@ -13,7 +13,7 @@
 # limitations under the License.
 from twisted.web.resource import Resource
 
-from synapse.rest.well_known import well_known_resource
+from relapse.rest.well_known import well_known_resource
 
 from tests import unittest
 from tests.utils import HAS_AUTHLIB

@@ -19,15 +19,15 @@ from parameterized import parameterized
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.room_versions import KNOWN_ROOM_VERSIONS
-from synapse.config.server import DEFAULT_ROOM_VERSION
-from synapse.events import EventBase, make_event_from_dict
-from synapse.rest import admin
-from synapse.rest.client import login, room
-from synapse.server import HomeServer
-from synapse.storage.controllers.state import server_acl_evaluator_from_event
-from synapse.types import JsonDict
-from synapse.util import Clock
+from relapse.api.room_versions import KNOWN_ROOM_VERSIONS
+from relapse.config.server import DEFAULT_ROOM_VERSION
+from relapse.events import EventBase, make_event_from_dict
+from relapse.rest import admin
+from relapse.rest.client import login, room
+from relapse.server import HomeServer
+from relapse.storage.controllers.state import server_acl_evaluator_from_event
+from relapse.types import JsonDict
+from relapse.util import Clock
 
 from tests import unittest
 from tests.unittest import override_config

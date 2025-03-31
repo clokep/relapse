@@ -19,14 +19,14 @@ import idna
 
 from OpenSSL import SSL
 
-from synapse.config._base import Config, RootConfig
-from synapse.config.homeserver import HomeServerConfig
-from synapse.config.tls import ConfigError, TlsConfig
-from synapse.crypto.context_factory import (
+from relapse.config._base import Config, RootConfig
+from relapse.config.homeserver import HomeServerConfig
+from relapse.config.tls import ConfigError, TlsConfig
+from relapse.crypto.context_factory import (
     FederationPolicyForHTTPS,
     SSLClientConnectionCreator,
 )
-from synapse.types import JsonDict
+from relapse.types import JsonDict
 
 from tests.unittest import TestCase
 

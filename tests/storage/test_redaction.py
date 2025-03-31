@@ -17,13 +17,13 @@ from canonicaljson import json
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.constants import EventTypes, Membership
-from synapse.api.room_versions import RoomVersions
-from synapse.events import EventBase, _EventInternalMetadata
-from synapse.events.builder import EventBuilder
-from synapse.server import HomeServer
-from synapse.types import JsonDict, RoomID, UserID
-from synapse.util import Clock
+from relapse.api.constants import EventTypes, Membership
+from relapse.api.room_versions import RoomVersions
+from relapse.events import EventBase, _EventInternalMetadata
+from relapse.events.builder import EventBuilder
+from relapse.server import HomeServer
+from relapse.types import JsonDict, RoomID, UserID
+from relapse.util import Clock
 
 from tests import unittest
 from tests.utils import create_room

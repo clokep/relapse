@@ -16,13 +16,13 @@ from unittest.mock import AsyncMock, Mock
 
 from netaddr import IPSet
 
-from synapse.api.constants import EventTypes, Membership
-from synapse.events.builder import EventBuilderFactory
-from synapse.handlers.typing import TypingWriterHandler
-from synapse.http.federation.matrix_federation_agent import MatrixFederationAgent
-from synapse.rest.admin import register_servlets_for_client_rest_resource
-from synapse.rest.client import login, room
-from synapse.types import UserID, create_requester
+from relapse.api.constants import EventTypes, Membership
+from relapse.events.builder import EventBuilderFactory
+from relapse.handlers.typing import TypingWriterHandler
+from relapse.http.federation.matrix_federation_agent import MatrixFederationAgent
+from relapse.rest.admin import register_servlets_for_client_rest_resource
+from relapse.rest.client import login, room
+from relapse.types import UserID, create_requester
 
 from tests.replication._base import BaseMultiWorkerStreamTestCase
 from tests.server import get_clock
@@ -51,7 +51,7 @@ class FederationSenderTestCase(BaseMultiWorkerStreamTestCase):
         self.matrix_federation_agent = MatrixFederationAgent(
             reactor,
             tls_client_options_factory=None,
-            user_agent=b"SynapseInTrialTest/0.0.0",
+            user_agent=b"RelapseInTrialTest/0.0.0",
             ip_allowlist=None,
             ip_blocklist=IPSet(),
         )
@@ -64,7 +64,7 @@ class FederationSenderTestCase(BaseMultiWorkerStreamTestCase):
         mock_client.put_json = AsyncMock(return_value={})
         mock_client.agent = self.matrix_federation_agent
         self.make_worker_hs(
-            "synapse.app.generic_worker",
+            "relapse.app.generic_worker",
             {
                 "worker_name": "federation_sender1",
                 "federation_sender_instances": ["federation_sender1"],
@@ -95,7 +95,7 @@ class FederationSenderTestCase(BaseMultiWorkerStreamTestCase):
         mock_client1.put_json = AsyncMock(return_value={})
         mock_client1.agent = self.matrix_federation_agent
         self.make_worker_hs(
-            "synapse.app.generic_worker",
+            "relapse.app.generic_worker",
             {
                 "worker_name": "federation_sender1",
                 "federation_sender_instances": [
@@ -110,7 +110,7 @@ class FederationSenderTestCase(BaseMultiWorkerStreamTestCase):
         mock_client2.put_json = AsyncMock(return_value={})
         mock_client2.agent = self.matrix_federation_agent
         self.make_worker_hs(
-            "synapse.app.generic_worker",
+            "relapse.app.generic_worker",
             {
                 "worker_name": "federation_sender2",
                 "federation_sender_instances": [
@@ -164,7 +164,7 @@ class FederationSenderTestCase(BaseMultiWorkerStreamTestCase):
         mock_client1.put_json = AsyncMock(return_value={})
         mock_client1.agent = self.matrix_federation_agent
         self.make_worker_hs(
-            "synapse.app.generic_worker",
+            "relapse.app.generic_worker",
             {
                 "worker_name": "federation_sender1",
                 "federation_sender_instances": [
@@ -179,7 +179,7 @@ class FederationSenderTestCase(BaseMultiWorkerStreamTestCase):
         mock_client2.put_json = AsyncMock(return_value={})
         mock_client2.agent = self.matrix_federation_agent
         self.make_worker_hs(
-            "synapse.app.generic_worker",
+            "relapse.app.generic_worker",
             {
                 "worker_name": "federation_sender2",
                 "federation_sender_instances": [

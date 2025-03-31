@@ -1,1 +1,1 @@
-window.SYNAPSE_VERSION = "latest";
+window.RELAPSE_VERSION = "latest";

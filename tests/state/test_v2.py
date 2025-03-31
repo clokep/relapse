@@ -29,16 +29,16 @@ import attr
 
 from twisted.internet import defer
 
-from synapse.api.constants import EventTypes, JoinRules, Membership
-from synapse.api.room_versions import RoomVersions
-from synapse.event_auth import auth_types_for_event
-from synapse.events import EventBase, make_event_from_dict
-from synapse.state.v2 import (
+from relapse.api.constants import EventTypes, JoinRules, Membership
+from relapse.api.room_versions import RoomVersions
+from relapse.event_auth import auth_types_for_event
+from relapse.events import EventBase, make_event_from_dict
+from relapse.state.v2 import (
     _get_auth_chain_difference,
     lexicographical_topological_sort,
     resolve_events_with_store,
 )
-from synapse.types import EventID, StateMap
+from relapse.types import EventID, StateMap
 
 from tests import unittest
 

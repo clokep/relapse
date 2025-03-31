@@ -1,12 +1,12 @@
 Room and User Statistics
 ========================
 
-Synapse maintains room and user statistics in various tables. These can be used
+Relapse maintains room and user statistics in various tables. These can be used
 for administrative purposes but are also used when generating the public room
 directory.
 
 
-# Synapse Developer Documentation
+# Relapse Developer Documentation
 
 ## High-Level Concepts
 

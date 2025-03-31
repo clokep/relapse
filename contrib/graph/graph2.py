@@ -21,15 +21,15 @@ import sqlite3
 
 import pydot
 
-from synapse.api.room_versions import KNOWN_ROOM_VERSIONS
-from synapse.events import make_event_from_dict
-from synapse.util.frozenutils import unfreeze
+from relapse.api.room_versions import KNOWN_ROOM_VERSIONS
+from relapse.events import make_event_from_dict
+from relapse.util.frozenutils import unfreeze
 
 
 def make_graph(db_name: str, room_id: str, file_prefix: str, limit: int) -> None:
     """
     Generate a dot and SVG file for a graph of events in the room based on the
-    topological ordering by reading from a Synapse SQLite database.
+    topological ordering by reading from a Relapse SQLite database.
     """
     conn = sqlite3.connect(db_name)
 
@@ -138,7 +138,7 @@ def make_graph(db_name: str, room_id: str, file_prefix: str, limit: int) -> None
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Generate a PDU graph for a given room by talking "
-        "to the given Synapse SQLite file to get the list of PDUs. \n"
+        "to the given Relapse SQLite file to get the list of PDUs. \n"
         "Requires pydot."
     )
     parser.add_argument(

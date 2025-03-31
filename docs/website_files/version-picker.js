@@ -54,7 +54,7 @@ function fetchVersions(dropdown, dropdownMenu) {
     return new Promise((resolve, reject) => {
         window.addEventListener("load", () => {
 
-            fetch("https://api.github.com/repos/matrix-org/synapse/git/trees/gh-pages", {
+            fetch("https://api.github.com/repos/clokep/relapse/git/trees/gh-pages", {
                 cache: "force-cache",
             }).then(res => 
                 res.json()
@@ -69,7 +69,7 @@ function fetchVersions(dropdown, dropdownMenu) {
                     li.textContent = version;
                     li.id = version;
     
-                    if (window.SYNAPSE_VERSION === version) {
+                    if (window.RELAPSE_VERSION === version) {
                         li.classList.add('active');
                         dropdown.querySelector('span').textContent = version;
                         dropdown.querySelector('input').value = version;

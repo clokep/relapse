@@ -26,12 +26,12 @@ from twisted.internet.interfaces import IAddress, IResolutionReceiver
 from twisted.test.proto_helpers import AccumulatingProtocol, MemoryReactor
 from twisted.web.resource import Resource
 
-from synapse.config.oembed import OEmbedEndpointConfig
-from synapse.media.url_previewer import IMAGE_CACHE_EXPIRY_MS
-from synapse.server import HomeServer
-from synapse.types import JsonDict
-from synapse.util import Clock
-from synapse.util.stringutils import parse_and_validate_mxc_uri
+from relapse.config.oembed import OEmbedEndpointConfig
+from relapse.media.url_previewer import IMAGE_CACHE_EXPIRY_MS
+from relapse.server import HomeServer
+from relapse.types import JsonDict
+from relapse.util import Clock
+from relapse.util.stringutils import parse_and_validate_mxc_uri
 
 from tests import unittest
 from tests.server import FakeTransport
@@ -81,7 +81,7 @@ class URLPreviewTests(unittest.HomeserverTestCase):
         config["media_store_path"] = self.media_store_path
 
         provider_config = {
-            "module": "synapse.media.storage_provider.FileStorageProviderBackend",
+            "module": "relapse.media.storage_provider.FileStorageProviderBackend",
             "store_local": True,
             "store_synchronous": False,
             "store_remote": True,
@@ -635,7 +635,7 @@ class URLPreviewTests(unittest.HomeserverTestCase):
         )
         self.pump()
 
-        # Extract Synapse's tcp client
+        # Extract Relapse's tcp client
         client = self.reactor.tcpClients[0][2].buildProtocol(None)
 
         # Build a fake remote server to reply with
@@ -645,7 +645,7 @@ class URLPreviewTests(unittest.HomeserverTestCase):
         server.makeConnection(FakeTransport(client, self.reactor))
         client.makeConnection(FakeTransport(server, self.reactor))
 
-        # Tell Synapse that it has received some data from the remote server
+        # Tell Relapse that it has received some data from the remote server
         client.dataReceived(
             b"HTTP/1.0 200 OK\r\nContent-Length: %d\r\nContent-Type: text/html\r\n\r\n"
             % (len(self.end_content),)
@@ -660,7 +660,7 @@ class URLPreviewTests(unittest.HomeserverTestCase):
         )
 
         # Check that the server received the Accept-Language header as part
-        # of the request from Synapse
+        # of the request from Relapse
         self.assertIn(
             (
                 b"Accept-Language: en-UK\r\n"

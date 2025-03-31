@@ -17,16 +17,16 @@ from unittest.case import SkipTest
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import synapse.rest.admin
-from synapse.api.constants import EventTypes
-from synapse.api.errors import StoreError
-from synapse.rest.client import login, room
-from synapse.server import HomeServer
-from synapse.storage.databases.main import DataStore
-from synapse.storage.databases.main.search import Phrase, SearchToken, _tokenize_query
-from synapse.storage.engines import PostgresEngine
-from synapse.storage.engines.sqlite import Sqlite3Engine
-from synapse.util import Clock
+import relapse.rest.admin
+from relapse.api.constants import EventTypes
+from relapse.api.errors import StoreError
+from relapse.rest.client import login, room
+from relapse.server import HomeServer
+from relapse.storage.databases.main import DataStore
+from relapse.storage.databases.main.search import Phrase, SearchToken, _tokenize_query
+from relapse.storage.engines import PostgresEngine
+from relapse.storage.engines.sqlite import Sqlite3Engine
+from relapse.util import Clock
 
 from tests.unittest import HomeserverTestCase, skip_unless
 from tests.utils import USE_POSTGRES_FOR_TESTS
@@ -34,7 +34,7 @@ from tests.utils import USE_POSTGRES_FOR_TESTS
 
 class EventSearchInsertionTest(HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        relapse.rest.admin.register_servlets_for_client_rest_resource,
         login.register_servlets,
         room.register_servlets,
     ]
@@ -104,7 +104,7 @@ class EventSearchInsertionTest(HomeserverTestCase):
         room_version = self.get_success(store.get_room_version(room_id))
 
         # Construct a message with a numeric body to be received over federation
-        # The message can't be sent using the client API, since Synapse's event
+        # The message can't be sent using the client API, since Relapse's event
         # validation will reject it.
         prev_event_ids = self.get_success(store.get_prev_events_for_room(room_id))
         prev_event = self.get_success(store.get_event(prev_event_ids[0]))
@@ -211,7 +211,7 @@ class MessageSearchTest(HomeserverTestCase):
     """
 
     servlets = [
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        relapse.rest.admin.register_servlets_for_client_rest_resource,
         login.register_servlets,
         room.register_servlets,
     ]

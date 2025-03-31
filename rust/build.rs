@@ -39,7 +39,7 @@ fn main() -> Result<(), std::io::Error> {
     }
 
     let hex_digest = hex::encode(hasher.finalize());
-    println!("cargo:rustc-env=SYNAPSE_RUST_DIGEST={hex_digest}");
+    println!("cargo:rustc-env=RELAPSE_RUST_DIGEST={hex_digest}");
 
     Ok(())
 }

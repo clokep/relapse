@@ -4,20 +4,20 @@ from unittest.mock import AsyncMock, Mock
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.constants import EventTypes
-from synapse.events import EventBase
-from synapse.federation.sender import (
+from relapse.api.constants import EventTypes
+from relapse.events import EventBase
+from relapse.federation.sender import (
     FederationSender,
     PerDestinationQueue,
     TransactionManager,
 )
-from synapse.federation.units import Edu, Transaction
-from synapse.rest import admin
-from synapse.rest.client import login, room
-from synapse.server import HomeServer
-from synapse.types import JsonDict
-from synapse.util import Clock
-from synapse.util.retryutils import NotRetryingDestination
+from relapse.federation.units import Edu, Transaction
+from relapse.rest import admin
+from relapse.rest.client import login, room
+from relapse.server import HomeServer
+from relapse.types import JsonDict
+from relapse.util import Clock
+from relapse.util.retryutils import NotRetryingDestination
 
 from tests.test_utils import event_injection
 from tests.unittest import FederatingHomeserverTestCase
@@ -322,7 +322,7 @@ class FederationCatchUpTestCases(FederatingHomeserverTestCase):
         event_id_2 = self.helper.send(room_2, "wombats!", tok=u1_token)["event_id"]
         self.helper.send(room_3, "Matrix!", tok=u1_token)
         event_id_4 = self.helper.send(room_2, "rabbits!", tok=u1_token)["event_id"]
-        event_id_5 = self.helper.send(room_3, "Synapse!", tok=u1_token)["event_id"]
+        event_id_5 = self.helper.send(room_3, "Relapse!", tok=u1_token)["event_id"]
 
         # destination_rooms should already be populated, but let us pretend that we already
         # sent (successfully) up to and including event id 2
@@ -354,7 +354,7 @@ class FederationCatchUpTestCases(FederatingHomeserverTestCase):
             event_5.internal_metadata.stream_ordering,
         )
 
-    def test_catch_up_on_synapse_startup(self) -> None:
+    def test_catch_up_on_relapse_startup(self) -> None:
         """
         Tests the behaviour of get_catch_up_outstanding_destinations and
             _wake_destinations_needing_catchup.

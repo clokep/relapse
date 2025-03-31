@@ -1,11 +1,11 @@
 # syntax=docker/dockerfile:1
-# Dockerfile to build the matrixdotorg/synapse docker images.
+# Dockerfile to build the clokep/relapse docker images.
 #
 # Note that it uses features which are only available in BuildKit - see
 # https://docs.docker.com/go/buildkit/ for more information.
 #
 # To build the image, run `docker build` command from the root of the
-# synapse repository:
+# relapse repository:
 #
 #    DOCKER_BUILDKIT=1 docker build -f docker/Dockerfile .
 #
@@ -56,14 +56,14 @@ ARG CARGO_NET_GIT_FETCH_WITH_CLI=false
 ENV CARGO_NET_GIT_FETCH_WITH_CLI=$CARGO_NET_GIT_FETCH_WITH_CLI
 
 # We install poetry in its own build stage to avoid its dependencies conflicting with
-# synapse's dependencies.
+# relapse's dependencies.
 RUN --mount=type=cache,target=/root/.cache/pip \
   pip install --user "poetry==1.3.2"
 
-WORKDIR /synapse
+WORKDIR /relapse
 
 # Copy just what we need to run `poetry export`...
-COPY pyproject.toml poetry.lock /synapse/
+COPY pyproject.toml poetry.lock /relapse/
 
 
 # If specified, we won't verify the hashes of dependencies.
@@ -79,9 +79,9 @@ ARG TEST_ONLY_IGNORE_POETRY_LOCKFILE
 # Otherwise, just create an empty requirements file so that the Dockerfile can
 # proceed.
 RUN if [ -z "$TEST_ONLY_IGNORE_POETRY_LOCKFILE" ]; then \
-  /root/.local/bin/poetry export --extras all -o /synapse/requirements.txt ${TEST_ONLY_SKIP_DEP_HASH_VERIFICATION:+--without-hashes}; \
+  /root/.local/bin/poetry export --extras all -o /relapse/requirements.txt ${TEST_ONLY_SKIP_DEP_HASH_VERIFICATION:+--without-hashes}; \
   else \
-  touch /synapse/requirements.txt; \
+  touch /relapse/requirements.txt; \
   fi
 
 ###
@@ -126,32 +126,32 @@ ARG CARGO_NET_GIT_FETCH_WITH_CLI=false
 ENV CARGO_NET_GIT_FETCH_WITH_CLI=$CARGO_NET_GIT_FETCH_WITH_CLI
 
 # To speed up rebuilds, install all of the dependencies before we copy over
-# the whole synapse project, so that this layer in the Docker cache can be
+# the whole relapse project, so that this layer in the Docker cache can be
 # used while you develop on the source
 #
 # This is aiming at installing the `[tool.poetry.depdendencies]` from pyproject.toml.
-COPY --from=requirements /synapse/requirements.txt /synapse/
+COPY --from=requirements /relapse/requirements.txt /relapse/
 RUN --mount=type=cache,target=/root/.cache/pip \
-  pip install --prefix="/install" --no-deps --no-warn-script-location -r /synapse/requirements.txt
+  pip install --prefix="/install" --no-deps --no-warn-script-location -r /relapse/requirements.txt
 
-# Copy over the rest of the synapse source code.
-COPY synapse /synapse/synapse/
-COPY rust /synapse/rust/
+# Copy over the rest of the relapse source code.
+COPY relapse /relapse/relapse/
+COPY rust /relapse/rust/
 # ... and what we need to `pip install`.
-COPY pyproject.toml README.rst build_rust.py Cargo.toml Cargo.lock /synapse/
+COPY pyproject.toml README.rst build_rust.py Cargo.toml Cargo.lock /relapse/
 
 # Repeat of earlier build argument declaration, as this is a new build stage.
 ARG TEST_ONLY_IGNORE_POETRY_LOCKFILE
 
-# Install the synapse package itself.
+# Install the relapse package itself.
 # If we have populated requirements.txt, we don't install any dependencies
 # as we should already have those from the previous `pip install` step.
-RUN --mount=type=cache,target=/synapse/target,sharing=locked \
+RUN --mount=type=cache,target=/relapse/target,sharing=locked \
   --mount=type=cache,target=${CARGO_HOME}/registry,sharing=locked \
   if [ -z "$TEST_ONLY_IGNORE_POETRY_LOCKFILE" ]; then \
-  pip install --prefix="/install" --no-deps --no-warn-script-location /synapse[all]; \
+  pip install --prefix="/install" --no-deps --no-warn-script-location /relapse[all]; \
   else \
-  pip install --prefix="/install" --no-warn-script-location /synapse[all]; \
+  pip install --prefix="/install" --no-warn-script-location /relapse[all]; \
   fi
 
 ###
@@ -160,9 +160,9 @@ RUN --mount=type=cache,target=/synapse/target,sharing=locked \
 
 FROM docker.io/library/python:${PYTHON_VERSION}-slim-bookworm
 
-LABEL org.opencontainers.image.url='https://matrix.org/docs/projects/server/synapse'
-LABEL org.opencontainers.image.documentation='https://github.com/matrix-org/synapse/blob/master/docker/README.md'
-LABEL org.opencontainers.image.source='https://github.com/matrix-org/synapse.git'
+LABEL org.opencontainers.image.url='https://matrix.org/docs/projects/server/relapse'
+LABEL org.opencontainers.image.documentation='https://github.com/clokep/relapse/blob/master/docker/README.md'
+LABEL org.opencontainers.image.source='https://github.com/clokep/relapse.git'
 LABEL org.opencontainers.image.licenses='Apache-2.0'
 
 RUN \

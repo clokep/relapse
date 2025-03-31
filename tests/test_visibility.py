@@ -15,11 +15,11 @@ import logging
 from typing import Optional
 from unittest.mock import patch
 
-from synapse.api.room_versions import RoomVersions
-from synapse.events import EventBase, make_event_from_dict
-from synapse.events.snapshot import EventContext
-from synapse.types import JsonDict, create_requester
-from synapse.visibility import filter_events_for_client, filter_events_for_server
+from relapse.api.room_versions import RoomVersions
+from relapse.events import EventBase, make_event_from_dict
+from relapse.events.snapshot import EventContext
+from relapse.types import JsonDict, create_requester
+from relapse.visibility import filter_events_for_client, filter_events_for_server
 
 from tests import unittest
 from tests.utils import create_room

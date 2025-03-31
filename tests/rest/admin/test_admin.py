@@ -20,19 +20,19 @@ from parameterized import parameterized
 from twisted.test.proto_helpers import MemoryReactor
 from twisted.web.resource import Resource
 
-import synapse.rest.admin
-from synapse.http.server import JsonResource
-from synapse.rest.admin import VersionServlet
-from synapse.rest.client import login, room
-from synapse.server import HomeServer
-from synapse.util import Clock
+import relapse.rest.admin
+from relapse.http.server import JsonResource
+from relapse.rest.admin import VersionServlet
+from relapse.rest.client import login, room
+from relapse.server import HomeServer
+from relapse.util import Clock
 
 from tests import unittest
 from tests.test_utils import SMALL_PNG
 
 
 class VersionTestCase(unittest.HomeserverTestCase):
-    url = "/_synapse/admin/v1/server_version"
+    url = "/_relapse/admin/v1/server_version"
 
     def create_test_resource(self) -> JsonResource:
         resource = JsonResource(self.hs)
@@ -50,8 +50,8 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
     """Test /quarantine_media admin API."""
 
     servlets = [
-        synapse.rest.admin.register_servlets,
-        synapse.rest.admin.register_servlets_for_media_repo,
+        relapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets_for_media_repo,
         login.register_servlets,
         room.register_servlets,
     ]
@@ -85,9 +85,9 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
     @parameterized.expand(
         [
             # Attempt quarantine media APIs as non-admin
-            "/_synapse/admin/v1/media/quarantine/example.org/abcde12345",
+            "/_relapse/admin/v1/media/quarantine/example.org/abcde12345",
             # And the roomID/userID endpoint
-            "/_synapse/admin/v1/room/!room%3Aexample.com/media/quarantine",
+            "/_relapse/admin/v1/room/!room%3Aexample.com/media/quarantine",
         ]
     )
     def test_quarantine_media_requires_admin(self, url: str) -> None:
@@ -133,7 +133,7 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
         self.assertEqual(200, channel.code)
 
         # Quarantine the media
-        url = "/_synapse/admin/v1/media/quarantine/%s/%s" % (
+        url = "/_relapse/admin/v1/media/quarantine/%s/%s" % (
             urllib.parse.quote(server_name),
             urllib.parse.quote(media_id),
         )
@@ -151,9 +151,9 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
     @parameterized.expand(
         [
             # regular API path
-            "/_synapse/admin/v1/room/%s/media/quarantine",
+            "/_relapse/admin/v1/room/%s/media/quarantine",
             # deprecated API path
-            "/_synapse/admin/v1/quarantine_media/%s",
+            "/_relapse/admin/v1/quarantine_media/%s",
         ]
     )
     def test_quarantine_all_media_in_room(self, url: str) -> None:
@@ -225,7 +225,7 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
         server_and_media_id_2 = response_2["content_uri"][6:]
 
         # Quarantine all media by this user
-        url = "/_synapse/admin/v1/user/%s/media/quarantine" % urllib.parse.quote(
+        url = "/_relapse/admin/v1/user/%s/media/quarantine" % urllib.parse.quote(
             non_admin_user
         )
         channel = self.make_request(
@@ -261,13 +261,13 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
         # Mark the second item as safe from quarantine.
         _, media_id_2 = server_and_media_id_2.split("/")
         # Quarantine the media
-        url = "/_synapse/admin/v1/media/protect/%s" % (urllib.parse.quote(media_id_2),)
+        url = "/_relapse/admin/v1/media/protect/%s" % (urllib.parse.quote(media_id_2),)
         channel = self.make_request("POST", url, access_token=admin_user_tok)
         self.pump(1.0)
         self.assertEqual(200, channel.code, msg=channel.json_body)
 
         # Quarantine all media by this user
-        url = "/_synapse/admin/v1/user/%s/media/quarantine" % urllib.parse.quote(
+        url = "/_relapse/admin/v1/user/%s/media/quarantine" % urllib.parse.quote(
             non_admin_user
         )
         channel = self.make_request(
@@ -306,7 +306,7 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
 
 class PurgeHistoryTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         login.register_servlets,
         room.register_servlets,
     ]
@@ -321,8 +321,8 @@ class PurgeHistoryTestCase(unittest.HomeserverTestCase):
         self.room_id = self.helper.create_room_as(
             self.other_user, tok=self.other_user_tok
         )
-        self.url = f"/_synapse/admin/v1/purge_history/{self.room_id}"
-        self.url_status = "/_synapse/admin/v1/purge_history_status/"
+        self.url = f"/_relapse/admin/v1/purge_history/{self.room_id}"
+        self.url_status = "/_relapse/admin/v1/purge_history_status/"
 
     def test_purge_history(self) -> None:
         """
@@ -354,7 +354,7 @@ class PurgeHistoryTestCase(unittest.HomeserverTestCase):
 
 class ExperimentalFeaturesTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         login.register_servlets,
     ]
 
@@ -365,7 +365,7 @@ class ExperimentalFeaturesTestCase(unittest.HomeserverTestCase):
         self.other_user = self.register_user("user", "pass")
         self.other_user_tok = self.login("user", "pass")
 
-        self.url = "/_synapse/admin/v1/experimental_features"
+        self.url = "/_relapse/admin/v1/experimental_features"
 
     def test_enable_and_disable(self) -> None:
         """

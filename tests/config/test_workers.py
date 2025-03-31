@@ -16,8 +16,8 @@ from unittest.mock import Mock
 
 from immutabledict import immutabledict
 
-from synapse.config import ConfigError
-from synapse.config.workers import WorkerConfig
+from relapse.config import ConfigError
+from relapse.config.workers import WorkerConfig
 
 from tests.unittest import TestCase
 
@@ -48,14 +48,14 @@ class WorkerDutyConfigTestCase(TestCase):
         Tests old (legacy) config options. This is for the master's config.
         """
         main_process_config = self._make_worker_config(
-            worker_app="synapse.app.homeserver", worker_name=None
+            worker_app="relapse.app.homeserver", worker_name=None
         )
 
         self.assertTrue(
             main_process_config._should_this_worker_perform_duty(
                 {},
                 "notify_appservices",
-                "synapse.app.appservice",
+                "relapse.app.appservice",
                 "notify_appservices_from_worker",
             )
         )
@@ -66,7 +66,7 @@ class WorkerDutyConfigTestCase(TestCase):
                     "notify_appservices": True,
                 },
                 "notify_appservices",
-                "synapse.app.appservice",
+                "relapse.app.appservice",
                 "notify_appservices_from_worker",
             )
         )
@@ -77,7 +77,7 @@ class WorkerDutyConfigTestCase(TestCase):
                     "notify_appservices": False,
                 },
                 "notify_appservices",
-                "synapse.app.appservice",
+                "relapse.app.appservice",
                 "notify_appservices_from_worker",
             )
         )
@@ -87,7 +87,7 @@ class WorkerDutyConfigTestCase(TestCase):
         Tests old (legacy) config options. This is for the worker's config.
         """
         appservice_worker_config = self._make_worker_config(
-            worker_app="synapse.app.appservice",
+            worker_app="relapse.app.appservice",
             worker_name="worker1",
             extras={
                 # Set notify_appservices to false for the initialiser's config,
@@ -100,25 +100,25 @@ class WorkerDutyConfigTestCase(TestCase):
 
         with self.assertRaises(ConfigError):
             # This raises because you need to set notify_appservices: False
-            # before using the synapse.app.appservice worker type
+            # before using the relapse.app.appservice worker type
             self.assertFalse(
                 appservice_worker_config._should_this_worker_perform_duty(
                     {},
                     "notify_appservices",
-                    "synapse.app.appservice",
+                    "relapse.app.appservice",
                     "notify_appservices_from_worker",
                 )
             )
 
         with self.assertRaises(ConfigError):
             # This also raises because you need to set notify_appservices: False
-            # before using the synapse.app.appservice worker type
+            # before using the relapse.app.appservice worker type
             appservice_worker_config._should_this_worker_perform_duty(
                 {
                     "notify_appservices": True,
                 },
                 "notify_appservices",
-                "synapse.app.appservice",
+                "relapse.app.appservice",
                 "notify_appservices_from_worker",
             )
 
@@ -128,7 +128,7 @@ class WorkerDutyConfigTestCase(TestCase):
                     "notify_appservices": False,
                 },
                 "notify_appservices",
-                "synapse.app.appservice",
+                "relapse.app.appservice",
                 "notify_appservices_from_worker",
             )
         )
@@ -139,7 +139,7 @@ class WorkerDutyConfigTestCase(TestCase):
         """
 
         main_process_config = self._make_worker_config(
-            worker_app="synapse.app.homeserver",
+            worker_app="relapse.app.homeserver",
             worker_name=None,
             extras={"instance_map": {"main": {"host": "127.0.0.1", "port": 0}}},
         )
@@ -151,7 +151,7 @@ class WorkerDutyConfigTestCase(TestCase):
                     "notify_appservices_from_worker": "master",
                 },
                 "notify_appservices",
-                "synapse.app.appservice",
+                "relapse.app.appservice",
                 "notify_appservices_from_worker",
             )
         )
@@ -163,7 +163,7 @@ class WorkerDutyConfigTestCase(TestCase):
                     "notify_appservices_from_worker": "worker1",
                 },
                 "notify_appservices",
-                "synapse.app.appservice",
+                "relapse.app.appservice",
                 "notify_appservices_from_worker",
             )
         )
@@ -177,7 +177,7 @@ class WorkerDutyConfigTestCase(TestCase):
                     "notify_appservices_from_worker": "worker1",
                 },
                 "notify_appservices",
-                "synapse.app.appservice",
+                "relapse.app.appservice",
                 "notify_appservices_from_worker",
             )
 
@@ -190,7 +190,7 @@ class WorkerDutyConfigTestCase(TestCase):
                     "notify_appservices_from_worker": "master",
                 },
                 "notify_appservices",
-                "synapse.app.appservice",
+                "relapse.app.appservice",
                 "notify_appservices_from_worker",
             )
 
@@ -199,7 +199,7 @@ class WorkerDutyConfigTestCase(TestCase):
         Tests transitional (legacy + new) config options. This is for the worker's config.
         """
         appservice_worker_config = self._make_worker_config(
-            worker_app="synapse.app.appservice",
+            worker_app="relapse.app.appservice",
             worker_name="worker1",
             extras={
                 # Set notify_appservices to false for the initialiser's config,
@@ -217,7 +217,7 @@ class WorkerDutyConfigTestCase(TestCase):
                     "notify_appservices_from_worker": "worker1",
                 },
                 "notify_appservices",
-                "synapse.app.appservice",
+                "relapse.app.appservice",
                 "notify_appservices_from_worker",
             )
         )
@@ -231,7 +231,7 @@ class WorkerDutyConfigTestCase(TestCase):
                     "notify_appservices_from_worker": "worker2",
                 },
                 "notify_appservices",
-                "synapse.app.appservice",
+                "relapse.app.appservice",
                 "notify_appservices_from_worker",
             )
 
@@ -240,7 +240,7 @@ class WorkerDutyConfigTestCase(TestCase):
         Tests new config options. This is for the master's config.
         """
         main_process_config = self._make_worker_config(
-            worker_app="synapse.app.homeserver",
+            worker_app="relapse.app.homeserver",
             worker_name=None,
             extras={"instance_map": {"main": {"host": "127.0.0.1", "port": 0}}},
         )
@@ -249,7 +249,7 @@ class WorkerDutyConfigTestCase(TestCase):
             main_process_config._should_this_worker_perform_duty(
                 {"notify_appservices_from_worker": None},
                 "notify_appservices",
-                "synapse.app.appservice",
+                "relapse.app.appservice",
                 "notify_appservices_from_worker",
             )
         )
@@ -258,7 +258,7 @@ class WorkerDutyConfigTestCase(TestCase):
             main_process_config._should_this_worker_perform_duty(
                 {"notify_appservices_from_worker": "worker1"},
                 "notify_appservices",
-                "synapse.app.appservice",
+                "relapse.app.appservice",
                 "notify_appservices_from_worker",
             )
         )
@@ -268,7 +268,7 @@ class WorkerDutyConfigTestCase(TestCase):
         Tests new config options. This is for the worker's config.
         """
         appservice_worker_config = self._make_worker_config(
-            worker_app="synapse.app.generic_worker",
+            worker_app="relapse.app.generic_worker",
             worker_name="worker1",
             extras={"instance_map": {"main": {"host": "127.0.0.1", "port": 0}}},
         )
@@ -279,7 +279,7 @@ class WorkerDutyConfigTestCase(TestCase):
                     "notify_appservices_from_worker": "worker1",
                 },
                 "notify_appservices",
-                "synapse.app.appservice",
+                "relapse.app.appservice",
                 "notify_appservices_from_worker",
             )
         )
@@ -290,7 +290,7 @@ class WorkerDutyConfigTestCase(TestCase):
                     "notify_appservices_from_worker": "worker2",
                 },
                 "notify_appservices",
-                "synapse.app.appservice",
+                "relapse.app.appservice",
                 "notify_appservices_from_worker",
             )
         )
@@ -301,7 +301,7 @@ class WorkerDutyConfigTestCase(TestCase):
         """
 
         worker1_config = self._make_worker_config(
-            worker_app="synapse.app.generic_worker",
+            worker_app="relapse.app.generic_worker",
             worker_name="worker1",
             extras={
                 "notify_appservices_from_worker": "worker2",
@@ -313,7 +313,7 @@ class WorkerDutyConfigTestCase(TestCase):
         self.assertTrue(worker1_config.should_update_user_directory)
 
         worker2_config = self._make_worker_config(
-            worker_app="synapse.app.generic_worker",
+            worker_app="relapse.app.generic_worker",
             worker_name="worker2",
             extras={
                 "notify_appservices_from_worker": "worker2",

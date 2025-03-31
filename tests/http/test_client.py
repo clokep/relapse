@@ -25,8 +25,8 @@ from twisted.test.proto_helpers import AccumulatingProtocol
 from twisted.web.client import Agent, ResponseDone
 from twisted.web.iweb import UNKNOWN_LENGTH
 
-from synapse.api.errors import SynapseError
-from synapse.http.client import (
+from relapse.api.errors import RelapseError
+from relapse.http.client import (
     BlocklistingAgentWrapper,
     BlocklistingReactorWrapper,
     BodyExceededMaxSize,
@@ -216,7 +216,7 @@ class BlocklistingAgentTest(TestCase):
 
         # The unsafe IPs should be rejected.
         self.failureResultOf(
-            agent.request(b"GET", b"http://" + self.unsafe_ip), SynapseError
+            agent.request(b"GET", b"http://" + self.unsafe_ip), RelapseError
         )
 
         # The safe and unsafe domains and safe IPs should be accepted.

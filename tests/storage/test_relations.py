@@ -14,9 +14,9 @@
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.constants import MAIN_TIMELINE
-from synapse.server import HomeServer
-from synapse.util import Clock
+from relapse.api.constants import MAIN_TIMELINE
+from relapse.server import HomeServer
+from relapse.util import Clock
 
 from tests import unittest
 

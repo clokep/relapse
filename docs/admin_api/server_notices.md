@@ -3,13 +3,13 @@
 The API to send notices is as follows:
 
 ```
-POST /_synapse/admin/v1/send_server_notice
+POST /_relapse/admin/v1/send_server_notice
 ```
 
 or:
 
 ```
-PUT /_synapse/admin/v1/send_server_notice/{txnId}
+PUT /_relapse/admin/v1/send_server_notice/{txnId}
 ```
 
 You will need to authenticate with an access token for an admin user.

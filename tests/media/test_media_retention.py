@@ -19,11 +19,11 @@ from matrix_common.types.mxc_uri import MXCUri
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.rest import admin
-from synapse.rest.client import login, register, room
-from synapse.server import HomeServer
-from synapse.types import UserID
-from synapse.util import Clock
+from relapse.rest import admin
+from relapse.rest.client import login, register, room
+from relapse.server import HomeServer
+from relapse.types import UserID
+from relapse.util import Clock
 
 from tests import unittest
 from tests.unittest import override_config

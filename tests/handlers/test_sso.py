@@ -16,10 +16,10 @@ from unittest.mock import Mock
 from twisted.test.proto_helpers import MemoryReactor
 from twisted.web.http_headers import Headers
 
-from synapse.api.errors import Codes, SynapseError
-from synapse.http.client import RawHeaders
-from synapse.server import HomeServer
-from synapse.util import Clock
+from relapse.api.errors import Codes, RelapseError
+from relapse.http.client import RawHeaders
+from relapse.server import HomeServer
+from relapse.util import Clock
 
 from tests import unittest
 from tests.test_utils import SMALL_PNG, FakeResponse
@@ -29,7 +29,7 @@ class TestSSOHandler(unittest.HomeserverTestCase):
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         self.http_client = Mock(spec=["get_file"])
         self.http_client.get_file.side_effect = mock_get_file
-        self.http_client.user_agent = b"Synapse Test"
+        self.http_client.user_agent = b"Relapse Test"
         hs = self.setup_test_homeserver(
             proxied_blocklisted_http_client=self.http_client
         )
@@ -124,14 +124,14 @@ async def mock_get_file(
         )
 
     if max_size is not None and max_size < len(SMALL_PNG):
-        raise SynapseError(
+        raise RelapseError(
             HTTPStatus.BAD_GATEWAY,
             "Requested file is too large > %r bytes" % (max_size,),
             Codes.TOO_LARGE,
         )
 
     if is_allowed_content_type and not is_allowed_content_type("image/png"):
-        raise SynapseError(
+        raise RelapseError(
             HTTPStatus.BAD_GATEWAY,
             (
                 "Requested file's content type not allowed for this operation: %s"

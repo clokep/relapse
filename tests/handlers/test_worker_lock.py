@@ -15,8 +15,8 @@
 from twisted.internet import defer
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.server import HomeServer
-from synapse.util import Clock
+from relapse.server import HomeServer
+from relapse.util import Clock
 
 from tests import unittest
 from tests.replication._base import BaseMultiWorkerStreamTestCase
@@ -54,7 +54,7 @@ class WorkerLockWorkersTestCase(BaseMultiWorkerStreamTestCase):
         """Test waiting for a lock on another worker"""
 
         worker = self.make_worker_hs(
-            "synapse.app.generic_worker",
+            "relapse.app.generic_worker",
             extra_config={
                 "redis": {"enabled": True},
             },

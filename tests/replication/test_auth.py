@@ -15,9 +15,9 @@ import logging
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.rest.client import register
-from synapse.server import HomeServer
-from synapse.util import Clock
+from relapse.rest.client import register
+from relapse.server import HomeServer
+from relapse.util import Clock
 
 from tests.replication._base import BaseMultiWorkerStreamTestCase
 from tests.server import FakeChannel, make_request
@@ -42,7 +42,7 @@ class WorkerAuthenticationTestCase(BaseMultiWorkerStreamTestCase):
 
     def _get_worker_hs_config(self) -> dict:
         config = self.default_config()
-        config["worker_app"] = "synapse.app.generic_worker"
+        config["worker_app"] = "relapse.app.generic_worker"
         return config
 
     def _test_register(self) -> FakeChannel:
@@ -50,11 +50,11 @@ class WorkerAuthenticationTestCase(BaseMultiWorkerStreamTestCase):
 
         1. Create a worker homeserver.
         2. Start registration by providing a user/password.
-        3. Complete registration by providing dummy auth (this hits the main synapse).
+        3. Complete registration by providing dummy auth (this hits the main relapse).
         4. Return the final request.
 
         """
-        worker_hs = self.make_worker_hs("synapse.app.generic_worker")
+        worker_hs = self.make_worker_hs("relapse.app.generic_worker")
         site = self._hs_to_site[worker_hs]
 
         channel_1 = make_request(

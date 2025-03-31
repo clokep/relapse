@@ -16,14 +16,14 @@ from unittest.mock import AsyncMock, Mock
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.handlers.cas import CasResponse
-from synapse.server import HomeServer
-from synapse.util import Clock
+from relapse.handlers.cas import CasResponse
+from relapse.server import HomeServer
+from relapse.util import Clock
 
 from tests.unittest import HomeserverTestCase, override_config
 
 # These are a few constants that are used as config parameters in the tests.
-BASE_URL = "https://synapse/"
+BASE_URL = "https://relapse/"
 SERVER_URL = "https://issuer/"
 
 
@@ -216,7 +216,7 @@ class CasHandlerTestCase(HomeserverTestCase):
 
 
 def _mock_request() -> Mock:
-    """Returns a mock which will stand in as a SynapseRequest"""
+    """Returns a mock which will stand in as a RelapseRequest"""
     mock = Mock(
         spec=[
             "finish",

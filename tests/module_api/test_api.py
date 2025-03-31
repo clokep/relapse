@@ -17,19 +17,19 @@ from unittest.mock import AsyncMock, Mock
 from twisted.internet import defer
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.constants import EduTypes, EventTypes
-from synapse.api.errors import NotFoundError
-from synapse.events import EventBase
-from synapse.federation.units import Transaction
-from synapse.handlers.device import DeviceHandler
-from synapse.handlers.presence import UserPresenceState
-from synapse.handlers.push_rules import InvalidRuleException
-from synapse.module_api import ModuleApi
-from synapse.rest import admin
-from synapse.rest.client import login, notifications, presence, profile, room
-from synapse.server import HomeServer
-from synapse.types import JsonDict, UserID, create_requester
-from synapse.util import Clock
+from relapse.api.constants import EduTypes, EventTypes
+from relapse.api.errors import NotFoundError
+from relapse.events import EventBase
+from relapse.federation.units import Transaction
+from relapse.handlers.device import DeviceHandler
+from relapse.handlers.presence import UserPresenceState
+from relapse.handlers.push_rules import InvalidRuleException
+from relapse.module_api import ModuleApi
+from relapse.rest import admin
+from relapse.rest.client import login, notifications, presence, profile, room
+from relapse.server import HomeServer
+from relapse.types import JsonDict, UserID, create_requester
+from relapse.util import Clock
 
 from tests.events.test_presence_router import send_presence_update, sync_presence
 from tests.replication._base import BaseMultiWorkerStreamTestCase
@@ -865,7 +865,7 @@ def _test_sending_local_online_presence_to_local_user(
     Args:
         test_with_workers: If True, this method will call ModuleApi.send_local_online_presence_to on a
             worker process. The test users will still sync with the main process. The purpose of testing
-            with a worker is to check whether a Synapse module running on a worker can inform other workers/
+            with a worker is to check whether a Relapse module running on a worker can inform other workers/
             the main process that they should include additional presence when a user next syncs.
             If this argument is True, `test_case` MUST be an instance of BaseMultiWorkerStreamTestCase.
     """
@@ -874,7 +874,7 @@ def _test_sending_local_online_presence_to_local_user(
 
         # Create a worker process to make module_api calls against
         worker_hs = test_case.make_worker_hs(
-            "synapse.app.generic_worker", {"worker_name": "presence_writer"}
+            "relapse.app.generic_worker", {"worker_name": "presence_writer"}
         )
 
     # Create a user who will send presence updates

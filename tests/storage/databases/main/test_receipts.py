@@ -16,11 +16,11 @@ from typing import Any, Dict, Optional, Sequence, Tuple
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.rest import admin
-from synapse.rest.client import login, room
-from synapse.server import HomeServer
-from synapse.storage.database import LoggingTransaction
-from synapse.util import Clock
+from relapse.rest import admin
+from relapse.rest.client import login, room
+from relapse.server import HomeServer
+from relapse.storage.database import LoggingTransaction
+from relapse.util import Clock
 
 from tests.unittest import HomeserverTestCase
 

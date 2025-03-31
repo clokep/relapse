@@ -17,21 +17,21 @@ from unittest.mock import Mock
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import synapse.rest.admin
-import synapse.storage
-from synapse.api.constants import EventTypes, JoinRules
-from synapse.api.room_versions import RoomVersions
-from synapse.rest.client import knock, login, room
-from synapse.server import HomeServer
-from synapse.types import UserID
-from synapse.util import Clock
+import relapse.rest.admin
+import relapse.storage
+from relapse.api.constants import EventTypes, JoinRules
+from relapse.api.room_versions import RoomVersions
+from relapse.rest.client import knock, login, room
+from relapse.server import HomeServer
+from relapse.types import UserID
+from relapse.util import Clock
 
 from tests import unittest
 
 
 class ExfiltrateData(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        relapse.rest.admin.register_servlets_for_client_rest_resource,
         login.register_servlets,
         room.register_servlets,
         knock.register_servlets,

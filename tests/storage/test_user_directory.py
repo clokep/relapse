@@ -18,20 +18,20 @@ from unittest.mock import Mock, patch
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.constants import EventTypes, Membership, UserTypes
-from synapse.appservice import ApplicationService
-from synapse.rest import admin
-from synapse.rest.client import login, register, room
-from synapse.server import HomeServer
-from synapse.storage import DataStore
-from synapse.storage.background_updates import _BackgroundUpdateHandler
-from synapse.storage.databases.main import user_directory
-from synapse.storage.databases.main.user_directory import (
+from relapse.api.constants import EventTypes, Membership, UserTypes
+from relapse.appservice import ApplicationService
+from relapse.rest import admin
+from relapse.rest.client import login, register, room
+from relapse.server import HomeServer
+from relapse.storage import DataStore
+from relapse.storage.background_updates import _BackgroundUpdateHandler
+from relapse.storage.databases.main import user_directory
+from relapse.storage.databases.main.user_directory import (
     _parse_words_with_icu,
     _parse_words_with_regex,
 )
-from synapse.storage.roommember import ProfileInfo
-from synapse.util import Clock
+from relapse.storage.roommember import ProfileInfo
+from relapse.util import Clock
 
 from tests.server import ThreadedMemoryReactorClock
 from tests.test_utils.event_injection import inject_member_event
@@ -159,7 +159,7 @@ class UserDirectoryInitialPopulationTestcase(HomeserverTestCase):
 
         mock_load_appservices = Mock(return_value=[self.appservice])
         with patch(
-            "synapse.storage.databases.main.appservice.load_appservices",
+            "relapse.storage.databases.main.appservice.load_appservices",
             mock_load_appservices,
         ):
             hs = super().make_homeserver(reactor, clock)
@@ -337,7 +337,7 @@ class UserDirectoryInitialPopulationTestcase(HomeserverTestCase):
         # Deactivate the user.
         channel = self.make_request(
             "PUT",
-            f"/_synapse/admin/v2/users/{user}",
+            f"/_relapse/admin/v2/users/{user}",
             access_token=admin_token,
             content={"deactivated": True},
         )

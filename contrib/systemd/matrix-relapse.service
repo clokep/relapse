@@ -1,0 +1,39 @@
+# Example systemd configuration file for relapse. Copy into
+#    /etc/systemd/system/, update the paths if necessary, then:
+#
+#    systemctl enable matrix-relapse
+#    systemctl start matrix-relapse
+#
+# This assumes that Relapse has been installed by a user named
+# relapse.
+#
+# This assumes that Relapse has been installed in a virtualenv in
+# the user's home directory: `/home/relapse/relapse/env`.
+#
+# **NOTE:** This is an example service file that may change in the future. If you
+# wish to use this please copy rather than symlink it.
+
+[Unit]
+Description=Relapse Matrix homeserver
+# If you are using postgresql to persist data, uncomment this line to make sure
+# relapse starts after the postgresql service.
+# After=postgresql.service
+
+[Service]
+Type=notify
+NotifyAccess=main
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-abort
+
+User=relapse
+Group=nogroup
+
+WorkingDirectory=/home/relapse/relapse
+ExecStart=/home/relapse/relapse/env/bin/python -m relapse.app.homeserver --config-path=/home/relapse/relapse/homeserver.yaml
+SyslogIdentifier=matrix-relapse
+
+# adjust the cache factor if necessary
+# Environment=RELAPSE_CACHE_FACTOR=2.0
+
+[Install]
+WantedBy=multi-user.target

@@ -17,19 +17,19 @@ from parameterized import parameterized
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import synapse.rest.admin
-from synapse.api.errors import Codes
-from synapse.rest.client import login, room
-from synapse.server import HomeServer
-from synapse.types import JsonDict
-from synapse.util import Clock
+import relapse.rest.admin
+from relapse.api.errors import Codes
+from relapse.rest.client import login, room
+from relapse.server import HomeServer
+from relapse.types import JsonDict
+from relapse.util import Clock
 
 from tests import unittest
 
 
 class FederationTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         login.register_servlets,
     ]
 
@@ -38,15 +38,15 @@ class FederationTestCase(unittest.HomeserverTestCase):
         self.register_user("admin", "pass", admin=True)
         self.admin_user_tok = self.login("admin", "pass")
 
-        self.url = "/_synapse/admin/v1/federation/destinations"
+        self.url = "/_relapse/admin/v1/federation/destinations"
 
     @parameterized.expand(
         [
-            ("GET", "/_synapse/admin/v1/federation/destinations"),
-            ("GET", "/_synapse/admin/v1/federation/destinations/dummy"),
+            ("GET", "/_relapse/admin/v1/federation/destinations"),
+            ("GET", "/_relapse/admin/v1/federation/destinations/dummy"),
             (
                 "POST",
-                "/_synapse/admin/v1/federation/destinations/dummy/reset_connection",
+                "/_relapse/admin/v1/federation/destinations/dummy/reset_connection",
             ),
         ]
     )
@@ -530,7 +530,7 @@ class FederationTestCase(unittest.HomeserverTestCase):
 
 class DestinationMembershipTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        relapse.rest.admin.register_servlets,
         login.register_servlets,
         room.register_servlets,
     ]
@@ -541,7 +541,7 @@ class DestinationMembershipTestCase(unittest.HomeserverTestCase):
         self.admin_user_tok = self.login("admin", "pass")
 
         self.dest = "sub0.example.com"
-        self.url = f"/_synapse/admin/v1/federation/destinations/{self.dest}/rooms"
+        self.url = f"/_relapse/admin/v1/federation/destinations/{self.dest}/rooms"
 
         # Record that we successfully contacted a destination in the DB.
         self.get_success(
@@ -599,7 +599,7 @@ class DestinationMembershipTestCase(unittest.HomeserverTestCase):
         # invalid destination
         channel = self.make_request(
             "GET",
-            "/_synapse/admin/v1/federation/destinations/%s/rooms" % ("invalid",),
+            "/_relapse/admin/v1/federation/destinations/%s/rooms" % ("invalid",),
             access_token=self.admin_user_tok,
         )
 

@@ -20,12 +20,12 @@ from signedjson.key import generate_signing_key
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.constants import EventTypes, Membership, PresenceState
-from synapse.api.presence import UserDevicePresenceState, UserPresenceState
-from synapse.api.room_versions import KNOWN_ROOM_VERSIONS
-from synapse.events.builder import EventBuilder
-from synapse.federation.sender import FederationSender
-from synapse.handlers.presence import (
+from relapse.api.constants import EventTypes, Membership, PresenceState
+from relapse.api.presence import UserDevicePresenceState, UserPresenceState
+from relapse.api.room_versions import KNOWN_ROOM_VERSIONS
+from relapse.events.builder import EventBuilder
+from relapse.federation.sender import FederationSender
+from relapse.handlers.presence import (
     BUSY_ONLINE_TIMEOUT,
     EXTERNAL_PROCESS_EXPIRY,
     FEDERATION_PING_INTERVAL,
@@ -37,12 +37,12 @@ from synapse.handlers.presence import (
     handle_timeout,
     handle_update,
 )
-from synapse.rest import admin
-from synapse.rest.client import room
-from synapse.server import HomeServer
-from synapse.storage.database import LoggingDatabaseConnection
-from synapse.types import JsonDict, UserID, get_domain_from_id
-from synapse.util import Clock
+from relapse.rest import admin
+from relapse.rest.client import room
+from relapse.server import HomeServer
+from relapse.storage.database import LoggingDatabaseConnection
+from relapse.types import JsonDict, UserID, get_domain_from_id
+from relapse.util import Clock
 
 from tests import unittest
 from tests.replication._base import BaseMultiWorkerStreamTestCase
@@ -819,7 +819,7 @@ class PresenceHandlerTestCase(BaseMultiWorkerStreamTestCase):
         # This is used to test that presence changes get replicated from workers
         # to the main process correctly.
         worker_to_sync_against = self.make_worker_hs(
-            "synapse.app.generic_worker", {"worker_name": "synchrotron"}
+            "relapse.app.generic_worker", {"worker_name": "synchrotron"}
         )
         worker_presence_handler = worker_to_sync_against.get_presence_handler()
 
@@ -1132,7 +1132,7 @@ class PresenceHandlerTestCase(BaseMultiWorkerStreamTestCase):
             # This is used to test that presence changes get replicated from workers
             # to the main process correctly.
             worker_to_sync_against = self.make_worker_hs(
-                "synapse.app.generic_worker", {"worker_name": "synchrotron"}
+                "relapse.app.generic_worker", {"worker_name": "synchrotron"}
             )
             worker_presence_handler = worker_to_sync_against.get_presence_handler()
 
@@ -1367,7 +1367,7 @@ class PresenceHandlerTestCase(BaseMultiWorkerStreamTestCase):
             # This is used to test that presence changes get replicated from workers
             # to the main process correctly.
             worker_to_sync_against = self.make_worker_hs(
-                "synapse.app.generic_worker", {"worker_name": "synchrotron"}
+                "relapse.app.generic_worker", {"worker_name": "synchrotron"}
             )
             worker_presence_handler = worker_to_sync_against.get_presence_handler()
 
@@ -1484,7 +1484,7 @@ class PresenceHandlerTestCase(BaseMultiWorkerStreamTestCase):
             # This is used to test that presence changes get replicated from workers
             # to the main process correctly.
             worker_to_sync_against = self.make_worker_hs(
-                "synapse.app.generic_worker", {"worker_name": "synchrotron"}
+                "relapse.app.generic_worker", {"worker_name": "synchrotron"}
             )
 
         # Set presence to BUSY

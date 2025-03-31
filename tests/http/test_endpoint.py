@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from synapse.util.stringutils import parse_and_validate_server_name, parse_server_name
+from relapse.util.stringutils import parse_and_validate_server_name, parse_server_name
 
 from tests import unittest
 

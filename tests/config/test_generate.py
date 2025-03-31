@@ -19,7 +19,7 @@ import tempfile
 from contextlib import redirect_stdout
 from io import StringIO
 
-from synapse.config.homeserver import HomeServerConfig
+from relapse.config.homeserver import HomeServerConfig
 
 from tests import unittest
 
