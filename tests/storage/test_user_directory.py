@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import re
 from typing import Any, Dict, List, Optional, Set, Tuple, cast
 from unittest import mock
 from unittest.mock import Mock, patch
@@ -25,23 +24,12 @@ from relapse.rest.client import login, register, room
 from relapse.server import HomeServer
 from relapse.storage import DataStore
 from relapse.storage.background_updates import _BackgroundUpdateHandler
-from relapse.storage.databases.main import user_directory
-from relapse.storage.databases.main.user_directory import (
-    _parse_words_with_icu,
-    _parse_words_with_regex,
-)
 from relapse.storage.roommember import ProfileInfo
 from relapse.util import Clock
 
 from tests.server import ThreadedMemoryReactorClock
 from tests.test_utils.event_injection import inject_member_event
 from tests.unittest import HomeserverTestCase, override_config
-
-try:
-    import icu
-except ImportError:
-    icu = None  # type: ignore
-
 
 ALICE = "@alice:a"
 BOB = "@bob:b"
@@ -431,8 +419,6 @@ class UserDirectoryInitialPopulationTestcase(HomeserverTestCase):
 
 
 class UserDirectoryStoreTestCase(HomeserverTestCase):
-    use_icu = False
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = hs.get_datastores().main
 
@@ -443,12 +429,6 @@ class UserDirectoryStoreTestCase(HomeserverTestCase):
         self.get_success(self.store.update_profile_in_user_dir(BOBBY, "bobby", None))
         self.get_success(self.store.update_profile_in_user_dir(BELA, "Bela", None))
         self.get_success(self.store.add_users_in_public_rooms("!room:id", (ALICE, BOB)))
-
-        self._restore_use_icu = user_directory.USE_ICU
-        user_directory.USE_ICU = self.use_icu
-
-    def tearDown(self) -> None:
-        user_directory.USE_ICU = self._restore_use_icu
 
     def test_search_user_dir(self) -> None:
         # normally when alice searches the directory she should just find
@@ -639,76 +619,3 @@ class UserDirectoryStoreTestCase(HomeserverTestCase):
         # "e"-lookalikes to be the same.
 
     test_search_user_dir_accent_insensitivity.skip = "not supported yet"  # type: ignore
-
-
-class UserDirectoryStoreTestCaseWithIcu(UserDirectoryStoreTestCase):
-    use_icu = True
-
-    if not icu:
-        skip = "Requires PyICU"
-
-
-class UserDirectoryICUTestCase(HomeserverTestCase):
-    if not icu:
-        skip = "Requires PyICU"
-
-    def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
-        self.store = hs.get_datastores().main
-        self.user_dir_helper = GetUserDirectoryTables(self.store)
-
-    def test_icu_word_boundary(self) -> None:
-        """Tests that we correctly detect word boundaries when ICU (International
-        Components for Unicode) support is available.
-        """
-
-        display_name = "Gáo"
-
-        # This word is not broken down correctly by Python's regular expressions,
-        # likely because á is actually a lowercase a followed by a U+0301 combining
-        # acute accent. This is specifically something that ICU support fixes.
-        matches = re.findall(r"([\w\-]+)", display_name, re.UNICODE)
-        self.assertEqual(len(matches), 2)
-
-        self.get_success(
-            self.store.update_profile_in_user_dir(ALICE, display_name, None)
-        )
-        self.get_success(self.store.add_users_in_public_rooms("!room:id", (ALICE,)))
-
-        # Check that searching for this user yields the correct result.
-        r = self.get_success(self.store.search_user_dir(BOB, display_name, 10))
-        self.assertFalse(r["limited"])
-        self.assertEqual(len(r["results"]), 1)
-        self.assertDictEqual(
-            r["results"][0],
-            {"user_id": ALICE, "display_name": display_name, "avatar_url": None},
-        )
-
-    def test_icu_word_boundary_punctuation(self) -> None:
-        """
-        Tests the behaviour of punctuation with the ICU tokeniser.
-
-        Seems to depend on underlying version of ICU.
-        """
-
-        # Note: either tokenisation is fine, because Postgres actually splits
-        # words itself afterwards.
-        self.assertIn(
-            _parse_words_with_icu("lazy'fox jumped:over the.dog"),
-            (
-                # ICU 66 on Ubuntu 20.04
-                ["lazy'fox", "jumped", "over", "the", "dog"],
-                # ICU 70 on Ubuntu 22.04
-                ["lazy'fox", "jumped:over", "the.dog"],
-                # pyicu 2.10.2 on Alpine edge / macOS
-                ["lazy'fox", "jumped", "over", "the.dog"],
-            ),
-        )
-
-    def test_regex_word_boundary_punctuation(self) -> None:
-        """
-        Tests the behaviour of punctuation with the non-ICU tokeniser
-        """
-        self.assertEqual(
-            _parse_words_with_regex("lazy'fox jumped:over the.dog"),
-            ["lazy", "fox", "jumped", "over", "the", "dog"],
-        )
