@@ -119,23 +119,12 @@ def _worker_entrypoint(
     for sig, handler in _original_signal_handlers.items():
         signal.signal(sig, handler)
 
-    # Install the asyncio reactor if the
-    # RELAPSE_COMPLEMENT_FORKING_LAUNCHER_ASYNC_IO_REACTOR is set to 1. The
-    # RELAPSE_ASYNC_IO_REACTOR variable would be used, but then causes
-    # relapse/__init__.py to also try to install an asyncio reactor.
-    if strtobool(
-        os.environ.get("RELAPSE_COMPLEMENT_FORKING_LAUNCHER_ASYNC_IO_REACTOR", "0")
-    ):
-        import asyncio
+    import asyncio
 
-        from twisted.internet.asyncioreactor import AsyncioSelectorReactor
+    from twisted.internet.asyncioreactor import AsyncioSelectorReactor
 
-        reactor = AsyncioSelectorReactor(asyncio.get_event_loop())
-        proxy_reactor._install_real_reactor(reactor)
-    else:
-        from twisted.internet.epollreactor import EPollReactor
-
-        proxy_reactor._install_real_reactor(EPollReactor())
+    reactor = AsyncioSelectorReactor(asyncio.get_event_loop())
+    proxy_reactor._install_real_reactor(reactor)
 
     func()
 

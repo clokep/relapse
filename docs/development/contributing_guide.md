@@ -368,7 +368,6 @@ The above will run a monolithic (single-process) Relapse with SQLite as the data
     [here](https://github.com/clokep/relapse/blob/develop/docker/configure_workers_and_start.py#L54).
     A safe example would be `WORKER_TYPES="federation_inbound, federation_sender, synchrotron"`.
     See the [worker documentation](../workers.md) for additional information on workers.
-- Passing `ASYNCIO_REACTOR=1` as an environment variable to use the Twisted asyncio reactor instead of the default one.
 - Passing `PODMAN=1` will use the [podman](https://podman.io/) container runtime, instead of docker.
 - Passing `UNIX_SOCKETS=1` will utilise Unix socket functionality for Relapse, Redis, and Postgres(when applicable).
 

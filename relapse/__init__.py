@@ -17,14 +17,16 @@
 """ This is an implementation of a Matrix homeserver.
 """
 
+import asyncio
 import os
 import sys
 from typing import Any, Dict
 
 from PIL import ImageFile
 
+from twisted.internet import asyncioreactor
+
 from relapse.util.rust import check_rust_lib_up_to_date
-from relapse.util.stringutils import strtobool
 
 # Allow truncated JPEG images to be thumbnailed.
 ImageFile.LOAD_TRUNCATED_IMAGES = True
@@ -38,23 +40,8 @@ if py_version < (3, 8):
     print("Relapse requires Python 3.8 or above.")
     sys.exit(1)
 
-# Allow using the asyncio reactor via env var.
-if strtobool(os.environ.get("RELAPSE_ASYNC_IO_REACTOR", "0")):
-    from incremental import Version
-
-    import twisted
-
-    # We need a bugfix that is included in Twisted 21.2.0:
-    # https://twistedmatrix.com/trac/ticket/9787
-    if twisted.version < Version("Twisted", 21, 2, 0):
-        print("Using asyncio reactor requires Twisted>=21.2.0")
-        sys.exit(1)
-
-    import asyncio
-
-    from twisted.internet import asyncioreactor
-
-    asyncioreactor.install(asyncio.get_event_loop())
+# Use the asyncio reactor.
+asyncioreactor.install(asyncio.get_event_loop())
 
 # Twisted and canonicaljson will fail to import when this file is executed to
 # get the __version__ during a fresh install. That's OK and subsequent calls to

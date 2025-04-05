@@ -6,7 +6,7 @@ set -e
 
 echo "Complement Relapse launcher"
 echo "  Args: $@"
-echo "  Env: RELAPSE_COMPLEMENT_DATABASE=$RELAPSE_COMPLEMENT_DATABASE RELAPSE_COMPLEMENT_USE_WORKERS=$RELAPSE_COMPLEMENT_USE_WORKERS RELAPSE_COMPLEMENT_USE_ASYNCIO_REACTOR=$RELAPSE_COMPLEMENT_USE_ASYNCIO_REACTOR"
+echo "  Env: RELAPSE_COMPLEMENT_DATABASE=$RELAPSE_COMPLEMENT_DATABASE RELAPSE_COMPLEMENT_USE_WORKERS=$RELAPSE_COMPLEMENT_USE_WORKERS"
 
 function log {
     d=$(date +"%Y-%m-%d %H:%M:%S,%3N")
@@ -79,18 +79,6 @@ else
   # Empty string here means 'main process only'
   export RELAPSE_WORKER_TYPES=""
 fi
-
-
-if [[ -n "$RELAPSE_COMPLEMENT_USE_ASYNCIO_REACTOR" ]]; then
-  if [[ -n "$RELAPSE_USE_EXPERIMENTAL_FORKING_LAUNCHER" ]]; then
-    export RELAPSE_COMPLEMENT_FORKING_LAUNCHER_ASYNC_IO_REACTOR="1"
-  else
-    export RELAPSE_ASYNC_IO_REACTOR="1"
-  fi
-else
-  export RELAPSE_ASYNC_IO_REACTOR="0"
-fi
-
 
 # Add Complement's appservice registration directory, if there is one
 # (It can be absent when there are no application services in this test!)
