@@ -28,15 +28,6 @@ from typing import (
 )
 
 import attr
-
-try:
-    # Figure out if ICU support is available for searching users.
-    import icu
-
-    USE_ICU = True
-except ModuleNotFoundError:
-    USE_ICU = False
-
 from typing_extensions import TypedDict
 
 from relapse.api.errors import StoreError
@@ -1250,10 +1241,8 @@ def _parse_query_postgres(search_term: str) -> Tuple[str, str, str]:
 def _parse_words(search_term: str) -> List[str]:
     """Split the provided search string into a list of its words.
 
-    If support for ICU (International Components for Unicode) is available, use it.
-    Otherwise, fall back to using a regex to detect word boundaries. This latter
-    solution works well enough for most latin-based languages, but doesn't work as well
-    with other languages.
+    Use a regex to detect word boundaries. This works well enough for most
+    latin-based languages, but doesn't work as well with other languages.
 
     Args:
         search_term: The search string.
@@ -1261,48 +1250,12 @@ def _parse_words(search_term: str) -> List[str]:
     Returns:
         A list of the words in the search string.
     """
-    if USE_ICU:
-        return _parse_words_with_icu(search_term)
-
     return _parse_words_with_regex(search_term)
 
 
 def _parse_words_with_regex(search_term: str) -> List[str]:
     """
-    Break down search term into words, when we don't have ICU available.
+    Break down search term into words.
     See: `_parse_words`
     """
     return re.findall(r"([\w\-]+)", search_term, re.UNICODE)
-
-
-def _parse_words_with_icu(search_term: str) -> List[str]:
-    """Break down the provided search string into its individual words using ICU
-    (International Components for Unicode).
-
-    Args:
-        search_term: The search string.
-
-    Returns:
-        A list of the words in the search string.
-    """
-    results = []
-    breaker = icu.BreakIterator.createWordInstance(icu.Locale.getDefault())
-    breaker.setText(search_term)
-    i = 0
-    while True:
-        j = breaker.nextBoundary()
-        if j < 0:
-            break
-
-        result = search_term[i:j]
-
-        # libicu considers spaces and punctuation between words as words, but we don't
-        # want to include those in results as they would result in syntax errors in SQL
-        # queries (e.g. "foo bar" would result in the search query including "foo &  &
-        # bar").
-        if len(re.findall(r"([\w\-]+)", result, re.UNICODE)):
-            results.append(result)
-
-        i = j
-
-    return results
