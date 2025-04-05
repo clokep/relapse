@@ -110,7 +110,6 @@ def _worker_entrypoint(
     and then kick off the worker's main() function.
     """
 
-    from relapse.util.stringutils import strtobool
 
     sys.argv = args
 
