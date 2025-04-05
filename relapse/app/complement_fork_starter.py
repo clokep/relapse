@@ -110,7 +110,6 @@ def _worker_entrypoint(
     and then kick off the worker's main() function.
     """
 
-
     sys.argv = args
 
     # reset the custom signal handlers that we installed, so that the children start
