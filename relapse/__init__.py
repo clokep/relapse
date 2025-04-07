@@ -40,8 +40,13 @@ if py_version < (3, 8):
     print("Relapse requires Python 3.8 or above.")
     sys.exit(1)
 
-# Use the asyncio reactor.
-asyncioreactor.install(asyncio.get_event_loop())
+# Use the asyncio reactor, but if this is a forked run then don't crash.
+if "twisted.internet.reactor" in sys.modules:
+    from twisted.internet import reactor
+
+    print(f"Reactor already installed: {reactor.__class__.__name__}")
+else:
+    asyncioreactor.install(asyncio.get_event_loop())
 
 # Twisted and canonicaljson will fail to import when this file is executed to
 # get the __version__ during a fresh install. That's OK and subsequent calls to
