@@ -287,11 +287,6 @@ else
   fi
 fi
 
-if [[ -n "$ASYNCIO_REACTOR" ]]; then
-  # Enable the Twisted asyncio reactor
-  export PASS_RELAPSE_COMPLEMENT_USE_ASYNCIO_REACTOR=true
-fi
-
 if [[ -n "$UNIX_SOCKETS" ]]; then
   # Enable full on Unix socket mode for Relapse, Redis and Postgresql
   export PASS_RELAPSE_USE_UNIX_SOCKET=1
