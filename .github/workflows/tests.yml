@@ -87,7 +87,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@1.61.0
       - uses: Swatinem/rust-cache@v2
-      - uses: matrix-org/setup-python-poetry@v2
+      - uses: matrix-org/setup-python-poetry@v5bbf6603c5c930615ec8a29f1b5d7d258d905aa4
         with:
           python-version: "3.12.x"
           extras: "all"
@@ -126,7 +126,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Poetry
-        uses: matrix-org/setup-python-poetry@v2
+        uses: matrix-org/setup-python-poetry@v5bbf6603c5c930615ec8a29f1b5d7d258d905aa4
         with:
           python-version: "3.12.x"
           install-project: "false"
@@ -156,7 +156,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - name: Setup Poetry
-        uses: matrix-org/setup-python-poetry@v2
+        uses: matrix-org/setup-python-poetry@v5bbf6603c5c930615ec8a29f1b5d7d258d905aa4
         with:
           python-version: "3.12.x"
           # We want to make use of type hints in optional dependencies too.
@@ -215,7 +215,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@1.61.0
       - uses: Swatinem/rust-cache@v2
-      - uses: matrix-org/setup-python-poetry@v2
+      - uses: matrix-org/setup-python-poetry@v5bbf6603c5c930615ec8a29f1b5d7d258d905aa4
         with:
           python-version: "3.12.x"
           extras: "all"
@@ -336,7 +336,7 @@ jobs:
         uses: dtolnay/rust-toolchain@1.61.0
       - uses: Swatinem/rust-cache@v2
 
-      - uses: matrix-org/setup-python-poetry@v2
+      - uses: matrix-org/setup-python-poetry@v5bbf6603c5c930615ec8a29f1b5d7d258d905aa4
         with:
           python-version: ${{ matrix.job.python-version }}
           extras: ${{ matrix.job.extras }}
@@ -437,7 +437,7 @@ jobs:
       - uses: actions/checkout@v4
       # Install libs necessary for PyPy to build binary wheels for dependencies
       - run: sudo apt-get -qq install xmlsec1 libxml2-dev libxslt-dev
-      - uses: matrix-org/setup-python-poetry@v2
+      - uses: matrix-org/setup-python-poetry@v5bbf6603c5c930615ec8a29f1b5d7d258d905aa4
         with:
           python-version: ${{ matrix.python-version }}
           extras: ${{ matrix.extras }}
@@ -535,7 +535,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: sudo apt-get -qq install xmlsec1 postgresql-client
-      - uses: matrix-org/setup-python-poetry@v2
+      - uses: matrix-org/setup-python-poetry@v5bbf6603c5c930615ec8a29f1b5d7d258d905aa4
         with:
           python-version: "3.12.x"
           extras: "postgres"
@@ -588,7 +588,7 @@ jobs:
           wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
           sudo apt-get update
       - run: sudo apt-get -qq install xmlsec1 postgresql-client
-      - uses: matrix-org/setup-python-poetry@v2
+      - uses: matrix-org/setup-python-poetry@v5bbf6603c5c930615ec8a29f1b5d7d258d905aa4
         with:
           python-version: ${{ matrix.python-version }}
           extras: "postgres"
