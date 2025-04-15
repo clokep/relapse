@@ -96,7 +96,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: "Set up Sphinx"
-        uses: matrix-org/setup-python-poetry@v5bbf6603c5c930615ec8a29f1b5d7d258d905aa4
+        uses: matrix-org/setup-python-poetry@v2
         with:
           python-version: "3.12.x"
           groups: "dev-docs"
