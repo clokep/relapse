@@ -14,7 +14,7 @@
 # limitations under the License.
 
 import logging
-from typing import Any, Dict, List
+from typing import Any
 from urllib import parse as urlparse
 
 import yaml
@@ -54,13 +54,13 @@ class AppServiceConfig(Config):
 
 
 def load_appservices(
-    hostname: str, config_files: List[str]
-) -> List[ApplicationService]:
+    hostname: str, config_files: list[str]
+) -> list[ApplicationService]:
     """Returns a list of Application Services from the config files."""
 
     # Dicts of value -> filename
-    seen_as_tokens: Dict[str, str] = {}
-    seen_ids: Dict[str, str] = {}
+    seen_as_tokens: dict[str, str] = {}
+    seen_ids: dict[str, str] = {}
 
     appservices = []
 

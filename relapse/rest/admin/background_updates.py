@@ -13,7 +13,7 @@
 # limitations under the License.
 import logging
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING
 
 from relapse.api.errors import RelapseError
 from relapse.http.servlet import (
@@ -40,7 +40,7 @@ class BackgroundUpdateEnabledRestServlet(RestServlet):
         self._auth = hs.get_auth()
         self._data_stores = hs.get_datastores()
 
-    async def on_GET(self, request: RelapseRequest) -> Tuple[int, JsonDict]:
+    async def on_GET(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         await assert_requester_is_admin(self._auth, request)
 
         # We need to check that all configured databases have updates enabled.
@@ -49,7 +49,7 @@ class BackgroundUpdateEnabledRestServlet(RestServlet):
 
         return HTTPStatus.OK, {"enabled": enabled}
 
-    async def on_POST(self, request: RelapseRequest) -> Tuple[int, JsonDict]:
+    async def on_POST(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         await assert_requester_is_admin(self._auth, request)
 
         body = parse_json_object_from_request(request)
@@ -81,7 +81,7 @@ class BackgroundUpdateRestServlet(RestServlet):
         self._auth = hs.get_auth()
         self._data_stores = hs.get_datastores()
 
-    async def on_GET(self, request: RelapseRequest) -> Tuple[int, JsonDict]:
+    async def on_GET(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         await assert_requester_is_admin(self._auth, request)
 
         # We need to check that all configured databases have updates enabled.
@@ -114,7 +114,7 @@ class BackgroundUpdateStartJobRestServlet(RestServlet):
         self._auth = hs.get_auth()
         self._store = hs.get_datastores().main
 
-    async def on_POST(self, request: RelapseRequest) -> Tuple[int, JsonDict]:
+    async def on_POST(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         await assert_requester_is_admin(self._auth, request)
 
         body = parse_json_object_from_request(request)

@@ -16,7 +16,8 @@ import logging
 import os
 import re
 import threading
-from typing import Any, Callable, Dict, Mapping, Optional
+from collections.abc import Mapping
+from typing import Any, Callable, Optional
 
 import attr
 
@@ -31,7 +32,7 @@ logger = logging.getLogger(__name__)
 _CACHE_PREFIX = "RELAPSE_CACHE_FACTOR"
 
 # Map from canonicalised cache name to cache.
-_CACHES: Dict[str, Callable[[float], None]] = {}
+_CACHES: dict[str, Callable[[float], None]] = {}
 
 # a lock on the contents of _CACHES
 _CACHES_LOCK = threading.Lock()
@@ -97,7 +98,7 @@ class CacheConfig(Config):
     _environ: Mapping[str, str] = os.environ
 
     event_cache_size: int
-    cache_factors: Dict[str, float]
+    cache_factors: dict[str, float]
     global_factor: float
     track_memory_usage: bool
     expiry_time_msec: Optional[int]

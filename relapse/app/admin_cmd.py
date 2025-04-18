@@ -17,7 +17,8 @@ import logging
 import os
 import sys
 import tempfile
-from typing import List, Mapping, Optional, Sequence
+from collections.abc import Mapping, Sequence
+from typing import Optional
 
 from twisted.internet import defer, task
 
@@ -144,7 +145,7 @@ class FileExfiltrationWriter(ExfiltrationWriter):
         if list(os.listdir(self.base_directory)):
             raise Exception("Directory must be empty")
 
-    def write_events(self, room_id: str, events: List[EventBase]) -> None:
+    def write_events(self, room_id: str, events: list[EventBase]) -> None:
         room_directory = os.path.join(self.base_directory, "rooms", room_id)
         os.makedirs(room_directory, exist_ok=True)
         events_file = os.path.join(room_directory, "events")
@@ -249,7 +250,7 @@ class FileExfiltrationWriter(ExfiltrationWriter):
         return self.base_directory
 
 
-def start(config_options: List[str]) -> None:
+def start(config_options: list[str]) -> None:
     parser = argparse.ArgumentParser(description="Relapse Admin Command")
     HomeServerConfig.add_arguments_to_parser(parser)
 

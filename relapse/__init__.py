@@ -19,7 +19,7 @@
 
 import os
 import sys
-from typing import Any, Dict
+from typing import Any
 
 from PIL import ImageFile
 
@@ -75,7 +75,7 @@ try:
     from canonicaljson import register_preserialisation_callback
     from immutabledict import immutabledict
 
-    def _immutabledict_cb(d: immutabledict) -> Dict[str, Any]:
+    def _immutabledict_cb(d: immutabledict) -> dict[str, Any]:
         try:
             return d._dict
         except Exception:

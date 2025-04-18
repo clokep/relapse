@@ -13,7 +13,8 @@
 # limitations under the License.
 
 import logging
-from typing import TYPE_CHECKING, Dict, List, Mapping, Optional, Tuple, Union, cast
+from collections.abc import Mapping
+from typing import TYPE_CHECKING, Optional, Union, cast
 
 import attr
 from typing_extensions import TypedDict
@@ -174,7 +175,7 @@ class ClientIpBackgroundUpdateStore(SQLBaseStore):
                 """,
                 (begin_last_seen, batch_size),
             )
-            row = cast(Optional[Tuple[int]], txn.fetchone())
+            row = cast(Optional[tuple[int]], txn.fetchone())
             if row:
                 return row[0]
             else:
@@ -206,7 +207,7 @@ class ClientIpBackgroundUpdateStore(SQLBaseStore):
 
             # Define the search space, which requires handling the last batch in
             # a different way
-            args: Tuple[int, ...]
+            args: tuple[int, ...]
             if last:
                 clause = "? <= last_seen"
                 args = (begin_last_seen,)
@@ -237,7 +238,7 @@ class ClientIpBackgroundUpdateStore(SQLBaseStore):
                 args,
             )
             res = cast(
-                List[Tuple[str, str, str, Optional[str], str, int, int]], txn.fetchall()
+                list[tuple[str, str, str, Optional[str], str, int, int]], txn.fetchall()
             )
 
             # We've got some duplicates
@@ -347,7 +348,7 @@ class ClientIpBackgroundUpdateStore(SQLBaseStore):
             #      we'll just end up updating the same device row multiple
             #      times, which is fine.
 
-            where_args: List[Union[str, int]]
+            where_args: list[Union[str, int]]
             where_clause, where_args = make_tuple_comparison_clause(
                 [("user_id", last_user_id), ("device_id", last_device_id)],
             )
@@ -371,7 +372,7 @@ class ClientIpBackgroundUpdateStore(SQLBaseStore):
             }
             txn.execute(sql, where_args + [batch_size])
 
-            rows = cast(List[Tuple[int, str, str, str, str]], txn.fetchall())
+            rows = cast(list[tuple[int, str, str, str, str]], txn.fetchall())
             if not rows:
                 return 0
 
@@ -421,7 +422,7 @@ class ClientIpWorkerStore(ClientIpBackgroundUpdateStore, MonthlyActiveUsersWorke
         self.user_ips_max_age = hs.config.server.user_ips_max_age
 
         # (user_id, access_token, ip,) -> last_seen
-        self.client_ip_last_seen = LruCache[Tuple[str, str, str], int](
+        self.client_ip_last_seen = LruCache[tuple[str, str, str], int](
             cache_name="client_ip_last_seen", max_size=50000
         )
 
@@ -433,8 +434,8 @@ class ClientIpWorkerStore(ClientIpBackgroundUpdateStore, MonthlyActiveUsersWorke
             # tables.
 
             # (user_id, access_token, ip,) -> (user_agent, device_id, last_seen)
-            self._batch_row_update: Dict[
-                Tuple[str, str, str], Tuple[str, Optional[str], int]
+            self._batch_row_update: dict[
+                tuple[str, str, str], tuple[str, Optional[str], int]
             ] = {}
 
             self._client_ip_looper = self._clock.looping_call(
@@ -488,7 +489,7 @@ class ClientIpWorkerStore(ClientIpBackgroundUpdateStore, MonthlyActiveUsersWorke
 
     async def _get_last_client_ip_by_device_from_database(
         self, user_id: str, device_id: Optional[str]
-    ) -> Dict[Tuple[str, str], DeviceLastConnectionInfo]:
+    ) -> dict[tuple[str, str], DeviceLastConnectionInfo]:
         """For each device_id listed, give the user_ip it was last seen on.
 
         The result might be slightly out of date as client IPs are inserted in batches.
@@ -506,7 +507,7 @@ class ClientIpWorkerStore(ClientIpBackgroundUpdateStore, MonthlyActiveUsersWorke
             keyvalues["device_id"] = device_id
 
         res = cast(
-            List[Tuple[str, Optional[str], Optional[str], str, Optional[int]]],
+            list[tuple[str, Optional[str], Optional[str], str, Optional[int]]],
             await self.db_pool.simple_select_list(
                 table="devices",
                 keyvalues=keyvalues,
@@ -527,7 +528,7 @@ class ClientIpWorkerStore(ClientIpBackgroundUpdateStore, MonthlyActiveUsersWorke
 
     async def _get_user_ip_and_agents_from_database(
         self, user: UserID, since_ts: int = 0
-    ) -> List[LastConnectionInfo]:
+    ) -> list[LastConnectionInfo]:
         """Fetch the IPs and user agents for a user since the given timestamp.
 
         The result might be slightly out of date as client IPs are inserted in batches.
@@ -551,7 +552,7 @@ class ClientIpWorkerStore(ClientIpBackgroundUpdateStore, MonthlyActiveUsersWorke
         """
         user_id = user.to_string()
 
-        def get_recent(txn: LoggingTransaction) -> List[Tuple[str, str, str, int]]:
+        def get_recent(txn: LoggingTransaction) -> list[tuple[str, str, str, int]]:
             txn.execute(
                 """
                 SELECT access_token, ip, user_agent, last_seen FROM user_ips
@@ -561,7 +562,7 @@ class ClientIpWorkerStore(ClientIpBackgroundUpdateStore, MonthlyActiveUsersWorke
                 """,
                 (since_ts, user_id),
             )
-            return cast(List[Tuple[str, str, str, int]], txn.fetchall())
+            return cast(list[tuple[str, str, str, int]], txn.fetchall())
 
         rows = await self.db_pool.runInteraction(
             desc="get_user_ip_and_agents", func=get_recent
@@ -657,7 +658,7 @@ class ClientIpWorkerStore(ClientIpBackgroundUpdateStore, MonthlyActiveUsersWorke
     def _update_client_ips_batch_txn(
         self,
         txn: LoggingTransaction,
-        to_update: Mapping[Tuple[str, str, str], Tuple[str, Optional[str], int]],
+        to_update: Mapping[tuple[str, str, str], tuple[str, Optional[str], int]],
     ) -> None:
         assert (
             self._update_on_this_worker
@@ -703,7 +704,7 @@ class ClientIpWorkerStore(ClientIpBackgroundUpdateStore, MonthlyActiveUsersWorke
 
     async def get_last_client_ip_by_device(
         self, user_id: str, device_id: Optional[str]
-    ) -> Dict[Tuple[str, str], DeviceLastConnectionInfo]:
+    ) -> dict[tuple[str, str], DeviceLastConnectionInfo]:
         """For each device_id listed, give the user_ip it was last seen on
 
         Args:
@@ -743,7 +744,7 @@ class ClientIpWorkerStore(ClientIpBackgroundUpdateStore, MonthlyActiveUsersWorke
 
     async def get_user_ip_and_agents(
         self, user: UserID, since_ts: int = 0
-    ) -> List[LastConnectionInfo]:
+    ) -> list[LastConnectionInfo]:
         """Fetch the IPs and user agents for a user since the given timestamp.
 
         Args:
@@ -770,7 +771,7 @@ class ClientIpWorkerStore(ClientIpBackgroundUpdateStore, MonthlyActiveUsersWorke
             # the result
             return rows_from_db
 
-        results: Dict[Tuple[str, str], LastConnectionInfo] = {
+        results: dict[tuple[str, str], LastConnectionInfo] = {
             (connection["access_token"], connection["ip"]): connection
             for connection in rows_from_db
         }

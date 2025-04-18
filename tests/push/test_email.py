@@ -13,8 +13,9 @@
 # limitations under the License.
 import email.message
 import os
+from collections.abc import Sequence
 from http import HTTPStatus
-from typing import Any, Dict, List, Sequence, Tuple
+from typing import Any
 
 import attr
 import pkg_resources
@@ -75,7 +76,7 @@ class EmailPusherTests(HomeserverTestCase):
         hs = self.setup_test_homeserver(config=config)
 
         # List[Tuple[Deferred, args, kwargs]]
-        self.email_attempts: List[Tuple[Deferred, Sequence, Dict]] = []
+        self.email_attempts: list[tuple[Deferred, Sequence, dict]] = []
 
         def sendmail(*args: Any, **kwargs: Any) -> Deferred:
             # This mocks out relapse.reactor.send_email._sendmail.
@@ -480,7 +481,7 @@ class EmailPusherTests(HomeserverTestCase):
         )
         self.assertEqual(len(pushers), 0)
 
-    def _check_for_mail(self) -> Tuple[Sequence, Dict]:
+    def _check_for_mail(self) -> tuple[Sequence, dict]:
         """
         Assert that relapse sent off exactly one email notification.
 

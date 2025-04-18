@@ -14,7 +14,8 @@
 
 import logging
 import string
-from typing import TYPE_CHECKING, Iterable, List, Optional, Sequence
+from collections.abc import Iterable, Sequence
+from typing import TYPE_CHECKING, Optional
 
 from typing_extensions import Literal
 
@@ -103,7 +104,7 @@ class DirectoryHandler:
         requester: Requester,
         room_alias: RoomAlias,
         room_id: str,
-        servers: Optional[List[str]] = None,
+        servers: Optional[list[str]] = None,
         check_membership: bool = True,
     ) -> None:
         """Attempt to create a new alias

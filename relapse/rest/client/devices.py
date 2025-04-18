@@ -15,7 +15,7 @@
 
 import logging
 from http import HTTPStatus
-from typing import TYPE_CHECKING, List, Optional, Tuple
+from typing import TYPE_CHECKING, Optional
 
 from relapse._pydantic_compat import HAS_PYDANTIC_V2
 
@@ -56,7 +56,7 @@ class DevicesRestServlet(RestServlet):
         self.device_handler = hs.get_device_handler()
         self._msc3852_enabled = hs.config.experimental.msc3852_enabled
 
-    async def on_GET(self, request: RelapseRequest) -> Tuple[int, JsonDict]:
+    async def on_GET(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         requester = await self.auth.get_user_by_req(request, allow_guest=True)
         devices = await self.device_handler.get_devices_by_user(
             requester.user.to_string()
@@ -96,10 +96,10 @@ class DeleteDevicesRestServlet(RestServlet):
 
     class PostBody(RequestBodyModel):
         auth: Optional[AuthenticationData]
-        devices: List[StrictStr]
+        devices: list[StrictStr]
 
     @interactive_auth_handler
-    async def on_POST(self, request: RelapseRequest) -> Tuple[int, JsonDict]:
+    async def on_POST(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         requester = await self.auth.get_user_by_req(request)
 
         try:
@@ -146,7 +146,7 @@ class DeviceRestServlet(RestServlet):
 
     async def on_GET(
         self, request: RelapseRequest, device_id: str
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         requester = await self.auth.get_user_by_req(request, allow_guest=True)
         device = await self.device_handler.get_device(
             requester.user.to_string(), device_id
@@ -173,7 +173,7 @@ class DeviceRestServlet(RestServlet):
     @interactive_auth_handler
     async def on_DELETE(
         self, request: RelapseRequest, device_id: str
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         if self._msc3861_oauth_delegation_enabled:
             raise UnrecognizedRequestError(code=404)
 
@@ -211,7 +211,7 @@ class DeviceRestServlet(RestServlet):
 
     async def on_PUT(
         self, request: RelapseRequest, device_id: str
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         requester = await self.auth.get_user_by_req(request, allow_guest=True)
 
         body = parse_and_validate_json_object_from_request(request, self.PutBody)
@@ -283,7 +283,7 @@ class DehydratedDeviceServlet(RestServlet):
         assert isinstance(handler, DeviceHandler)
         self.device_handler = handler
 
-    async def on_GET(self, request: RelapseRequest) -> Tuple[int, JsonDict]:
+    async def on_GET(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         requester = await self.auth.get_user_by_req(request)
         dehydrated_device = await self.device_handler.get_dehydrated_device(
             requester.user.to_string()
@@ -299,7 +299,7 @@ class DehydratedDeviceServlet(RestServlet):
         device_data: DehydratedDeviceDataModel
         initial_device_display_name: Optional[StrictStr]
 
-    async def on_PUT(self, request: RelapseRequest) -> Tuple[int, JsonDict]:
+    async def on_PUT(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         submission = parse_and_validate_json_object_from_request(request, self.PutBody)
         requester = await self.auth.get_user_by_req(request)
 
@@ -346,7 +346,7 @@ class ClaimDehydratedDeviceServlet(RestServlet):
     class PostBody(RequestBodyModel):
         device_id: StrictStr
 
-    async def on_POST(self, request: RelapseRequest) -> Tuple[int, JsonDict]:
+    async def on_POST(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         requester = await self.auth.get_user_by_req(request)
 
         submission = parse_and_validate_json_object_from_request(request, self.PostBody)
@@ -377,7 +377,7 @@ class DehydratedDeviceEventsServlet(RestServlet):
 
     async def on_POST(
         self, request: RelapseRequest, device_id: str
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         requester = await self.auth.get_user_by_req(request)
 
         next_batch = parse_and_validate_json_object_from_request(
@@ -484,7 +484,7 @@ class DehydratedDeviceV2Servlet(RestServlet):
         self.e2e_keys_handler = hs.get_e2e_keys_handler()
         self.device_handler = handler
 
-    async def on_GET(self, request: RelapseRequest) -> Tuple[int, JsonDict]:
+    async def on_GET(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         requester = await self.auth.get_user_by_req(request)
 
         dehydrated_device = await self.device_handler.get_dehydrated_device(
@@ -498,7 +498,7 @@ class DehydratedDeviceV2Servlet(RestServlet):
         else:
             raise errors.NotFoundError("No dehydrated device available")
 
-    async def on_DELETE(self, request: RelapseRequest) -> Tuple[int, JsonDict]:
+    async def on_DELETE(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         requester = await self.auth.get_user_by_req(request)
 
         dehydrated_device = await self.device_handler.get_dehydrated_device(
@@ -526,7 +526,7 @@ class DehydratedDeviceV2Servlet(RestServlet):
         class Config:
             extra = Extra.allow
 
-    async def on_PUT(self, request: RelapseRequest) -> Tuple[int, JsonDict]:
+    async def on_PUT(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         submission = parse_and_validate_json_object_from_request(request, self.PutBody)
         requester = await self.auth.get_user_by_req(request)
         user_id = requester.user.to_string()

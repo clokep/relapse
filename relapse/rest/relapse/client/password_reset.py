@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-from typing import TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING
 
 from twisted.web.server import Request
 
@@ -58,7 +58,7 @@ class PasswordResetSubmitTokenResource(DirectServeHtmlResource):
         # This resource should only be mounted if email validation is enabled
         assert hs.config.email.can_verify_email
 
-    async def _async_render_GET(self, request: Request) -> Tuple[int, bytes]:
+    async def _async_render_GET(self, request: Request) -> tuple[int, bytes]:
         sid = parse_string(request, "sid", required=True)
         token = parse_string(request, "token", required=True)
         client_secret = parse_string(request, "client_secret", required=True)
@@ -76,7 +76,7 @@ class PasswordResetSubmitTokenResource(DirectServeHtmlResource):
             self._confirmation_email_template.render(**template_vars).encode("utf-8"),
         )
 
-    async def _async_render_POST(self, request: Request) -> Tuple[int, bytes]:
+    async def _async_render_POST(self, request: Request) -> tuple[int, bytes]:
         sid = parse_string(request, "sid", required=True)
         token = parse_string(request, "token", required=True)
         client_secret = parse_string(request, "client_secret", required=True)

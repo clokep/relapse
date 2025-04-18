@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import TYPE_CHECKING, Sequence, Tuple
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 import attr
 
@@ -37,7 +38,7 @@ class _EventSourcesInner:
     receipt: ReceiptEventSource
     account_data: AccountDataEventSource
 
-    def get_sources(self) -> Sequence[Tuple[StreamKeyType, EventSource]]:
+    def get_sources(self) -> Sequence[tuple[StreamKeyType, EventSource]]:
         return [
             (StreamKeyType.ROOM, self.room),
             (StreamKeyType.PRESENCE, self.presence),

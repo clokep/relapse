@@ -14,7 +14,7 @@
 
 
 from abc import ABC, abstractmethod
-from typing import Iterable
+from collections.abc import Iterable
 
 from prometheus_client import Metric
 

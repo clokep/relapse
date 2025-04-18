@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterable, List, Mapping, Tuple, cast
+from collections.abc import Iterable, Mapping
+from typing import cast
 
 from relapse.storage.database import LoggingTransaction
 from relapse.storage.databases.main import CacheInvalidationWorkerStore
@@ -51,7 +52,7 @@ class UserErasureWorkerStore(CacheInvalidationWorkerStore):
             for each user, whether the user has requested erasure.
         """
         rows = cast(
-            List[Tuple[str]],
+            list[tuple[str]],
             await self.db_pool.simple_select_many_batch(
                 table="erased_users",
                 column="user_id",

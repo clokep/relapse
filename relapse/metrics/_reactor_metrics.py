@@ -14,8 +14,9 @@
 
 import logging
 import time
+from collections.abc import Iterable
 from selectors import SelectSelector, _PollLikeSelector  # type: ignore[attr-defined]
-from typing import Any, Callable, Iterable
+from typing import Any, Callable
 
 from prometheus_client import Histogram, Metric
 from prometheus_client.core import REGISTRY, GaugeMetricFamily

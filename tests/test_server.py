@@ -13,8 +13,9 @@
 # limitations under the License.
 
 import re
+from collections.abc import Awaitable
 from http import HTTPStatus
-from typing import Awaitable, Callable, Dict, NoReturn, Optional, Tuple
+from typing import Callable, NoReturn, Optional
 
 from twisted.internet.defer import Deferred
 from twisted.web.resource import Resource
@@ -64,7 +65,7 @@ class JsonResourceTests(unittest.TestCase):
 
         def _callback(
             request: RelapseRequest, **kwargs: object
-        ) -> Tuple[int, Dict[str, object]]:
+        ) -> tuple[int, dict[str, object]]:
             got_kwargs.update(kwargs)
             return 200, kwargs
 
@@ -186,7 +187,7 @@ class JsonResourceTests(unittest.TestCase):
 
         def _callback(
             request: RelapseRequest, **kwargs: object
-        ) -> Tuple[int, Dict[str, object]]:
+        ) -> tuple[int, dict[str, object]]:
             return 200, {"result": True}
 
         res = JsonResource(self.homeserver)
@@ -439,11 +440,11 @@ class CancellableDirectServeJsonResource(DirectServeJsonResource):
         self.clock = clock
 
     @cancellable
-    async def _async_render_GET(self, request: RelapseRequest) -> Tuple[int, JsonDict]:
+    async def _async_render_GET(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         await self.clock.sleep(1.0)
         return HTTPStatus.OK, {"result": True}
 
-    async def _async_render_POST(self, request: RelapseRequest) -> Tuple[int, JsonDict]:
+    async def _async_render_POST(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         await self.clock.sleep(1.0)
         return HTTPStatus.OK, {"result": True}
 
@@ -456,11 +457,11 @@ class CancellableDirectServeHtmlResource(DirectServeHtmlResource):
         self.clock = clock
 
     @cancellable
-    async def _async_render_GET(self, request: RelapseRequest) -> Tuple[int, bytes]:
+    async def _async_render_GET(self, request: RelapseRequest) -> tuple[int, bytes]:
         await self.clock.sleep(1.0)
         return HTTPStatus.OK, b"ok"
 
-    async def _async_render_POST(self, request: RelapseRequest) -> Tuple[int, bytes]:
+    async def _async_render_POST(self, request: RelapseRequest) -> tuple[int, bytes]:
         await self.clock.sleep(1.0)
         return HTTPStatus.OK, b"ok"
 

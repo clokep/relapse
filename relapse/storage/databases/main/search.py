@@ -15,19 +15,9 @@ import enum
 import logging
 import re
 from collections import deque
+from collections.abc import Collection, Iterable
 from dataclasses import dataclass
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Collection,
-    Iterable,
-    List,
-    Optional,
-    Set,
-    Tuple,
-    Union,
-    cast,
-)
+from typing import TYPE_CHECKING, Any, Optional, Union, cast
 
 import attr
 
@@ -354,7 +344,7 @@ class SearchBackgroundUpdateStore(SearchWorkerStore):
                 pg,
             )
 
-        def reindex_search_txn(txn: LoggingTransaction) -> Tuple[int, bool]:
+        def reindex_search_txn(txn: LoggingTransaction) -> tuple[int, bool]:
             sql = """
             UPDATE event_search AS es
             SET stream_ordering = e.stream_ordering, origin_server_ts = e.origin_server_ts
@@ -443,7 +433,7 @@ class SearchStore(SearchBackgroundUpdateStore):
         """
         clauses = []
 
-        args: List[Any] = []
+        args: list[Any] = []
 
         # Make sure we don't explode because the person is in too many rooms.
         # We filter the results below regardless.
@@ -509,7 +499,7 @@ class SearchStore(SearchBackgroundUpdateStore):
 
         # List of tuples of (rank, room_id, event_id).
         results = cast(
-            List[Tuple[Union[int, float], str, str]],
+            list[tuple[Union[int, float], str, str]],
             await self.db_pool.execute("search_msgs", sql, *args),
         )
 
@@ -532,7 +522,7 @@ class SearchStore(SearchBackgroundUpdateStore):
 
         # List of tuples of (room_id, count).
         count_results = cast(
-            List[Tuple[str, int]],
+            list[tuple[str, int]],
             await self.db_pool.execute("search_rooms_count", count_sql, *count_args),
         )
 
@@ -568,7 +558,7 @@ class SearchStore(SearchBackgroundUpdateStore):
             Each match as a dictionary.
         """
         clauses = []
-        args: List[Any] = []
+        args: list[Any] = []
 
         # Make sure we don't explode because the person is in too many rooms.
         # We filter the results below regardless.
@@ -672,7 +662,7 @@ class SearchStore(SearchBackgroundUpdateStore):
 
         # List of tuples of (rank, room_id, event_id, origin_server_ts, stream_ordering).
         results = cast(
-            List[Tuple[Union[int, float], str, str, int, int]],
+            list[tuple[Union[int, float], str, str, int, int]],
             await self.db_pool.execute("search_rooms", sql, *args),
         )
 
@@ -695,7 +685,7 @@ class SearchStore(SearchBackgroundUpdateStore):
 
         # List of tuples of (room_id, count).
         count_results = cast(
-            List[Tuple[str, int]],
+            list[tuple[str, int]],
             await self.db_pool.execute("search_rooms_count", count_sql, *count_args),
         )
 
@@ -716,8 +706,8 @@ class SearchStore(SearchBackgroundUpdateStore):
         }
 
     async def _find_highlights_in_postgres(
-        self, search_query: str, events: List[EventBase]
-    ) -> Set[str]:
+        self, search_query: str, events: list[EventBase]
+    ) -> set[str]:
         """Given a list of events and a search term, return a list of words
         that match from the content of the event.
 
@@ -732,7 +722,7 @@ class SearchStore(SearchBackgroundUpdateStore):
             A set of strings.
         """
 
-        def f(txn: LoggingTransaction) -> Set[str]:
+        def f(txn: LoggingTransaction) -> set[str]:
             highlight_words = set()
             for event in events:
                 # As a hack we simply join values of all possible keys. This is
@@ -795,7 +785,7 @@ def _to_postgres_options(options_dict: JsonDict) -> str:
 
 @dataclass
 class Phrase:
-    phrase: List[str]
+    phrase: list[str]
 
 
 class SearchToken(enum.Enum):
@@ -805,7 +795,7 @@ class SearchToken(enum.Enum):
 
 
 Token = Union[str, Phrase, SearchToken]
-TokenList = List[Token]
+TokenList = list[Token]
 
 
 def _is_stop_word(word: str) -> bool:

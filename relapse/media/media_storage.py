@@ -15,20 +15,9 @@ import contextlib
 import logging
 import os
 import shutil
+from collections.abc import Awaitable, Generator, Sequence
 from types import TracebackType
-from typing import (
-    IO,
-    TYPE_CHECKING,
-    Any,
-    Awaitable,
-    BinaryIO,
-    Callable,
-    Generator,
-    Optional,
-    Sequence,
-    Tuple,
-    Type,
-)
+from typing import IO, TYPE_CHECKING, Any, BinaryIO, Callable, Optional
 
 import attr
 
@@ -107,7 +96,7 @@ class MediaStorage:
     @contextlib.contextmanager
     def store_into_file(
         self, file_info: FileInfo
-    ) -> Generator[Tuple[BinaryIO, str, Callable[[], Awaitable[None]]], None, None]:
+    ) -> Generator[tuple[BinaryIO, str, Callable[[], Awaitable[None]]], None, None]:
         """Context manager used to get a file like object to write into, as
         described by file_info.
 
@@ -356,7 +345,7 @@ class FileResponder(Responder):
 
     def __exit__(
         self,
-        exc_type: Optional[Type[BaseException]],
+        exc_type: Optional[type[BaseException]],
         exc_val: Optional[BaseException],
         exc_tb: Optional[TracebackType],
     ) -> None:

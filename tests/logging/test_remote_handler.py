@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Tuple
 
 from twisted.internet.protocol import Protocol
 from twisted.test.proto_helpers import AccumulatingProtocol, MemoryReactorClock
@@ -26,7 +25,7 @@ from tests.utils import checked_cast
 
 def connect_logging_client(
     reactor: MemoryReactorClock, client_id: int
-) -> Tuple[Protocol, AccumulatingProtocol]:
+) -> tuple[Protocol, AccumulatingProtocol]:
     # This is essentially tests.server.connect_client, but disabling autoflush on
     # the client transport. This is necessary to avoid an infinite loop due to
     # sending of data via the logging transport causing additional logs to be

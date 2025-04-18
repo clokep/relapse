@@ -16,7 +16,8 @@ import ctypes
 import logging
 import os
 import re
-from typing import Iterable, Optional, overload
+from collections.abc import Iterable
+from typing import Optional, overload
 
 import attr
 from prometheus_client import REGISTRY, Metric

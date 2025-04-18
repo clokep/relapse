@@ -37,7 +37,8 @@ import io
 import json
 import sys
 from collections import defaultdict
-from typing import Any, Dict, Iterator, Optional, Tuple
+from collections.abc import Iterator
+from typing import Any, Optional
 
 import git
 from packaging import version
@@ -56,7 +57,7 @@ SCHEMA_VERSION_FILES = (
 OLDEST_SHOWN_VERSION = version.parse("v1.0")
 
 
-def get_schema_versions(tag: git.Tag) -> Tuple[Optional[int], Optional[int]]:
+def get_schema_versions(tag: git.Tag) -> tuple[Optional[int], Optional[int]]:
     """Get the schema and schema compat versions for a tag."""
     schema_version = None
     schema_compat_version = None
@@ -80,7 +81,7 @@ def get_schema_versions(tag: git.Tag) -> Tuple[Optional[int], Optional[int]]:
             # SCHEMA_COMPAT_VERSION is sometimes across multiple lines, the easist
             # thing to do is exec the code. Luckily it has only ever existed in
             # a file which imports nothing else from Relapse.
-            locals: Dict[str, Any] = {}
+            locals: dict[str, Any] = {}
             exec(schema_file.data_stream.read().decode("utf-8"), {}, locals)
             schema_version = locals["SCHEMA_VERSION"]
             schema_compat_version = locals.get("SCHEMA_COMPAT_VERSION")

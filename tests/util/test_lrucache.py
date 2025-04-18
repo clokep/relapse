@@ -13,7 +13,6 @@
 # limitations under the License.
 
 
-from typing import List, Tuple
 from unittest.mock import Mock, patch
 
 from relapse.metrics.jemalloc import JemallocStats
@@ -63,7 +62,7 @@ class LruCacheTestCase(unittest.HomeserverTestCase):
 
     def test_del_multi(self) -> None:
         # The type here isn't quite correct as they don't handle TreeCache well.
-        cache: LruCache[Tuple[str, str], str] = LruCache(4, cache_type=TreeCache)
+        cache: LruCache[tuple[str, str], str] = LruCache(4, cache_type=TreeCache)
         cache[("animal", "cat")] = "mew"
         cache[("animal", "dog")] = "woof"
         cache[("vehicles", "car")] = "vroom"
@@ -170,7 +169,7 @@ class LruCacheCallbacksTestCase(unittest.HomeserverTestCase):
         m3 = Mock()
         m4 = Mock()
         # The type here isn't quite correct as they don't handle TreeCache well.
-        cache: LruCache[Tuple[str, str], str] = LruCache(4, cache_type=TreeCache)
+        cache: LruCache[tuple[str, str], str] = LruCache(4, cache_type=TreeCache)
 
         cache.set(("a", "1"), "value", callbacks=[m1])
         cache.set(("a", "2"), "value", callbacks=[m2])
@@ -245,7 +244,7 @@ class LruCacheCallbacksTestCase(unittest.HomeserverTestCase):
 
 class LruCacheSizedTestCase(unittest.HomeserverTestCase):
     def test_evict(self) -> None:
-        cache: LruCache[str, List[int]] = LruCache(5, size_callback=len)
+        cache: LruCache[str, list[int]] = LruCache(5, size_callback=len)
         cache["key1"] = [0]
         cache["key2"] = [1, 2]
         cache["key3"] = [3]
@@ -268,7 +267,7 @@ class LruCacheSizedTestCase(unittest.HomeserverTestCase):
 
     def test_zero_size_drop_from_cache(self) -> None:
         """Test that `drop_from_cache` works correctly with 0-sized entries."""
-        cache: LruCache[str, List[int]] = LruCache(5, size_callback=lambda x: 0)
+        cache: LruCache[str, list[int]] = LruCache(5, size_callback=lambda x: 0)
         cache["key1"] = []
 
         self.assertEqual(len(cache), 0)

@@ -14,7 +14,7 @@
 
 import logging
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING
 
 from relapse.api.constants import Direction
 from relapse.api.errors import Codes, NotFoundError, RelapseError
@@ -56,7 +56,7 @@ class EventReportsRestServlet(RestServlet):
         self._auth = hs.get_auth()
         self._store = hs.get_datastores().main
 
-    async def on_GET(self, request: RelapseRequest) -> Tuple[int, JsonDict]:
+    async def on_GET(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         await assert_requester_is_admin(self._auth, request)
 
         start = parse_integer(request, "from", default=0)
@@ -113,7 +113,7 @@ class EventReportDetailRestServlet(RestServlet):
 
     async def on_GET(
         self, request: RelapseRequest, report_id: str
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         await assert_requester_is_admin(self._auth, request)
 
         message = (
@@ -139,7 +139,7 @@ class EventReportDetailRestServlet(RestServlet):
 
     async def on_DELETE(
         self, request: RelapseRequest, report_id: str
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         await assert_requester_is_admin(self._auth, request)
 
         message = (

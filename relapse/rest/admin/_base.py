@@ -13,8 +13,9 @@
 # limitations under the License.
 
 import re
+from collections.abc import Iterable
 from http import HTTPStatus
-from typing import Iterable, Pattern
+from re import Pattern
 
 from relapse.api.auth import Auth
 from relapse.api.errors import AuthError

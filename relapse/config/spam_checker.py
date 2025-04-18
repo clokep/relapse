@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import logging
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 from relapse.config import ConfigError
 from relapse.types import JsonDict
@@ -35,7 +35,7 @@ class SpamCheckerConfig(Config):
     section = "spamchecker"
 
     def read_config(self, config: JsonDict, **kwargs: Any) -> None:
-        self.spam_checkers: List[Tuple[Any, Dict]] = []
+        self.spam_checkers: list[tuple[Any, dict]] = []
 
         spam_checkers = config.get("spam_checker") or []
         if isinstance(spam_checkers, dict):

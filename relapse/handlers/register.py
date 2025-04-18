@@ -16,7 +16,8 @@
 """Contains functions for registering clients."""
 
 import logging
-from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, Optional
 
 from prometheus_client import Counter
 from typing_extensions import TypedDict
@@ -215,7 +216,7 @@ class RegistrationHandler:
         address: Optional[str] = None,
         bind_emails: Optional[Iterable[str]] = None,
         by_admin: bool = False,
-        user_agent_ips: Optional[List[Tuple[str, str]]] = None,
+        user_agent_ips: Optional[list[tuple[str, str]]] = None,
         auth_provider_id: Optional[str] = None,
         approved: bool = False,
     ) -> str:
@@ -765,7 +766,7 @@ class RegistrationHandler:
         auth_provider_id: Optional[str] = None,
         should_issue_refresh_token: bool = False,
         auth_provider_session_id: Optional[str] = None,
-    ) -> Tuple[str, str, Optional[int], Optional[str]]:
+    ) -> tuple[str, str, Optional[int], Optional[str]]:
         """Register a device for a user and generate an access token.
 
         The access token will be limited by the homeserver's session_lifetime config.

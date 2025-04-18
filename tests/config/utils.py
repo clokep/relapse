@@ -17,7 +17,6 @@ import tempfile
 import unittest
 from contextlib import redirect_stdout
 from io import StringIO
-from typing import List
 
 from relapse.config.homeserver import HomeServerConfig
 
@@ -53,7 +52,7 @@ class ConfigFileTestCase(unittest.TestCase):
         with open(self.config_file, "w") as f:
             f.write("".join(contents))
 
-    def add_lines_to_config(self, lines: List[str]) -> None:
+    def add_lines_to_config(self, lines: list[str]) -> None:
         with open(self.config_file, "a") as f:
             for line in lines:
                 f.write(line + "\n")

@@ -17,8 +17,9 @@ import itertools
 import logging
 import os.path
 import urllib.parse
+from collections.abc import Iterable
 from textwrap import indent
-from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, Union
+from typing import Any, Optional, Union
 
 import attr
 import yaml
@@ -189,7 +190,7 @@ KNOWN_RESOURCES = {
 
 @attr.s(frozen=True)
 class HttpResourceConfig:
-    names: List[str] = attr.ib(
+    names: list[str] = attr.ib(
         factory=list,
         validator=attr.validators.deep_iterable(attr.validators.in_(KNOWN_RESOURCES)),
     )
@@ -204,8 +205,8 @@ class HttpListenerConfig:
     """Object describing the http-specific parts of the config of a listener"""
 
     x_forwarded: bool = False
-    resources: List[HttpResourceConfig] = attr.Factory(list)
-    additional_resources: Dict[str, dict] = attr.Factory(dict)
+    resources: list[HttpResourceConfig] = attr.Factory(list)
+    additional_resources: dict[str, dict] = attr.Factory(dict)
     tag: Optional[str] = None
     request_id_header: Optional[str] = None
     # If true, the listener will return CORS response headers compatible with MSC3886:
@@ -218,7 +219,7 @@ class TCPListenerConfig:
     """Object describing the configuration of a single TCP listener."""
 
     port: int = attr.ib(validator=attr.validators.instance_of(int))
-    bind_addresses: List[str] = attr.ib(validator=attr.validators.instance_of(List))
+    bind_addresses: list[str] = attr.ib(validator=attr.validators.instance_of(list))
     type: str = attr.ib(validator=attr.validators.in_(KNOWN_LISTENER_TYPES))
     tls: bool = False
 
@@ -731,11 +732,11 @@ class ServerConfig(Config):
         )
 
         # Whitelist of domain names that given next_link parameters must have
-        next_link_domain_whitelist: Optional[List[str]] = config.get(
+        next_link_domain_whitelist: Optional[list[str]] = config.get(
             "next_link_domain_whitelist"
         )
 
-        self.next_link_domain_whitelist: Optional[Set[str]] = None
+        self.next_link_domain_whitelist: Optional[set[str]] = None
         if next_link_domain_whitelist is not None:
             if not isinstance(next_link_domain_whitelist, list):
                 raise ConfigError("'next_link_domain_whitelist' must be a list")
@@ -759,7 +760,7 @@ class ServerConfig(Config):
             config.get("use_account_validity_in_account_status") or False
         )
 
-        self.rooms_to_exclude_from_sync: List[str] = (
+        self.rooms_to_exclude_from_sync: list[str] = (
             config.get("exclude_rooms_from_sync") or []
         )
 
@@ -783,7 +784,7 @@ class ServerConfig(Config):
         data_dir_path: str,
         server_name: str,
         open_private_ports: bool,
-        listeners: Optional[List[dict]],
+        listeners: Optional[list[dict]],
         **kwargs: Any,
     ) -> str:
         _, bind_port = parse_and_validate_server_name(server_name)
@@ -890,7 +891,7 @@ class ServerConfig(Config):
             help="Turn on the twisted telnet manhole service on the given port.",
         )
 
-    def read_gc_intervals(self, durations: Any) -> Optional[Tuple[float, float, float]]:
+    def read_gc_intervals(self, durations: Any) -> Optional[tuple[float, float, float]]:
         """Reads the three durations for the GC min interval option, returning seconds."""
         if durations is None:
             return None
@@ -910,7 +911,7 @@ class ServerConfig(Config):
 
 
 def is_threepid_reserved(
-    reserved_threepids: List[JsonDict], threepid: JsonDict
+    reserved_threepids: list[JsonDict], threepid: JsonDict
 ) -> bool:
     """Check the threepid against the reserved threepid config
     Args:
@@ -928,8 +929,8 @@ def is_threepid_reserved(
 
 
 def read_gc_thresholds(
-    thresholds: Optional[List[Any]],
-) -> Optional[Tuple[int, int, int]]:
+    thresholds: Optional[list[Any]],
+) -> Optional[tuple[int, int, int]]:
     """Reads the three integer thresholds for garbage collection. Ensures that
     the thresholds are integers if thresholds are supplied.
     """
