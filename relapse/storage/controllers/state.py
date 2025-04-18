@@ -12,21 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
+from collections.abc import Collection, Iterable, Mapping
 from itertools import chain
-from typing import (
-    TYPE_CHECKING,
-    AbstractSet,
-    Callable,
-    Collection,
-    Dict,
-    FrozenSet,
-    Iterable,
-    List,
-    Mapping,
-    Optional,
-    Tuple,
-    Union,
-)
+from typing import TYPE_CHECKING, AbstractSet, Callable, Optional, Union
 
 from relapse.api.constants import EventTypes, Membership
 from relapse.events import EventBase
@@ -85,7 +73,7 @@ class StateStorageController:
     @tag_args
     async def get_state_group_delta(
         self, state_group: int
-    ) -> Tuple[Optional[int], Optional[StateMap[str]]]:
+    ) -> tuple[Optional[int], Optional[StateMap[str]]]:
         """Given a state group try to return a previous group and a delta between
         the old and the new.
 
@@ -104,7 +92,7 @@ class StateStorageController:
     @tag_args
     async def get_state_groups_ids(
         self, _room_id: str, event_ids: Collection[str], await_full_state: bool = True
-    ) -> Dict[int, MutableStateMap[str]]:
+    ) -> dict[int, MutableStateMap[str]]:
         """Get the event IDs of all the state for the state groups for the given events
 
         Args:
@@ -154,7 +142,7 @@ class StateStorageController:
     @tag_args
     async def get_state_groups(
         self, room_id: str, event_ids: Collection[str]
-    ) -> Dict[int, List[EventBase]]:
+    ) -> dict[int, list[EventBase]]:
         """Get the state groups for the given list of event_ids
 
         Args:
@@ -190,8 +178,8 @@ class StateStorageController:
     @trace
     @tag_args
     async def _get_state_groups_from_groups(
-        self, groups: List[int], state_filter: StateFilter
-    ) -> Dict[int, StateMap[str]]:
+        self, groups: list[int], state_filter: StateFilter
+    ) -> dict[int, StateMap[str]]:
         """Returns the state groups for a given set of groups, filtering on
         types of state events.
 
@@ -212,7 +200,7 @@ class StateStorageController:
     @tag_args
     async def get_state_for_events(
         self, event_ids: Collection[str], state_filter: Optional[StateFilter] = None
-    ) -> Dict[str, StateMap[EventBase]]:
+    ) -> dict[str, StateMap[EventBase]]:
         """Given a list of event_ids and type tuples, return a list of state
         dicts for each event.
 
@@ -264,7 +252,7 @@ class StateStorageController:
         event_ids: Collection[str],
         state_filter: Optional[StateFilter] = None,
         await_full_state: bool = True,
-    ) -> Dict[str, StateMap[str]]:
+    ) -> dict[str, StateMap[str]]:
         """
         Get the state dicts corresponding to a list of events, containing the event_ids
         of the state events (as opposed to the events themselves)
@@ -367,7 +355,7 @@ class StateStorageController:
     @tag_args
     async def get_state_for_groups(
         self, groups: Iterable[int], state_filter: Optional[StateFilter] = None
-    ) -> Dict[int, MutableStateMap[str]]:
+    ) -> dict[int, MutableStateMap[str]]:
         """Gets the state at each of a list of state groups, optionally
         filtering by type/state_key
 
@@ -531,7 +519,7 @@ class StateStorageController:
     @tag_args
     async def get_current_state_deltas(
         self, prev_stream_id: int, max_stream_id: int
-    ) -> Tuple[int, List[StateDelta]]:
+    ) -> tuple[int, list[StateDelta]]:
         """Fetch a list of room state changes since the given stream id
 
         Args:
@@ -598,7 +586,7 @@ class StateStorageController:
 
     @trace
     @tag_args
-    async def get_current_hosts_in_room_ordered(self, room_id: str) -> Tuple[str, ...]:
+    async def get_current_hosts_in_room_ordered(self, room_id: str) -> tuple[str, ...]:
         """Get current hosts in room based on current state.
 
         Blocks until we have full state for the given room. This only happens for rooms
@@ -660,7 +648,7 @@ class StateStorageController:
 
     async def get_joined_hosts(
         self, room_id: str, state_entry: "_StateCacheEntry"
-    ) -> FrozenSet[str]:
+    ) -> frozenset[str]:
         state_group: Union[object, int] = state_entry.state_group
         if not state_group:
             # If state_group is None it means it has yet to be assigned a
@@ -681,7 +669,7 @@ class StateStorageController:
         room_id: str,
         state_group: Union[object, int],
         state_entry: "_StateCacheEntry",
-    ) -> FrozenSet[str]:
+    ) -> frozenset[str]:
         # We don't use `state_group`, it's there so that we can cache based on
         # it. However, its important that its never None, since two
         # current_state's with a state_group of None are likely to be different.

@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import logging
-from typing import TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING
 
 from relapse.handlers.device import DeviceHandler
 from relapse.http.server import HttpServer
@@ -39,7 +39,7 @@ class LogoutRestServlet(RestServlet):
         assert isinstance(handler, DeviceHandler)
         self._device_handler = handler
 
-    async def on_POST(self, request: RelapseRequest) -> Tuple[int, JsonDict]:
+    async def on_POST(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         requester = await self.auth.get_user_by_req(
             request, allow_expired=True, allow_locked=True
         )
@@ -68,7 +68,7 @@ class LogoutAllRestServlet(RestServlet):
         assert isinstance(handler, DeviceHandler)
         self._device_handler = handler
 
-    async def on_POST(self, request: RelapseRequest) -> Tuple[int, JsonDict]:
+    async def on_POST(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         requester = await self.auth.get_user_by_req(
             request, allow_expired=True, allow_locked=True
         )

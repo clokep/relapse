@@ -16,8 +16,9 @@ import functools
 import logging
 import re
 import time
+from collections.abc import Awaitable
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Any, Awaitable, Callable, Dict, Optional, Tuple, cast
+from typing import TYPE_CHECKING, Any, Callable, Optional, cast
 
 from relapse.api.errors import Codes, FederationDeniedError, RelapseError
 from relapse.api.urls import FEDERATION_V1_PREFIX
@@ -158,7 +159,7 @@ class Authenticator:
             logger.exception("Error resetting retry timings on %s", origin)
 
 
-def _parse_auth_header(header_bytes: bytes) -> Tuple[str, str, str, Optional[str]]:
+def _parse_auth_header(header_bytes: bytes) -> tuple[str, str, str, Optional[str]]:
     """Parse an X-Matrix auth header
 
     Args:
@@ -174,7 +175,7 @@ def _parse_auth_header(header_bytes: bytes) -> Tuple[str, str, str, Optional[str
     try:
         header_str = header_bytes.decode("utf-8")
         params = re.split(" +", header_str)[1].split(",")
-        param_dict: Dict[str, str] = {
+        param_dict: dict[str, str] = {
             k.lower(): v for k, v in [param.split("=", maxsplit=1) for param in params]
         }
 
@@ -271,14 +272,14 @@ class BaseFederationServlet:
         self.ratelimiter = ratelimiter
         self.server_name = server_name
 
-    def _wrap(self, func: Callable[..., Awaitable[Tuple[int, Any]]]) -> ServletCallback:
+    def _wrap(self, func: Callable[..., Awaitable[tuple[int, Any]]]) -> ServletCallback:
         authenticator = self.authenticator
         ratelimiter = self.ratelimiter
 
         @functools.wraps(func)
         async def new_func(
             request: RelapseRequest, *args: Any, **kwargs: str
-        ) -> Optional[Tuple[int, Any]]:
+        ) -> Optional[tuple[int, Any]]:
             """A callback which can be passed to HttpServer.RegisterPaths
 
             Args:

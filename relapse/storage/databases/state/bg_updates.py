@@ -13,7 +13,8 @@
 # limitations under the License.
 
 import logging
-from typing import TYPE_CHECKING, Dict, List, Mapping, Optional, Tuple, Union
+from collections.abc import Mapping
+from typing import TYPE_CHECKING, Optional, Union
 
 from relapse.logging.opentracing import tag_args, trace
 from relapse.storage._base import SQLBaseStore
@@ -91,7 +92,7 @@ class StateGroupBackgroundUpdateStore(SQLBaseStore):
     def _get_state_groups_from_groups_txn(
         self,
         txn: LoggingTransaction,
-        groups: List[int],
+        groups: list[int],
         state_filter: Optional[StateFilter] = None,
     ) -> Mapping[int, StateMap[str]]:
         """
@@ -108,7 +109,7 @@ class StateGroupBackgroundUpdateStore(SQLBaseStore):
 
         state_filter = state_filter or StateFilter.all()
 
-        results: Dict[int, MutableStateMap[str]] = {group: {} for group in groups}
+        results: dict[int, MutableStateMap[str]] = {group: {} for group in groups}
 
         if isinstance(self.database_engine, PostgresEngine):
             # Temporarily disable sequential scans in this transaction. This is
@@ -132,7 +133,7 @@ class StateGroupBackgroundUpdateStore(SQLBaseStore):
                 %s
             """
 
-            overall_select_query_args: List[Union[int, str]] = []
+            overall_select_query_args: list[Union[int, str]] = []
 
             # This is an optimization to create a select clause per-condition. This
             # makes the query planner a lot smarter on what rows should pull out in the
@@ -141,7 +142,7 @@ class StateGroupBackgroundUpdateStore(SQLBaseStore):
             use_condition_optimization = (
                 not state_filter.include_others and not state_filter.is_full()
             )
-            state_filter_condition_combos: List[Tuple[str, Optional[str]]] = []
+            state_filter_condition_combos: list[tuple[str, Optional[str]]] = []
             # We don't need to caclculate this list if we're not using the condition
             # optimization
             if use_condition_optimization:
@@ -158,7 +159,7 @@ class StateGroupBackgroundUpdateStore(SQLBaseStore):
             # `filter_events_for_client` which just uses 2 conditions
             # (`EventTypes.RoomHistoryVisibility` and `EventTypes.Member`).
             if use_condition_optimization and len(state_filter_condition_combos) < 10:
-                select_clause_list: List[str] = []
+                select_clause_list: list[str] = []
                 for etype, skey in state_filter_condition_combos:
                     if skey is None:
                         where_clause = "(type = ?)"
@@ -201,7 +202,7 @@ class StateGroupBackgroundUpdateStore(SQLBaseStore):
                 """
 
             for group in groups:
-                args: List[Union[int, str]] = [group]
+                args: list[Union[int, str]] = [group]
                 args.extend(overall_select_query_args)
 
                 txn.execute(sql % (overall_select_clause,), args)
@@ -363,7 +364,7 @@ class StateBackgroundUpdateStore(StateGroupBackgroundUpdateStore):
             )
             max_group = rows[0][0]
 
-        def reindex_txn(txn: LoggingTransaction) -> Tuple[bool, int]:
+        def reindex_txn(txn: LoggingTransaction) -> tuple[bool, int]:
             new_last_state_group = last_state_group
             for count in range(batch_size):
                 txn.execute(

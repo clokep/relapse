@@ -13,7 +13,8 @@
 # limitations under the License.
 
 import logging
-from typing import TYPE_CHECKING, Any, Mapping, NoReturn, Optional, Tuple, cast
+from collections.abc import Mapping
+from typing import TYPE_CHECKING, Any, NoReturn, Optional, cast
 
 import psycopg2.extensions
 
@@ -71,11 +72,11 @@ class PostgresEngine(
     def single_threaded(self) -> bool:
         return False
 
-    def get_db_locale(self, txn: Cursor) -> Tuple[str, str]:
+    def get_db_locale(self, txn: Cursor) -> tuple[str, str]:
         txn.execute(
             "SELECT datcollate, datctype FROM pg_database WHERE datname = current_database()"
         )
-        collation, ctype = cast(Tuple[str, str], txn.fetchone())
+        collation, ctype = cast(tuple[str, str], txn.fetchone())
         return collation, ctype
 
     def check_database(

@@ -15,7 +15,7 @@
 import logging
 from io import BytesIO
 from types import TracebackType
-from typing import Optional, Tuple, Type
+from typing import Optional
 
 from PIL import Image
 
@@ -85,7 +85,7 @@ class Thumbnailer:
             logger.info("Error parsing image EXIF information: %s", e)
 
     @trace
-    def transpose(self) -> Tuple[int, int]:
+    def transpose(self) -> tuple[int, int]:
         """Transpose the image using its EXIF Orientation tag
 
         Returns:
@@ -103,7 +103,7 @@ class Thumbnailer:
             self.image.info["exif"] = None
         return self.image.size
 
-    def aspect(self, max_width: int, max_height: int) -> Tuple[int, int]:
+    def aspect(self, max_width: int, max_height: int) -> tuple[int, int]:
         """Calculate the largest size that preserves aspect ratio which
         fits within the given rectangle::
 
@@ -215,7 +215,7 @@ class Thumbnailer:
 
     def __exit__(
         self,
-        type: Optional[Type[BaseException]],
+        type: Optional[type[BaseException]],
         value: Optional[BaseException],
         traceback: Optional[TracebackType],
     ) -> None:

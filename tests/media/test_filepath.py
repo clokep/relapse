@@ -13,7 +13,7 @@
 # limitations under the License.
 import inspect
 import os
-from typing import Iterable
+from collections.abc import Iterable
 
 from relapse.media.filepath import MediaFilePaths, _wrap_with_jail_check
 

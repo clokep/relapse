@@ -13,9 +13,10 @@
 # limitations under the License.
 
 import logging
+from collections.abc import Awaitable, Generator
 from functools import wraps
 from types import TracebackType
-from typing import Awaitable, Callable, Dict, Generator, Optional, Type, TypeVar
+from typing import Callable, Optional, TypeVar
 
 from prometheus_client import CollectorRegistry, Counter, Metric
 from typing_extensions import Concatenate, ParamSpec, Protocol
@@ -166,7 +167,7 @@ class Measure:
 
     def __exit__(
         self,
-        exc_type: Optional[Type[BaseException]],
+        exc_type: Optional[type[BaseException]],
         exc_val: Optional[BaseException],
         exc_tb: Optional[TracebackType],
     ) -> None:
@@ -220,7 +221,7 @@ class DynamicCollectorRegistry(CollectorRegistry):
 
     def __init__(self) -> None:
         super().__init__()
-        self._pre_update_hooks: Dict[str, Callable[[], None]] = {}
+        self._pre_update_hooks: dict[str, Callable[[], None]] = {}
 
     def collect(self) -> Generator[Metric, None, None]:
         """

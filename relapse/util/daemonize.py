@@ -20,7 +20,7 @@ import os
 import signal
 import sys
 from types import FrameType, TracebackType
-from typing import NoReturn, Optional, Type
+from typing import NoReturn, Optional
 
 
 def daemonize_process(pid_file: str, logger: logging.Logger, chdir: str = "/") -> None:
@@ -100,7 +100,7 @@ def daemonize_process(pid_file: str, logger: logging.Logger, chdir: str = "/") -
     # also catch any other uncaught exceptions before we get that far.)
 
     def excepthook(
-        type_: Type[BaseException],
+        type_: type[BaseException],
         value: BaseException,
         traceback: Optional[TracebackType],
     ) -> None:

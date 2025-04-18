@@ -15,7 +15,8 @@
 
 import itertools
 import logging
-from typing import TYPE_CHECKING, Any, Collection, Iterable, List, Optional, Tuple
+from collections.abc import Collection, Iterable
+from typing import TYPE_CHECKING, Any, Optional
 
 from relapse.api.constants import EventTypes
 from relapse.config._base import Config
@@ -130,7 +131,7 @@ class CacheInvalidationWorkerStore(SQLBaseStore):
 
     async def get_all_updated_caches(
         self, instance_name: str, last_id: int, current_id: int, limit: int
-    ) -> Tuple[List[Tuple[int, tuple]], int, bool]:
+    ) -> tuple[list[tuple[int, tuple]], int, bool]:
         """Get updates for caches replication stream.
 
         Args:
@@ -157,7 +158,7 @@ class CacheInvalidationWorkerStore(SQLBaseStore):
 
         def get_all_updated_caches_txn(
             txn: LoggingTransaction,
-        ) -> Tuple[List[Tuple[int, tuple]], int, bool]:
+        ) -> tuple[list[tuple[int, tuple]], int, bool]:
             # We purposefully don't bound by the current token, as we want to
             # send across cache invalidations as quickly as possible. Cache
             # invalidations are idempotent, so duplicates are fine.
@@ -448,7 +449,7 @@ class CacheInvalidationWorkerStore(SQLBaseStore):
         self._invalidate_state_caches_all(room_id)
 
     async def invalidate_cache_and_stream(
-        self, cache_name: str, keys: Tuple[Any, ...]
+        self, cache_name: str, keys: tuple[Any, ...]
     ) -> None:
         """Invalidates the cache and adds it to the cache stream so other workers
         will know to invalidate their caches.
@@ -471,7 +472,7 @@ class CacheInvalidationWorkerStore(SQLBaseStore):
         self,
         txn: LoggingTransaction,
         cache_func: CachedFunction,
-        keys: Tuple[Any, ...],
+        keys: tuple[Any, ...],
     ) -> None:
         """Invalidates the cache and adds it to the cache stream so other workers
         will know to invalidate their caches.
@@ -487,7 +488,7 @@ class CacheInvalidationWorkerStore(SQLBaseStore):
         self,
         txn: LoggingTransaction,
         cache_func: CachedFunction,
-        key_tuples: Collection[Tuple[Any, ...]],
+        key_tuples: Collection[tuple[Any, ...]],
     ) -> None:
         """A bulk version of _invalidate_cache_and_stream.
 
@@ -610,7 +611,7 @@ class CacheInvalidationWorkerStore(SQLBaseStore):
         self,
         txn: LoggingTransaction,
         cache_name: str,
-        key_tuples: Collection[Tuple[Any, ...]],
+        key_tuples: Collection[tuple[Any, ...]],
     ) -> None:
         """Announce the invalidation of multiple (but not all) cache entries.
 

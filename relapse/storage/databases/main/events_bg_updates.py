@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import logging
-from typing import TYPE_CHECKING, Dict, List, Optional, Set, Tuple, cast
+from typing import TYPE_CHECKING, Optional, cast
 
 import attr
 
@@ -87,7 +87,7 @@ class _CalculateChainCover:
     # Map from room_id to last depth/stream processed for each room that we have
     # processed all events for (i.e. the rooms we can flip the
     # `has_auth_chain_index` for)
-    finished_room_map: Dict[str, Tuple[int, int]]
+    finished_room_map: dict[str, tuple[int, int]]
 
 
 class EventsBackgroundUpdatesStore(SQLBaseStore):
@@ -370,7 +370,7 @@ class EventsBackgroundUpdatesStore(SQLBaseStore):
             chunks = [event_ids[i : i + 100] for i in range(0, len(event_ids), 100)]
             for chunk in chunks:
                 ev_rows = cast(
-                    List[Tuple[str, str]],
+                    list[tuple[str, str]],
                     self.db_pool.simple_select_many_txn(
                         txn,
                         table="event_json",
@@ -447,7 +447,7 @@ class EventsBackgroundUpdatesStore(SQLBaseStore):
             original_set = set()
 
             # A dict[str, Set[str]] of event ID to their prev events.
-            graph: Dict[str, Set[str]] = {}
+            graph: dict[str, set[str]] = {}
 
             # The set of descendants of the original set that are not rejected
             # nor soft-failed. Ancestors of these events should be removed
@@ -566,7 +566,7 @@ class EventsBackgroundUpdatesStore(SQLBaseStore):
             if deleted:
                 # We now need to invalidate the caches of these rooms
                 rows = cast(
-                    List[Tuple[str]],
+                    list[tuple[str]],
                     self.db_pool.simple_select_many_txn(
                         txn,
                         table="events",
@@ -769,7 +769,7 @@ class EventsBackgroundUpdatesStore(SQLBaseStore):
 
         def get_rejected_events(
             txn: Cursor,
-        ) -> List[Tuple[str, str, JsonDict, bool, bool]]:
+        ) -> list[tuple[str, str, JsonDict, bool, bool]]:
             # Fetch rejected event json, their room version and whether we have
             # inserted them into the state_events or auth_events tables.
             #
@@ -801,7 +801,7 @@ class EventsBackgroundUpdatesStore(SQLBaseStore):
             )
 
             return cast(
-                List[Tuple[str, str, JsonDict, bool, bool]],
+                list[tuple[str, str, JsonDict, bool, bool]],
                 [(row[0], row[1], db_to_json(row[2]), row[3], row[4]) for row in txn],
             )
 
@@ -1044,7 +1044,7 @@ class EventsBackgroundUpdatesStore(SQLBaseStore):
 
         # We also need to fetch the auth events for them.
         auth_events = cast(
-            List[Tuple[str, str]],
+            list[tuple[str, str]],
             self.db_pool.simple_select_many_txn(
                 txn,
                 table="event_auth",
@@ -1055,7 +1055,7 @@ class EventsBackgroundUpdatesStore(SQLBaseStore):
             ),
         )
 
-        event_to_auth_chain: Dict[str, List[str]] = {}
+        event_to_auth_chain: dict[str, list[str]] = {}
         for event_id, auth_id in auth_events:
             event_to_auth_chain.setdefault(event_id, []).append(auth_id)
 
@@ -1069,7 +1069,7 @@ class EventsBackgroundUpdatesStore(SQLBaseStore):
             self.event_chain_id_gen,  # type: ignore[attr-defined]
             event_to_room_id,
             event_to_types,
-            cast(Dict[str, StrCollection], event_to_auth_chain),
+            cast(dict[str, StrCollection], event_to_auth_chain),
         )
 
         return _CalculateChainCover(
@@ -1174,7 +1174,7 @@ class EventsBackgroundUpdatesStore(SQLBaseStore):
 
             results = list(txn)
             # (event_id, parent_id, rel_type) for each relation
-            relations_to_insert: List[Tuple[str, str, str]] = []
+            relations_to_insert: list[tuple[str, str, str]] = []
             for event_id, event_json_raw in results:
                 try:
                     event_json = db_to_json(event_json_raw)

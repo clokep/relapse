@@ -15,7 +15,8 @@
 import json
 import logging
 import typing
-from typing import Any, Callable, Dict, Generator, Optional, Sequence
+from collections.abc import Generator, Sequence
+from typing import Any, Callable, Optional
 
 import attr
 from immutabledict import immutabledict
@@ -41,7 +42,7 @@ def _reject_invalid_json(val: Any) -> None:
     raise ValueError("Invalid JSON value: '%s'" % val)
 
 
-def _handle_immutabledict(obj: Any) -> Dict[Any, Any]:
+def _handle_immutabledict(obj: Any) -> dict[Any, Any]:
     """Helper for json_encoder. Makes immutabledicts serializable by returning
     the underlying dict
     """

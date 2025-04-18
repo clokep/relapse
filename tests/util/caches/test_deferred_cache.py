@@ -13,7 +13,6 @@
 # limitations under the License.
 
 from functools import partial
-from typing import List, Tuple
 
 from twisted.internet import defer
 
@@ -144,7 +143,7 @@ class DeferredCacheTestCase(TestCase):
         self.assertEqual(v, 2)
 
     def test_invalidate(self) -> None:
-        cache: DeferredCache[Tuple[str], int] = DeferredCache("test")
+        cache: DeferredCache[tuple[str], int] = DeferredCache("test")
         cache.prefill(("foo",), 123)
         cache.invalidate(("foo",))
 
@@ -229,7 +228,7 @@ class DeferredCacheTestCase(TestCase):
         cache.get(3)
 
     def test_eviction_iterable(self) -> None:
-        cache: DeferredCache[int, List[str]] = DeferredCache(
+        cache: DeferredCache[int, list[str]] = DeferredCache(
             "test",
             max_entries=3,
             apply_cache_factor_from_config=False,

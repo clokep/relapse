@@ -15,7 +15,7 @@
 # limitations under the License.
 
 import logging
-from typing import TYPE_CHECKING, List, Optional, Tuple, Union, cast
+from typing import TYPE_CHECKING, Optional, Union, cast
 
 import attr
 
@@ -175,9 +175,9 @@ class DataStore(
         order_by: str = UserSortOrder.NAME.value,
         direction: Direction = Direction.FORWARDS,
         approved: bool = True,
-        not_user_types: Optional[List[str]] = None,
+        not_user_types: Optional[list[str]] = None,
         locked: bool = False,
-    ) -> Tuple[List[UserPaginateResponse], int]:
+    ) -> tuple[list[UserPaginateResponse], int]:
         """Function to retrieve a paginated list of users from
         users list. This will return a json list of users and the
         total number of users matching the filter criteria.
@@ -203,7 +203,7 @@ class DataStore(
 
         def get_users_paginate_txn(
             txn: LoggingTransaction,
-        ) -> Tuple[List[UserPaginateResponse], int]:
+        ) -> tuple[list[UserPaginateResponse], int]:
             filters = []
             args: list = []
 
@@ -291,7 +291,7 @@ class DataStore(
                 """
             sql = "SELECT COUNT(*) as total_users " + sql_base
             txn.execute(sql, args)
-            count = cast(Tuple[int], txn.fetchone())[0]
+            count = cast(tuple[int], txn.fetchone())[0]
 
             sql = f"""
                 SELECT name, user_type, is_guest, admin, deactivated, shadow_banned,
@@ -330,8 +330,8 @@ class DataStore(
 
     async def search_users(
         self, term: str
-    ) -> List[
-        Tuple[str, Optional[str], Union[int, bool], Union[int, bool], Optional[str]]
+    ) -> list[
+        tuple[str, Optional[str], Union[int, bool], Union[int, bool], Optional[str]]
     ]:
         """Function to search users list for one or more users with
         the matched term.
@@ -345,8 +345,8 @@ class DataStore(
 
         def search_users(
             txn: LoggingTransaction,
-        ) -> List[
-            Tuple[str, Optional[str], Union[int, bool], Union[int, bool], Optional[str]]
+        ) -> list[
+            tuple[str, Optional[str], Union[int, bool], Union[int, bool], Optional[str]]
         ]:
             search_term = "%%" + term + "%%"
 
@@ -358,8 +358,8 @@ class DataStore(
             txn.execute(sql, (search_term,))
 
             return cast(
-                List[
-                    Tuple[
+                list[
+                    tuple[
                         str,
                         Optional[str],
                         Union[int, bool],

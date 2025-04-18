@@ -14,7 +14,8 @@
 import contextlib
 import logging
 import time
-from typing import TYPE_CHECKING, Any, Generator, Optional, Tuple, Union
+from collections.abc import Generator
+from typing import TYPE_CHECKING, Any, Optional, Union
 
 import attr
 from zope.interface import implementer
@@ -219,7 +220,7 @@ class RelapseRequest(Request):
             return self.method.decode("ascii")
         return method
 
-    def get_authenticated_entity(self) -> Tuple[Optional[str], Optional[str]]:
+    def get_authenticated_entity(self) -> tuple[Optional[str], Optional[str]]:
         """
         Get the "authenticated" entity of the request, which might be the user
         performing the action, or a user being puppeted by a server admin.

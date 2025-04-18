@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Optional
+from typing import Optional
 from unittest.mock import Mock, patch
 
 from relapse._scripts.register_new_matrix_user import request_registration
@@ -54,8 +54,8 @@ class RegisterTestCase(TestCase):
         requests.post = post
 
         # The fake stdout will be written here
-        out: List[str] = []
-        err_code: List[int] = []
+        out: list[str] = []
+        err_code: list[int] = []
 
         with patch("relapse._scripts.register_new_matrix_user.requests", requests):
             request_registration(
@@ -90,8 +90,8 @@ class RegisterTestCase(TestCase):
         requests.get = get
 
         # The fake stdout will be written here
-        out: List[str] = []
-        err_code: List[int] = []
+        out: list[str] = []
+        err_code: list[int] = []
 
         with patch("relapse._scripts.register_new_matrix_user.requests", requests):
             request_registration(
@@ -145,8 +145,8 @@ class RegisterTestCase(TestCase):
         requests.post = post
 
         # The fake stdout will be written here
-        out: List[str] = []
-        err_code: List[int] = []
+        out: list[str] = []
+        err_code: list[int] = []
 
         with patch("relapse._scripts.register_new_matrix_user.requests", requests):
             request_registration(

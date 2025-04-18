@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import logging
-from typing import TYPE_CHECKING, Dict, List, Optional
+from typing import TYPE_CHECKING, Optional
 
 from twisted.internet.error import AlreadyCalled, AlreadyCancelled
 from twisted.internet.interfaces import IDelayedCall
@@ -64,7 +64,7 @@ class EmailPusher(Pusher):
         self.store = self.hs.get_datastores().main
         self.email = pusher_config.pushkey
         self.timed_call: Optional[IDelayedCall] = None
-        self.throttle_params: Dict[str, ThrottleParams] = {}
+        self.throttle_params: dict[str, ThrottleParams] = {}
         self._inited = False
 
         self._is_processing = False
@@ -315,7 +315,7 @@ class EmailPusher(Pusher):
         )
 
     async def send_notification(
-        self, push_actions: List[EmailPushAction], reason: EmailReason
+        self, push_actions: list[EmailPushAction], reason: EmailReason
     ) -> None:
         logger.info("Sending notif email for user %r", self.user_id)
 

@@ -14,18 +14,8 @@
 # limitations under the License.
 
 import logging
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Dict,
-    FrozenSet,
-    Iterable,
-    List,
-    Mapping,
-    Optional,
-    Tuple,
-    cast,
-)
+from collections.abc import Iterable, Mapping
+from typing import TYPE_CHECKING, Any, Optional, cast
 
 from relapse.api.constants import AccountDataTypes
 from relapse.replication.tcp.streams import AccountDataStream
@@ -145,7 +135,7 @@ class AccountDataWorkerStore(PushRulesWorkerStore, CacheInvalidationWorkerStore)
 
         def get_global_account_data_for_user(
             txn: LoggingTransaction,
-        ) -> Dict[str, JsonDict]:
+        ) -> dict[str, JsonDict]:
             # The 'content != '{}' condition below prevents us from using
             # `simple_select_list_txn` here, as it doesn't support conditions
             # other than 'equals'.
@@ -190,7 +180,7 @@ class AccountDataWorkerStore(PushRulesWorkerStore, CacheInvalidationWorkerStore)
 
         def get_room_account_data_for_user_txn(
             txn: LoggingTransaction,
-        ) -> Dict[str, Dict[str, JsonDict]]:
+        ) -> dict[str, dict[str, JsonDict]]:
             # The 'content != '{}' condition below prevents us from using
             # `simple_select_list_txn` here, as it doesn't support conditions
             # other than 'equals'.
@@ -207,7 +197,7 @@ class AccountDataWorkerStore(PushRulesWorkerStore, CacheInvalidationWorkerStore)
 
             txn.execute(sql, (user_id,))
 
-            by_room: Dict[str, Dict[str, JsonDict]] = {}
+            by_room: dict[str, dict[str, JsonDict]] = {}
             for room_id, account_data_type, content in txn:
                 room_data = by_room.setdefault(room_id, {})
 
@@ -286,9 +276,9 @@ class AccountDataWorkerStore(PushRulesWorkerStore, CacheInvalidationWorkerStore)
 
         def get_account_data_for_room_txn(
             txn: LoggingTransaction,
-        ) -> Dict[str, JsonMapping]:
+        ) -> dict[str, JsonMapping]:
             rows = cast(
-                List[Tuple[str, str]],
+                list[tuple[str, str]],
                 self.db_pool.simple_select_list_txn(
                     txn,
                     table="room_account_data",
@@ -343,7 +333,7 @@ class AccountDataWorkerStore(PushRulesWorkerStore, CacheInvalidationWorkerStore)
 
     async def get_updated_global_account_data(
         self, last_id: int, current_id: int, limit: int
-    ) -> List[Tuple[int, str, str]]:
+    ) -> list[tuple[int, str, str]]:
         """Get the global account_data that has changed, for the account_data stream
 
         Args:
@@ -360,14 +350,14 @@ class AccountDataWorkerStore(PushRulesWorkerStore, CacheInvalidationWorkerStore)
 
         def get_updated_global_account_data_txn(
             txn: LoggingTransaction,
-        ) -> List[Tuple[int, str, str]]:
+        ) -> list[tuple[int, str, str]]:
             sql = (
                 "SELECT stream_id, user_id, account_data_type"
                 " FROM account_data WHERE ? < stream_id AND stream_id <= ?"
                 " ORDER BY stream_id ASC LIMIT ?"
             )
             txn.execute(sql, (last_id, current_id, limit))
-            return cast(List[Tuple[int, str, str]], txn.fetchall())
+            return cast(list[tuple[int, str, str]], txn.fetchall())
 
         return await self.db_pool.runInteraction(
             "get_updated_global_account_data", get_updated_global_account_data_txn
@@ -375,7 +365,7 @@ class AccountDataWorkerStore(PushRulesWorkerStore, CacheInvalidationWorkerStore)
 
     async def get_updated_room_account_data(
         self, last_id: int, current_id: int, limit: int
-    ) -> List[Tuple[int, str, str, str]]:
+    ) -> list[tuple[int, str, str, str]]:
         """Get the global account_data that has changed, for the account_data stream
 
         Args:
@@ -392,14 +382,14 @@ class AccountDataWorkerStore(PushRulesWorkerStore, CacheInvalidationWorkerStore)
 
         def get_updated_room_account_data_txn(
             txn: LoggingTransaction,
-        ) -> List[Tuple[int, str, str, str]]:
+        ) -> list[tuple[int, str, str, str]]:
             sql = (
                 "SELECT stream_id, user_id, room_id, account_data_type"
                 " FROM room_account_data WHERE ? < stream_id AND stream_id <= ?"
                 " ORDER BY stream_id ASC LIMIT ?"
             )
             txn.execute(sql, (last_id, current_id, limit))
-            return cast(List[Tuple[int, str, str, str]], txn.fetchall())
+            return cast(list[tuple[int, str, str, str]], txn.fetchall())
 
         return await self.db_pool.runInteraction(
             "get_updated_room_account_data", get_updated_room_account_data_txn
@@ -420,7 +410,7 @@ class AccountDataWorkerStore(PushRulesWorkerStore, CacheInvalidationWorkerStore)
 
         def get_updated_global_account_data_for_user(
             txn: LoggingTransaction,
-        ) -> Dict[str, JsonDict]:
+        ) -> dict[str, JsonDict]:
             sql = """
                 SELECT account_data_type, content FROM account_data
                 WHERE user_id = ? AND stream_id > ?
@@ -442,7 +432,7 @@ class AccountDataWorkerStore(PushRulesWorkerStore, CacheInvalidationWorkerStore)
 
     async def get_updated_room_account_data_for_user(
         self, user_id: str, stream_id: int
-    ) -> Dict[str, Dict[str, JsonDict]]:
+    ) -> dict[str, dict[str, JsonDict]]:
         """Get all the room account_data that's changed for a user.
 
         Args:
@@ -455,14 +445,14 @@ class AccountDataWorkerStore(PushRulesWorkerStore, CacheInvalidationWorkerStore)
 
         def get_updated_room_account_data_for_user_txn(
             txn: LoggingTransaction,
-        ) -> Dict[str, Dict[str, JsonDict]]:
+        ) -> dict[str, dict[str, JsonDict]]:
             sql = """
                 SELECT room_id, account_data_type, content FROM room_account_data
                 WHERE user_id = ? AND stream_id > ?
             """
             txn.execute(sql, (user_id, stream_id))
 
-            account_data_by_room: Dict[str, Dict[str, JsonDict]] = {}
+            account_data_by_room: dict[str, dict[str, JsonDict]] = {}
             for row in txn:
                 room_account_data = account_data_by_room.setdefault(row[0], {})
                 room_account_data[row[1]] = db_to_json(row[2])
@@ -481,7 +471,7 @@ class AccountDataWorkerStore(PushRulesWorkerStore, CacheInvalidationWorkerStore)
         )
 
     @cached(max_entries=5000, iterable=True)
-    async def ignored_by(self, user_id: str) -> FrozenSet[str]:
+    async def ignored_by(self, user_id: str) -> frozenset[str]:
         """
         Get users which ignore the given user.
 
@@ -501,7 +491,7 @@ class AccountDataWorkerStore(PushRulesWorkerStore, CacheInvalidationWorkerStore)
         )
 
     @cached(max_entries=5000, iterable=True)
-    async def ignored_users(self, user_id: str) -> FrozenSet[str]:
+    async def ignored_users(self, user_id: str) -> frozenset[str]:
         """
         Get users which the given user ignores.
 

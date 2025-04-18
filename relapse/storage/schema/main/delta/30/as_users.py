@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-from typing import Dict, Iterable, List, Tuple, cast
+from collections.abc import Iterable
+from typing import cast
 
 from relapse.config.appservice import load_appservices
 from relapse.config.homeserver import HomeServerConfig
@@ -37,7 +38,7 @@ def run_upgrade(
     config: HomeServerConfig,
 ) -> None:
     cur.execute("SELECT name FROM users")
-    rows = cast(Iterable[Tuple[str]], cur.fetchall())
+    rows = cast(Iterable[tuple[str]], cur.fetchall())
 
     config_files = []
     try:
@@ -47,7 +48,7 @@ def run_upgrade(
 
     appservices = load_appservices(config.server.server_name, config_files)
 
-    owned: Dict[str, List[str]] = {}
+    owned: dict[str, list[str]] = {}
 
     for row in rows:
         user_id = row[0]

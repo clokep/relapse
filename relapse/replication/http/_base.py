@@ -16,8 +16,9 @@ import abc
 import logging
 import re
 import urllib.parse
+from collections.abc import Awaitable
 from inspect import signature
-from typing import TYPE_CHECKING, Any, Awaitable, Callable, ClassVar, Dict, List, Tuple
+from typing import TYPE_CHECKING, Any, Callable, ClassVar
 
 from prometheus_client import Counter, Gauge
 
@@ -105,7 +106,7 @@ class ReplicationEndpoint(metaclass=abc.ABCMeta):
     """
 
     NAME: str = abc.abstractproperty()  # type: ignore
-    PATH_ARGS: Tuple[str, ...] = abc.abstractproperty()  # type: ignore
+    PATH_ARGS: tuple[str, ...] = abc.abstractproperty()  # type: ignore
     METHOD = "POST"
     CACHE = True
     RETRY_ON_TIMEOUT = True
@@ -175,7 +176,7 @@ class ReplicationEndpoint(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     async def _handle_request(
         self, request: Request, content: JsonDict, **kwargs: Any
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         """Handle incoming request.
 
         This is called with the request object and PATH_ARGS.
@@ -276,7 +277,7 @@ class ReplicationEndpoint(metaclass=abc.ABCMeta):
                     "/".join(url_args),
                 )
 
-                headers: Dict[bytes, List[bytes]] = {}
+                headers: dict[bytes, list[bytes]] = {}
                 # Add an authorization header, if configured.
                 if replication_secret:
                     headers[b"Authorization"] = [b"Bearer " + replication_secret]
@@ -375,7 +376,7 @@ class ReplicationEndpoint(metaclass=abc.ABCMeta):
 
     async def _check_auth_and_handle(
         self, request: RelapseRequest, **kwargs: Any
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         """Called on new incoming requests when caching is enabled. Checks
         if there is a cached response for the request and returns that,
         otherwise calls `_handle_request` and caches its response.

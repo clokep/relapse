@@ -3,7 +3,7 @@
 # Check that no schema deltas have been added to the wrong version.
 
 import re
-from typing import Any, Dict, List
+from typing import Any
 
 import click
 import git
@@ -36,16 +36,16 @@ def main(force_colors: bool) -> None:
 
     r = repo.git.show("origin/develop:relapse/storage/schema/__init__.py")
 
-    locals: Dict[str, Any] = {}
+    locals: dict[str, Any] = {}
     exec(r, locals)
     current_schema_version = locals["SCHEMA_VERSION"]
 
-    diffs: List[git.Diff] = repo.remote().refs.develop.commit.diff(None)
+    diffs: list[git.Diff] = repo.remote().refs.develop.commit.diff(None)
 
     # Get the schema version of the local file to check against current schema on develop
     with open("relapse/storage/schema/__init__.py") as file:
         local_schema = file.read()
-    new_locals: Dict[str, Any] = {}
+    new_locals: dict[str, Any] = {}
     exec(local_schema, new_locals)
     local_schema_version = new_locals["SCHEMA_VERSION"]
 

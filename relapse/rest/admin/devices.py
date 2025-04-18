@@ -13,7 +13,7 @@
 # limitations under the License.
 import logging
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING
 
 from relapse.api.errors import NotFoundError, RelapseError
 from relapse.handlers.device import DeviceHandler
@@ -52,7 +52,7 @@ class DeviceRestServlet(RestServlet):
 
     async def on_GET(
         self, request: RelapseRequest, user_id: str, device_id: str
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         await assert_requester_is_admin(self.auth, request)
 
         target_user = UserID.from_string(user_id)
@@ -72,7 +72,7 @@ class DeviceRestServlet(RestServlet):
 
     async def on_DELETE(
         self, request: RelapseRequest, user_id: str, device_id: str
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         await assert_requester_is_admin(self.auth, request)
 
         target_user = UserID.from_string(user_id)
@@ -88,7 +88,7 @@ class DeviceRestServlet(RestServlet):
 
     async def on_PUT(
         self, request: RelapseRequest, user_id: str, device_id: str
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         await assert_requester_is_admin(self.auth, request)
 
         target_user = UserID.from_string(user_id)
@@ -123,7 +123,7 @@ class DevicesRestServlet(RestServlet):
 
     async def on_GET(
         self, request: RelapseRequest, user_id: str
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         await assert_requester_is_admin(self.auth, request)
 
         target_user = UserID.from_string(user_id)
@@ -139,7 +139,7 @@ class DevicesRestServlet(RestServlet):
 
     async def on_POST(
         self, request: RelapseRequest, user_id: str
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         """Creates a new device for the user."""
         await assert_requester_is_admin(self.auth, request)
 
@@ -185,7 +185,7 @@ class DeleteDevicesRestServlet(RestServlet):
 
     async def on_POST(
         self, request: RelapseRequest, user_id: str
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         await assert_requester_is_admin(self.auth, request)
 
         target_user = UserID.from_string(user_id)

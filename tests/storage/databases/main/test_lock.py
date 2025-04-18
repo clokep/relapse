@@ -383,7 +383,7 @@ class ReadWriteLockTestCase(unittest.HomeserverTestCase):
 
         # Wait for ages with the lock, we should not be able to get the lock.
         for _ in range(10):
-            self.reactor.advance((_RENEWAL_INTERVAL_MS / 1000))
+            self.reactor.advance(_RENEWAL_INTERVAL_MS / 1000)
 
         lock2 = self.get_success(
             self.store.try_acquire_read_write_lock("name", "key", write=True)

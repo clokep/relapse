@@ -6,7 +6,7 @@ from typing import Any, Dict
 from setuptools_rust import Binding, RustExtension
 
 
-def build(setup_kwargs: Dict[str, Any]) -> None:
+def build(setup_kwargs: dict[str, Any]) -> None:
     original_project_dir = os.path.dirname(os.path.realpath(__file__))
     cargo_toml_path = os.path.join(original_project_dir, "rust", "Cargo.toml")
 

@@ -21,19 +21,9 @@ import socket
 import sys
 import traceback
 import warnings
+from collections.abc import Awaitable
 from textwrap import indent
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Awaitable,
-    Callable,
-    Dict,
-    List,
-    NoReturn,
-    Optional,
-    Tuple,
-    cast,
-)
+from typing import TYPE_CHECKING, Any, Callable, NoReturn, Optional, cast
 
 from cryptography.utils import CryptographyDeprecationWarning
 from typing_extensions import ParamSpec
@@ -92,8 +82,8 @@ reactor = cast(IRelapseReactor, _reactor)
 logger = logging.getLogger(__name__)
 
 # list of tuples of function, args list, kwargs dict
-_sighup_callbacks: List[
-    Tuple[Callable[..., None], Tuple[object, ...], Dict[str, object]]
+_sighup_callbacks: list[
+    tuple[Callable[..., None], tuple[object, ...], dict[str, object]]
 ] = []
 P = ParamSpec("P")
 
@@ -144,7 +134,7 @@ def start_worker_reactor(
 def start_reactor(
     appname: str,
     soft_file_limit: int,
-    gc_thresholds: Optional[Tuple[int, int, int]],
+    gc_thresholds: Optional[tuple[int, int, int]],
     pid_file: Optional[str],
     daemonize: bool,
     print_pidfile: bool,
@@ -342,7 +332,7 @@ def listen_tcp(
     factory: ServerFactory,
     reactor: IReactorTCP = reactor,
     backlog: int = 50,
-) -> List[Port]:
+) -> list[Port]:
     """
     Create a TCP socket for a port and several addresses
 
@@ -367,7 +357,7 @@ def listen_unix(
     factory: ServerFactory,
     reactor: IReactorUNIX = reactor,
     backlog: int = 50,
-) -> List[Port]:
+) -> list[Port]:
     """
     Create a UNIX socket for a given path and 'mode' permission
 
@@ -391,7 +381,7 @@ def listen_http(
     max_request_body_size: int,
     context_factory: Optional[IOpenSSLContextFactory],
     reactor: IRelapseReactor = reactor,
-) -> List[Port]:
+) -> list[Port]:
     assert listener_config.http_options is not None
 
     site_tag = listener_config.get_site_tag()
@@ -452,7 +442,7 @@ def listen_ssl(
     context_factory: IOpenSSLContextFactory,
     reactor: IReactorSSL = reactor,
     backlog: int = 50,
-) -> List[Port]:
+) -> list[Port]:
     """
     Create an TLS-over-TCP socket for a port and several addresses
 

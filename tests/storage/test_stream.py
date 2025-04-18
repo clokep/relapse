@@ -12,7 +12,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from typing import List
 
 from twisted.test.proto_helpers import MemoryReactor
 
@@ -120,7 +119,7 @@ class PaginationTestCase(HomeserverTestCase):
         )
         self.event_id_none = res["event_id"]
 
-    def _filter_messages(self, filter: JsonDict) -> List[str]:
+    def _filter_messages(self, filter: JsonDict) -> list[str]:
         """Make a request to /messages with a filter, returns the chunk of events."""
 
         events, next_key = self.get_success(

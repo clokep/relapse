@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List, Sequence
+from collections.abc import Sequence
 
 from twisted.test.proto_helpers import MemoryReactor
 
@@ -728,7 +728,7 @@ class ServerNoticeTestCase(unittest.HomeserverTestCase):
 
         return invited_rooms
 
-    def _sync_and_get_messages(self, room_id: str, token: str) -> List[JsonDict]:
+    def _sync_and_get_messages(self, room_id: str, token: str) -> list[JsonDict]:
         """
         Do a sync and get messages of a room.
 

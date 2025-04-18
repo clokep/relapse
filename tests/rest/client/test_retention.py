@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Dict
+from typing import Any
 from unittest.mock import Mock
 
 from twisted.test.proto_helpers import MemoryReactor
@@ -255,7 +255,7 @@ class RetentionNoDefaultPolicyTestCase(unittest.HomeserverTestCase):
         room.register_servlets,
     ]
 
-    def default_config(self) -> Dict[str, Any]:
+    def default_config(self) -> dict[str, Any]:
         config = super().default_config()
 
         retention_config = {

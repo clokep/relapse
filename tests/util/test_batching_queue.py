@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List, Tuple
 
 from prometheus_client import Gauge
 
@@ -41,12 +40,12 @@ class BatchingQueueTestCase(TestCase):
         except KeyError:
             pass
 
-        self._pending_calls: List[Tuple[List[str], defer.Deferred]] = []
+        self._pending_calls: list[tuple[list[str], defer.Deferred]] = []
         self.queue: BatchingQueue[str, str] = BatchingQueue(
             "test_queue", hs_clock, self._process_queue
         )
 
-    async def _process_queue(self, values: List[str]) -> str:
+    async def _process_queue(self, values: list[str]) -> str:
         d: "defer.Deferred[str]" = defer.Deferred()
         self._pending_calls.append((values, d))
         return await make_deferred_yieldable(d)

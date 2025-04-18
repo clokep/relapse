@@ -14,7 +14,7 @@
 
 import logging
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Any, Dict, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 from relapse.api.constants import EduTypes, EventContentFields, ToDeviceEventTypes
 from relapse.api.errors import Codes, RelapseError
@@ -163,7 +163,7 @@ class DeviceMessageHandler:
         self,
         message_type: str,
         sender_user_id: str,
-        by_device: Dict[str, Dict[str, Any]],
+        by_device: dict[str, dict[str, Any]],
     ) -> None:
         """Checks inbound device messages for unknown remote devices, and if
         found marks the remote cache for the user as stale.
@@ -209,7 +209,7 @@ class DeviceMessageHandler:
         self,
         requester: Requester,
         message_type: str,
-        messages: Dict[str, Dict[str, JsonDict]],
+        messages: dict[str, dict[str, JsonDict]],
     ) -> None:
         """
         Handle a request from a user to send to-device message(s).
@@ -224,7 +224,7 @@ class DeviceMessageHandler:
         set_tag(RelapseTags.TO_DEVICE_TYPE, message_type)
         set_tag(RelapseTags.TO_DEVICE_SENDER, sender_user_id)
         local_messages = {}
-        remote_messages: Dict[str, Dict[str, Dict[str, JsonDict]]] = {}
+        remote_messages: dict[str, dict[str, dict[str, JsonDict]]] = {}
         for user_id, by_device in messages.items():
             # add an opentracing log entry for each message
             for device_id, message_content in by_device.items():

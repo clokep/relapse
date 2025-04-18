@@ -13,7 +13,7 @@
 # limitations under the License.
 import logging
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING
 
 from relapse.api.room_versions import KNOWN_ROOM_VERSIONS, MSC3244_CAPABILITIES
 from relapse.http.server import HttpServer
@@ -42,7 +42,7 @@ class CapabilitiesRestServlet(RestServlet):
         self.auth = hs.get_auth()
         self.auth_handler = hs.get_auth_handler()
 
-    async def on_GET(self, request: RelapseRequest) -> Tuple[int, JsonDict]:
+    async def on_GET(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         await self.auth.get_user_by_req(request, allow_guest=True)
         change_password = self.auth_handler.can_change_password()
 

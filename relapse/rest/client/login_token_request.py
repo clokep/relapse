@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import logging
-from typing import TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING
 
 from relapse.api.ratelimiting import Ratelimiter
 from relapse.config.ratelimiting import RatelimitSettings
@@ -82,7 +82,7 @@ class LoginTokenRequestServlet(RestServlet):
         )
 
     @interactive_auth_handler
-    async def on_POST(self, request: RelapseRequest) -> Tuple[int, JsonDict]:
+    async def on_POST(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         requester = await self.auth.get_user_by_req(request)
         body = parse_json_object_from_request(request)
 

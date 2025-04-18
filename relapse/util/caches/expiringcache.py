@@ -14,7 +14,8 @@
 
 import logging
 from collections import OrderedDict
-from typing import Any, Generic, Iterable, Optional, TypeVar, Union, overload
+from collections.abc import Iterable
+from typing import Any, Generic, Optional, TypeVar, Union, overload
 
 import attr
 from typing_extensions import Literal

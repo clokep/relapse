@@ -24,7 +24,8 @@ import signal
 import subprocess
 import sys
 import time
-from typing import Iterable, NoReturn, Optional, TextIO
+from collections.abc import Iterable
+from typing import NoReturn, Optional, TextIO
 
 import yaml
 

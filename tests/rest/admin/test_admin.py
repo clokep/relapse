@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import urllib.parse
-from typing import Dict
 
 from parameterized import parameterized
 
@@ -56,7 +55,7 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
         room.register_servlets,
     ]
 
-    def create_resource_dict(self) -> Dict[str, Resource]:
+    def create_resource_dict(self) -> dict[str, Resource]:
         resources = super().create_resource_dict()
         resources["/_matrix/media"] = self.hs.get_media_repository_resource()
         return resources

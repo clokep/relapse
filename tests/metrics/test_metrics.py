@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from importlib import metadata
-from typing import Dict, Tuple
 from unittest.mock import patch
 
 from pkg_resources import parse_version
@@ -27,7 +26,7 @@ from relapse.util.caches.deferred_cache import DeferredCache
 from tests import unittest
 
 
-def get_sample_labels_value(sample: Sample) -> Tuple[Dict[str, str], float]:
+def get_sample_labels_value(sample: Sample) -> tuple[dict[str, str], float]:
     """Extract the labels and values of a sample.
 
     prometheus_client 0.5 changed the sample type to a named tuple with more
@@ -46,7 +45,7 @@ def get_sample_labels_value(sample: Sample) -> Tuple[Dict[str, str], float]:
     # Otherwise fall back to treating it as a plain 3 tuple.
     else:
         # In older versions of prometheus_client Sample was a 3-tuple.
-        labels: Dict[str, str]
+        labels: dict[str, str]
         value: float
         _, labels, value = sample  # type: ignore[misc]
         return labels, value
@@ -118,7 +117,7 @@ class TestMauLimit(unittest.TestCase):
 
     def get_metrics_from_gauge(
         self, gauge: InFlightGauge
-    ) -> Dict[str, Dict[Tuple[str, ...], float]]:
+    ) -> dict[str, dict[tuple[str, ...], float]]:
         results = {}
 
         for r in gauge.collect():

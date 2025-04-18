@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import logging
-from typing import TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING
 
 from relapse.api.errors import AuthError, NotFoundError, RelapseError, StoreError
 from relapse.http.server import HttpServer
@@ -41,7 +41,7 @@ class GetFilterRestServlet(RestServlet):
 
     async def on_GET(
         self, request: RelapseRequest, user_id: str, filter_id: str
-    ) -> Tuple[int, JsonMapping]:
+    ) -> tuple[int, JsonMapping]:
         target_user = UserID.from_string(user_id)
         requester = await self.auth.get_user_by_req(request)
 
@@ -80,7 +80,7 @@ class CreateFilterRestServlet(RestServlet):
 
     async def on_POST(
         self, request: RelapseRequest, user_id: str
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         target_user = UserID.from_string(user_id)
         requester = await self.auth.get_user_by_req(request)
 

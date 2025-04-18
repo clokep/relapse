@@ -14,7 +14,7 @@
 import logging
 import random
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, Optional, Type
+from typing import TYPE_CHECKING, Any, Optional
 
 from relapse.api.errors import CodeMessageException
 from relapse.metrics.background_process_metrics import run_as_background_process
@@ -205,7 +205,7 @@ class RetryDestinationLimiter:
 
     def __exit__(
         self,
-        exc_type: Optional[Type[BaseException]],
+        exc_type: Optional[type[BaseException]],
         exc_val: Optional[BaseException],
         exc_tb: Optional[TracebackType],
     ) -> None:

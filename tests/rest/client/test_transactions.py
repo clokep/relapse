@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from collections.abc import Generator
 from http import HTTPStatus
-from typing import Any, Generator, Tuple, cast
+from typing import Any, Tuple, cast
 from unittest.mock import AsyncMock, Mock, call
 
 from twisted.internet import defer, reactor as _reactor
@@ -82,7 +83,7 @@ class HttpTransactionCacheTestCase(unittest.TestCase):
         self,
     ) -> Generator["defer.Deferred[Any]", object, None]:
         @defer.inlineCallbacks
-        def cb() -> Generator["defer.Deferred[object]", object, Tuple[int, JsonDict]]:
+        def cb() -> Generator["defer.Deferred[object]", object, tuple[int, JsonDict]]:
             yield Clock(reactor).sleep(0)
             return 1, {}
 

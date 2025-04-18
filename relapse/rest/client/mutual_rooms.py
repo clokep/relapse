@@ -13,7 +13,7 @@
 # limitations under the License.
 import logging
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Dict, List, Tuple
+from typing import TYPE_CHECKING
 
 from relapse.api.errors import Codes, RelapseError
 from relapse.http.server import HttpServer
@@ -44,9 +44,9 @@ class UserMutualRoomsServlet(RestServlet):
         self.auth = hs.get_auth()
         self.store = hs.get_datastores().main
 
-    async def on_GET(self, request: RelapseRequest) -> Tuple[int, JsonDict]:
+    async def on_GET(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         # twisted.web.server.Request.args is incorrectly defined as Optional[Any]
-        args: Dict[bytes, List[bytes]] = request.args  # type: ignore
+        args: dict[bytes, list[bytes]] = request.args  # type: ignore
 
         user_ids = parse_strings_from_args(args, "user_id", required=True)
 

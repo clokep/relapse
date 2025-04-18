@@ -14,7 +14,7 @@
 # limitations under the License.
 
 import logging
-from typing import TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING
 
 from relapse.api.errors import Codes, RelapseError
 from relapse.http.server import HttpServer
@@ -44,7 +44,7 @@ class PushersRestServlet(RestServlet):
         self.auth = hs.get_auth()
         self._msc3881_enabled = self.hs.config.experimental.msc3881_enabled
 
-    async def on_GET(self, request: RelapseRequest) -> Tuple[int, JsonDict]:
+    async def on_GET(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         requester = await self.auth.get_user_by_req(request)
         user = requester.user
 
@@ -75,7 +75,7 @@ class PushersSetRestServlet(RestServlet):
         self.pusher_pool = self.hs.get_pusherpool()
         self._msc3881_enabled = self.hs.config.experimental.msc3881_enabled
 
-    async def on_POST(self, request: RelapseRequest) -> Tuple[int, JsonDict]:
+    async def on_POST(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         requester = await self.auth.get_user_by_req(request)
         user = requester.user
 

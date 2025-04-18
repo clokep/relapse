@@ -13,7 +13,6 @@
 # limitations under the License.
 import logging
 import typing
-from typing import Tuple
 
 from relapse.api.errors import Codes, RelapseError
 from relapse.http.server import HttpServer
@@ -44,7 +43,7 @@ class AuthIssuerServlet(RestServlet):
         super().__init__()
         self._config = hs.config
 
-    async def on_GET(self, request: RelapseRequest) -> Tuple[int, JsonDict]:
+    async def on_GET(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         if self._config.experimental.msc3861.enabled:
             return 200, {"issuer": self._config.experimental.msc3861.issuer}
         else:

@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import logging
-from typing import TYPE_CHECKING, List, Tuple
+from typing import TYPE_CHECKING
 
 from twisted.web.server import Request
 
@@ -83,7 +83,7 @@ class ReplicationSendEventRestServlet(ReplicationEndpoint):
         context: EventContext,
         requester: Requester,
         ratelimit: bool,
-        extra_users: List[UserID],
+        extra_users: list[UserID],
     ) -> JsonDict:
         """
         Args:
@@ -114,7 +114,7 @@ class ReplicationSendEventRestServlet(ReplicationEndpoint):
 
     async def _handle_request(  # type: ignore[override]
         self, request: Request, content: JsonDict, event_id: str
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         with Measure(self.clock, "repl_send_event_parse"):
             event_dict = content["event"]
             room_ver = KNOWN_ROOM_VERSIONS[content["room_version"]]

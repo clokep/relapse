@@ -26,18 +26,9 @@ import logging
 import threading
 import typing
 import warnings
+from collections.abc import Awaitable
 from types import TracebackType
-from typing import (
-    TYPE_CHECKING,
-    Awaitable,
-    Callable,
-    Optional,
-    Tuple,
-    Type,
-    TypeVar,
-    Union,
-    overload,
-)
+from typing import TYPE_CHECKING, Callable, Optional, TypeVar, Union, overload
 
 import attr
 from typing_extensions import Literal, ParamSpec
@@ -389,7 +380,7 @@ class LoggingContext:
 
     def __exit__(
         self,
-        type: Optional[Type[BaseException]],
+        type: Optional[type[BaseException]],
         value: Optional[BaseException],
         traceback: Optional[TracebackType],
     ) -> None:
@@ -491,7 +482,7 @@ class LoggingContext:
 
         return res
 
-    def _get_cputime(self, current: "resource.struct_rusage") -> Tuple[float, float]:
+    def _get_cputime(self, current: "resource.struct_rusage") -> tuple[float, float]:
         """Get the cpu usage time between start() and the given rusage
 
         Args:
@@ -629,7 +620,7 @@ class PreserveLoggingContext:
 
     def __exit__(
         self,
-        type: Optional[Type[BaseException]],
+        type: Optional[type[BaseException]],
         value: Optional[BaseException],
         traceback: Optional[TracebackType],
     ) -> None:

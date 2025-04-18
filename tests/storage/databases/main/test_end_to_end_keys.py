@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List, Optional, Tuple
+from typing import Optional
 
 from twisted.test.proto_helpers import MemoryReactor
 
@@ -92,7 +92,7 @@ class EndToEndKeyWorkerStoreTestCase(HomeserverTestCase):
 
         def check_timestamp_column(
             txn: LoggingTransaction,
-        ) -> List[Tuple[JsonDict, Optional[int]]]:
+        ) -> list[tuple[JsonDict, Optional[int]]]:
             """Fetch all rows for Alice's keys."""
             txn.execute(
                 """

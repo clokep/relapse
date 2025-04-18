@@ -16,17 +16,7 @@ import binascii
 import inspect
 import json
 import logging
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Dict,
-    Generic,
-    List,
-    Optional,
-    Type,
-    TypeVar,
-    Union,
-)
+from typing import TYPE_CHECKING, Any, Generic, Optional, TypeVar, Union
 from urllib.parse import urlencode, urlparse
 
 import attr
@@ -104,14 +94,14 @@ class Token(TypedDict):
 
 #: A JWK, as per RFC7517 sec 4. The type could be more precise than that, but
 #: there is no real point of doing this in our case.
-JWK = Dict[str, str]
+JWK = dict[str, str]
 
 C = TypeVar("C")
 
 
 #: A JWK Set, as per RFC7517 sec 5.
 class JWKS(TypedDict):
-    keys: List[JWK]
+    keys: list[JWK]
 
 
 class OidcHandler:
@@ -125,7 +115,7 @@ class OidcHandler:
         assert provider_confs
 
         self._macaroon_generator = hs.get_macaroon_generator()
-        self._providers: Dict[str, "OidcProvider"] = {
+        self._providers: dict[str, "OidcProvider"] = {
             p.idp_id: OidcProvider(hs, self._macaroon_generator, p)
             for p in provider_confs
         }
@@ -323,7 +313,7 @@ class OidcHandler:
 
             # At this point we properly checked both claims types
             issuer: str = iss
-            audience: List[str] = aud
+            audience: list[str] = aud
         except (TypeError, KeyError):
             raise RelapseError(400, "Invalid issuer/audience in logout_token")
 
@@ -702,7 +692,7 @@ class OidcProvider:
         """
         metadata = await self.load_metadata()
         token_endpoint = metadata.get("token_endpoint")
-        raw_headers: Dict[str, str] = {
+        raw_headers: dict[str, str] = {
             "Content-Type": "application/x-www-form-urlencoded",
             "User-Agent": self._http_client.user_agent.decode("ascii"),
             "Accept": "application/json",
@@ -822,9 +812,9 @@ class OidcProvider:
 
     async def _verify_jwt(
         self,
-        alg_values: List[str],
+        alg_values: list[str],
         token: str,
-        claims_cls: Type[C],
+        claims_cls: type[C],
         claims_options: Optional[dict] = None,
         claims_params: Optional[dict] = None,
     ) -> C:
@@ -1477,7 +1467,7 @@ class UserAttributeDict(TypedDict):
     confirm_localpart: bool
     display_name: Optional[str]
     picture: Optional[str]  # may be omitted by older `OidcMappingProviders`
-    emails: List[str]
+    emails: list[str]
 
 
 class OidcMappingProvider(Generic[C]):
@@ -1566,7 +1556,7 @@ class JinjaOidcMappingConfig:
     localpart_template: Optional[Template]
     display_name_template: Optional[Template]
     email_template: Optional[Template]
-    extra_attributes: Dict[str, Template]
+    extra_attributes: dict[str, Template]
     confirm_localpart: bool = False
 
 
@@ -1666,7 +1656,7 @@ class JinjaOidcMappingProvider(OidcMappingProvider[JinjaOidcMappingConfig]):
         if display_name == "":
             display_name = None
 
-        emails: List[str] = []
+        emails: list[str] = []
         email = render_template_field(self._config.email_template)
         if email:
             emails.append(email)
@@ -1682,7 +1672,7 @@ class JinjaOidcMappingProvider(OidcMappingProvider[JinjaOidcMappingConfig]):
         )
 
     async def get_extra_attributes(self, userinfo: UserInfo, token: Token) -> JsonDict:
-        extras: Dict[str, str] = {}
+        extras: dict[str, str] = {}
         for key, template in self._config.extra_attributes.items():
             try:
                 extras[key] = template.render(user=userinfo).strip()
