@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterable, Optional, Set
+from collections.abc import Iterable
+from typing import Optional
 
 from twisted.test.proto_helpers import MemoryReactor
 
@@ -44,7 +45,7 @@ class IgnoredUsersTestCase(unittest.HomeserverTestCase):
         )
 
     def assert_ignorers(
-        self, ignored_user_id: str, expected_ignorer_user_ids: Set[str]
+        self, ignored_user_id: str, expected_ignorer_user_ids: set[str]
     ) -> None:
         self.assertEqual(
             self.get_success(self.store.ignored_by(ignored_user_id)),
@@ -52,7 +53,7 @@ class IgnoredUsersTestCase(unittest.HomeserverTestCase):
         )
 
     def assert_ignored(
-        self, ignorer_user_id: str, expected_ignored_user_ids: Set[str]
+        self, ignorer_user_id: str, expected_ignored_user_ids: set[str]
     ) -> None:
         self.assertEqual(
             self.get_success(self.store.ignored_users(ignorer_user_id)),

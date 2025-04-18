@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List
 from unittest.mock import Mock, patch
 
 from parameterized import parameterized
@@ -52,7 +51,7 @@ class FederationReaderOpenIDListenerTests(HomeserverTestCase):
             (["openid"], "auth_fail"),
         ]
     )
-    def test_openid_listener(self, names: List[str], expectation: str) -> None:
+    def test_openid_listener(self, names: list[str], expectation: str) -> None:
         """
         Test different openid listener configurations.
 
@@ -100,7 +99,7 @@ class RelapseHomeserverOpenIDListenerTests(HomeserverTestCase):
             (["openid"], "auth_fail"),
         ]
     )
-    def test_openid_listener(self, names: List[str], expectation: str) -> None:
+    def test_openid_listener(self, names: list[str], expectation: str) -> None:
         """
         Test different openid listener configurations.
 

@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List, Optional
+from typing import Optional
 
 from parameterized import parameterized
 
@@ -265,7 +265,7 @@ class FederationTestCase(unittest.HomeserverTestCase):
         """Testing order list with parameter `order_by`"""
 
         def _order_test(
-            expected_destination_list: List[str],
+            expected_destination_list: list[str],
             order_by: Optional[str],
             dir: Optional[str] = None,
         ) -> None:
@@ -514,7 +514,7 @@ class FederationTestCase(unittest.HomeserverTestCase):
             dest = f"sub{i}.example.com"
             self._create_destination(dest, 50, 50, 50, 100)
 
-    def _check_fields(self, content: List[JsonDict]) -> None:
+    def _check_fields(self, content: list[JsonDict]) -> None:
         """Checks that the expected destination attributes are present in content
 
         Args:
@@ -785,7 +785,7 @@ class DestinationMembershipTestCase(unittest.HomeserverTestCase):
                 self.store.store_destination_rooms_entries((self.dest,), room_id, 1234)
             )
 
-    def _check_fields(self, content: List[JsonDict]) -> None:
+    def _check_fields(self, content: list[JsonDict]) -> None:
         """Checks that the expected room attributes are present in content
 
         Args:

@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List, Optional, cast
+from typing import Optional, cast
 
 from canonicaljson import json
 
@@ -239,8 +239,8 @@ class RedactionTestCase(unittest.HomeserverTestCase):
 
             async def build(
                 self,
-                prev_event_ids: List[str],
-                auth_event_ids: Optional[List[str]],
+                prev_event_ids: list[str],
+                auth_event_ids: Optional[list[str]],
                 depth: Optional[int] = None,
             ) -> EventBase:
                 built_event = await self._base_builder.build(

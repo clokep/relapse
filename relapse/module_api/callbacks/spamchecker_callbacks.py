@@ -15,17 +15,8 @@
 
 import inspect
 import logging
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Awaitable,
-    Callable,
-    Collection,
-    List,
-    Optional,
-    Tuple,
-    Union,
-)
+from collections.abc import Awaitable, Collection
+from typing import TYPE_CHECKING, Any, Callable, Optional, Union
 
 # `Literal` appears with Python 3.8.
 from typing_extensions import Literal
@@ -56,7 +47,7 @@ CHECK_EVENT_FOR_SPAM_CALLBACK = Callable[
             # disappear without warning depending on the results of ongoing
             # experiments.
             # Use this to return additional information as part of an error.
-            Tuple[Codes, JsonDict],
+            tuple[Codes, JsonDict],
             # Deprecated
             bool,
         ]
@@ -76,7 +67,7 @@ USER_MAY_JOIN_ROOM_CALLBACK = Callable[
             # disappear without warning depending on the results of ongoing
             # experiments.
             # Use this to return additional information as part of an error.
-            Tuple[Codes, JsonDict],
+            tuple[Codes, JsonDict],
             # Deprecated
             bool,
         ]
@@ -92,7 +83,7 @@ USER_MAY_INVITE_CALLBACK = Callable[
             # disappear without warning depending on the results of ongoing
             # experiments.
             # Use this to return additional information as part of an error.
-            Tuple[Codes, JsonDict],
+            tuple[Codes, JsonDict],
             # Deprecated
             bool,
         ]
@@ -108,7 +99,7 @@ USER_MAY_SEND_3PID_INVITE_CALLBACK = Callable[
             # disappear without warning depending on the results of ongoing
             # experiments.
             # Use this to return additional information as part of an error.
-            Tuple[Codes, JsonDict],
+            tuple[Codes, JsonDict],
             # Deprecated
             bool,
         ]
@@ -124,7 +115,7 @@ USER_MAY_CREATE_ROOM_CALLBACK = Callable[
             # disappear without warning depending on the results of ongoing
             # experiments.
             # Use this to return additional information as part of an error.
-            Tuple[Codes, JsonDict],
+            tuple[Codes, JsonDict],
             # Deprecated
             bool,
         ]
@@ -140,7 +131,7 @@ USER_MAY_CREATE_ROOM_ALIAS_CALLBACK = Callable[
             # disappear without warning depending on the results of ongoing
             # experiments.
             # Use this to return additional information as part of an error.
-            Tuple[Codes, JsonDict],
+            tuple[Codes, JsonDict],
             # Deprecated
             bool,
         ]
@@ -156,7 +147,7 @@ USER_MAY_PUBLISH_ROOM_CALLBACK = Callable[
             # disappear without warning depending on the results of ongoing
             # experiments.
             # Use this to return additional information as part of an error.
-            Tuple[Codes, JsonDict],
+            tuple[Codes, JsonDict],
             # Deprecated
             bool,
         ]
@@ -167,7 +158,7 @@ LEGACY_CHECK_REGISTRATION_FOR_SPAM_CALLBACK = Callable[
     [
         Optional[dict],
         Optional[str],
-        Collection[Tuple[str, str]],
+        Collection[tuple[str, str]],
     ],
     Awaitable[RegistrationBehaviour],
 ]
@@ -175,7 +166,7 @@ CHECK_REGISTRATION_FOR_SPAM_CALLBACK = Callable[
     [
         Optional[dict],
         Optional[str],
-        Collection[Tuple[str, str]],
+        Collection[tuple[str, str]],
         Optional[str],
     ],
     Awaitable[RegistrationBehaviour],
@@ -190,7 +181,7 @@ CHECK_MEDIA_FILE_FOR_SPAM_CALLBACK = Callable[
             # disappear without warning depending on the results of ongoing
             # experiments.
             # Use this to return additional information as part of an error.
-            Tuple[Codes, JsonDict],
+            tuple[Codes, JsonDict],
             # Deprecated
             bool,
         ]
@@ -201,7 +192,7 @@ CHECK_LOGIN_FOR_SPAM_CALLBACK = Callable[
         str,
         Optional[str],
         Optional[str],
-        Collection[Tuple[Optional[str], str]],
+        Collection[tuple[Optional[str], str]],
         Optional[str],
     ],
     Awaitable[
@@ -212,7 +203,7 @@ CHECK_LOGIN_FOR_SPAM_CALLBACK = Callable[
             # disappear without warning depending on the results of ongoing
             # experiments.
             # Use this to return additional information as part of an error.
-            Tuple[Codes, JsonDict],
+            tuple[Codes, JsonDict],
         ]
     ],
 ]
@@ -222,7 +213,7 @@ def load_legacy_spam_checkers(hs: "relapse.server.HomeServer") -> None:
     """Wrapper that loads spam checkers configured using the old configuration, and
     registers the spam checker hooks they implement.
     """
-    spam_checkers: List[Any] = []
+    spam_checkers: list[Any] = []
     api = hs.get_module_api()
     for module, config in hs.config.spamchecker.spam_checkers:
         # Older spam checkers don't accept the `api` argument, so we
@@ -267,7 +258,7 @@ def load_legacy_spam_checkers(hs: "relapse.server.HomeServer") -> None:
                     def wrapper(
                         email_threepid: Optional[dict],
                         username: Optional[str],
-                        request_info: Collection[Tuple[str, str]],
+                        request_info: Collection[tuple[str, str]],
                         auth_provider_id: Optional[str],
                     ) -> Union[Awaitable[RegistrationBehaviour], RegistrationBehaviour]:
                         # Assertion required because mypy can't prove we won't
@@ -312,30 +303,30 @@ class SpamCheckerModuleApiCallbacks:
     def __init__(self, hs: "relapse.server.HomeServer") -> None:
         self.clock = hs.get_clock()
 
-        self._check_event_for_spam_callbacks: List[CHECK_EVENT_FOR_SPAM_CALLBACK] = []
-        self._should_drop_federated_event_callbacks: List[
+        self._check_event_for_spam_callbacks: list[CHECK_EVENT_FOR_SPAM_CALLBACK] = []
+        self._should_drop_federated_event_callbacks: list[
             SHOULD_DROP_FEDERATED_EVENT_CALLBACK
         ] = []
-        self._user_may_join_room_callbacks: List[USER_MAY_JOIN_ROOM_CALLBACK] = []
-        self._user_may_invite_callbacks: List[USER_MAY_INVITE_CALLBACK] = []
-        self._user_may_send_3pid_invite_callbacks: List[
+        self._user_may_join_room_callbacks: list[USER_MAY_JOIN_ROOM_CALLBACK] = []
+        self._user_may_invite_callbacks: list[USER_MAY_INVITE_CALLBACK] = []
+        self._user_may_send_3pid_invite_callbacks: list[
             USER_MAY_SEND_3PID_INVITE_CALLBACK
         ] = []
-        self._user_may_create_room_callbacks: List[USER_MAY_CREATE_ROOM_CALLBACK] = []
-        self._user_may_create_room_alias_callbacks: List[
+        self._user_may_create_room_callbacks: list[USER_MAY_CREATE_ROOM_CALLBACK] = []
+        self._user_may_create_room_alias_callbacks: list[
             USER_MAY_CREATE_ROOM_ALIAS_CALLBACK
         ] = []
-        self._user_may_publish_room_callbacks: List[USER_MAY_PUBLISH_ROOM_CALLBACK] = []
-        self._check_username_for_spam_callbacks: List[
+        self._user_may_publish_room_callbacks: list[USER_MAY_PUBLISH_ROOM_CALLBACK] = []
+        self._check_username_for_spam_callbacks: list[
             CHECK_USERNAME_FOR_SPAM_CALLBACK
         ] = []
-        self._check_registration_for_spam_callbacks: List[
+        self._check_registration_for_spam_callbacks: list[
             CHECK_REGISTRATION_FOR_SPAM_CALLBACK
         ] = []
-        self._check_media_file_for_spam_callbacks: List[
+        self._check_media_file_for_spam_callbacks: list[
             CHECK_MEDIA_FILE_FOR_SPAM_CALLBACK
         ] = []
-        self._check_login_for_spam_callbacks: List[CHECK_LOGIN_FOR_SPAM_CALLBACK] = []
+        self._check_login_for_spam_callbacks: list[CHECK_LOGIN_FOR_SPAM_CALLBACK] = []
 
     def register_callbacks(
         self,
@@ -406,7 +397,7 @@ class SpamCheckerModuleApiCallbacks:
     @trace
     async def check_event_for_spam(
         self, event: "relapse.events.EventBase"
-    ) -> Union[Tuple[Codes, JsonDict], str]:
+    ) -> Union[tuple[Codes, JsonDict], str]:
         """Checks if a given event is considered "spammy" by this server.
 
         If the server considers an event spammy, then it will be rejected if
@@ -488,7 +479,7 @@ class SpamCheckerModuleApiCallbacks:
 
     async def user_may_join_room(
         self, user_id: str, room_id: str, is_invited: bool
-    ) -> Union[Tuple[Codes, JsonDict], Literal["NOT_SPAM"]]:
+    ) -> Union[tuple[Codes, JsonDict], Literal["NOT_SPAM"]]:
         """Checks if a given users is allowed to join a room.
         Not called when a user creates a room.
 
@@ -528,7 +519,7 @@ class SpamCheckerModuleApiCallbacks:
 
     async def user_may_invite(
         self, inviter_userid: str, invitee_userid: str, room_id: str
-    ) -> Union[Tuple[Codes, dict], Literal["NOT_SPAM"]]:
+    ) -> Union[tuple[Codes, dict], Literal["NOT_SPAM"]]:
         """Checks if a given user may send an invite
 
         Args:
@@ -569,7 +560,7 @@ class SpamCheckerModuleApiCallbacks:
 
     async def user_may_send_3pid_invite(
         self, inviter_userid: str, medium: str, address: str, room_id: str
-    ) -> Union[Tuple[Codes, dict], Literal["NOT_SPAM"]]:
+    ) -> Union[tuple[Codes, dict], Literal["NOT_SPAM"]]:
         """Checks if a given user may invite a given threepid into the room
 
         Note that if the threepid is already associated with a Matrix user ID, Relapse
@@ -613,7 +604,7 @@ class SpamCheckerModuleApiCallbacks:
 
     async def user_may_create_room(
         self, userid: str
-    ) -> Union[Tuple[Codes, dict], Literal["NOT_SPAM"]]:
+    ) -> Union[tuple[Codes, dict], Literal["NOT_SPAM"]]:
         """Checks if a given user may create a room
 
         Args:
@@ -645,7 +636,7 @@ class SpamCheckerModuleApiCallbacks:
 
     async def user_may_create_room_alias(
         self, userid: str, room_alias: RoomAlias
-    ) -> Union[Tuple[Codes, dict], Literal["NOT_SPAM"]]:
+    ) -> Union[tuple[Codes, dict], Literal["NOT_SPAM"]]:
         """Checks if a given user may create a room alias
 
         Args:
@@ -679,7 +670,7 @@ class SpamCheckerModuleApiCallbacks:
 
     async def user_may_publish_room(
         self, userid: str, room_id: str
-    ) -> Union[Tuple[Codes, dict], Literal["NOT_SPAM"]]:
+    ) -> Union[tuple[Codes, dict], Literal["NOT_SPAM"]]:
         """Checks if a given user may publish a room to the directory
 
         Args:
@@ -739,7 +730,7 @@ class SpamCheckerModuleApiCallbacks:
         self,
         email_threepid: Optional[dict],
         username: Optional[str],
-        request_info: Collection[Tuple[str, str]],
+        request_info: Collection[tuple[str, str]],
         auth_provider_id: Optional[str] = None,
     ) -> RegistrationBehaviour:
         """Checks if we should allow the given registration request.
@@ -771,7 +762,7 @@ class SpamCheckerModuleApiCallbacks:
     @trace
     async def check_media_file_for_spam(
         self, file_wrapper: ReadableFileWrapper, file_info: FileInfo
-    ) -> Union[Tuple[Codes, dict], Literal["NOT_SPAM"]]:
+    ) -> Union[tuple[Codes, dict], Literal["NOT_SPAM"]]:
         """Checks if a piece of newly uploaded media should be blocked.
 
         This will be called for local uploads, downloads of remote media, each
@@ -829,9 +820,9 @@ class SpamCheckerModuleApiCallbacks:
         user_id: str,
         device_id: Optional[str],
         initial_display_name: Optional[str],
-        request_info: Collection[Tuple[Optional[str], str]],
+        request_info: Collection[tuple[Optional[str], str]],
         auth_provider_id: Optional[str] = None,
-    ) -> Union[Tuple[Codes, dict], Literal["NOT_SPAM"]]:
+    ) -> Union[tuple[Codes, dict], Literal["NOT_SPAM"]]:
         """Checks if we should allow the given registration request.
 
         Args:

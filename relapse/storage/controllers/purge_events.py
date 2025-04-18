@@ -14,7 +14,7 @@
 
 import itertools
 import logging
-from typing import TYPE_CHECKING, Set
+from typing import TYPE_CHECKING
 
 from relapse.logging.context import nested_logging_context
 from relapse.storage.databases import Databases
@@ -65,7 +65,7 @@ class PurgeEventsStorageController:
                 room_id, sg_to_delete
             )
 
-    async def _find_unreferenced_groups(self, state_groups: Set[int]) -> Set[int]:
+    async def _find_unreferenced_groups(self, state_groups: set[int]) -> set[int]:
         """Used when purging history to figure out which state groups can be
         deleted.
 

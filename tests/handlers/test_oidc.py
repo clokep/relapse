@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
-from typing import Any, Awaitable, ContextManager, Dict, Optional, Tuple
+from collections.abc import Awaitable
+from typing import Any, ContextManager, Optional
 from unittest.mock import ANY, AsyncMock, Mock, patch
 from urllib.parse import parse_qs, urlparse
 
@@ -140,7 +141,7 @@ class OidcHandlerTestCase(HomeserverTestCase):
     if not HAS_OIDC:
         skip = "requires OIDC"
 
-    def default_config(self) -> Dict[str, Any]:
+    def default_config(self) -> dict[str, Any]:
         config = super().default_config()
         config["public_baseurl"] = BASE_URL
         return config
@@ -192,7 +193,7 @@ class OidcHandlerTestCase(HomeserverTestCase):
         client_redirect_url: str = "http://client/redirect",
         scope: str = "openid",
         with_sid: bool = False,
-    ) -> Tuple[RelapseRequest, FakeAuthorizationGrant]:
+    ) -> tuple[RelapseRequest, FakeAuthorizationGrant]:
         """Start an authorization request, and get the callback request back."""
         nonce = random_string(10)
         state = random_string(10)
@@ -210,7 +211,7 @@ class OidcHandlerTestCase(HomeserverTestCase):
 
     def assertRenderedError(
         self, error: str, error_description: Optional[str] = None
-    ) -> Tuple[Any, ...]:
+    ) -> tuple[Any, ...]:
         self.render_error.assert_called_once()
         args = self.render_error.call_args[0]
         self.assertEqual(args[1], error)

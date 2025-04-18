@@ -22,24 +22,9 @@ import time
 import uuid
 import warnings
 from collections import deque
+from collections.abc import Awaitable, Iterable, MutableMapping, Sequence
 from io import SEEK_END, BytesIO
-from typing import (
-    Any,
-    Awaitable,
-    Callable,
-    Deque,
-    Dict,
-    Iterable,
-    List,
-    MutableMapping,
-    Optional,
-    Sequence,
-    Tuple,
-    Type,
-    TypeVar,
-    Union,
-    cast,
-)
+from typing import Any, Callable, Deque, Optional, TypeVar, Union, cast
 from unittest.mock import Mock
 
 import attr
@@ -112,7 +97,7 @@ R = TypeVar("R")
 P = ParamSpec("P")
 
 # the type of thing that can be passed into `make_request` in the headers list
-CustomHeaderType = Tuple[Union[str, bytes], Union[str, bytes]]
+CustomHeaderType = tuple[Union[str, bytes], Union[str, bytes]]
 
 # A pre-prepared SQLite DB that is used as a template when creating new SQLite
 # DB each test run. This dramatically speeds up test set up when using SQLite.
@@ -160,7 +145,7 @@ class FakeChannel:
         return body
 
     @property
-    def json_list(self) -> List[JsonDict]:
+    def json_list(self) -> list[JsonDict]:
         body = json.loads(self.text_body)
         assert isinstance(body, list)
         return body
@@ -340,7 +325,7 @@ def make_request(
     path: Union[bytes, str],
     content: Union[bytes, str, JsonDict] = b"",
     access_token: Optional[str] = None,
-    request: Type[Request] = RelapseRequest,
+    request: type[Request] = RelapseRequest,
     shorthand: bool = True,
     federation_auth_origin: Optional[bytes] = None,
     content_is_form: bool = False,
@@ -460,9 +445,9 @@ class ThreadedMemoryReactorClock(MemoryReactorClock):
     def __init__(self) -> None:
         self.threadpool = ThreadPool(self)
 
-        self._tcp_callbacks: Dict[Tuple[str, int], Callable] = {}
-        self._udp: List[udp.Port] = []
-        self.lookups: Dict[str, str] = {}
+        self._tcp_callbacks: dict[tuple[str, int], Callable] = {}
+        self._udp: list[udp.Port] = []
+        self.lookups: dict[str, str] = {}
         self._thread_callbacks: Deque[Callable[..., R]] = deque()
 
         lookups = self.lookups
@@ -573,7 +558,7 @@ class ThreadedMemoryReactorClock(MemoryReactorClock):
         port: int,
         factory: ClientFactory,
         timeout: float = 30,
-        bindAddress: Optional[Tuple[str, int]] = None,
+        bindAddress: Optional[tuple[str, int]] = None,
     ) -> IConnector:
         """Fake L{IReactorTCP.connectTCP}."""
 
@@ -745,7 +730,7 @@ def _make_test_homeserver_synchronous(server: HomeServer) -> None:
     server.get_datastores().main.USE_DEDICATED_DB_THREADS_FOR_EVENT_FETCHING = False
 
 
-def get_clock() -> Tuple[ThreadedMemoryReactorClock, Clock]:
+def get_clock() -> tuple[ThreadedMemoryReactorClock, Clock]:
     clock = ThreadedMemoryReactorClock()
     hs_clock = Clock(clock)
     return clock, hs_clock
@@ -913,7 +898,7 @@ class FakeTransport:
 
 def connect_client(
     reactor: ThreadedMemoryReactorClock, client_id: int
-) -> Tuple[IProtocol, AccumulatingProtocol]:
+) -> tuple[IProtocol, AccumulatingProtocol]:
     """
     Connect a client to a fake TCP transport.
 
@@ -939,7 +924,7 @@ def setup_test_homeserver(
     name: str = "test",
     config: Optional[HomeServerConfig] = None,
     reactor: Optional[IRelapseReactor] = None,
-    homeserver_to_use: Type[HomeServer] = TestHomeServer,
+    homeserver_to_use: type[HomeServer] = TestHomeServer,
     **kwargs: Any,
 ) -> HomeServer:
     """

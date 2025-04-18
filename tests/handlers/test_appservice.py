@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, Iterable, List, Optional
+from collections.abc import Iterable
+from typing import Optional
 from unittest.mock import AsyncMock, Mock
 
 from parameterized import parameterized
@@ -413,7 +414,7 @@ class ApplicationServicesHandlerSendEventsTestCase(unittest.HomeserverTestCase):
         hs.get_application_service_handler().scheduler.txn_ctrl.send = self.send_mock  # type: ignore[method-assign]
 
         # Mock out application services, and allow defining our own in tests
-        self._services: List[ApplicationService] = []
+        self._services: list[ApplicationService] = []
         self.hs.get_datastores().main.get_app_services = Mock(  # type: ignore[method-assign]
             return_value=self._services
         )
@@ -847,7 +848,7 @@ class ApplicationServicesHandlerSendEventsTestCase(unittest.HomeserverTestCase):
         # Count the total number of to-device messages that were sent out per-service.
         # Ensure that we only sent to-device messages to interested services, and that
         # each interested service received the full count of to-device messages.
-        service_id_to_message_count: Dict[str, int] = {}
+        service_id_to_message_count: dict[str, int] = {}
 
         for call in self.send_mock.call_args_list:
             (
@@ -986,7 +987,7 @@ class ApplicationServicesHandlerSendEventsTestCase(unittest.HomeserverTestCase):
 
     def _register_application_service(
         self,
-        namespaces: Optional[Dict[str, Iterable[Dict]]] = None,
+        namespaces: Optional[dict[str, Iterable[dict]]] = None,
     ) -> ApplicationService:
         """
         Register a new application service, with the given namespaces of interest.
@@ -1036,7 +1037,7 @@ class ApplicationServicesHandlerDeviceListsTestCase(unittest.HomeserverTestCase)
         hs.get_application_service_api().put_json = self.put_json  # type: ignore[method-assign]
 
         # Mock out application services, and allow defining our own in tests
-        self._services: List[ApplicationService] = []
+        self._services: list[ApplicationService] = []
         self.hs.get_datastores().main.get_app_services = Mock(  # type: ignore[method-assign]
             return_value=self._services
         )

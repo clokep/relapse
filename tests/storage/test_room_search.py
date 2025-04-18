@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Tuple
 from unittest.case import SkipTest
 
 from twisted.test.proto_helpers import MemoryReactor
@@ -311,7 +310,7 @@ class MessageSearchTest(HomeserverTestCase):
             )
 
     def _check_test_cases(
-        self, store: DataStore, cases: List[Tuple[str, bool]]
+        self, store: DataStore, cases: list[tuple[str, bool]]
     ) -> None:
         # Run all the test cases versus search_msgs
         for query, expect_to_contain in cases:

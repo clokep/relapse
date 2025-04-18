@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 from relapse.config._base import Config, ConfigError
 from relapse.types import JsonDict
@@ -22,7 +22,7 @@ class ModulesConfig(Config):
     section = "modules"
 
     def read_config(self, config: JsonDict, **kwargs: Any) -> None:
-        self.loaded_modules: List[Tuple[Any, Dict]] = []
+        self.loaded_modules: list[tuple[Any, dict]] = []
 
         configured_modules = config.get("modules") or []
         for i, module in enumerate(configured_modules):

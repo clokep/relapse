@@ -18,20 +18,8 @@ import logging
 import os
 import platform
 import threading
-from typing import (
-    Callable,
-    Dict,
-    Generic,
-    Iterable,
-    Mapping,
-    Optional,
-    Set,
-    Tuple,
-    Type,
-    TypeVar,
-    Union,
-    cast,
-)
+from collections.abc import Iterable, Mapping
+from typing import Callable, Generic, Optional, TypeVar, Union, cast
 
 import attr
 from prometheus_client import CollectorRegistry, Counter, Gauge, Histogram, Metric
@@ -55,7 +43,7 @@ logger = logging.getLogger(__name__)
 
 METRICS_PREFIX = "/_relapse/metrics"
 
-all_gauges: Dict[str, Collector] = {}
+all_gauges: dict[str, Collector] = {}
 
 HAVE_PROC_SELF_STAT = os.path.exists("/proc/self/stat")
 
@@ -85,7 +73,7 @@ class LaterGauge(Collector):
     # callback: should either return a value (if there are no labels for this metric),
     # or dict mapping from a label tuple to a value
     caller: Callable[
-        [], Union[Mapping[Tuple[str, ...], Union[int, float]], Union[int, float]]
+        [], Union[Mapping[tuple[str, ...], Union[int, float]], Union[int, float]]
     ]
 
     def collect(self) -> Iterable[Metric]:
@@ -153,15 +141,15 @@ class InFlightGauge(Generic[MetricsEntry], Collector):
 
         # Create a class which have the sub_metrics values as attributes, which
         # default to 0 on initialization. Used to pass to registered callbacks.
-        self._metrics_class: Type[MetricsEntry] = attr.make_class(
+        self._metrics_class: type[MetricsEntry] = attr.make_class(
             "_MetricsEntry",
             attrs={x: attr.ib(default=0) for x in sub_metrics},
             slots=True,
         )
 
         # Counts number of in flight blocks for a given set of label values
-        self._registrations: Dict[
-            Tuple[str, ...], Set[Callable[[MetricsEntry], None]]
+        self._registrations: dict[
+            tuple[str, ...], set[Callable[[MetricsEntry], None]]
         ] = {}
 
         # Protects access to _registrations
@@ -171,7 +159,7 @@ class InFlightGauge(Generic[MetricsEntry], Collector):
 
     def register(
         self,
-        key: Tuple[str, ...],
+        key: tuple[str, ...],
         callback: Callable[[MetricsEntry], None],
     ) -> None:
         """Registers that we've entered a new block with labels `key`.
@@ -191,7 +179,7 @@ class InFlightGauge(Generic[MetricsEntry], Collector):
 
     def unregister(
         self,
-        key: Tuple[str, ...],
+        key: tuple[str, ...],
         callback: Callable[[MetricsEntry], None],
     ) -> None:
         """Registers that we've exited a block with labels `key`."""

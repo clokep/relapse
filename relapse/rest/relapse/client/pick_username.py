@@ -13,7 +13,8 @@
 # limitations under the License.
 
 import logging
-from typing import TYPE_CHECKING, Generator, List, Tuple
+from collections.abc import Generator
+from typing import TYPE_CHECKING
 
 from twisted.web.resource import Resource
 from twisted.web.server import Request
@@ -58,7 +59,7 @@ class AvailabilityCheckResource(DirectServeJsonResource):
         super().__init__()
         self._sso_handler = hs.get_sso_handler()
 
-    async def _async_render_GET(self, request: Request) -> Tuple[int, JsonDict]:
+    async def _async_render_GET(self, request: Request) -> tuple[int, JsonDict]:
         localpart = parse_string(request, "username", required=True)
 
         session_id = get_username_mapping_session_cookie_from_request(request)
@@ -129,7 +130,7 @@ class AccountDetailsResource(DirectServeHtmlResource):
             use_display_name = parse_boolean(request, "use_display_name", default=False)
 
             try:
-                emails_to_use: List[str] = [
+                emails_to_use: list[str] = [
                     val.decode("utf-8") for val in request.args.get(b"use_email", [])
                 ]
             except ValueError:

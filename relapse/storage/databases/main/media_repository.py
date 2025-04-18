@@ -12,17 +12,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from collections.abc import Collection, Iterable
 from enum import Enum
-from typing import (
-    TYPE_CHECKING,
-    Collection,
-    Iterable,
-    List,
-    Optional,
-    Tuple,
-    Union,
-    cast,
-)
+from typing import TYPE_CHECKING, Optional, Union, cast
 
 import attr
 
@@ -237,7 +229,7 @@ class MediaRepositoryStore(MediaRepositoryBackgroundUpdateStore):
         user_id: str,
         order_by: str = MediaSortOrder.CREATED_TS.value,
         direction: Direction = Direction.FORWARDS,
-    ) -> Tuple[List[LocalMedia], int]:
+    ) -> tuple[list[LocalMedia], int]:
         """Get a paginated list of metadata for a local piece of media
         which an user_id has uploaded
 
@@ -254,7 +246,7 @@ class MediaRepositoryStore(MediaRepositoryBackgroundUpdateStore):
 
         def get_local_media_by_user_paginate_txn(
             txn: LoggingTransaction,
-        ) -> Tuple[List[LocalMedia], int]:
+        ) -> tuple[list[LocalMedia], int]:
             # Set ordering
             order_by_column = MediaSortOrder(order_by).value
 
@@ -263,14 +255,14 @@ class MediaRepositoryStore(MediaRepositoryBackgroundUpdateStore):
             else:
                 order = "ASC"
 
-            args: List[Union[str, int]] = [user_id]
+            args: list[Union[str, int]] = [user_id]
             sql = """
                 SELECT COUNT(*) as total_media
                 FROM local_media_repository
                 WHERE user_id = ?
             """
             txn.execute(sql, args)
-            count = cast(Tuple[int], txn.fetchone())[0]
+            count = cast(tuple[int], txn.fetchone())[0]
 
             sql = """
                 SELECT
@@ -323,7 +315,7 @@ class MediaRepositoryStore(MediaRepositoryBackgroundUpdateStore):
         keep_profiles: bool,
         include_quarantined_media: bool,
         include_protected_media: bool,
-    ) -> List[str]:
+    ) -> list[str]:
         """
         Retrieve a list of media IDs from the local media store.
 
@@ -395,7 +387,7 @@ class MediaRepositoryStore(MediaRepositoryBackgroundUpdateStore):
                 AND NOT safe_from_quarantine
             """
 
-        def _get_local_media_ids_txn(txn: LoggingTransaction) -> List[str]:
+        def _get_local_media_ids_txn(txn: LoggingTransaction) -> list[str]:
             txn.execute(sql, (before_ts, before_ts, size_gt))
             return [row[0] for row in txn]
 
@@ -478,7 +470,7 @@ class MediaRepositoryStore(MediaRepositoryBackgroundUpdateStore):
             desc="mark_local_media_as_safe",
         )
 
-    async def count_pending_media(self, user_id: UserID) -> Tuple[int, int]:
+    async def count_pending_media(self, user_id: UserID) -> tuple[int, int]:
         """Count the number of pending media for a user.
 
         Returns:
@@ -486,7 +478,7 @@ class MediaRepositoryStore(MediaRepositoryBackgroundUpdateStore):
             expiration timestamp.
         """
 
-        def get_pending_media_txn(txn: LoggingTransaction) -> Tuple[int, int]:
+        def get_pending_media_txn(txn: LoggingTransaction) -> tuple[int, int]:
             sql = """
             SELECT COUNT(*), MIN(created_ts)
             FROM local_media_repository
@@ -571,9 +563,9 @@ class MediaRepositoryStore(MediaRepositoryBackgroundUpdateStore):
             desc="store_url_cache",
         )
 
-    async def get_local_media_thumbnails(self, media_id: str) -> List[ThumbnailInfo]:
+    async def get_local_media_thumbnails(self, media_id: str) -> list[ThumbnailInfo]:
         rows = cast(
-            List[Tuple[int, int, str, str, int]],
+            list[tuple[int, int, str, str, int]],
             await self.db_pool.simple_select_list(
                 "local_media_repository_thumbnails",
                 {"media_id": media_id},
@@ -677,7 +669,7 @@ class MediaRepositoryStore(MediaRepositoryBackgroundUpdateStore):
     async def update_cached_last_access_time(
         self,
         local_media: Iterable[str],
-        remote_media: Iterable[Tuple[str, str]],
+        remote_media: Iterable[tuple[str, str]],
         time_ms: int,
     ) -> None:
         """Updates the last access time of the given media
@@ -715,9 +707,9 @@ class MediaRepositoryStore(MediaRepositoryBackgroundUpdateStore):
 
     async def get_remote_media_thumbnails(
         self, origin: str, media_id: str
-    ) -> List[ThumbnailInfo]:
+    ) -> list[ThumbnailInfo]:
         rows = cast(
-            List[Tuple[int, int, str, str, int]],
+            list[tuple[int, int, str, str, int]],
             await self.db_pool.simple_select_list(
                 "remote_media_cache_thumbnails",
                 {"media_origin": origin, "media_id": media_id},
@@ -803,7 +795,7 @@ class MediaRepositoryStore(MediaRepositoryBackgroundUpdateStore):
 
     async def get_remote_media_ids(
         self, before_ts: int, include_quarantined_media: bool
-    ) -> List[Tuple[str, str, str]]:
+    ) -> list[tuple[str, str, str]]:
         """
         Retrieve a list of server name, media ID tuples from the remote media cache.
 
@@ -833,7 +825,7 @@ class MediaRepositoryStore(MediaRepositoryBackgroundUpdateStore):
             """
 
         return cast(
-            List[Tuple[str, str, str]],
+            list[tuple[str, str, str]],
             await self.db_pool.execute("get_remote_media_ids", sql, before_ts),
         )
 
@@ -854,7 +846,7 @@ class MediaRepositoryStore(MediaRepositoryBackgroundUpdateStore):
             "delete_remote_media", delete_remote_media_txn
         )
 
-    async def get_expired_url_cache(self, now_ts: int) -> List[str]:
+    async def get_expired_url_cache(self, now_ts: int) -> list[str]:
         sql = (
             "SELECT media_id FROM local_media_repository_url_cache"
             " WHERE expires_ts < ?"
@@ -862,7 +854,7 @@ class MediaRepositoryStore(MediaRepositoryBackgroundUpdateStore):
             " LIMIT 500"
         )
 
-        def _get_expired_url_cache_txn(txn: LoggingTransaction) -> List[str]:
+        def _get_expired_url_cache_txn(txn: LoggingTransaction) -> list[str]:
             txn.execute(sql, (now_ts,))
             return [row[0] for row in txn]
 
@@ -881,7 +873,7 @@ class MediaRepositoryStore(MediaRepositoryBackgroundUpdateStore):
 
         await self.db_pool.runInteraction("delete_url_cache", _delete_url_cache_txn)
 
-    async def get_url_cache_media_before(self, before_ts: int) -> List[str]:
+    async def get_url_cache_media_before(self, before_ts: int) -> list[str]:
         sql = (
             "SELECT media_id FROM local_media_repository"
             " WHERE created_ts < ? AND url_cache IS NOT NULL"
@@ -889,7 +881,7 @@ class MediaRepositoryStore(MediaRepositoryBackgroundUpdateStore):
             " LIMIT 500"
         )
 
-        def _get_url_cache_media_before_txn(txn: LoggingTransaction) -> List[str]:
+        def _get_url_cache_media_before_txn(txn: LoggingTransaction) -> list[str]:
             txn.execute(sql, (before_ts,))
             return [row[0] for row in txn]
 

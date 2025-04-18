@@ -13,7 +13,7 @@
 # limitations under the License.
 import logging
 import sys
-from typing import Container
+from collections.abc import Container
 
 from relapse.util import check_dependencies
 

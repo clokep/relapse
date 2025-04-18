@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import abc
+from collections.abc import Mapping
 from enum import IntEnum
-from typing import TYPE_CHECKING, Any, Generic, Mapping, Optional, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, Optional, TypeVar
 
 from relapse.storage.types import Connection, Cursor, DBAPI2Module
 

@@ -15,7 +15,7 @@
 import email.mime.multipart
 import email.utils
 import logging
-from typing import TYPE_CHECKING, List, Optional, Tuple
+from typing import TYPE_CHECKING, Optional
 
 from relapse.api.errors import AuthError, RelapseError, StoreError
 from relapse.metrics.background_process_metrics import wrap_as_background_process
@@ -215,7 +215,7 @@ class AccountValidityHandler:
 
         await self.store.set_renewal_mail_status(user_id=user_id, email_sent=True)
 
-    async def _get_email_addresses_for_user(self, user_id: str) -> List[str]:
+    async def _get_email_addresses_for_user(self, user_id: str) -> list[str]:
         """Retrieve the list of email addresses attached to a user's account.
 
         Args:
@@ -256,7 +256,7 @@ class AccountValidityHandler:
                 attempts += 1
         raise StoreError(500, "Couldn't generate a unique string as refresh string.")
 
-    async def renew_account(self, renewal_token: str) -> Tuple[bool, bool, int]:
+    async def renew_account(self, renewal_token: str) -> tuple[bool, bool, int]:
         """Renews the account attached to a given renewal token by pushing back the
         expiration date by the current validity period in the server's configuration.
 

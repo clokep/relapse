@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Optional, Union
 
 import attr
 
@@ -120,7 +120,7 @@ class PushRulesHandler:
 
     async def push_rules_for_user(
         self, user: UserID
-    ) -> Dict[str, Dict[str, List[Dict[str, Any]]]]:
+    ) -> dict[str, dict[str, list[dict[str, Any]]]]:
         """
         Push rules aren't really account data, but get formatted as such for /sync.
         """
@@ -130,7 +130,7 @@ class PushRulesHandler:
         return rules
 
 
-def check_actions(actions: List[Union[str, JsonDict]]) -> None:
+def check_actions(actions: list[Union[str, JsonDict]]) -> None:
     """Check if the given actions are spec compliant.
 
     Args:

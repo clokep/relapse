@@ -14,7 +14,6 @@
 
 
 import json
-from typing import Dict, List, Set
 from unittest.mock import ANY, AsyncMock, Mock, call
 
 from netaddr import IPSet
@@ -99,7 +98,7 @@ class TypingNotificationsTestCase(unittest.HomeserverTestCase):
 
         return hs
 
-    def create_resource_dict(self) -> Dict[str, Resource]:
+    def create_resource_dict(self) -> dict[str, Resource]:
         d = super().create_resource_dict()
         d["/_matrix/federation"] = TransportLayerServer(self.hs)
         return d
@@ -132,7 +131,7 @@ class TypingNotificationsTestCase(unittest.HomeserverTestCase):
             return_value=None
         )
 
-        self.room_members: List[UserID] = []
+        self.room_members: list[UserID] = []
 
         async def check_user_in_room(room_id: str, requester: Requester) -> None:
             if requester.user.to_string() not in [
@@ -152,7 +151,7 @@ class TypingNotificationsTestCase(unittest.HomeserverTestCase):
             side_effect=check_host_in_room
         )
 
-        async def get_current_hosts_in_room(room_id: str) -> Set[str]:
+        async def get_current_hosts_in_room(room_id: str) -> set[str]:
             return {member.domain for member in self.room_members}
 
         hs.get_storage_controllers().state.get_current_hosts_in_room = Mock(  # type: ignore[method-assign]
@@ -163,7 +162,7 @@ class TypingNotificationsTestCase(unittest.HomeserverTestCase):
             side_effect=get_current_hosts_in_room
         )
 
-        async def get_users_in_room(room_id: str) -> Set[str]:
+        async def get_users_in_room(room_id: str) -> set[str]:
             return {str(u) for u in self.room_members}
 
         self.datastore.get_users_in_room = Mock(side_effect=get_users_in_room)

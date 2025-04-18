@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 import attr
 
@@ -52,7 +52,7 @@ class SSOConfig(Config):
     section = "sso"
 
     def read_config(self, config: JsonDict, **kwargs: Any) -> None:
-        sso_config: Dict[str, Any] = config.get("sso") or {}
+        sso_config: dict[str, Any] = config.get("sso") or {}
 
         # The sso-specific template_dir
         self.sso_template_dir = sso_config.get("template_dir")

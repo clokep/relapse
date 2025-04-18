@@ -17,7 +17,7 @@ import logging
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from io import BytesIO
-from typing import TYPE_CHECKING, Any, Dict, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 from pkg_resources import parse_version
 
@@ -151,7 +151,7 @@ class SendEmailHandler:
         app_name: str,
         html: str,
         text: str,
-        additional_headers: Optional[Dict[str, str]] = None,
+        additional_headers: Optional[dict[str, str]] = None,
     ) -> None:
         """Send a multipart email with the given information.
 

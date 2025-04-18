@@ -14,7 +14,6 @@
 # limitations under the License.
 import logging
 import sys
-from typing import Dict, List
 
 from twisted.web.resource import Resource
 
@@ -162,7 +161,7 @@ class GenericWorkerServer(HomeServer):
         assert listener_config.http_options is not None
 
         # We always include a health resource.
-        resources: Dict[str, Resource] = {"/health": HealthResource()}
+        resources: dict[str, Resource] = {"/health": HealthResource()}
 
         for res in listener_config.http_options.resources:
             for name in res.names:
@@ -274,7 +273,7 @@ class GenericWorkerServer(HomeServer):
         self.get_replication_command_handler().start_replication(self)
 
 
-def start(config_options: List[str]) -> None:
+def start(config_options: list[str]) -> None:
     try:
         config = HomeServerConfig.load_config("Relapse worker", config_options)
     except ConfigError as e:

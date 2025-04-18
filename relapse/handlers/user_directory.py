@@ -14,7 +14,7 @@
 
 import logging
 from http import HTTPStatus
-from typing import TYPE_CHECKING, List, Optional, Set, Tuple
+from typing import TYPE_CHECKING, Optional
 
 from twisted.internet.interfaces import IDelayedCall
 
@@ -113,7 +113,7 @@ class UserDirectoryHandler(StateDeltasHandler):
         # Guard to ensure we only have one process for refreshing remote profiles
         # for the given servers.
         # Set of server names.
-        self._is_refreshing_remote_profiles_for_servers: Set[str] = set()
+        self._is_refreshing_remote_profiles_for_servers: set[str] = set()
 
         if self.update_user_directory:
             self.notifier.add_replication_callback(self.notify_new_event)
@@ -248,7 +248,7 @@ class UserDirectoryHandler(StateDeltasHandler):
 
                 await self.store.update_user_directory_stream_pos(max_pos)
 
-    async def _handle_deltas(self, deltas: List[StateDelta]) -> None:
+    async def _handle_deltas(self, deltas: list[StateDelta]) -> None:
         """Called with the state deltas to process"""
         for delta in deltas:
             logger.debug(
@@ -444,7 +444,7 @@ class UserDirectoryHandler(StateDeltasHandler):
                     or await self.store.should_include_local_user_in_dir(other)
                 )
             ]
-            updates_to_users_who_share_rooms: Set[Tuple[str, str]] = set()
+            updates_to_users_who_share_rooms: set[tuple[str, str]] = set()
 
             # First, if the joining user is our local user then we need an
             # update for every other user in the room.

@@ -15,8 +15,9 @@
 # limitations under the License.
 import datetime
 import logging
+from collections.abc import Hashable, Iterable
 from types import TracebackType
-from typing import TYPE_CHECKING, Dict, Hashable, Iterable, List, Optional, Tuple, Type
+from typing import TYPE_CHECKING, Optional
 
 import attr
 from prometheus_client import Counter
@@ -125,26 +126,26 @@ class PerDestinationQueue:
         self._last_successful_stream_ordering: Optional[int] = None
 
         # a queue of pending PDUs
-        self._pending_pdus: List[EventBase] = []
+        self._pending_pdus: list[EventBase] = []
 
         # XXX this is never actually used: see
         # https://github.com/matrix-org/synapse/issues/7549
-        self._pending_edus: List[Edu] = []
+        self._pending_edus: list[Edu] = []
 
         # Pending EDUs by their "key". Keyed EDUs are EDUs that get clobbered
         # based on their key (e.g. typing events by room_id)
         # Map of (edu_type, key) -> Edu
-        self._pending_edus_keyed: Dict[Tuple[str, Hashable], Edu] = {}
+        self._pending_edus_keyed: dict[tuple[str, Hashable], Edu] = {}
 
         # Map of user_id -> UserPresenceState of pending presence to be sent to this
         # destination
-        self._pending_presence: Dict[str, UserPresenceState] = {}
+        self._pending_presence: dict[str, UserPresenceState] = {}
 
         # List of room_id -> receipt_type -> user_id -> receipt_dict,
         #
         # Each receipt can only have a single receipt per
         # (room ID, receipt type, user ID, thread ID) tuple.
-        self._pending_receipt_edus: List[Dict[str, Dict[str, Dict[str, dict]]]] = []
+        self._pending_receipt_edus: list[dict[str, dict[str, dict[str, dict]]]] = []
         self._rrs_pending_flush = False
 
         # stream_id of last successfully sent to-device message.
@@ -311,7 +312,7 @@ class PerDestinationQueue:
         )
 
     async def _transaction_transmission_loop(self) -> None:
-        pending_pdus: List[EventBase] = []
+        pending_pdus: list[EventBase] = []
         try:
             self.transmission_loop_running = True
 
@@ -615,12 +616,12 @@ class PerDestinationQueue:
         if not self._pending_receipt_edus:
             self._rrs_pending_flush = False
 
-    def _pop_pending_edus(self, limit: int) -> List[Edu]:
+    def _pop_pending_edus(self, limit: int) -> list[Edu]:
         pending_edus = self._pending_edus
         pending_edus, self._pending_edus = pending_edus[:limit], pending_edus[limit:]
         return pending_edus
 
-    async def _get_device_update_edus(self, limit: int) -> Tuple[List[Edu], int]:
+    async def _get_device_update_edus(self, limit: int) -> tuple[list[Edu], int]:
         last_device_list = self._last_device_list_stream_id
 
         # Retrieve list of new device updates to send to the destination
@@ -641,7 +642,7 @@ class PerDestinationQueue:
 
         return edus, now_stream_id
 
-    async def _get_to_device_message_edus(self, limit: int) -> Tuple[List[Edu], int]:
+    async def _get_to_device_message_edus(self, limit: int) -> tuple[list[Edu], int]:
         last_device_stream_id = self._last_device_stream_id
         to_device_stream_id = self._store.get_to_device_stream_token()
         contents, stream_id = await self._store.get_new_device_msgs_for_remote(
@@ -695,9 +696,9 @@ class _TransactionQueueManager:
     _device_stream_id: Optional[int] = None
     _device_list_id: Optional[int] = None
     _last_stream_ordering: Optional[int] = None
-    _pdus: List[EventBase] = attr.Factory(list)
+    _pdus: list[EventBase] = attr.Factory(list)
 
-    async def __aenter__(self) -> Tuple[List[EventBase], List[Edu]]:
+    async def __aenter__(self) -> tuple[list[EventBase], list[Edu]]:
         # First we calculate the EDUs we want to send, if any.
 
         # There's a maximum number of EDUs that can be sent with a transaction,
@@ -798,7 +799,7 @@ class _TransactionQueueManager:
 
     async def __aexit__(
         self,
-        exc_type: Optional[Type[BaseException]],
+        exc_type: Optional[type[BaseException]],
         exc: Optional[BaseException],
         tb: Optional[TracebackType],
     ) -> None:

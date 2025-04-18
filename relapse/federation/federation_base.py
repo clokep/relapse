@@ -13,7 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-from typing import TYPE_CHECKING, Awaitable, Callable, Optional
+from collections.abc import Awaitable
+from typing import TYPE_CHECKING, Callable, Optional
 
 from relapse.api.constants import MAX_DEPTH, EventContentFields, EventTypes, Membership
 from relapse.api.errors import Codes, RelapseError

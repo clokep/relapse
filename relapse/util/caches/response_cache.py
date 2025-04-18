@@ -12,17 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Awaitable,
-    Callable,
-    Dict,
-    Generic,
-    Iterable,
-    Optional,
-    TypeVar,
-)
+from collections.abc import Awaitable, Iterable
+from typing import TYPE_CHECKING, Any, Callable, Generic, Optional, TypeVar
 
 import attr
 
@@ -95,7 +86,7 @@ class ResponseCache(Generic[KV]):
     """
 
     def __init__(self, clock: Clock, name: str, timeout_ms: float = 0):
-        self._result_cache: Dict[KV, ResponseCacheEntry] = {}
+        self._result_cache: dict[KV, ResponseCacheEntry] = {}
 
         self.clock = clock
         self.timeout_sec = timeout_ms / 1000.0

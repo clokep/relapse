@@ -20,7 +20,7 @@ import math
 import typing
 from enum import Enum
 from http import HTTPStatus
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Optional, Union
 
 from twisted.web import http
 
@@ -136,7 +136,7 @@ class CodeMessageException(RuntimeError):
         self,
         code: Union[int, HTTPStatus],
         msg: str,
-        headers: Optional[Dict[str, str]] = None,
+        headers: Optional[dict[str, str]] = None,
     ):
         super().__init__("%d: %s" % (code, msg))
 
@@ -171,7 +171,7 @@ class RedirectException(CodeMessageException):
         super().__init__(code=http_code, msg=msg)
         self.location = location
 
-        self.cookies: List[bytes] = []
+        self.cookies: list[bytes] = []
 
 
 class RelapseError(CodeMessageException):
@@ -193,8 +193,8 @@ class RelapseError(CodeMessageException):
         code: int,
         msg: str,
         errcode: str = Codes.UNKNOWN,
-        additional_fields: Optional[Dict] = None,
-        headers: Optional[Dict[str, str]] = None,
+        additional_fields: Optional[dict] = None,
+        headers: Optional[dict[str, str]] = None,
     ):
         """Constructs a relapse error.
 
@@ -206,7 +206,7 @@ class RelapseError(CodeMessageException):
         super().__init__(code, msg, headers)
         self.errcode = errcode
         if additional_fields is None:
-            self._additional_fields: Dict = {}
+            self._additional_fields: dict = {}
         else:
             self._additional_fields = dict(additional_fields)
 
@@ -246,7 +246,7 @@ class ProxiedRequestError(RelapseError):
         code: int,
         msg: str,
         errcode: str = Codes.UNKNOWN,
-        additional_fields: Optional[Dict] = None,
+        additional_fields: Optional[dict] = None,
     ):
         super().__init__(code, msg, errcode, additional_fields)
 
@@ -365,7 +365,7 @@ class OAuthInsufficientScopeError(RelapseError):
 
     def __init__(
         self,
-        required_scopes: List[str],
+        required_scopes: list[str],
     ):
         headers = {
             "WWW-Authenticate": 'Bearer error="insufficient_scope", scope="%s"'

@@ -14,7 +14,8 @@
 # limitations under the License.
 
 from collections import OrderedDict
-from typing import Hashable, Optional, Tuple
+from collections.abc import Hashable
+from typing import Optional
 
 from relapse.api.errors import LimitExceededError
 from relapse.config.ratelimiting import RatelimitSettings
@@ -78,7 +79,7 @@ class Ratelimiter:
         #   * The number of tokens currently in the bucket,
         #   * The time point when the bucket was last completely empty, and
         #   * The rate_hz (leak rate) of this particular bucket.
-        self.actions: OrderedDict[Hashable, Tuple[float, float, float]] = OrderedDict()
+        self.actions: OrderedDict[Hashable, tuple[float, float, float]] = OrderedDict()
 
     def _get_key(
         self, requester: Optional[Requester], key: Optional[Hashable]
@@ -93,7 +94,7 @@ class Ratelimiter:
 
     def _get_action_counts(
         self, key: Hashable, time_now_s: float
-    ) -> Tuple[float, float, float]:
+    ) -> tuple[float, float, float]:
         """Retrieve the action counts, with a fallback representing an empty bucket."""
         return self.actions.get(key, (0.0, time_now_s, 0.0))
 
@@ -106,7 +107,7 @@ class Ratelimiter:
         update: bool = True,
         n_actions: int = 1,
         _time_now_s: Optional[float] = None,
-    ) -> Tuple[bool, float]:
+    ) -> tuple[bool, float]:
         """Can the entity (e.g. user or IP address) perform the action?
 
         Checks if the user has ratelimiting disabled in the database by looking

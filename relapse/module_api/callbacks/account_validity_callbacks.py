@@ -13,7 +13,8 @@
 # limitations under the License.
 
 import logging
-from typing import Awaitable, Callable, List, Optional, Tuple
+from collections.abc import Awaitable
+from typing import Callable, Optional
 
 from twisted.web.http import Request
 
@@ -26,15 +27,15 @@ ON_USER_LOGIN_CALLBACK = Callable[[str, Optional[str], Optional[str]], Awaitable
 # Temporary hooks to allow for a transition from `/_matrix/client` endpoints
 # to `/_relapse/client/account_validity`. See `register_callbacks` below.
 ON_LEGACY_SEND_MAIL_CALLBACK = Callable[[str], Awaitable]
-ON_LEGACY_RENEW_CALLBACK = Callable[[str], Awaitable[Tuple[bool, bool, int]]]
+ON_LEGACY_RENEW_CALLBACK = Callable[[str], Awaitable[tuple[bool, bool, int]]]
 ON_LEGACY_ADMIN_REQUEST = Callable[[Request], Awaitable]
 
 
 class AccountValidityModuleApiCallbacks:
     def __init__(self) -> None:
-        self.is_user_expired_callbacks: List[IS_USER_EXPIRED_CALLBACK] = []
-        self.on_user_registration_callbacks: List[ON_USER_REGISTRATION_CALLBACK] = []
-        self.on_user_login_callbacks: List[ON_USER_LOGIN_CALLBACK] = []
+        self.is_user_expired_callbacks: list[IS_USER_EXPIRED_CALLBACK] = []
+        self.on_user_registration_callbacks: list[ON_USER_REGISTRATION_CALLBACK] = []
+        self.on_user_login_callbacks: list[ON_USER_LOGIN_CALLBACK] = []
         self.on_legacy_send_mail_callback: Optional[ON_LEGACY_SEND_MAIL_CALLBACK] = None
         self.on_legacy_renew_callback: Optional[ON_LEGACY_RENEW_CALLBACK] = None
 

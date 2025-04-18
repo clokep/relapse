@@ -126,17 +126,8 @@ EDUs).
 import abc
 import logging
 from collections import OrderedDict
-from typing import (
-    TYPE_CHECKING,
-    Collection,
-    Dict,
-    Hashable,
-    Iterable,
-    List,
-    Optional,
-    Set,
-    Tuple,
-)
+from collections.abc import Collection, Hashable, Iterable
+from typing import TYPE_CHECKING, Optional
 
 import attr
 from prometheus_client import Counter
@@ -276,7 +267,7 @@ class AbstractFederationSender(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     async def get_replication_rows(
         self, instance_name: str, from_token: int, to_token: int, target_row_count: int
-    ) -> Tuple[List[Tuple[int, Tuple]], int, bool]:
+    ) -> tuple[list[tuple[int, tuple]], int, bool]:
         raise NotImplementedError()
 
 
@@ -378,7 +369,7 @@ class FederationSender(AbstractFederationSender):
         self._federation_shard_config = hs.config.worker.federation_shard_config
 
         # map from destination to PerDestinationQueue
-        self._per_destination_queues: Dict[str, PerDestinationQueue] = {}
+        self._per_destination_queues: dict[str, PerDestinationQueue] = {}
 
         LaterGauge(
             "relapse_federation_transaction_queue_pending_destinations",
@@ -415,7 +406,7 @@ class FederationSender(AbstractFederationSender):
         # awaiting a call to flush_read_receipts_for_room. The presence of an entry
         # here for a given room means that we are rate-limiting RR flushes to that room,
         # and that there is a pending call to _flush_rrs_for_room in the system.
-        self._queues_awaiting_rr_flush_by_room: Dict[str, Set[PerDestinationQueue]] = {}
+        self._queues_awaiting_rr_flush_by_room: dict[str, set[PerDestinationQueue]] = {}
 
         self._rr_txn_interval_per_room_ms = (
             1000.0
@@ -638,7 +629,7 @@ class FederationSender(AbstractFederationSender):
                             "federation_sender"
                         ).observe((now - ts) / 1000)
 
-                async def handle_room_events(events: List[EventBase]) -> None:
+                async def handle_room_events(events: list[EventBase]) -> None:
                     logger.debug(
                         "Handling %i events in room %s", len(events), events[0].room_id
                     )
@@ -646,7 +637,7 @@ class FederationSender(AbstractFederationSender):
                         for event in events:
                             await handle_event(event)
 
-                events_by_room: Dict[str, List[EventBase]] = {}
+                events_by_room: dict[str, list[EventBase]] = {}
 
                 for event_id in event_ids:
                     # `event_entries` is unsorted, so we have to iterate over `event_ids`
@@ -979,7 +970,7 @@ class FederationSender(AbstractFederationSender):
     @staticmethod
     async def get_replication_rows(
         instance_name: str, from_token: int, to_token: int, target_row_count: int
-    ) -> Tuple[List[Tuple[int, Tuple]], int, bool]:
+    ) -> tuple[list[tuple[int, tuple]], int, bool]:
         # Dummy implementation for case where federation sender isn't offloaded
         # to a worker.
         return [], 0, False

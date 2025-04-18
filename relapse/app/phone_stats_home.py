@@ -15,7 +15,8 @@ import logging
 import math
 import resource
 import sys
-from typing import TYPE_CHECKING, List, Mapping, Sized, Tuple
+from collections.abc import Mapping, Sized
+from typing import TYPE_CHECKING
 
 from prometheus_client import Gauge
 
@@ -29,7 +30,7 @@ logger = logging.getLogger("relapse.app.homeserver")
 
 # Contains the list of processes we will be monitoring
 # currently either 0 or 1
-_stats_process: List[Tuple[int, "resource.struct_rusage"]] = []
+_stats_process: list[tuple[int, "resource.struct_rusage"]] = []
 
 # Gauges to expose monthly active user control metrics
 current_mau_gauge = Gauge("relapse_admin_mau_current", "Current MAU")
@@ -49,7 +50,7 @@ registered_reserved_users_mau_gauge = Gauge(
 async def phone_stats_home(
     hs: "HomeServer",
     stats: JsonDict,
-    stats_process: List[Tuple[int, "resource.struct_rusage"]] = _stats_process,
+    stats_process: list[tuple[int, "resource.struct_rusage"]] = _stats_process,
 ) -> None:
     """Collect usage statistics and send them to the configured endpoint.
 

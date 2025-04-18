@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import enum
-from typing import Awaitable, Callable, Generic, Optional, TypeVar, Union
+from collections.abc import Awaitable
+from typing import Callable, Generic, Optional, TypeVar, Union
 
 from twisted.internet.defer import Deferred
 from twisted.python.failure import Failure

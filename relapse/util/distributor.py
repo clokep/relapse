@@ -12,17 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-from typing import (
-    Any,
-    Awaitable,
-    Callable,
-    Dict,
-    Generic,
-    List,
-    Optional,
-    TypeVar,
-    Union,
-)
+from collections.abc import Awaitable
+from typing import Any, Callable, Generic, List, Optional, TypeVar, Union
 
 from typing_extensions import ParamSpec
 
@@ -52,8 +43,8 @@ class Distributor:
     """
 
     def __init__(self) -> None:
-        self.signals: Dict[str, Signal] = {}
-        self.pre_registration: Dict[str, List[Callable]] = {}
+        self.signals: dict[str, Signal] = {}
+        self.pre_registration: dict[str, list[Callable]] = {}
 
     def declare(self, name: str) -> None:
         if name in self.signals:
@@ -103,7 +94,7 @@ class Signal(Generic[P]):
 
     def __init__(self, name: str):
         self.name: str = name
-        self.observers: List[Callable[P, Any]] = []
+        self.observers: list[Callable[P, Any]] = []
 
     def observe(self, observer: Callable[P, Any]) -> None:
         """Adds a new callable to the observer list which will be invoked by

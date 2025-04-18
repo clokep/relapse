@@ -13,8 +13,9 @@
 # limitations under the License.
 
 import threading
+from collections.abc import Generator
 from io import BytesIO
-from typing import BinaryIO, Generator, Optional, cast
+from typing import BinaryIO, Optional, cast
 from unittest.mock import NonCallableMock
 
 from zope.interface import implementer

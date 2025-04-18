@@ -21,8 +21,9 @@ require. But this is probably just symptomatic of Python's package management.
 """
 
 import logging
+from collections.abc import Iterable
 from importlib import metadata
-from typing import Iterable, NamedTuple, Optional
+from typing import NamedTuple, Optional
 
 from packaging.requirements import Requirement
 

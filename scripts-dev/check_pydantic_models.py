@@ -35,18 +35,9 @@ import sys
 import textwrap
 import traceback
 import unittest.mock
+from collections.abc import Generator
 from contextlib import contextmanager
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    Dict,
-    Generator,
-    List,
-    Set,
-    Type,
-    TypeVar,
-)
+from typing import TYPE_CHECKING, Any, Callable, TypeVar
 
 from parameterized import parameterized
 
@@ -75,7 +66,7 @@ from typing_extensions import ParamSpec
 
 logger = logging.getLogger(__name__)
 
-CONSTRAINED_TYPE_FACTORIES_WITH_STRICT_FLAG: List[Callable] = [
+CONSTRAINED_TYPE_FACTORIES_WITH_STRICT_FLAG: list[Callable] = [
     constr,
     conbytes,
     conint,
@@ -151,7 +142,7 @@ class PatchedBaseModel(PydanticBaseModel):
     """
 
     @classmethod
-    def __init_subclass__(cls: Type[PydanticBaseModel], **kwargs: object):
+    def __init_subclass__(cls: type[PydanticBaseModel], **kwargs: object):
         for field in cls.__fields__.values():
             # Note that field.type_ and field.outer_type are computed based on the
             # annotation type, see pydantic.fields.ModelField._type_analysis
@@ -224,7 +215,7 @@ def lint() -> int:
     return os.EX_DATAERR if failures else os.EX_OK
 
 
-def do_lint() -> Set[str]:
+def do_lint() -> set[str]:
     """Try to import all of Relapse and see if we spot any Pydantic type coercions."""
     failures = set()
 
@@ -270,8 +261,8 @@ def run_test_snippet(source: str) -> None:
     # > Remember that at the module level, globals and locals are the same dictionary.
     # > If exec gets two separate objects as globals and locals, the code will be
     # > executed as if it were embedded in a class definition.
-    globals_: Dict[str, object]
-    locals_: Dict[str, object]
+    globals_: dict[str, object]
+    locals_: dict[str, object]
     globals_ = locals_ = {}
     exec(textwrap.dedent(source), globals_, locals_)
 

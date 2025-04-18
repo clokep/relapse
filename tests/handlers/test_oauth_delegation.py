@@ -14,7 +14,7 @@
 
 from http import HTTPStatus
 from io import BytesIO
-from typing import Any, Dict, Optional, Union
+from typing import Any, Optional, Union
 from unittest.mock import ANY, AsyncMock, Mock
 from urllib.parse import parse_qs
 
@@ -109,7 +109,7 @@ class MSC3861OAuthDelegation(HomeserverTestCase):
         admin.register_servlets,
     ]
 
-    def default_config(self) -> Dict[str, Any]:
+    def default_config(self) -> dict[str, Any]:
         config = super().default_config()
         config["public_baseurl"] = BASE_URL
         config["disable_registration"] = True

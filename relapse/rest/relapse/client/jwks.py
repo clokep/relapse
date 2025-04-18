@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-from typing import TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING
 
 from relapse.http.server import DirectServeJsonResource
 from relapse.http.site import RelapseRequest
@@ -66,5 +66,5 @@ class JwksResource(DirectServeJsonResource):
             "keys": keys,
         }
 
-    async def _async_render_GET(self, request: RelapseRequest) -> Tuple[int, JsonDict]:
+    async def _async_render_GET(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         return 200, self.res

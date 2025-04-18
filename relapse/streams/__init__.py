@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from abc import ABC, abstractmethod
-from typing import Generic, List, Optional, Tuple, TypeVar
+from typing import Generic, Optional, TypeVar
 
 from relapse.types import StrCollection, UserID
 
@@ -32,5 +32,5 @@ class EventSource(ABC, Generic[K, R]):
         room_ids: StrCollection,
         is_guest: bool,
         explicit_room_id: Optional[str] = None,
-    ) -> Tuple[List[R], K]:
+    ) -> tuple[list[R], K]:
         raise NotImplementedError()

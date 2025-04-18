@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Generator, cast
+from collections.abc import Generator
+from typing import Callable, cast
 
 import twisted.python.failure
 from twisted.internet import defer, reactor as _reactor

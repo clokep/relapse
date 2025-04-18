@@ -13,7 +13,8 @@
 # limitations under the License.
 
 import unittest as stdlib_unittest
-from typing import Any, List, Mapping, Optional
+from collections.abc import Mapping
+from typing import Any, Optional
 
 import attr
 from parameterized import parameterized
@@ -605,7 +606,7 @@ class PruneEventTestCase(stdlib_unittest.TestCase):
 
 
 class SerializeEventTestCase(stdlib_unittest.TestCase):
-    def serialize(self, ev: EventBase, fields: Optional[List[str]]) -> JsonDict:
+    def serialize(self, ev: EventBase, fields: Optional[list[str]]) -> JsonDict:
         return serialize_event(
             ev, 1479807801915, config=SerializeEventConfig(only_event_fields=fields)
         )

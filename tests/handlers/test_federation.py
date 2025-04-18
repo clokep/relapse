@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-from typing import Collection, Optional, cast
+from collections.abc import Collection
+from typing import Optional, cast
 from unittest import TestCase
 from unittest.mock import AsyncMock, Mock, patch
 

@@ -15,7 +15,7 @@
 
 import atexit
 import os
-from typing import Any, Callable, Dict, List, Tuple, Type, TypeVar, Union, overload
+from typing import Any, Callable, TypeVar, Union, overload
 
 import attr
 from typing_extensions import Literal, ParamSpec
@@ -115,7 +115,7 @@ def setupdb() -> None:
 
 
 @overload
-def default_config(name: str, parse: Literal[False] = ...) -> Dict[str, object]:
+def default_config(name: str, parse: Literal[False] = ...) -> dict[str, object]:
     ...
 
 
@@ -126,7 +126,7 @@ def default_config(name: str, parse: Literal[True]) -> HomeServerConfig:
 
 def default_config(
     name: str, parse: bool = False
-) -> Union[Dict[str, object], HomeServerConfig]:
+) -> Union[dict[str, object], HomeServerConfig]:
     """
     Create a reasonable test config.
     """
@@ -239,8 +239,8 @@ class Looper:
     func: Callable[..., Any]
     interval: float  # seconds
     last: float
-    args: Tuple[object, ...]
-    kwargs: Dict[str, object]
+    args: tuple[object, ...]
+    kwargs: dict[str, object]
 
 
 class MockClock:
@@ -248,8 +248,8 @@ class MockClock:
 
     def __init__(self) -> None:
         # Timers in no particular order
-        self.timers: List[Timer] = []
-        self.loopers: List[Looper] = []
+        self.timers: list[Timer] = []
+        self.loopers: list[Looper] = []
 
     def time(self) -> float:
         return self.now
@@ -356,7 +356,7 @@ async def create_room(hs: HomeServer, room_id: str, creator_id: str) -> None:
 T = TypeVar("T")
 
 
-def checked_cast(type: Type[T], x: object) -> T:
+def checked_cast(type: type[T], x: object) -> T:
     """A version of typing.cast that is checked at runtime.
 
     We have our own function for this for two reasons:

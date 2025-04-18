@@ -14,7 +14,8 @@
 
 import logging
 import random
-from typing import TYPE_CHECKING, Iterable, List, Optional
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, Optional
 
 from relapse.api.constants import EduTypes, EventTypes, Membership, PresenceState
 from relapse.api.errors import AuthError, RelapseError
@@ -93,7 +94,7 @@ class EventStreamHandler:
 
             # When the user joins a new room, or another user joins a currently
             # joined room, we need to send down presence for those users.
-            to_add: List[JsonDict] = []
+            to_add: list[JsonDict] = []
             for event in events:
                 if not isinstance(event, EventBase):
                     continue

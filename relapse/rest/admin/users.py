@@ -16,7 +16,7 @@ import hmac
 import logging
 import secrets
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Optional
 
 import attr
 
@@ -80,7 +80,7 @@ class UsersRestServletV2(RestServlet):
         self._msc3866_enabled = hs.config.experimental.msc3866.enabled
         self._msc3861_enabled = hs.config.experimental.msc3861.enabled
 
-    async def on_GET(self, request: RelapseRequest) -> Tuple[int, JsonDict]:
+    async def on_GET(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         await assert_requester_is_admin(self.auth, request)
 
         start = parse_integer(request, "from", default=0)
@@ -144,7 +144,7 @@ class UsersRestServletV2(RestServlet):
         direction = parse_enum(request, "dir", Direction, default=Direction.FORWARDS)
 
         # twisted.web.server.Request.args is incorrectly defined as Optional[Any]
-        args: Dict[bytes, List[bytes]] = request.args  # type: ignore
+        args: dict[bytes, list[bytes]] = request.args  # type: ignore
         not_user_types = parse_strings_from_args(args, "not_user_type")
 
         users, total = await self.store.get_users_paginate(
@@ -219,7 +219,7 @@ class UserRestServletV2(RestServlet):
 
     async def on_GET(
         self, request: RelapseRequest, user_id: str
-    ) -> Tuple[int, JsonMapping]:
+    ) -> tuple[int, JsonMapping]:
         await assert_requester_is_admin(self.auth, request)
 
         target_user = UserID.from_string(user_id)
@@ -234,7 +234,7 @@ class UserRestServletV2(RestServlet):
 
     async def on_PUT(
         self, request: RelapseRequest, user_id: str
-    ) -> Tuple[int, JsonMapping]:
+    ) -> tuple[int, JsonMapping]:
         requester = await self.auth.get_user_by_req(request)
         await assert_user_is_admin(self.auth, requester)
 
@@ -517,7 +517,7 @@ class UserRegisterServlet(RestServlet):
     def __init__(self, hs: "HomeServer"):
         self.auth_handler = hs.get_auth_handler()
         self.reactor = hs.get_reactor()
-        self.nonces: Dict[str, int] = {}
+        self.nonces: dict[str, int] = {}
         self.hs = hs
 
     def _clear_old_nonces(self) -> None:
@@ -530,7 +530,7 @@ class UserRegisterServlet(RestServlet):
             if now - v > self.NONCE_TIMEOUT:
                 del self.nonces[k]
 
-    def on_GET(self, request: RelapseRequest) -> Tuple[int, JsonDict]:
+    def on_GET(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         """
         Generate a new nonce.
         """
@@ -540,7 +540,7 @@ class UserRegisterServlet(RestServlet):
         self.nonces[nonce] = int(self.reactor.seconds())
         return HTTPStatus.OK, {"nonce": nonce}
 
-    async def on_POST(self, request: RelapseRequest) -> Tuple[int, JsonDict]:
+    async def on_POST(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         self._clear_old_nonces()
 
         if not self.hs.config.registration.registration_shared_secret:
@@ -673,7 +673,7 @@ class WhoisRestServlet(RestServlet):
 
     async def on_GET(
         self, request: RelapseRequest, user_id: str
-    ) -> Tuple[int, JsonMapping]:
+    ) -> tuple[int, JsonMapping]:
         target_user = UserID.from_string(user_id)
         requester = await self.auth.get_user_by_req(request)
 
@@ -699,7 +699,7 @@ class DeactivateAccountRestServlet(RestServlet):
 
     async def on_POST(
         self, request: RelapseRequest, target_user_id: str
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         requester = await self.auth.get_user_by_req(request)
         await assert_user_is_admin(self.auth, requester)
 
@@ -741,7 +741,7 @@ class AccountValidityRenewServlet(RestServlet):
         )
         self.auth = hs.get_auth()
 
-    async def on_POST(self, request: RelapseRequest) -> Tuple[int, JsonDict]:
+    async def on_POST(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         await assert_requester_is_admin(self.auth, request)
 
         if self.account_validity_module_callbacks.on_legacy_admin_request_callback:
@@ -791,7 +791,7 @@ class ResetPasswordRestServlet(RestServlet):
 
     async def on_POST(
         self, request: RelapseRequest, target_user_id: str
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         """Post request to allow an administrator reset password for a user.
         This needs user to have administrator access in Relapse.
         """
@@ -833,7 +833,7 @@ class SearchUsersRestServlet(RestServlet):
 
     async def on_GET(
         self, request: RelapseRequest, target_user_id: str
-    ) -> Tuple[int, Optional[List[JsonDict]]]:
+    ) -> tuple[int, Optional[list[JsonDict]]]:
         """Get request to search user table for specific users according to
         search term.
         This needs user to have a administrator access in Relapse.
@@ -902,7 +902,7 @@ class UserAdminServlet(RestServlet):
 
     async def on_GET(
         self, request: RelapseRequest, user_id: str
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         await assert_requester_is_admin(self.auth, request)
 
         target_user = UserID.from_string(user_id)
@@ -919,7 +919,7 @@ class UserAdminServlet(RestServlet):
 
     async def on_PUT(
         self, request: RelapseRequest, user_id: str
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         requester = await self.auth.get_user_by_req(request)
         await assert_user_is_admin(self.auth, requester)
         auth_user = requester.user
@@ -960,7 +960,7 @@ class UserMembershipRestServlet(RestServlet):
 
     async def on_GET(
         self, request: RelapseRequest, user_id: str
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         await assert_requester_is_admin(self.auth, request)
 
         room_ids = await self.store.get_rooms_for_user(user_id)
@@ -991,7 +991,7 @@ class PushersRestServlet(RestServlet):
 
     async def on_GET(
         self, request: RelapseRequest, user_id: str
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         await assert_requester_is_admin(self.auth, request)
 
         if not self.is_mine(UserID.from_string(user_id)):
@@ -1034,7 +1034,7 @@ class UserTokenRestServlet(RestServlet):
 
     async def on_POST(
         self, request: RelapseRequest, user_id: str
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         requester = await self.auth.get_user_by_req(request)
         await assert_user_is_admin(self.auth, requester)
         auth_user = requester.user
@@ -1102,7 +1102,7 @@ class ShadowBanRestServlet(RestServlet):
 
     async def on_POST(
         self, request: RelapseRequest, user_id: str
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         await assert_requester_is_admin(self.auth, request)
 
         if not self.is_mine_id(user_id):
@@ -1116,7 +1116,7 @@ class ShadowBanRestServlet(RestServlet):
 
     async def on_DELETE(
         self, request: RelapseRequest, user_id: str
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         await assert_requester_is_admin(self.auth, request)
 
         if not self.is_mine_id(user_id):
@@ -1154,7 +1154,7 @@ class RateLimitRestServlet(RestServlet):
 
     async def on_GET(
         self, request: RelapseRequest, user_id: str
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         await assert_requester_is_admin(self.auth, request)
 
         if not self.is_mine_id(user_id):
@@ -1183,7 +1183,7 @@ class RateLimitRestServlet(RestServlet):
 
     async def on_POST(
         self, request: RelapseRequest, user_id: str
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         await assert_requester_is_admin(self.auth, request)
 
         if not self.is_mine_id(user_id):
@@ -1231,7 +1231,7 @@ class RateLimitRestServlet(RestServlet):
 
     async def on_DELETE(
         self, request: RelapseRequest, user_id: str
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         await assert_requester_is_admin(self.auth, request)
 
         if not self.is_mine_id(user_id):
@@ -1259,7 +1259,7 @@ class AccountDataRestServlet(RestServlet):
 
     async def on_GET(
         self, request: RelapseRequest, user_id: str
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         await assert_requester_is_admin(self._auth, request)
 
         if not self._is_mine_id(user_id):
@@ -1300,7 +1300,7 @@ class UserReplaceMasterCrossSigningKeyRestServlet(RestServlet):
         self,
         request: RelapseRequest,
         user_id: str,
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         await assert_requester_is_admin(self._auth, request)
 
         if user_id is None:
@@ -1334,7 +1334,7 @@ class UserByExternalId(RestServlet):
         request: RelapseRequest,
         provider: str,
         external_id: str,
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         await assert_requester_is_admin(self._auth, request)
 
         user_id = await self._store.get_user_by_external_id(provider, external_id)
@@ -1359,7 +1359,7 @@ class UserByThreePid(RestServlet):
         request: RelapseRequest,
         medium: str,
         address: str,
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         await assert_requester_is_admin(self._auth, request)
 
         user_id = await self._store.get_user_id_by_threepid(medium, address)

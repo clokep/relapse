@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import logging
-from typing import TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING
 
 from relapse.api.errors import AuthError
 from relapse.http.server import HttpServer
@@ -73,7 +73,7 @@ class IdTokenServlet(RestServlet):
 
     async def on_POST(
         self, request: RelapseRequest, user_id: str
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         requester = await self.auth.get_user_by_req(request)
         if user_id != requester.user.to_string():
             raise AuthError(403, "Cannot request tokens for other users.")

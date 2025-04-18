@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-from typing import TYPE_CHECKING, Dict, List, Tuple
+from typing import TYPE_CHECKING
 
 from relapse.api.constants import Membership
 from relapse.api.errors import RelapseError
@@ -51,7 +51,7 @@ class KnockRoomAliasServlet(RestServlet):
         self,
         request: RelapseRequest,
         room_identifier: str,
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         requester = await self.auth.get_user_by_req(request)
 
         content = parse_json_object_from_request(request)
@@ -63,7 +63,7 @@ class KnockRoomAliasServlet(RestServlet):
             room_id = room_identifier
 
             # twisted.web.server.Request.args is incorrectly defined as Optional[Any]
-            args: Dict[bytes, List[bytes]] = request.args  # type: ignore
+            args: dict[bytes, list[bytes]] = request.args  # type: ignore
             remote_room_hosts = parse_strings_from_args(
                 args, "server_name", required=False
             )

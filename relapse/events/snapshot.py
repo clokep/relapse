@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Optional
 
 import attr
 from immutabledict import immutabledict
@@ -126,7 +126,7 @@ class EventContext(UnpersistedEventContextBase):
     """
 
     _storage: "StorageControllers"
-    state_group_deltas: Dict[Tuple[int, int], StateMap[str]]
+    state_group_deltas: dict[tuple[int, int], StateMap[str]]
     rejected: Optional[str] = None
     _state_group: Optional[int] = None
     state_group_before_event: Optional[int] = None
@@ -142,7 +142,7 @@ class EventContext(UnpersistedEventContextBase):
         state_group_before_event: Optional[int],
         state_delta_due_to_event: Optional[StateMap[str]],
         partial_state: bool,
-        state_group_deltas: Dict[Tuple[int, int], StateMap[str]],
+        state_group_deltas: dict[tuple[int, int], StateMap[str]],
     ) -> "EventContext":
         return EventContext(
             storage=storage,
@@ -352,11 +352,11 @@ class UnpersistedEventContext(UnpersistedEventContextBase):
     @classmethod
     async def batch_persist_unpersisted_contexts(
         cls,
-        events_and_context: List[Tuple[EventBase, "UnpersistedEventContextBase"]],
+        events_and_context: list[tuple[EventBase, "UnpersistedEventContextBase"]],
         room_id: str,
         last_known_state_group: int,
         datastore: "StateGroupDataStore",
-    ) -> List[Tuple[EventBase, EventContext]]:
+    ) -> list[tuple[EventBase, EventContext]]:
         """
         Takes a list of events and their associated unpersisted contexts and persists
         the unpersisted contexts, returning a list of events and persisted contexts.
@@ -459,7 +459,7 @@ class UnpersistedEventContext(UnpersistedEventContextBase):
             partial_state=self.partial_state,
         )
 
-    def _build_state_group_deltas(self) -> Dict[Tuple[int, int], StateMap]:
+    def _build_state_group_deltas(self) -> dict[tuple[int, int], StateMap]:
         """
         Collect deltas between the state groups associated with this context
         """
@@ -497,8 +497,8 @@ class UnpersistedEventContext(UnpersistedEventContextBase):
 
 
 def _encode_state_group_delta(
-    state_group_delta: Dict[Tuple[int, int], StateMap[str]]
-) -> List[Tuple[int, int, Optional[List[Tuple[str, str, str]]]]]:
+    state_group_delta: dict[tuple[int, int], StateMap[str]]
+) -> list[tuple[int, int, Optional[list[tuple[str, str, str]]]]]:
     if not state_group_delta:
         return []
 
@@ -510,8 +510,8 @@ def _encode_state_group_delta(
 
 
 def _decode_state_group_delta(
-    input: List[Tuple[int, int, List[Tuple[str, str, str]]]]
-) -> Dict[Tuple[int, int], StateMap[str]]:
+    input: list[tuple[int, int, list[tuple[str, str, str]]]]
+) -> dict[tuple[int, int], StateMap[str]]:
     if not input:
         return {}
 
@@ -526,7 +526,7 @@ def _decode_state_group_delta(
 
 def _encode_state_dict(
     state_dict: Optional[StateMap[str]],
-) -> Optional[List[Tuple[str, str, str]]]:
+) -> Optional[list[tuple[str, str, str]]]:
     """Since dicts of (type, state_key) -> event_id cannot be serialized in
     JSON we need to convert them to a form that can.
     """
@@ -537,7 +537,7 @@ def _encode_state_dict(
 
 
 def _decode_state_dict(
-    input: Optional[List[Tuple[str, str, str]]]
+    input: Optional[list[tuple[str, str, str]]]
 ) -> Optional[StateMap[str]]:
     """Decodes a state dict encoded using `_encode_state_dict` above"""
     if input is None:

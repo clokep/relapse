@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import logging
-from typing import TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING
 
 from twisted.web.server import Request
 
@@ -61,7 +61,7 @@ class ReplicationRemovePusherRestServlet(ReplicationEndpoint):
 
     async def _handle_request(  # type: ignore[override]
         self, request: Request, content: JsonDict, user_id: str
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         app_id = content["app_id"]
         pushkey = content["pushkey"]
 

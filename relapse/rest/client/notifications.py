@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import logging
-from typing import TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING
 
 from relapse.api.constants import ReceiptTypes
 from relapse.events.utils import (
@@ -45,7 +45,7 @@ class NotificationsServlet(RestServlet):
         self.clock = hs.get_clock()
         self._event_serializer = hs.get_event_client_serializer()
 
-    async def on_GET(self, request: RelapseRequest) -> Tuple[int, JsonDict]:
+    async def on_GET(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         requester = await self.auth.get_user_by_req(request)
         user_id = requester.user.to_string()
 

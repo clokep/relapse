@@ -21,7 +21,7 @@
 import abc
 import functools
 import logging
-from typing import TYPE_CHECKING, Callable, Dict, List, Optional, TypeVar, cast
+from typing import TYPE_CHECKING, Callable, Optional, TypeVar, cast
 
 from typing_extensions import TypeAlias
 
@@ -273,7 +273,7 @@ class HomeServer(metaclass=abc.ABCMeta):
         # the key we use to sign events and requests
         self.signing_key = config.key.signing_key[0]
         self.config = config
-        self._listening_services: List[Port] = []
+        self._listening_services: list[Port] = []
         self.start_time: Optional[int] = None
 
         self._instance_id = random_string(5)
@@ -283,7 +283,7 @@ class HomeServer(metaclass=abc.ABCMeta):
 
         self.datastores: Optional[Databases] = None
 
-        self._module_web_resources: Dict[str, Resource] = {}
+        self._module_web_resources: dict[str, Resource] = {}
         self._module_web_resources_consumed = False
 
         # This attribute is set by the free function `refresh_certificate`.
@@ -805,7 +805,7 @@ class HomeServer(metaclass=abc.ABCMeta):
         return ReplicationDataHandler(self)
 
     @cache_in_self
-    def get_replication_streams(self) -> Dict[str, Stream]:
+    def get_replication_streams(self) -> dict[str, Stream]:
         return {stream.NAME: stream(self) for stream in STREAMS_MAP.values()}
 
     @cache_in_self

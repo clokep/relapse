@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from collections import OrderedDict
-from typing import Generator
+from collections.abc import Generator
 from unittest.mock import Mock, call, patch
 
 from twisted.internet import defer

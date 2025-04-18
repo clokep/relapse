@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Optional
 from urllib.parse import urlencode
 
 from authlib.oauth2 import ClientAuth
@@ -62,7 +62,7 @@ SCOPE_MATRIX_DEVICE_PREFIX = "urn:matrix:org.matrix.msc2967.client:device:"
 SCOPE_RELAPSE_ADMIN = "urn:relapse:admin:*"
 
 
-def scope_to_list(scope: str) -> List[str]:
+def scope_to_list(scope: str) -> list[str]:
     """Convert a scope string to a list of scope tokens"""
     return scope.strip().split(" ")
 
@@ -154,7 +154,7 @@ class MSC3861DelegatedAuth(BaseAuth):
         """
         metadata = await self._issuer_metadata.get()
         introspection_endpoint = metadata.get("introspection_endpoint")
-        raw_headers: Dict[str, str] = {
+        raw_headers: dict[str, str] = {
             "Content-Type": "application/x-www-form-urlencoded",
             "User-Agent": str(self._http_client.user_agent, "utf-8"),
             "Accept": "application/json",
@@ -271,7 +271,7 @@ class MSC3861DelegatedAuth(BaseAuth):
             raise InvalidClientTokenError("Token is not active")
 
         # Let's look at the scope
-        scope: List[str] = scope_to_list(introspection_result.get("scope", ""))
+        scope: list[str] = scope_to_list(introspection_result.get("scope", ""))
 
         # Determine type of user based on presence of particular scopes
         has_user_scope = SCOPE_MATRIX_API in scope

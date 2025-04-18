@@ -17,8 +17,9 @@ import logging
 import os
 import urllib
 from abc import ABC, abstractmethod
+from collections.abc import Awaitable, Generator
 from types import TracebackType
-from typing import Awaitable, Dict, Generator, List, Optional, Tuple, Type
+from typing import Optional
 
 import attr
 
@@ -323,7 +324,7 @@ class Responder(ABC):
 
     def __exit__(  # noqa: B027
         self,
-        exc_type: Optional[Type[BaseException]],
+        exc_type: Optional[type[BaseException]],
         exc_val: Optional[BaseException],
         exc_tb: Optional[TracebackType],
     ) -> None:
@@ -388,7 +389,7 @@ class FileInfo:
         return self.thumbnail.length
 
 
-def get_filename_from_headers(headers: Dict[bytes, List[bytes]]) -> Optional[str]:
+def get_filename_from_headers(headers: dict[bytes, list[bytes]]) -> Optional[str]:
     """
     Get the filename of the downloaded file by inspecting the
     Content-Disposition HTTP header.
@@ -436,7 +437,7 @@ def get_filename_from_headers(headers: Dict[bytes, List[bytes]]) -> Optional[str
     return upload_name
 
 
-def _parse_header(line: bytes) -> Tuple[bytes, Dict[bytes, bytes]]:
+def _parse_header(line: bytes) -> tuple[bytes, dict[bytes, bytes]]:
     """Parse a Content-type like header.
 
     Cargo-culted from `cgi`, but works on bytes rather than strings.
