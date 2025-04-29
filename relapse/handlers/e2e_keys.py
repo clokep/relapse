@@ -1089,7 +1089,7 @@ class E2eKeysHandler:
             devices = devices[user_id]
         except RelapseError as e:
             failure = _exception_to_failure(e)
-            failures[user_id] = {device: failure for device in signatures.keys()}
+            failures[user_id] = dict.fromkeys(signatures.keys(), failure)
             return signature_list, failures
 
         for device_id, device in signatures.items():
@@ -1229,7 +1229,7 @@ class E2eKeysHandler:
         except RelapseError as e:
             failure = _exception_to_failure(e)
             for user, devicemap in signatures.items():
-                failures[user] = {device_id: failure for device_id in devicemap.keys()}
+                failures[user] = dict.fromkeys(devicemap.keys(), failure)
             return signature_list, failures
 
         for target_user, devicemap in signatures.items():
@@ -1270,9 +1270,7 @@ class E2eKeysHandler:
                     # other devices were signed -- mark those as failures
                     logger.debug("upload signature: too many devices specified")
                     failure = _exception_to_failure(NotFoundError("Unknown device"))
-                    failures[target_user] = {
-                        device: failure for device in other_devices
-                    }
+                    failures[target_user] = dict.fromkeys(other_devices, failure)
 
                 if user_signing_key_id in master_key.get("signatures", {}).get(
                     user_id, {}
@@ -1293,9 +1291,7 @@ class E2eKeysHandler:
             except RelapseError as e:
                 failure = _exception_to_failure(e)
                 if device_id is None:
-                    failures[target_user] = {
-                        device_id: failure for device_id in devicemap.keys()
-                    }
+                    failures[target_user] = dict.fromkeys(devicemap.keys(), failure)
                 else:
                     failures.setdefault(target_user, {})[device_id] = failure
 

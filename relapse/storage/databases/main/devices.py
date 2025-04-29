@@ -1046,7 +1046,7 @@ class DeviceWorkerStore(RoomMemberWorkerStore, EndToEndKeyWorkerStore):
             ),
         )
 
-        results: dict[str, Optional[str]] = {user_id: None for user_id in user_ids}
+        results: dict[str, Optional[str]] = dict.fromkeys(user_ids)
         results.update(rows)
 
         return results

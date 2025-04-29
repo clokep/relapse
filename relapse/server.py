@@ -21,7 +21,7 @@
 import abc
 import functools
 import logging
-from typing import TYPE_CHECKING, Callable, Optional, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Callable, Optional, TypeVar, cast
 
 from typing_extensions import TypeAlias
 
@@ -249,7 +249,10 @@ class HomeServer(metaclass=abc.ABCMeta):
     # This is overridden in derived application classes
     # (such as relapse.app.homeserver.RelapseHomeServer) and gives the class to be
     # instantiated during setup() for future return by get_datastores()
-    DATASTORE_CLASS = abc.abstractproperty()
+    @property
+    @abc.abstractmethod
+    def DATASTORE_CLASS(self) -> Any:
+        ...
 
     def __init__(
         self,

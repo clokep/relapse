@@ -96,7 +96,7 @@ def get_all_topologically_sorted_orders(
     # This is implemented by Kahn's algorithm, and forking execution each time
     # we have a choice over which node to consider next.
 
-    degree_map = {node: 0 for node in nodes}
+    degree_map = dict.fromkeys(nodes, 0)
     reverse_graph: dict[T, set[T]] = {}
 
     for node, edges in graph.items():
