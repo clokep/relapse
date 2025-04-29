@@ -244,11 +244,11 @@ class EventsWorkerStore(SQLBaseStore):
                 5 * 60 * 1000,
             )
 
-        self._get_event_cache: AsyncLruCache[
-            tuple[str], EventCacheEntry
-        ] = AsyncLruCache(
-            cache_name="*getEvent*",
-            max_size=hs.config.caches.event_cache_size,
+        self._get_event_cache: AsyncLruCache[tuple[str], EventCacheEntry] = (
+            AsyncLruCache(
+                cache_name="*getEvent*",
+                max_size=hs.config.caches.event_cache_size,
+            )
         )
 
         # Map from event ID to a deferred that will result in a map from event
@@ -438,8 +438,7 @@ class EventsWorkerStore(SQLBaseStore):
         allow_rejected: bool = ...,
         allow_none: Literal[False] = ...,
         check_room_id: Optional[str] = ...,
-    ) -> EventBase:
-        ...
+    ) -> EventBase: ...
 
     @overload
     async def get_event(
@@ -450,8 +449,7 @@ class EventsWorkerStore(SQLBaseStore):
         allow_rejected: bool = ...,
         allow_none: Literal[True] = ...,
         check_room_id: Optional[str] = ...,
-    ) -> Optional[EventBase]:
-        ...
+    ) -> Optional[EventBase]: ...
 
     @cancellable
     async def get_event(
@@ -779,9 +777,9 @@ class EventsWorkerStore(SQLBaseStore):
                 # to all the events we pulled from the DB (this will result in this
                 # function returning more events than requested, but that can happen
                 # already due to `_get_events_from_db`).
-                fetching_deferred: ObservableDeferred[
-                    dict[str, EventCacheEntry]
-                ] = ObservableDeferred(defer.Deferred(), consumeErrors=True)
+                fetching_deferred: ObservableDeferred[dict[str, EventCacheEntry]] = (
+                    ObservableDeferred(defer.Deferred(), consumeErrors=True)
+                )
                 for event_id in missing_events_ids:
                     self._current_event_fetches[event_id] = fetching_deferred
 
@@ -1651,7 +1649,7 @@ class EventsWorkerStore(SQLBaseStore):
                 txn.database_engine, "e.event_id", event_ids
             )
             txn.execute(sql + clause, args)
-            found_events = {eid for eid, in txn}
+            found_events = {eid for (eid,) in txn}
 
             # ... and then we can update the results for each key
             return {eid: (eid in found_events) for eid in event_ids}

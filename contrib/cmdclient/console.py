@@ -14,7 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-""" Starts a relapse client console. """
+"""Starts a relapse client console."""
+
 import argparse
 import binascii
 import cmd

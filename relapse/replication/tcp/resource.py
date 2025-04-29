@@ -11,8 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""The server side of the replication stream.
-"""
+"""The server side of the replication stream."""
 
 import logging
 import random
@@ -300,7 +299,7 @@ class ReplicationStreamer:
 
 
 def _batch_updates(
-    updates: list[tuple[Token, StreamRow]]
+    updates: list[tuple[Token, StreamRow]],
 ) -> list[tuple[Optional[Token], StreamRow]]:
     """Takes a list of updates of form [(token, row)] and sets the token to
     None for all rows where the next row has the same token. This is used to

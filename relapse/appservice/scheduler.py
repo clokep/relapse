@@ -47,6 +47,7 @@ UP & quit           +---------- YES                       SUCCESS
 This is all tied together by the AppServiceScheduler which DIs the required
 components.
 """
+
 import logging
 from collections.abc import Awaitable, Collection, Iterable, Sequence
 from typing import TYPE_CHECKING, Callable, Optional

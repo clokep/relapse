@@ -95,7 +95,9 @@ class MessageAcceptTests(unittest.HomeserverTestCase):
         ) -> list[EventBase]:
             return list(pdus)
 
-        self.client._check_sigs_and_hash_for_pulled_events_and_fetch = _check_sigs_and_hash_for_pulled_events_and_fetch  # type: ignore[assignment]
+        self.client._check_sigs_and_hash_for_pulled_events_and_fetch = (  # type: ignore[method-assign]
+            _check_sigs_and_hash_for_pulled_events_and_fetch  # type: ignore[assignment]
+        )
 
         # Send the join, it should return None (which is not an error)
         self.assertEqual(

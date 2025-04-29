@@ -64,6 +64,7 @@ user state; this device follows the normal timeout logic (see above) and will
 automatically be replaced with any information from currently available devices.
 
 """
+
 import abc
 import contextlib
 import itertools

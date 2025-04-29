@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-""" This module contains all the persistence actions done by the federation
+"""This module contains all the persistence actions done by the federation
 package.
 
 These actions are mostly only used by the :py:mod:`.replication` module.

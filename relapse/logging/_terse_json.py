@@ -15,6 +15,7 @@
 """
 Log formatters that output terse JSON.
 """
+
 import json
 import logging
 

@@ -1580,9 +1580,7 @@ class RoomWorkerStore(CacheInvalidationWorkerStore):
                 FROM event_reports AS er
                 JOIN room_stats_state ON room_stats_state.room_id = er.room_id
                 {}
-                """.format(
-                where_clause
-            )
+                """.format(where_clause)
             txn.execute(sql, args)
             count = cast(tuple[int], txn.fetchone())[0]
 
@@ -2479,7 +2477,9 @@ class RoomStore(RoomBackgroundUpdateStore, RoomWorkerStore):
             still contains events with partial state.
         """
         try:
-            async with self._un_partial_stated_rooms_stream_id_gen.get_next() as un_partial_state_room_stream_id:
+            async with (
+                self._un_partial_stated_rooms_stream_id_gen.get_next() as un_partial_state_room_stream_id
+            ):
                 await self.db_pool.runInteraction(
                     "clear_partial_state_room",
                     self._clear_partial_state_room_txn,

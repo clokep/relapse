@@ -88,8 +88,7 @@ class _TypedFailure(Generic[_ExcType], Protocol):
     """Extension to twisted.Failure, where the 'value' has a certain type."""
 
     @property
-    def value(self) -> _ExcType:
-        ...
+    def value(self) -> _ExcType: ...
 
 
 def around(target: TV) -> Callable[[Callable[Concatenate[S, P], R]], None]:
@@ -384,7 +383,9 @@ class HomeserverTestCase(TestCase):
                 # Type ignore: mypy doesn't like us assigning to methods.
                 self.hs.get_auth().get_user_by_req = get_requester  # type: ignore[method-assign]
                 self.hs.get_auth().get_user_by_access_token = get_requester  # type: ignore[method-assign]
-                self.hs.get_auth().get_access_token_from_request = Mock(return_value=token)  # type: ignore[method-assign]
+                self.hs.get_auth().get_access_token_from_request = Mock(  # type: ignore[method-assign]
+                    return_value=token
+                )
 
         if self.needs_threadpool:
             self.reactor.threadpool = ThreadPool()  # type: ignore[assignment]

@@ -255,7 +255,7 @@ class E2eKeysHandler:
             )
 
             async def _query(
-                destination_queries: tuple[str, dict[str, Iterable[str]]]
+                destination_queries: tuple[str, dict[str, Iterable[str]]],
             ) -> None:
                 destination, queries = destination_queries
                 return await self._query_devices_for_destination(
@@ -876,10 +876,7 @@ class E2eKeysHandler:
                 if not _one_time_keys_match(ex_json, key):
                     raise RelapseError(
                         400,
-                        (
-                            "One time key %s:%s already exists. "
-                            "Old key: %s; new key: %r"
-                        )
+                        ("One time key %s:%s already exists. Old key: %s; new key: %r")
                         % (algorithm, key_id, ex_json, key),
                     )
             else:

@@ -317,7 +317,7 @@ class EventFederationWorkerStore(SignatureWorkerStore, EventsWorkerStore, SQLBas
             """
 
             rows = txn.execute_values(sql, chains.items())
-            results.update(r for r, in rows)
+            results.update(r for (r,) in rows)
         else:
             # For SQLite we just fall back to doing a noddy for loop.
             sql = """
@@ -326,7 +326,7 @@ class EventFederationWorkerStore(SignatureWorkerStore, EventsWorkerStore, SQLBas
             """
             for chain_id, max_no in chains.items():
                 txn.execute(sql, (chain_id, max_no))
-                results.update(r for r, in txn)
+                results.update(r for (r,) in txn)
 
         return results
 
@@ -594,7 +594,7 @@ class EventFederationWorkerStore(SignatureWorkerStore, EventsWorkerStore, SQLBas
             ]
 
             rows = txn.execute_values(sql, args)
-            result.update(r for r, in rows)
+            result.update(r for (r,) in rows)
         else:
             # For SQLite we just fall back to doing a noddy for loop.
             sql = """
@@ -603,7 +603,7 @@ class EventFederationWorkerStore(SignatureWorkerStore, EventsWorkerStore, SQLBas
             """
             for chain_id, (min_no, max_no) in chain_to_gap.items():
                 txn.execute(sql, (chain_id, min_no, max_no))
-                result.update(r for r, in txn)
+                result.update(r for (r,) in txn)
 
         return result
 
@@ -1169,13 +1169,11 @@ class EventFederationWorkerStore(SignatureWorkerStore, EventsWorkerStore, SQLBas
                 HAVING count(*) > ?
                 ORDER BY count(*) DESC
                 LIMIT ?
-            """ % (
-                where_clause,
-            )
+            """ % (where_clause,)
 
             query_args = list(itertools.chain(room_id_filter, [min_count, limit]))
             txn.execute(sql, query_args)
-            return [room_id for room_id, in txn]
+            return [room_id for (room_id,) in txn]
 
         return await self.db_pool.runInteraction(
             "get_rooms_with_many_extremities", _get_rooms_with_many_extremities_txn
@@ -1302,7 +1300,7 @@ class EventFederationWorkerStore(SignatureWorkerStore, EventsWorkerStore, SQLBas
 
         def get_forward_extremeties_for_room_txn(txn: LoggingTransaction) -> list[str]:
             txn.execute(sql, (stream_ordering, room_id))
-            return [event_id for event_id, in txn]
+            return [event_id for (event_id,) in txn]
 
         event_ids = await self.db_pool.runInteraction(
             "get_forward_extremeties_for_room", get_forward_extremeties_for_room_txn

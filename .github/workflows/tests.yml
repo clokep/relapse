@@ -131,11 +131,8 @@ jobs:
           python-version: "3.12.x"
           install-project: "false"
 
-      - name: Import order (isort)
-        run: poetry run isort --check --diff .
-
-      - name: Code style (black)
-        run: poetry run black --check --diff .
+      - name: Code style (ruff)
+        run: poetry run ruff format --check --diff .
 
       - name: Semantic checks (ruff)
         # --quiet suppresses the update check.

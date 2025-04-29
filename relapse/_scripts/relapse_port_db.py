@@ -694,9 +694,7 @@ class Porter:
                 return
 
             # Check if all background updates are done, abort if not.
-            updates_complete = (
-                await self.sqlite_store.db_pool.updates.has_completed_background_updates()
-            )
+            updates_complete = await self.sqlite_store.db_pool.updates.has_completed_background_updates()
             if not updates_complete:
                 end_error = (
                     "Pending background updates exist in the SQLite3 database."
@@ -959,7 +957,7 @@ class Porter:
 
         def get_sent_table_size(txn: LoggingTransaction) -> int:
             txn.execute(
-                "SELECT count(*) FROM sent_transactions" " WHERE ts >= ?", (yesterday,)
+                "SELECT count(*) FROM sent_transactions WHERE ts >= ?", (yesterday,)
             )
             result = txn.fetchone()
             assert result is not None

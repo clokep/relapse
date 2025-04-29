@@ -22,7 +22,7 @@ from relapse._pydantic_compat import HAS_PYDANTIC_V2
 if TYPE_CHECKING or HAS_PYDANTIC_V2:
     from pydantic.v1 import Extra, StrictInt, StrictStr
 else:
-    from pydantic import StrictInt, StrictStr, Extra
+    from pydantic import Extra, StrictInt, StrictStr
 
 from signedjson.sign import sign_json
 

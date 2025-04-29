@@ -72,8 +72,7 @@ class RestHelper:
         expect_code: Literal[200] = ...,
         extra_content: Optional[dict] = ...,
         custom_headers: Optional[Iterable[tuple[AnyStr, AnyStr]]] = ...,
-    ) -> str:
-        ...
+    ) -> str: ...
 
     @overload
     def create_room_as(
@@ -85,8 +84,7 @@ class RestHelper:
         expect_code: int = ...,
         extra_content: Optional[dict] = ...,
         custom_headers: Optional[Iterable[tuple[AnyStr, AnyStr]]] = ...,
-    ) -> Optional[str]:
-        ...
+    ) -> Optional[str]: ...
 
     def create_room_as(
         self,
@@ -319,12 +317,13 @@ class RestHelper:
         )
 
         if expect_errcode:
-            assert (
-                str(channel.json_body["errcode"]) == expect_errcode
-            ), "Expected: %r, got: %r, resp: %r" % (
-                expect_errcode,
-                channel.json_body["errcode"],
-                channel.result["body"],
+            assert str(channel.json_body["errcode"]) == expect_errcode, (
+                "Expected: %r, got: %r, resp: %r"
+                % (
+                    expect_errcode,
+                    channel.json_body["errcode"],
+                    channel.result["body"],
+                )
             )
 
         if expect_additional_fields is not None:
@@ -333,13 +332,14 @@ class RestHelper:
                     expect_key,
                     channel.json_body,
                 )
-                assert (
-                    channel.json_body[expect_key] == expect_value
-                ), "Expected: %s at %s, got: %s, resp: %s" % (
-                    expect_value,
-                    expect_key,
-                    channel.json_body[expect_key],
-                    channel.json_body,
+                assert channel.json_body[expect_key] == expect_value, (
+                    "Expected: %s at %s, got: %s, resp: %s"
+                    % (
+                        expect_value,
+                        expect_key,
+                        channel.json_body[expect_key],
+                        channel.json_body,
+                    )
                 )
 
         self.auth_user_id = temp_id
@@ -690,9 +690,9 @@ class RestHelper:
             "/login",
             content={"type": "m.login.token", "token": login_token},
         )
-        assert (
-            channel.code == expected_status
-        ), f"unexpected status in response: {channel.code}"
+        assert channel.code == expected_status, (
+            f"unexpected status in response: {channel.code}"
+        )
         return channel.json_body
 
     def auth_via_oidc(

@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-""" This module contains REST servlets to do with presence: /presence/<paths>
-"""
+"""This module contains REST servlets to do with presence: /presence/<paths>"""
+
 import logging
 from typing import TYPE_CHECKING
 

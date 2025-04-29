@@ -253,7 +253,7 @@ class MediaRepoTests(unittest.HomeserverTestCase):
             """A mock for MatrixFederationHttpClient.get_file."""
 
             def write_to(
-                r: tuple[bytes, tuple[int, dict[bytes, list[bytes]]]]
+                r: tuple[bytes, tuple[int, dict[bytes, list[bytes]]]],
             ) -> tuple[int, dict[bytes, list[bytes]]]:
                 data, response = r
                 output_stream.write(data)

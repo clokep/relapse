@@ -497,7 +497,7 @@ class UnpersistedEventContext(UnpersistedEventContextBase):
 
 
 def _encode_state_group_delta(
-    state_group_delta: dict[tuple[int, int], StateMap[str]]
+    state_group_delta: dict[tuple[int, int], StateMap[str]],
 ) -> list[tuple[int, int, Optional[list[tuple[str, str, str]]]]]:
     if not state_group_delta:
         return []
@@ -510,7 +510,7 @@ def _encode_state_group_delta(
 
 
 def _decode_state_group_delta(
-    input: list[tuple[int, int, list[tuple[str, str, str]]]]
+    input: list[tuple[int, int, list[tuple[str, str, str]]]],
 ) -> dict[tuple[int, int], StateMap[str]]:
     if not input:
         return {}
@@ -537,7 +537,7 @@ def _encode_state_dict(
 
 
 def _decode_state_dict(
-    input: Optional[list[tuple[str, str, str]]]
+    input: Optional[list[tuple[str, str, str]]],
 ) -> Optional[StateMap[str]]:
     """Decodes a state dict encoded using `_encode_state_dict` above"""
     if input is None:

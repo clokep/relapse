@@ -830,7 +830,7 @@ UpdateRow = TypeVar("UpdateRow")
 
 
 def _batch_updates(
-    updates: Iterable[tuple[UpdateToken, UpdateRow]]
+    updates: Iterable[tuple[UpdateToken, UpdateRow]],
 ) -> Iterator[tuple[UpdateToken, list[UpdateRow]]]:
     """Collect stream updates with the same token together
 

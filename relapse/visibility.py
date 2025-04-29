@@ -380,6 +380,7 @@ def _check_client_allowed_to_see_event(
 @attr.s(frozen=True, slots=True, auto_attribs=True)
 class _CheckMembershipReturn:
     "Return value of _check_membership"
+
     allowed: bool
     joined: bool
 

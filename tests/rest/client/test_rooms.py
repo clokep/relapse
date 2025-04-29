@@ -1217,9 +1217,9 @@ class RoomJoinTestCase(RoomBase):
         """
 
         # Register a dummy callback. Make it allow all room joins for now.
-        return_value: Union[
-            Literal["NOT_SPAM"], tuple[Codes, dict], Codes
-        ] = relapse.module_api.NOT_SPAM
+        return_value: Union[Literal["NOT_SPAM"], tuple[Codes, dict], Codes] = (
+            relapse.module_api.NOT_SPAM
+        )
 
         async def user_may_join_room(
             userid: str,
@@ -1659,9 +1659,9 @@ class RoomMessagesTestCase(RoomBase):
         expected_fields: dict,
     ) -> None:
         class SpamCheck:
-            mock_return_value: Union[
-                str, bool, Codes, tuple[Codes, JsonDict], bool
-            ] = "NOT_SPAM"
+            mock_return_value: Union[str, bool, Codes, tuple[Codes, JsonDict], bool] = (
+                "NOT_SPAM"
+            )
             mock_content: Optional[JsonDict] = None
 
             async def check_event_for_spam(

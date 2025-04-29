@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """Contains functions for performing actions on rooms."""
+
 import itertools
 import logging
 import math
@@ -522,10 +523,10 @@ class RoomCreationHandler:
         # deep-copy the power-levels event before we start modifying it
         # note that if frozen_dicts are enabled, `power_levels` will be a frozen
         # dict so we can't just copy.deepcopy it.
-        initial_state[
-            (EventTypes.PowerLevels, "")
-        ] = power_levels = copy_and_fixup_power_levels_contents(
-            initial_state[(EventTypes.PowerLevels, "")]
+        initial_state[(EventTypes.PowerLevels, "")] = power_levels = (
+            copy_and_fixup_power_levels_contents(
+                initial_state[(EventTypes.PowerLevels, "")]
+            )
         )
 
         # Resolve the minimum power level required to send any state event
@@ -884,11 +885,9 @@ class RoomCreationHandler:
         )
 
         # Check whether this visibility value is blocked by a third party module
-        allowed_by_third_party_rules = (
-            await (
-                self._third_party_event_rules.check_visibility_can_be_modified(
-                    room_id, visibility
-                )
+        allowed_by_third_party_rules = await (
+            self._third_party_event_rules.check_visibility_can_be_modified(
+                room_id, visibility
             )
         )
         if not allowed_by_third_party_rules:

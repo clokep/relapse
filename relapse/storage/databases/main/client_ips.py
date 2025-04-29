@@ -232,9 +232,7 @@ class ClientIpBackgroundUpdateStore(SQLBaseStore):
                 INNER JOIN user_ips USING (user_id, access_token, ip)
                 GROUP BY user_id, access_token, ip
                 HAVING count(*) > 1
-                """.format(
-                    clause
-                ),
+                """.format(clause),
                 args,
             )
             res = cast(
@@ -367,9 +365,7 @@ class ClientIpBackgroundUpdateStore(SQLBaseStore):
                     LIMIT ?
                 ) c
                 INNER JOIN user_ips AS u USING (user_id, device_id, last_seen)
-            """ % {
-                "where_clause": where_clause
-            }
+            """ % {"where_clause": where_clause}
             txn.execute(sql, where_args + [batch_size])
 
             rows = cast(list[tuple[int, str, str, str, str]], txn.fetchall())
@@ -639,9 +635,9 @@ class ClientIpWorkerStore(ClientIpBackgroundUpdateStore, MonthlyActiveUsersWorke
 
     @wrap_as_background_process("update_client_ips")
     async def _update_client_ips_batch(self) -> None:
-        assert (
-            self._update_on_this_worker
-        ), "This worker is not designated to update client IPs"
+        assert self._update_on_this_worker, (
+            "This worker is not designated to update client IPs"
+        )
 
         # If the DB pool has already terminated, don't try updating
         if not self.db_pool.is_running():
@@ -660,9 +656,9 @@ class ClientIpWorkerStore(ClientIpBackgroundUpdateStore, MonthlyActiveUsersWorke
         txn: LoggingTransaction,
         to_update: Mapping[tuple[str, str, str], tuple[str, Optional[str], int]],
     ) -> None:
-        assert (
-            self._update_on_this_worker
-        ), "This worker is not designated to update client IPs"
+        assert self._update_on_this_worker, (
+            "This worker is not designated to update client IPs"
+        )
 
         # Keys and values for the `user_ips` upsert.
         user_ips_keys = []

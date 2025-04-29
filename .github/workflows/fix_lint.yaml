@@ -30,13 +30,9 @@ jobs:
           python-version: "3.12.x"
           install-project: "false"
 
-      - name: Import order (isort)
+      - name: Code style (ruff)
         continue-on-error: true
-        run: poetry run isort .
-
-      - name: Code style (black)
-        continue-on-error: true
-        run: poetry run black .
+        run: poetry run ruff format .
 
       - name: Semantic checks (ruff)
         continue-on-error: true

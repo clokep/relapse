@@ -13,8 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""An interactive script for doing a release. See `cli()` below.
-"""
+"""An interactive script for doing a release. See `cli()` below."""
 
 import glob
 import json

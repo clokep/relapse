@@ -140,10 +140,7 @@ class JoinedSyncResult:
         to tell if room needs to be part of the sync result.
         """
         return bool(
-            self.timeline
-            or self.state
-            or self.ephemeral
-            or self.account_data
+            self.timeline or self.state or self.ephemeral or self.account_data
             # nb the notification count does not, er, count: if there's nothing
             # else in the result, we don't need to send it.
         )
@@ -1307,9 +1304,9 @@ class SyncHandler:
                     and auth_event.state_key == member
                 ):
                     missing_members.discard(member)
-                    additional_state_ids[
-                        (EventTypes.Member, member)
-                    ] = auth_event.event_id
+                    additional_state_ids[(EventTypes.Member, member)] = (
+                        auth_event.event_id
+                    )
                     break
 
         if missing_members:

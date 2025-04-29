@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-""" This module is responsible for getting events from the DB for pagination
+"""This module is responsible for getting events from the DB for pagination
 and event streaming.
 
 The order it returns events in depend on whether we are streaming forwards or
@@ -667,9 +667,7 @@ class StreamWorkerStore(EventsWorkerStore, SQLBaseStore):
                     AND not outlier
                     AND stream_ordering > ? AND stream_ordering <= ?
                 ORDER BY stream_ordering %s LIMIT ?
-            """ % (
-                order,
-            )
+            """ % (order,)
             txn.execute(sql, (room_id, min_from_id, max_to_id, 2 * limit))
 
             rows = [
@@ -753,9 +751,7 @@ class StreamWorkerStore(EventsWorkerStore, SQLBaseStore):
                     AND e.stream_ordering > ? AND e.stream_ordering <= ?
                     %s
                 ORDER BY e.stream_ordering ASC
-            """ % (
-                ignore_room_clause,
-            )
+            """ % (ignore_room_clause,)
 
             txn.execute(sql, args)
 
@@ -966,8 +962,7 @@ class StreamWorkerStore(EventsWorkerStore, SQLBaseStore):
         txn: LoggingTransaction,
         event_id: str,
         allow_none: Literal[False] = False,
-    ) -> int:
-        ...
+    ) -> int: ...
 
     @overload
     def get_stream_id_for_event_txn(
@@ -975,8 +970,7 @@ class StreamWorkerStore(EventsWorkerStore, SQLBaseStore):
         txn: LoggingTransaction,
         event_id: str,
         allow_none: bool = False,
-    ) -> Optional[int]:
-        ...
+    ) -> Optional[int]: ...
 
     def get_stream_id_for_event_txn(
         self,

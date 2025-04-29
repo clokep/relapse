@@ -403,7 +403,7 @@ class EventsPersistenceStorageController:
         set_tag(RelapseTags.FUNC_ARG_PREFIX + "backfilled", str(backfilled))
 
         async def enqueue(
-            item: tuple[str, list[tuple[EventBase, EventContext]]]
+            item: tuple[str, list[tuple[EventBase, EventContext]]],
         ) -> dict[str, str]:
             room_id, evs_ctxs = item
             return await self._event_persist_queue.add_to_queue(
@@ -830,8 +830,7 @@ class EventsPersistenceStorageController:
                 # This should only happen for outlier events.
                 if not ev.internal_metadata.is_outlier():
                     raise Exception(
-                        "Context for new event %s has no state "
-                        "group" % (ev.event_id,)
+                        "Context for new event %s has no state group" % (ev.event_id,)
                     )
                 continue
             if ctx.state_group_deltas:
