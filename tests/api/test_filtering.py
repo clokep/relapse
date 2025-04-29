@@ -14,7 +14,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List
 from unittest.mock import patch
 
 import jsonschema
@@ -44,7 +43,7 @@ class FilteringTestCase(unittest.HomeserverTestCase):
 
     def test_errors_on_invalid_filters(self) -> None:
         # See USER_FILTER_SCHEMA for the filter schema.
-        invalid_filters: List[JsonDict] = [
+        invalid_filters: list[JsonDict] = [
             # `account_data` must be a dictionary
             {"account_data": "Hello World"},
             # `event_format` must be "client" or "federation"
@@ -61,7 +60,7 @@ class FilteringTestCase(unittest.HomeserverTestCase):
     def test_ignores_unknown_filter_fields(self) -> None:
         # For forward compatibility, we must ignore unknown filter fields.
         # See USER_FILTER_SCHEMA for the filter schema.
-        filters: List[JsonDict] = [
+        filters: list[JsonDict] = [
             {"org.matrix.msc9999.future_option": True},
             {"presence": {"org.matrix.msc9999.future_option": True}},
             {"room": {"org.matrix.msc9999.future_option": True}},
@@ -72,7 +71,7 @@ class FilteringTestCase(unittest.HomeserverTestCase):
             # Must not raise.
 
     def test_valid_filters(self) -> None:
-        valid_filters: List[JsonDict] = [
+        valid_filters: list[JsonDict] = [
             {
                 "room": {
                     "timeline": {"limit": 20},
@@ -551,7 +550,7 @@ class FilteringTestCase(unittest.HomeserverTestCase):
                 room_id="!foo:bar",
             ),
         ]
-        jsondicts: List[JsonDict] = [{}]
+        jsondicts: list[JsonDict] = [{}]
 
         # For the following tests we patch the datastore method (intead of injecting
         # events). This is a bit cheeky, but tests the logic of _check_event_relations.
@@ -559,7 +558,7 @@ class FilteringTestCase(unittest.HomeserverTestCase):
         # Filter for a particular sender.
         definition = {"related_by_senders": ["@foo:bar"]}
 
-        async def events_have_relations(*args: object, **kwargs: object) -> List[str]:
+        async def events_have_relations(*args: object, **kwargs: object) -> list[str]:
             return ["$with_relation"]
 
         with patch.object(

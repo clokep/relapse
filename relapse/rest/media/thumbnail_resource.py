@@ -15,7 +15,7 @@
 
 import logging
 import re
-from typing import TYPE_CHECKING, List, Optional, Tuple
+from typing import TYPE_CHECKING, Optional
 
 from relapse.api.errors import Codes, RelapseError, cs_error
 from relapse.config.repository import THUMBNAIL_SUPPORTED_MEDIA_FORMAT_MAP
@@ -311,7 +311,7 @@ class ThumbnailResource(RestServlet):
         desired_height: int,
         desired_method: str,
         desired_type: str,
-        thumbnail_infos: List[ThumbnailInfo],
+        thumbnail_infos: list[ThumbnailInfo],
         media_id: str,
         file_id: str,
         url_cache: bool,
@@ -450,7 +450,7 @@ class ThumbnailResource(RestServlet):
         desired_height: int,
         desired_method: str,
         desired_type: str,
-        thumbnail_infos: List[ThumbnailInfo],
+        thumbnail_infos: list[ThumbnailInfo],
         file_id: str,
         url_cache: bool,
         server_name: Optional[str],
@@ -481,12 +481,12 @@ class ThumbnailResource(RestServlet):
 
         if desired_method == "crop":
             # Thumbnails that match equal or larger sizes of desired width/height.
-            crop_info_list: List[
-                Tuple[int, int, int, bool, Optional[int], ThumbnailInfo]
+            crop_info_list: list[
+                tuple[int, int, int, bool, Optional[int], ThumbnailInfo]
             ] = []
             # Other thumbnails.
-            crop_info_list2: List[
-                Tuple[int, int, int, bool, Optional[int], ThumbnailInfo]
+            crop_info_list2: list[
+                tuple[int, int, int, bool, Optional[int], ThumbnailInfo]
             ] = []
             for info in thumbnail_infos:
                 # Skip thumbnails generated with different methods.
@@ -532,9 +532,9 @@ class ThumbnailResource(RestServlet):
                 thumbnail_info = min(crop_info_list2, key=lambda t: t[:-1])[-1]
         elif desired_method == "scale":
             # Thumbnails that match equal or larger sizes of desired width/height.
-            info_list: List[Tuple[int, bool, int, ThumbnailInfo]] = []
+            info_list: list[tuple[int, bool, int, ThumbnailInfo]] = []
             # Other thumbnails.
-            info_list2: List[Tuple[int, bool, int, ThumbnailInfo]] = []
+            info_list2: list[tuple[int, bool, int, ThumbnailInfo]] = []
 
             for info in thumbnail_infos:
                 # Skip thumbnails generated with different methods.

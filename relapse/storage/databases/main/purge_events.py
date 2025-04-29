@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import logging
-from typing import Any, List, Set, Tuple, cast
+from typing import Any, cast
 
 from relapse.api.errors import RelapseError
 from relapse.storage.database import LoggingTransaction
@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 class PurgeEventsStore(StateGroupWorkerStore, CacheInvalidationWorkerStore):
     async def purge_history(
         self, room_id: str, token: str, delete_local_events: bool
-    ) -> Set[int]:
+    ) -> set[int]:
         """Deletes room history before a certain point.
 
         Note that only a single purge can occur at once, this is guaranteed via
@@ -63,7 +63,7 @@ class PurgeEventsStore(StateGroupWorkerStore, CacheInvalidationWorkerStore):
         room_id: str,
         token: RoomStreamToken,
         delete_local_events: bool,
-    ) -> Set[int]:
+    ) -> set[int]:
         # Tables that should be pruned:
         #     event_auth
         #     event_backward_extremities
@@ -130,7 +130,7 @@ class PurgeEventsStore(StateGroupWorkerStore, CacheInvalidationWorkerStore):
         logger.info("[purge] looking for events to delete")
 
         should_delete_expr = "state_events.state_key IS NULL"
-        should_delete_params: Tuple[Any, ...] = ()
+        should_delete_params: tuple[Any, ...] = ()
         if not delete_local_events:
             should_delete_expr += " AND event_id NOT LIKE ?"
 
@@ -282,7 +282,7 @@ class PurgeEventsStore(StateGroupWorkerStore, CacheInvalidationWorkerStore):
         """,
             (room_id,),
         )
-        (min_depth,) = cast(Tuple[int], txn.fetchone())
+        (min_depth,) = cast(tuple[int], txn.fetchone())
 
         logger.info("[purge] updating room_depth to %d", min_depth)
 
@@ -325,7 +325,7 @@ class PurgeEventsStore(StateGroupWorkerStore, CacheInvalidationWorkerStore):
 
         return referenced_state_groups
 
-    async def purge_room(self, room_id: str) -> List[int]:
+    async def purge_room(self, room_id: str) -> list[int]:
         """Deletes all record of a room
 
         Args:
@@ -360,7 +360,7 @@ class PurgeEventsStore(StateGroupWorkerStore, CacheInvalidationWorkerStore):
 
         return state_groups_to_delete
 
-    def _purge_room_txn(self, txn: LoggingTransaction, room_id: str) -> List[int]:
+    def _purge_room_txn(self, txn: LoggingTransaction, room_id: str) -> list[int]:
         # This collides with event persistence so we cannot write new events and metadata into
         # a room while deleting it or this transaction will fail.
         if isinstance(self.database_engine, PostgresEngine):

@@ -15,7 +15,7 @@
 """ This module contains REST servlets to do with profile: /profile/<paths> """
 
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING
 
 from relapse.api.errors import Codes, RelapseError
 from relapse.http.server import HttpServer
@@ -58,7 +58,7 @@ class ProfileDisplaynameRestServlet(RestServlet):
 
     async def on_GET(
         self, request: RelapseRequest, user_id: str
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         requester_user = None
 
         if self.hs.config.server.require_auth_for_profile_requests:
@@ -83,7 +83,7 @@ class ProfileDisplaynameRestServlet(RestServlet):
 
     async def on_PUT(
         self, request: RelapseRequest, user_id: str
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         requester = await self.auth.get_user_by_req(request, allow_guest=True)
         user = UserID.from_string(user_id)
         is_admin = await self.auth.is_server_admin(requester)
@@ -120,7 +120,7 @@ class ProfileAvatarURLRestServlet(RestServlet):
 
     async def on_GET(
         self, request: RelapseRequest, user_id: str
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         requester_user = None
 
         if self.hs.config.server.require_auth_for_profile_requests:
@@ -145,7 +145,7 @@ class ProfileAvatarURLRestServlet(RestServlet):
 
     async def on_PUT(
         self, request: RelapseRequest, user_id: str
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         requester = await self.auth.get_user_by_req(request)
         user = UserID.from_string(user_id)
         is_admin = await self.auth.is_server_admin(requester)
@@ -179,7 +179,7 @@ class ProfileRestServlet(RestServlet):
 
     async def on_GET(
         self, request: RelapseRequest, user_id: str
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         requester_user = None
 
         if self.hs.config.server.require_auth_for_profile_requests:

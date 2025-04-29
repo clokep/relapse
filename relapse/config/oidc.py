@@ -14,7 +14,8 @@
 # limitations under the License.
 
 from collections import Counter
-from typing import Any, Collection, Iterable, List, Mapping, Optional, Tuple, Type
+from collections.abc import Collection, Iterable, Mapping
+from typing import Any, Optional
 
 import attr
 
@@ -199,7 +200,7 @@ def _parse_oidc_provider_configs(config: JsonDict) -> Iterable["OidcProviderConf
 
 
 def _parse_oidc_config_dict(
-    oidc_config: JsonDict, config_path: Tuple[str, ...]
+    oidc_config: JsonDict, config_path: tuple[str, ...]
 ) -> "OidcProviderConfig":
     """Take the configuration dict and parse it into an OidcProviderConfig
 
@@ -414,13 +415,13 @@ class OidcProviderConfig:
     allow_existing_users: bool
 
     # the class of the user mapping provider
-    user_mapping_provider_class: Type
+    user_mapping_provider_class: type
 
     # the config of the user mapping provider
     user_mapping_provider_config: Any
 
     # required attributes to require in userinfo to allow login/registration
-    attribute_requirements: List[SsoAttributeRequirement]
+    attribute_requirements: list[SsoAttributeRequirement]
 
     # Whether automatic registrations are enabled in the ODIC flow. Defaults to True
     enable_registration: bool

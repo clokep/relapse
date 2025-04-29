@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import argparse
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from relapse.api.constants import RoomCreationPreset
 from relapse.config._base import Config, ConfigError, read_file
@@ -241,7 +241,7 @@ class RegistrationConfig(Config):
         else:
             return ""
 
-    def generate_files(self, config: Dict[str, Any], config_dir_path: str) -> None:
+    def generate_files(self, config: dict[str, Any], config_dir_path: str) -> None:
         # if 'registration_shared_secret_path' is specified, and the target file
         # does not exist, generate it.
         registration_shared_secret_path = config.get("registration_shared_secret_path")

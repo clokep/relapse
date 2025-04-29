@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import TYPE_CHECKING, Dict, Optional
+from typing import TYPE_CHECKING, Optional
 
 from relapse._pydantic_compat import HAS_PYDANTIC_V2
 
@@ -62,7 +62,7 @@ class ThreepidRequestTokenBody(RequestBodyModel):
 
     @validator("id_access_token", always=True)
     def token_required_for_identity_server(
-        cls, token: Optional[str], values: Dict[str, object]
+        cls, token: Optional[str], values: dict[str, object]
     ) -> Optional[str]:
         if values.get("id_server") is not None and token is None:
             raise ValueError("id_access_token is required if an id_server is supplied.")

@@ -13,7 +13,6 @@
 # limitations under the License.
 import os.path
 import subprocess
-from typing import List
 
 from incremental import Version
 from zope.interface import implementer
@@ -79,7 +78,7 @@ subjectAltName = %(sanentries)s
 """
 
 
-def create_test_cert_file(sanlist: List[bytes]) -> str:
+def create_test_cert_file(sanlist: list[bytes]) -> str:
     """build an x509 certificate file
 
     Args:
@@ -145,7 +144,7 @@ class TestServerTLSConnectionFactory:
     """An SSL connection creator which returns connections which present a certificate
     signed by our test CA."""
 
-    def __init__(self, sanlist: List[bytes]):
+    def __init__(self, sanlist: list[bytes]):
         """
         Args:
             sanlist: a list of subjectAltName values for the cert
@@ -160,7 +159,7 @@ class TestServerTLSConnectionFactory:
 
 
 def wrap_server_factory_for_tls(
-    factory: IProtocolFactory, clock: IReactorTime, sanlist: List[bytes]
+    factory: IProtocolFactory, clock: IReactorTime, sanlist: list[bytes]
 ) -> TLSMemoryBIOFactory:
     """Wrap an existing Protocol Factory with a test TLSMemoryBIOFactory
 

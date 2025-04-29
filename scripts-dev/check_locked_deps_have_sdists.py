@@ -14,7 +14,6 @@
 # limitations under the License.
 import sys
 from pathlib import Path
-from typing import Dict, List
 
 import tomli
 
@@ -26,7 +25,7 @@ def main() -> None:
 
     # Poetry 1.3+ lockfile format:
     # There's a `files` inline table in each [[package]]
-    packages_to_assets: Dict[str, List[Dict[str, str]]] = {
+    packages_to_assets: dict[str, list[dict[str, str]]] = {
         package["name"]: package["files"] for package in lockfile_content["package"]
     }
 

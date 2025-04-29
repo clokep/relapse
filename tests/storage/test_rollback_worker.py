@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List
 from unittest import mock
 
 from twisted.test.proto_helpers import MemoryReactor
@@ -27,7 +26,7 @@ from relapse.util import Clock
 from tests.unittest import HomeserverTestCase
 
 
-def fake_listdir(filepath: str) -> List[str]:
+def fake_listdir(filepath: str) -> list[str]:
     """
     A fake implementation of os.listdir which we can use to mock out the filesystem.
 

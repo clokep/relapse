@@ -14,7 +14,8 @@
 import base64
 import logging
 import os
-from typing import Generator, List, Optional, cast
+from collections.abc import Generator
+from typing import Optional, cast
 from unittest.mock import AsyncMock, call, patch
 
 import treq
@@ -97,7 +98,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
         client_factory: IProtocolFactory,
         ssl: bool = True,
         expected_sni: Optional[bytes] = None,
-        tls_sanlist: Optional[List[bytes]] = None,
+        tls_sanlist: Optional[list[bytes]] = None,
     ) -> HTTPChannel:
         """Builds a test server, and completes the outgoing client connection
         Args:

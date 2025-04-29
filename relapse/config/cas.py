@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, List
+from typing import Any
 
 from relapse.config.sso import SsoAttributeRequirement
 from relapse.types import JsonDict
@@ -82,7 +82,7 @@ REQUIRED_ATTRIBUTES_SCHEMA = {
 
 def _parsed_required_attributes_def(
     required_attributes: Any,
-) -> List[SsoAttributeRequirement]:
+) -> list[SsoAttributeRequirement]:
     validate_config(
         REQUIRED_ATTRIBUTES_SCHEMA,
         required_attributes,

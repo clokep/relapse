@@ -15,7 +15,7 @@
 """ This module contains REST servlets to do with presence: /presence/<paths>
 """
 import logging
-from typing import TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING
 
 from relapse.api.errors import AuthError, RelapseError
 from relapse.handlers.presence import format_user_presence_state
@@ -44,7 +44,7 @@ class PresenceStatusRestServlet(RestServlet):
 
     async def on_GET(
         self, request: RelapseRequest, user_id: str
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         requester = await self.auth.get_user_by_req(request)
         user = UserID.from_string(user_id)
 
@@ -68,7 +68,7 @@ class PresenceStatusRestServlet(RestServlet):
 
     async def on_PUT(
         self, request: RelapseRequest, user_id: str
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         requester = await self.auth.get_user_by_req(request)
         user = UserID.from_string(user_id)
 

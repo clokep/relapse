@@ -1,0 +1,1 @@
+Bump GitHub runners from ubuntu-20.04 to ubuntu-22.04. Bump minimum version of PyYAML to 6.0. Bump minimum version of lxml to 4.7.1.

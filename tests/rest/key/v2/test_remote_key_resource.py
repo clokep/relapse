@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from io import BytesIO, StringIO
-from typing import Any, Dict, Optional, Union
+from typing import Any, Optional, Union
 from unittest.mock import Mock
 
 import signedjson.key
@@ -149,7 +149,7 @@ class EndToEndPerspectivesTests(BaseRemoteKeyResourceTestCase):
     endpoint, to check that the two implementations are compatible.
     """
 
-    def default_config(self) -> Dict[str, Any]:
+    def default_config(self) -> dict[str, Any]:
         config = super().default_config()
 
         # replace the signing key with our own

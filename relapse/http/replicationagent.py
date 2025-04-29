@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import logging
-from typing import Dict, Optional
+from typing import Optional
 
 from zope.interface import implementer
 
@@ -53,7 +53,7 @@ class ReplicationEndpointFactory:
     def __init__(
         self,
         reactor: IRelapseReactor,
-        instance_map: Dict[str, InstanceLocationConfig],
+        instance_map: dict[str, InstanceLocationConfig],
         context_factory: IPolicyForHTTPS,
     ) -> None:
         self.reactor = reactor
@@ -108,7 +108,7 @@ class ReplicationAgent(_AgentBase):
     def __init__(
         self,
         reactor: IRelapseReactor,
-        instance_map: Dict[str, InstanceLocationConfig],
+        instance_map: dict[str, InstanceLocationConfig],
         contextFactory: IPolicyForHTTPS,
         connectTimeout: Optional[float] = None,
         bindAddress: Optional[bytes] = None,

@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
+from collections.abc import Collection
 from contextlib import AsyncExitStack
 from types import TracebackType
-from typing import TYPE_CHECKING, Collection, Optional, Set, Tuple, Type
+from typing import TYPE_CHECKING, Optional
 from weakref import WeakValueDictionary
 
 from twisted.internet.task import LoopingCall
@@ -73,7 +74,7 @@ class LockStore(SQLBaseStore):
         # A map from `(lock_name, lock_key)` to lock that we think we
         # currently hold.
         self._live_lock_tokens: WeakValueDictionary[
-            Tuple[str, str], Lock
+            tuple[str, str], Lock
         ] = WeakValueDictionary()
 
         # A map from `(lock_name, lock_key, token)` to read/write lock that we
@@ -81,7 +82,7 @@ class LockStore(SQLBaseStore):
         # multiple read locks at a time but only one write lock (no mixing read
         # and write locks at the same time).
         self._live_read_write_lock_tokens: WeakValueDictionary[
-            Tuple[str, str, str], Lock
+            tuple[str, str, str], Lock
         ] = WeakValueDictionary()
 
         # When we shut down we want to remove the locks. Technically this can
@@ -94,7 +95,7 @@ class LockStore(SQLBaseStore):
             self._on_shutdown,
         )
 
-        self._acquiring_locks: Set[Tuple[str, str]] = set()
+        self._acquiring_locks: set[tuple[str, str]] = set()
 
         self._clock.looping_call(
             self._reap_stale_read_write_locks, _LOCK_TIMEOUT_MS / 10.0
@@ -274,7 +275,7 @@ class LockStore(SQLBaseStore):
 
     async def try_acquire_multi_read_write_lock(
         self,
-        lock_names: Collection[Tuple[str, str]],
+        lock_names: Collection[tuple[str, str]],
         write: bool,
     ) -> Optional[AsyncExitStack]:
         """Try to acquire multiple locks for the given names/keys. Will return
@@ -304,7 +305,7 @@ class LockStore(SQLBaseStore):
     def _try_acquire_multi_read_write_lock_txn(
         self,
         txn: LoggingTransaction,
-        lock_names: Collection[Tuple[str, str]],
+        lock_names: Collection[tuple[str, str]],
         write: bool,
     ) -> Collection["Lock"]:
         locks = []
@@ -449,7 +450,7 @@ class Lock:
 
     async def __aexit__(
         self,
-        _exctype: Optional[Type[BaseException]],
+        _exctype: Optional[type[BaseException]],
         _excinst: Optional[BaseException],
         _exctb: Optional[TracebackType],
     ) -> bool:

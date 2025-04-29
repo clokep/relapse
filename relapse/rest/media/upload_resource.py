@@ -15,7 +15,7 @@
 
 import logging
 import re
-from typing import IO, TYPE_CHECKING, Dict, List, Optional, Tuple
+from typing import IO, TYPE_CHECKING, Optional
 
 from relapse.api.errors import Codes, RelapseError
 from relapse.http.server import respond_with_json
@@ -46,7 +46,7 @@ class BaseUploadServlet(RestServlet):
 
     def _get_file_metadata(
         self, request: RelapseRequest
-    ) -> Tuple[int, Optional[str], str]:
+    ) -> tuple[int, Optional[str], str]:
         raw_content_length = request.getHeader("Content-Length")
         if raw_content_length is None:
             raise RelapseError(msg="Request must specify a Content-Length", code=400)
@@ -61,7 +61,7 @@ class BaseUploadServlet(RestServlet):
                 errcode=Codes.TOO_LARGE,
             )
 
-        args: Dict[bytes, List[bytes]] = request.args  # type: ignore
+        args: dict[bytes, list[bytes]] = request.args  # type: ignore
         upload_name_bytes = parse_bytes_from_args(args, "filename")
         if upload_name_bytes:
             try:

@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-from typing import TYPE_CHECKING, List, Mapping, Optional, Union
+from collections.abc import Mapping
+from typing import TYPE_CHECKING, Optional, Union
 
 from relapse import event_auth
 from relapse.api.constants import (
@@ -83,7 +84,7 @@ class EventAuthHandler:
         event: Union[EventBase, EventBuilder],
         current_state_ids: StateMap[str],
         for_verification: bool = False,
-    ) -> List[str]:
+    ) -> list[str]:
         """Given an event and current state return the list of event IDs used
         to auth an event.
 

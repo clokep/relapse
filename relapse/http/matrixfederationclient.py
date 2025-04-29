@@ -25,12 +25,9 @@ from typing import (
     Any,
     BinaryIO,
     Callable,
-    Dict,
     Generic,
-    List,
     Optional,
     TextIO,
-    Tuple,
     TypeVar,
     Union,
     cast,
@@ -238,7 +235,7 @@ class JsonParser(_BaseJsonParser[JsonDict]):
         return isinstance(v, dict)
 
 
-class LegacyJsonSendParser(_BaseJsonParser[Tuple[int, JsonDict]]):
+class LegacyJsonSendParser(_BaseJsonParser[tuple[int, JsonDict]]):
     """Ensure the legacy responses of /send_join & /send_leave are correct."""
 
     def __init__(self) -> None:
@@ -627,7 +624,7 @@ class MatrixFederationHttpClient:
         )
 
         # Inject the span into the headers
-        headers_dict: Dict[bytes, List[bytes]] = {}
+        headers_dict: dict[bytes, list[bytes]] = {}
         opentracing.inject_header_dict(headers_dict, request.destination)
 
         headers_dict[b"User-Agent"] = [self.version_string_bytes]
@@ -854,7 +851,7 @@ class MatrixFederationHttpClient:
         url_bytes: bytes,
         content: Optional[JsonDict] = None,
         destination_is: Optional[bytes] = None,
-    ) -> List[bytes]:
+    ) -> list[bytes]:
         """
         Builds the Authorization headers for a federation request
         Args:
@@ -1229,7 +1226,7 @@ class MatrixFederationHttpClient:
         ignore_backoff: bool = False,
         try_trailing_slash_on_400: bool = False,
         parser: Literal[None] = None,
-    ) -> Tuple[JsonDict, Dict[bytes, List[bytes]]]:
+    ) -> tuple[JsonDict, dict[bytes, list[bytes]]]:
         ...
 
     @overload
@@ -1243,7 +1240,7 @@ class MatrixFederationHttpClient:
         ignore_backoff: bool = ...,
         try_trailing_slash_on_400: bool = ...,
         parser: ByteParser[T] = ...,
-    ) -> Tuple[T, Dict[bytes, List[bytes]]]:
+    ) -> tuple[T, dict[bytes, list[bytes]]]:
         ...
 
     async def get_json_with_headers(
@@ -1256,7 +1253,7 @@ class MatrixFederationHttpClient:
         ignore_backoff: bool = False,
         try_trailing_slash_on_400: bool = False,
         parser: Optional[ByteParser[T]] = None,
-    ) -> Tuple[Union[JsonDict, T], Dict[bytes, List[bytes]]]:
+    ) -> tuple[Union[JsonDict, T], dict[bytes, list[bytes]]]:
         """GETs some json from the given host homeserver and path
 
         Args:
@@ -1415,7 +1412,7 @@ class MatrixFederationHttpClient:
         max_size: Optional[int] = None,
         ignore_backoff: bool = False,
         follow_redirects: bool = False,
-    ) -> Tuple[int, Dict[bytes, List[bytes]]]:
+    ) -> tuple[int, dict[bytes, list[bytes]]]:
         """GETs a file from a given homeserver
         Args:
             destination: The remote server to send the HTTP request to.

@@ -21,7 +21,8 @@ import re
 import shutil
 import sys
 import traceback
-from typing import TYPE_CHECKING, BinaryIO, Iterable, Optional, Tuple
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, BinaryIO, Optional
 from urllib.parse import urljoin, urlparse, urlsplit
 from urllib.request import urlopen
 
@@ -689,7 +690,7 @@ class UrlPreviewer:
 
     async def _handle_oembed_response(
         self, url: str, media_info: MediaInfo, expiration_ms: int
-    ) -> Tuple[JsonDict, Optional[str], int]:
+    ) -> tuple[JsonDict, Optional[str], int]:
         """
         Parse the downloaded oEmbed info.
 

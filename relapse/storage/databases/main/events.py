@@ -16,20 +16,8 @@
 import itertools
 import logging
 from collections import OrderedDict
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Collection,
-    Dict,
-    Generator,
-    Iterable,
-    List,
-    Optional,
-    Set,
-    Tuple,
-    Union,
-    cast,
-)
+from collections.abc import Collection, Generator, Iterable
+from typing import TYPE_CHECKING, Any, Optional, Union, cast
 
 import attr
 from prometheus_client import Counter
@@ -83,7 +71,7 @@ class DeltaState:
             should e.g. be removed from `current_state_events` table.
     """
 
-    to_delete: List[Tuple[str, str]]
+    to_delete: list[tuple[str, str]]
     to_insert: StateMap[str]
     no_longer_in_room: bool = False
 
@@ -132,10 +120,10 @@ class PersistEventsStore:
     async def _persist_events_and_state_updates(
         self,
         room_id: str,
-        events_and_contexts: List[Tuple[EventBase, EventContext]],
+        events_and_contexts: list[tuple[EventBase, EventContext]],
         *,
         state_delta_for_room: Optional[DeltaState],
-        new_forward_extremities: Optional[Set[str]],
+        new_forward_extremities: Optional[set[str]],
         use_negative_stream_ordering: bool = False,
         inhibit_local_membership_updates: bool = False,
     ) -> None:
@@ -230,7 +218,7 @@ class PersistEventsStore:
                     (room_id,), frozenset(new_forward_extremities)
                 )
 
-    async def _get_events_which_are_prevs(self, event_ids: Iterable[str]) -> List[str]:
+    async def _get_events_which_are_prevs(self, event_ids: Iterable[str]) -> list[str]:
         """Filter the supplied list of event_ids to get those which are prev_events of
         existing (non-outlier/rejected) events.
 
@@ -240,7 +228,7 @@ class PersistEventsStore:
         Returns:
             Filtered event ids
         """
-        results: List[str] = []
+        results: list[str] = []
 
         def _get_events_which_are_prevs_txn(
             txn: LoggingTransaction, batch: Collection[str]
@@ -271,7 +259,7 @@ class PersistEventsStore:
 
         return results
 
-    async def _get_prevs_before_rejected(self, event_ids: Iterable[str]) -> Set[str]:
+    async def _get_prevs_before_rejected(self, event_ids: Iterable[str]) -> set[str]:
         """Get soft-failed ancestors to remove from the extremities.
 
         Given a set of events, find all those that have been soft-failed or
@@ -292,7 +280,7 @@ class PersistEventsStore:
 
         # The set of event_ids to return. This includes all soft-failed events
         # and their prev events.
-        existing_prevs: Set[str] = set()
+        existing_prevs: set[str] = set()
 
         def _get_prevs_before_rejected_txn(
             txn: LoggingTransaction, batch: Collection[str]
@@ -341,10 +329,10 @@ class PersistEventsStore:
         txn: LoggingTransaction,
         *,
         room_id: str,
-        events_and_contexts: List[Tuple[EventBase, EventContext]],
+        events_and_contexts: list[tuple[EventBase, EventContext]],
         inhibit_local_membership_updates: bool,
         state_delta_for_room: Optional[DeltaState],
-        new_forward_extremities: Optional[Set[str]],
+        new_forward_extremities: Optional[set[str]],
     ) -> None:
         """Insert some number of room events into the necessary database tables.
 
@@ -482,7 +470,7 @@ class PersistEventsStore:
     def _persist_event_auth_chain_txn(
         self,
         txn: LoggingTransaction,
-        events: List[EventBase],
+        events: list[EventBase],
     ) -> None:
         # We only care about state events, so this if there are no state events.
         if not any(e.is_state() for e in events):
@@ -516,7 +504,7 @@ class PersistEventsStore:
         # We ignore legacy rooms that we aren't filling the chain cover index
         # for.
         rows = cast(
-            List[Tuple[str, Optional[Union[int, bool]]]],
+            list[tuple[str, Optional[Union[int, bool]]]],
             self.db_pool.simple_select_many_txn(
                 txn,
                 table="rooms",
@@ -566,9 +554,9 @@ class PersistEventsStore:
         txn: LoggingTransaction,
         db_pool: DatabasePool,
         event_chain_id_gen: SequenceGenerator,
-        event_to_room_id: Dict[str, str],
-        event_to_types: Dict[str, Tuple[str, str]],
-        event_to_auth_chain: Dict[str, StrCollection],
+        event_to_room_id: dict[str, str],
+        event_to_types: dict[str, tuple[str, str]],
+        event_to_auth_chain: dict[str, StrCollection],
     ) -> None:
         """Calculate the chain cover index for the given events.
 
@@ -580,7 +568,7 @@ class PersistEventsStore:
         """
 
         # Map from event ID to chain ID/sequence number.
-        chain_map: Dict[str, Tuple[int, int]] = {}
+        chain_map: dict[str, tuple[int, int]] = {}
 
         # Set of event IDs to calculate chain ID/seq numbers for.
         events_to_calc_chain_id_for = set(event_to_room_id)
@@ -589,7 +577,7 @@ class PersistEventsStore:
         # we're looking at. These should just be out of band memberships, where
         # we didn't have the auth chain when we first persisted.
         auth_chain_to_calc_rows = cast(
-            List[Tuple[str, str, str]],
+            list[tuple[str, str, str]],
             db_pool.simple_select_many_txn(
                 txn,
                 table="event_auth_chain_to_calculate",
@@ -770,7 +758,7 @@ class PersistEventsStore:
         # referenced.
         chain_links = _LinkMap()
         auth_chain_rows = cast(
-            List[Tuple[int, int, int, int]],
+            list[tuple[int, int, int, int]],
             db_pool.simple_select_many_txn(
                 txn,
                 table="event_auth_chain_links",
@@ -859,12 +847,12 @@ class PersistEventsStore:
         txn: LoggingTransaction,
         db_pool: DatabasePool,
         event_chain_id_gen: SequenceGenerator,
-        event_to_room_id: Dict[str, str],
-        event_to_types: Dict[str, Tuple[str, str]],
-        event_to_auth_chain: Dict[str, StrCollection],
-        events_to_calc_chain_id_for: Set[str],
-        chain_map: Dict[str, Tuple[int, int]],
-    ) -> Dict[str, Tuple[int, int]]:
+        event_to_room_id: dict[str, str],
+        event_to_types: dict[str, tuple[str, str]],
+        event_to_auth_chain: dict[str, StrCollection],
+        events_to_calc_chain_id_for: set[str],
+        chain_map: dict[str, tuple[int, int]],
+    ) -> dict[str, tuple[int, int]]:
         """Allocates, but does not persist, chain ID/sequence numbers for the
         events in `events_to_calc_chain_id_for`. (c.f. _add_chain_cover_index
         for info on args)
@@ -896,8 +884,8 @@ class PersistEventsStore:
         #      new chain if the sequence number has already been allocated.
         #
 
-        existing_chains: Set[int] = set()
-        tree: List[Tuple[str, Optional[str]]] = []
+        existing_chains: set[int] = set()
+        tree: list[tuple[str, Optional[str]]] = []
 
         # We need to do this in a topologically sorted order as we want to
         # generate chain IDs/sequence numbers of an event's auth events before
@@ -927,7 +915,7 @@ class PersistEventsStore:
         )
         txn.execute(sql % (clause,), args)
 
-        chain_to_max_seq_no: Dict[Any, int] = {row[0]: row[1] for row in txn}
+        chain_to_max_seq_no: dict[Any, int] = {row[0]: row[1] for row in txn}
 
         # Allocate the new events chain ID/sequence numbers.
         #
@@ -937,8 +925,8 @@ class PersistEventsStore:
         # number of new chain IDs in one call, replacing all temporary
         # objects with real allocated chain IDs.
 
-        unallocated_chain_ids: Set[object] = set()
-        new_chain_tuples: Dict[str, Tuple[Any, int]] = {}
+        unallocated_chain_ids: set[object] = set()
+        new_chain_tuples: dict[str, tuple[Any, int]] = {}
         for event_id, auth_event_id in tree:
             # If we reference an auth_event_id we fetch the allocated chain ID,
             # either from the existing `chain_map` or the newly generated
@@ -949,7 +937,7 @@ class PersistEventsStore:
                 if not existing_chain_id:
                     existing_chain_id = chain_map[auth_event_id]
 
-            new_chain_tuple: Optional[Tuple[Any, int]] = None
+            new_chain_tuple: Optional[tuple[Any, int]] = None
             if existing_chain_id:
                 # We found a chain ID/sequence number candidate, check its
                 # not already taken.
@@ -976,7 +964,7 @@ class PersistEventsStore:
         )
 
         # Map from potentially temporary chain ID to real chain ID
-        chain_id_to_allocated_map: Dict[Any, int] = dict(
+        chain_id_to_allocated_map: dict[Any, int] = dict(
             zip(unallocated_chain_ids, newly_allocated_chain_ids)
         )
         chain_id_to_allocated_map.update((c, c) for c in existing_chains)
@@ -989,12 +977,12 @@ class PersistEventsStore:
     def _persist_transaction_ids_txn(
         self,
         txn: LoggingTransaction,
-        events_and_contexts: List[Tuple[EventBase, EventContext]],
+        events_and_contexts: list[tuple[EventBase, EventContext]],
     ) -> None:
         """Persist the mapping from transaction IDs to event IDs (if defined)."""
 
         inserted_ts = self._clock.time_msec()
-        to_insert_device_id: List[Tuple[str, str, str, str, str, int]] = []
+        to_insert_device_id: list[tuple[str, str, str, str, str, int]] = []
         for event, _ in events_and_contexts:
             txn_id = getattr(event.internal_metadata, "txn_id", None)
             device_id = getattr(event.internal_metadata, "device_id", None)
@@ -1245,7 +1233,7 @@ class PersistEventsStore:
         self,
         txn: LoggingTransaction,
         room_id: str,
-        new_forward_extremities: Set[str],
+        new_forward_extremities: set[str],
         max_stream_order: int,
     ) -> None:
         self.db_pool.simple_delete_txn(
@@ -1274,8 +1262,8 @@ class PersistEventsStore:
 
     @classmethod
     def _filter_events_and_contexts_for_duplicates(
-        cls, events_and_contexts: List[Tuple[EventBase, EventContext]]
-    ) -> List[Tuple[EventBase, EventContext]]:
+        cls, events_and_contexts: list[tuple[EventBase, EventContext]]
+    ) -> list[tuple[EventBase, EventContext]]:
         """Ensure that we don't have the same event twice.
 
         Pick the earliest non-outlier if there is one, else the earliest one.
@@ -1287,7 +1275,7 @@ class PersistEventsStore:
             filtered list
         """
         new_events_and_contexts: OrderedDict[
-            str, Tuple[EventBase, EventContext]
+            str, tuple[EventBase, EventContext]
         ] = OrderedDict()
         for event, context in events_and_contexts:
             prev_event_context = new_events_and_contexts.get(event.event_id)
@@ -1306,7 +1294,7 @@ class PersistEventsStore:
         self,
         txn: LoggingTransaction,
         room_id: str,
-        events_and_contexts: List[Tuple[EventBase, EventContext]],
+        events_and_contexts: list[tuple[EventBase, EventContext]],
     ) -> None:
         """Update min_depth for each room
 
@@ -1348,8 +1336,8 @@ class PersistEventsStore:
     def _update_outliers_txn(
         self,
         txn: LoggingTransaction,
-        events_and_contexts: List[Tuple[EventBase, EventContext]],
-    ) -> List[Tuple[EventBase, EventContext]]:
+        events_and_contexts: list[tuple[EventBase, EventContext]],
+    ) -> list[tuple[EventBase, EventContext]]:
         """Update any outliers with new event info.
 
         This turns outliers into ex-outliers (unless the new event was rejected), and
@@ -1367,7 +1355,7 @@ class PersistEventsStore:
                 a room that has been un-partial stated.
         """
         rows = cast(
-            List[Tuple[str, bool]],
+            list[tuple[str, bool]],
             self.db_pool.simple_select_many_txn(
                 txn,
                 "events",
@@ -1456,7 +1444,7 @@ class PersistEventsStore:
     def _store_event_txn(
         self,
         txn: LoggingTransaction,
-        events_and_contexts: Collection[Tuple[EventBase, EventContext]],
+        events_and_contexts: Collection[tuple[EventBase, EventContext]],
     ) -> None:
         """Insert new events into the event, event_json, redaction and
         state_events tables.
@@ -1560,8 +1548,8 @@ class PersistEventsStore:
     def _store_rejected_events_txn(
         self,
         txn: LoggingTransaction,
-        events_and_contexts: List[Tuple[EventBase, EventContext]],
-    ) -> List[Tuple[EventBase, EventContext]]:
+        events_and_contexts: list[tuple[EventBase, EventContext]],
+    ) -> list[tuple[EventBase, EventContext]]:
         """Add rows to the 'rejections' table for received events which were
         rejected
 
@@ -1588,8 +1576,8 @@ class PersistEventsStore:
         self,
         txn: LoggingTransaction,
         *,
-        events_and_contexts: List[Tuple[EventBase, EventContext]],
-        all_events_and_contexts: List[Tuple[EventBase, EventContext]],
+        events_and_contexts: list[tuple[EventBase, EventContext]],
+        all_events_and_contexts: list[tuple[EventBase, EventContext]],
         inhibit_local_membership_updates: bool = False,
     ) -> None:
         """Update all the miscellaneous tables for new events
@@ -1683,7 +1671,7 @@ class PersistEventsStore:
     def _add_to_cache(
         self,
         txn: LoggingTransaction,
-        events_and_contexts: List[Tuple[EventBase, EventContext]],
+        events_and_contexts: list[tuple[EventBase, EventContext]],
     ) -> None:
         to_prefill = []
 
@@ -1745,7 +1733,7 @@ class PersistEventsStore:
         self,
         txn: LoggingTransaction,
         event_id: str,
-        labels: List[str],
+        labels: list[str],
         room_id: str,
         topological_ordering: int,
     ) -> None:
@@ -1787,7 +1775,7 @@ class PersistEventsStore:
     def _store_room_members_txn(
         self,
         txn: LoggingTransaction,
-        events: List[EventBase],
+        events: list[EventBase],
         *,
         inhibit_local_membership_updates: bool = False,
     ) -> None:
@@ -2079,8 +2067,8 @@ class PersistEventsStore:
     def _set_push_actions_for_event_and_users_txn(
         self,
         txn: LoggingTransaction,
-        events_and_contexts: List[Tuple[EventBase, EventContext]],
-        all_events_and_contexts: List[Tuple[EventBase, EventContext]],
+        events_and_contexts: list[tuple[EventBase, EventContext]],
+        all_events_and_contexts: list[tuple[EventBase, EventContext]],
     ) -> None:
         """Handles moving push actions from staging table to main
         event_push_actions table for all events in `events_and_contexts`.
@@ -2163,7 +2151,7 @@ class PersistEventsStore:
     def _store_event_state_mappings_txn(
         self,
         txn: LoggingTransaction,
-        events_and_contexts: Collection[Tuple[EventBase, EventContext]],
+        events_and_contexts: Collection[tuple[EventBase, EventContext]],
     ) -> None:
         """
         Raises:
@@ -2260,7 +2248,7 @@ class PersistEventsStore:
         )
 
     def _handle_mult_prev_events(
-        self, txn: LoggingTransaction, events: List[EventBase]
+        self, txn: LoggingTransaction, events: list[EventBase]
     ) -> None:
         """
         For the given event, update the event edges table and forward and
@@ -2278,7 +2266,7 @@ class PersistEventsStore:
         self._update_backward_extremeties(txn, events)
 
     def _update_backward_extremeties(
-        self, txn: LoggingTransaction, events: List[EventBase]
+        self, txn: LoggingTransaction, events: list[EventBase]
     ) -> None:
         """Updates the event_backward_extremities tables based on the new/updated
         events being persisted.
@@ -2381,16 +2369,16 @@ class _LinkMap:
 
     # Stores the set of links as nested maps: source chain ID -> target chain ID
     # -> source sequence number -> target sequence number.
-    maps: Dict[int, Dict[int, Dict[int, int]]] = attr.Factory(dict)
+    maps: dict[int, dict[int, dict[int, int]]] = attr.Factory(dict)
 
     # Stores the links that have been added (with new set to true), as tuples of
     # `(source chain ID, source sequence no, target chain ID, target sequence no.)`
-    additions: Set[Tuple[int, int, int, int]] = attr.Factory(set)
+    additions: set[tuple[int, int, int, int]] = attr.Factory(set)
 
     def add_link(
         self,
-        src_tuple: Tuple[int, int],
-        target_tuple: Tuple[int, int],
+        src_tuple: tuple[int, int],
+        target_tuple: tuple[int, int],
         new: bool = True,
     ) -> bool:
         """Add a new link between two chains, ensuring no redundant links are added.
@@ -2446,8 +2434,8 @@ class _LinkMap:
         return True
 
     def get_links_from(
-        self, src_tuple: Tuple[int, int]
-    ) -> Generator[Tuple[int, int], None, None]:
+        self, src_tuple: tuple[int, int]
+    ) -> Generator[tuple[int, int], None, None]:
         """Gets the chains reachable from the given chain/sequence number.
 
         Yields:
@@ -2461,7 +2449,7 @@ class _LinkMap:
 
     def get_links_between(
         self, source_chain: int, target_chain: int
-    ) -> Generator[Tuple[int, int], None, None]:
+    ) -> Generator[tuple[int, int], None, None]:
         """Gets the links between two chains.
 
         Yields:
@@ -2470,7 +2458,7 @@ class _LinkMap:
 
         yield from self.maps.get(source_chain, {}).get(target_chain, {}).items()
 
-    def get_additions(self) -> Generator[Tuple[int, int, int, int], None, None]:
+    def get_additions(self) -> Generator[tuple[int, int, int, int], None, None]:
         """Gets any newly added links.
 
         Yields:
@@ -2484,8 +2472,8 @@ class _LinkMap:
 
     def exists_path_from(
         self,
-        src_tuple: Tuple[int, int],
-        target_tuple: Tuple[int, int],
+        src_tuple: tuple[int, int],
+        target_tuple: tuple[int, int],
     ) -> bool:
         """Checks if there is a path between the source chain ID/sequence and
         target chain ID/sequence.

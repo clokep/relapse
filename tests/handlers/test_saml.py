@@ -12,7 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from typing import Any, Dict, Optional, Set, Tuple
+from typing import Any, Optional
 from unittest.mock import AsyncMock, Mock
 
 import attr
@@ -66,7 +66,7 @@ class TestMappingProvider:
         return None
 
     @staticmethod
-    def get_saml_attributes(config: None) -> Tuple[Set[str], Set[str]]:
+    def get_saml_attributes(config: None) -> tuple[set[str], set[str]]:
         return {"uid"}, {"displayName"}
 
     def get_remote_user_id(
@@ -95,10 +95,10 @@ class TestRedirectMappingProvider(TestMappingProvider):
 
 
 class SamlHandlerTestCase(HomeserverTestCase):
-    def default_config(self) -> Dict[str, Any]:
+    def default_config(self) -> dict[str, Any]:
         config = super().default_config()
         config["public_baseurl"] = BASE_URL
-        saml_config: Dict[str, Any] = {
+        saml_config: dict[str, Any] = {
             "sp_config": {"metadata": {}},
             # Disable grandfathering.
             "grandfathered_mxid_source_attribute": None,

@@ -14,7 +14,7 @@
 import calendar
 import logging
 import time
-from typing import TYPE_CHECKING, Dict, List, Tuple, cast
+from typing import TYPE_CHECKING, cast
 
 from relapse.metrics import GaugeBucketCollector
 from relapse.metrics.background_process_metrics import wrap_as_background_process
@@ -76,7 +76,7 @@ class ServerMetricsStore(EventPushActionsWorkerStore, SQLBaseStore):
 
     @wrap_as_background_process("read_forward_extremities")
     async def _read_forward_extremities(self) -> None:
-        def fetch(txn: LoggingTransaction) -> List[Tuple[int, int]]:
+        def fetch(txn: LoggingTransaction) -> list[tuple[int, int]]:
             txn.execute(
                 """
                 SELECT t1.c, t2.c
@@ -89,7 +89,7 @@ class ServerMetricsStore(EventPushActionsWorkerStore, SQLBaseStore):
                 ) t2 ON t1.room_id = t2.room_id
                 """
             )
-            return cast(List[Tuple[int, int]], txn.fetchall())
+            return cast(list[tuple[int, int]], txn.fetchall())
 
         res = await self.db_pool.runInteraction("read_forward_extremities", fetch)
 
@@ -114,7 +114,7 @@ class ServerMetricsStore(EventPushActionsWorkerStore, SQLBaseStore):
                 AND stream_ordering > ?
             """
             txn.execute(sql, (self.stream_ordering_day_ago,))
-            (count,) = cast(Tuple[int], txn.fetchone())
+            (count,) = cast(tuple[int], txn.fetchone())
             return count
 
         return await self.db_pool.runInteraction("count_e2ee_messages", _count_messages)
@@ -133,7 +133,7 @@ class ServerMetricsStore(EventPushActionsWorkerStore, SQLBaseStore):
             """
 
             txn.execute(sql, (like_clause, self.stream_ordering_day_ago))
-            (count,) = cast(Tuple[int], txn.fetchone())
+            (count,) = cast(tuple[int], txn.fetchone())
             return count
 
         return await self.db_pool.runInteraction(
@@ -148,7 +148,7 @@ class ServerMetricsStore(EventPushActionsWorkerStore, SQLBaseStore):
                 AND stream_ordering > ?
             """
             txn.execute(sql, (self.stream_ordering_day_ago,))
-            (count,) = cast(Tuple[int], txn.fetchone())
+            (count,) = cast(tuple[int], txn.fetchone())
             return count
 
         return await self.db_pool.runInteraction(
@@ -170,7 +170,7 @@ class ServerMetricsStore(EventPushActionsWorkerStore, SQLBaseStore):
                 AND stream_ordering > ?
             """
             txn.execute(sql, (self.stream_ordering_day_ago,))
-            (count,) = cast(Tuple[int], txn.fetchone())
+            (count,) = cast(tuple[int], txn.fetchone())
             return count
 
         return await self.db_pool.runInteraction("count_messages", _count_messages)
@@ -189,7 +189,7 @@ class ServerMetricsStore(EventPushActionsWorkerStore, SQLBaseStore):
             """
 
             txn.execute(sql, (like_clause, self.stream_ordering_day_ago))
-            (count,) = cast(Tuple[int], txn.fetchone())
+            (count,) = cast(tuple[int], txn.fetchone())
             return count
 
         return await self.db_pool.runInteraction(
@@ -204,7 +204,7 @@ class ServerMetricsStore(EventPushActionsWorkerStore, SQLBaseStore):
                 AND stream_ordering > ?
             """
             txn.execute(sql, (self.stream_ordering_day_ago,))
-            (count,) = cast(Tuple[int], txn.fetchone())
+            (count,) = cast(tuple[int], txn.fetchone())
             return count
 
         return await self.db_pool.runInteraction("count_daily_active_rooms", _count)
@@ -245,10 +245,10 @@ class ServerMetricsStore(EventPushActionsWorkerStore, SQLBaseStore):
         # Mypy knows that fetchone() might return None if there are no rows.
         # We know better: "SELECT COUNT(...) FROM ..." without any GROUP BY always
         # returns exactly one row.
-        (count,) = cast(Tuple[int], txn.fetchone())
+        (count,) = cast(tuple[int], txn.fetchone())
         return count
 
-    async def count_r30v2_users(self) -> Dict[str, int]:
+    async def count_r30v2_users(self) -> dict[str, int]:
         """
         Counts the number of 30 day retained users, defined as users that:
          - Appear more than once in the past 60 days
@@ -268,7 +268,7 @@ class ServerMetricsStore(EventPushActionsWorkerStore, SQLBaseStore):
               - "web" (any web application -- it's not possible to distinguish Element Web here)
         """
 
-        def _count_r30v2_users(txn: LoggingTransaction) -> Dict[str, int]:
+        def _count_r30v2_users(txn: LoggingTransaction) -> dict[str, int]:
             thirty_days_in_secs = 86400 * 30
             now = int(self._clock.time())
             sixty_days_ago_in_secs = now - 2 * thirty_days_in_secs
@@ -365,7 +365,7 @@ class ServerMetricsStore(EventPushActionsWorkerStore, SQLBaseStore):
                     thirty_days_in_secs * 1000,
                 ),
             )
-            (count,) = cast(Tuple[int], txn.fetchone())
+            (count,) = cast(tuple[int], txn.fetchone())
             results["all"] = count
 
             return results

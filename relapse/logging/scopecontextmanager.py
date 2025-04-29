@@ -14,7 +14,7 @@
 
 import logging
 from types import TracebackType
-from typing import Optional, Type
+from typing import Optional
 
 from opentracing import Scope, ScopeManager, Span
 
@@ -141,7 +141,7 @@ class _LogContextScope(Scope):
 
     def __exit__(
         self,
-        exc_type: Optional[Type[BaseException]],
+        exc_type: Optional[type[BaseException]],
         value: Optional[BaseException],
         traceback: Optional[TracebackType],
     ) -> None:

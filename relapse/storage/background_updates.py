@@ -13,23 +13,10 @@
 # limitations under the License.
 import abc
 import logging
+from collections.abc import Awaitable, Iterable, Sequence
 from enum import Enum, IntEnum
 from types import TracebackType
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    AsyncContextManager,
-    Awaitable,
-    Callable,
-    Dict,
-    Iterable,
-    List,
-    Optional,
-    Sequence,
-    Tuple,
-    Type,
-    cast,
-)
+from typing import TYPE_CHECKING, Any, AsyncContextManager, Callable, Optional, cast
 
 import attr
 
@@ -94,7 +81,7 @@ class ForeignKeyConstraint(Constraint):
     """
 
     referenced_table: str
-    columns: Sequence[Tuple[str, str]]
+    columns: Sequence[tuple[str, str]]
     deferred: bool
 
     def make_check_clause(self, table: str) -> str:
@@ -171,7 +158,7 @@ class _BackgroundUpdateContextManager:
 
     async def __aexit__(
         self,
-        exc_type: Optional[Type[BaseException]],
+        exc_type: Optional[type[BaseException]],
         exc: Optional[BaseException],
         tb: Optional[TracebackType],
     ) -> None:
@@ -257,8 +244,8 @@ class BackgroundUpdater:
         self._default_batch_size_callback: Optional[DEFAULT_BATCH_SIZE_CALLBACK] = None
         self._min_batch_size_callback: Optional[MIN_BATCH_SIZE_CALLBACK] = None
 
-        self._background_update_performance: Dict[str, BackgroundUpdatePerformance] = {}
-        self._background_update_handlers: Dict[str, _BackgroundUpdateHandler] = {}
+        self._background_update_performance: dict[str, BackgroundUpdatePerformance] = {}
+        self._background_update_handlers: dict[str, _BackgroundUpdateHandler] = {}
         # TODO: all these bool flags make me feel icky---can we combine into a status
         # enum?
         self._all_done = False
@@ -493,14 +480,14 @@ class BackgroundUpdater:
             True if we have finished running all the background updates, otherwise False
         """
 
-        def get_background_updates_txn(txn: Cursor) -> List[Tuple[str, Optional[str]]]:
+        def get_background_updates_txn(txn: Cursor) -> list[tuple[str, Optional[str]]]:
             txn.execute(
                 """
                 SELECT update_name, depends_on FROM background_updates
                 ORDER BY ordering, update_name
                 """
             )
-            return cast(List[Tuple[str, Optional[str]]], txn.fetchall())
+            return cast(list[tuple[str, Optional[str]]], txn.fetchall())
 
         if not self._current_background_update:
             all_pending_updates = await self.db_pool.runInteraction(
@@ -928,7 +915,7 @@ class BackgroundUpdater:
             order_columns = ", ".join(unique_columns)
 
             where_clause = ""
-            args: List[Any] = []
+            args: list[Any] = []
             if parsed_progress.lower_bound:
                 where_clause = f"""WHERE ({order_columns}) > ({", ".join("?" for _ in unique_columns)})"""
                 args.extend(parsed_progress.lower_bound)

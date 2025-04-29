@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, List, Set
+from typing import Any
 
 from relapse.types import JsonDict
 from relapse.util.check_dependencies import check_requirements
@@ -35,7 +35,7 @@ class TracerConfig(Config):
             {"sampler": {"type": "const", "param": 1}, "logging": False},
         )
 
-        self.force_tracing_for_users: Set[str] = set()
+        self.force_tracing_for_users: set[str] = set()
 
         if not self.opentracer_enabled:
             return
@@ -44,7 +44,7 @@ class TracerConfig(Config):
 
         # The tracer is enabled so sanitize the config
 
-        self.opentracer_whitelist: List[str] = opentracing_config.get(
+        self.opentracer_whitelist: list[str] = opentracing_config.get(
             "homeserver_whitelist", []
         )
         if not isinstance(self.opentracer_whitelist, list):

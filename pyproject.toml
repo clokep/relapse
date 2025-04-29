@@ -154,7 +154,7 @@ relapse_review_recent_signups = "relapse._scripts.review_recent_signups:main"
 update_relapse_database = "relapse._scripts.update_relapse_database:main"
 
 [tool.poetry.dependencies]
-python = "^3.8.0"
+python = "^3.9.0"
 
 # Mandatory Dependencies
 # ----------------------
@@ -177,7 +177,7 @@ Twisted = {extras = ["tls"], version = ">=18.9.0"}
 treq = ">=15.1"
 # Twisted has required pyopenssl 16.0 since about Twisted 16.6.
 pyOpenSSL = ">=16.0.0"
-PyYAML = ">=3.13"
+PyYAML = ">=6.0"
 pyasn1 = ">=0.1.9"
 pyasn1-modules = ">=0.0.7"
 bcrypt = ">=3.1.7"
@@ -240,7 +240,7 @@ authlib = { version = ">=0.15.1", optional = true }
 # `contrib/systemd/log_config.yaml`.
 # Note: systemd-python 231 appears to have been yanked from pypi
 systemd-python = { version = ">=231", optional = true }
-lxml = { version = ">=4.2.0", optional = true }
+lxml = { version = ">=4.7.1", optional = true }
 sentry-sdk = { version = ">=0.7.2", optional = true }
 opentracing = { version = ">=2.2.0", optional = true }
 jaeger-client = { version = ">=4.0.0", optional = true }
@@ -362,9 +362,9 @@ tomli = ">=1.2.3"
 optional = true
 
 [tool.poetry.group.dev-docs.dependencies]
-sphinx = {version = "^6.1", python = "^3.8"}
-sphinx-autodoc2 = {version = ">=0.4.2,<0.6.0", python = "^3.8"}
-myst-parser = {version = "^1.0.0", python = "^3.8"}
+sphinx = {version = "^6.1", python = "^3.9"}
+sphinx-autodoc2 = {version = ">=0.4.2,<0.6.0", python = "^3.9"}
+myst-parser = {version = "^1.0.0", python = "^3.9"}
 furo = ">=2022.12.7,<2024.0.0"
 
 
@@ -384,7 +384,7 @@ build-backend = "poetry.core.masonry.api"
 # See https://cibuildwheel.readthedocs.io/en/stable/options/#build-skip for the list of build targets.
 # We skip:
 #  - CPython 3.6 and 3.7: EOLed
-#  - PyPy 3.7: we only support Python 3.8+
+#  - PyPy 3.9: we only support Python 3.9+
 #  - musllinux i686: excluded to reduce number of wheels we build.
 #    c.f. https://github.com/matrix-org/synapse/pull/12595#discussion_r963107677
 #  - PyPy on Aarch64 and musllinux on aarch64: too slow to build.

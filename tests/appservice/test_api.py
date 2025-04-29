@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, List, Mapping, Optional, Sequence, Union
+from collections.abc import Mapping, Sequence
+from typing import Any, Optional, Union
 from unittest.mock import Mock
 
 from twisted.test.proto_helpers import MemoryReactor
@@ -74,7 +75,7 @@ class ApplicationServiceApiTestCase(unittest.HomeserverTestCase):
             url: str,
             args: Mapping[Any, Any],
             headers: Mapping[Union[str, bytes], Sequence[Union[str, bytes]]],
-        ) -> List[JsonDict]:
+        ) -> list[JsonDict]:
             # Ensure the access token is passed as a header.
             if not headers or not headers.get(b"Authorization"):
                 raise RuntimeError("Access token not provided")
@@ -150,7 +151,7 @@ class ApplicationServiceApiTestCase(unittest.HomeserverTestCase):
             headers: Optional[
                 Mapping[Union[str, bytes], Sequence[Union[str, bytes]]]
             ] = None,
-        ) -> List[JsonDict]:
+        ) -> list[JsonDict]:
             # Ensure the access token is passed as a both a query param and in the headers.
             if not args.get(b"access_token"):
                 raise RuntimeError("Access token should be provided in query params.")

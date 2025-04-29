@@ -14,7 +14,7 @@
 import json
 from http import HTTPStatus
 from io import BytesIO
-from typing import Tuple, Union
+from typing import Union
 from unittest.mock import Mock
 
 from relapse.api.errors import Codes, RelapseError
@@ -101,11 +101,11 @@ class CancellableRestServlet(RestServlet):
         self.clock = hs.get_clock()
 
     @cancellable
-    async def on_GET(self, request: RelapseRequest) -> Tuple[int, JsonDict]:
+    async def on_GET(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         await self.clock.sleep(1.0)
         return HTTPStatus.OK, {"result": True}
 
-    async def on_POST(self, request: RelapseRequest) -> Tuple[int, JsonDict]:
+    async def on_POST(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         await self.clock.sleep(1.0)
         return HTTPStatus.OK, {"result": True}
 

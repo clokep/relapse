@@ -14,7 +14,7 @@
 # limitations under the License.
 import re
 from http import HTTPStatus
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Optional, Union
 
 from twisted.internet.defer import succeed
 from twisted.test.proto_helpers import MemoryReactor
@@ -41,7 +41,7 @@ from tests.unittest import override_config, skip_unless
 class DummyRecaptchaChecker(UserInteractiveAuthChecker):
     def __init__(self, hs: HomeServer) -> None:
         super().__init__(hs)
-        self.recaptcha_attempts: List[Tuple[dict, str]] = []
+        self.recaptcha_attempts: list[tuple[dict, str]] = []
 
     def is_enabled(self) -> bool:
         return True
@@ -172,7 +172,7 @@ class UIAuthTests(unittest.HomeserverTestCase):
         register.register_servlets,
     ]
 
-    def default_config(self) -> Dict[str, Any]:
+    def default_config(self) -> dict[str, Any]:
         config = super().default_config()
 
         # public_baseurl uses an http:// scheme because FakeChannel.isSecure() returns
@@ -189,7 +189,7 @@ class UIAuthTests(unittest.HomeserverTestCase):
 
         return config
 
-    def create_resource_dict(self) -> Dict[str, Resource]:
+    def create_resource_dict(self) -> dict[str, Resource]:
         resource_dict = super().create_resource_dict()
         resource_dict.update(build_relapse_client_resource_tree(self.hs))
         return resource_dict
@@ -1085,7 +1085,7 @@ class RefreshAuthTests(unittest.HomeserverTestCase):
         was very slow if a lot of refreshes had been performed for the session.
         """
 
-        def _refresh(refresh_token: str) -> Tuple[str, str]:
+        def _refresh(refresh_token: str) -> tuple[str, str]:
             """
             Performs one refresh, returning the next refresh token and access token.
             """
@@ -1166,7 +1166,7 @@ class RefreshAuthTests(unittest.HomeserverTestCase):
 
 def oidc_config(
     id: str, with_localpart_template: bool, **kwargs: Any
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Sample OIDC provider config used in backchannel logout tests.
 
     Args:
@@ -1179,7 +1179,7 @@ def oidc_config(
         A dict suitable for the `oidc_config` or the `oidc_providers[]` parts of
         the HS config
     """
-    config: Dict[str, Any] = {
+    config: dict[str, Any] = {
         "idp_id": id,
         "idp_name": id,
         "issuer": TEST_OIDC_ISSUER,
@@ -1207,7 +1207,7 @@ class OidcBackchannelLogoutTests(unittest.HomeserverTestCase):
         login.register_servlets,
     ]
 
-    def default_config(self) -> Dict[str, Any]:
+    def default_config(self) -> dict[str, Any]:
         config = super().default_config()
 
         # public_baseurl uses an http:// scheme because FakeChannel.isSecure() returns
@@ -1217,7 +1217,7 @@ class OidcBackchannelLogoutTests(unittest.HomeserverTestCase):
 
         return config
 
-    def create_resource_dict(self) -> Dict[str, Resource]:
+    def create_resource_dict(self) -> dict[str, Resource]:
         resource_dict = super().create_resource_dict()
         resource_dict.update(build_relapse_client_resource_tree(self.hs))
         return resource_dict
@@ -1357,7 +1357,7 @@ class OidcBackchannelLogoutTests(unittest.HomeserverTestCase):
         # We should have a user_mapping_session cookie
         cookie_headers = channel.headers.getRawHeaders("Set-Cookie")
         assert cookie_headers
-        cookies: Dict[str, str] = {}
+        cookies: dict[str, str] = {}
         for h in cookie_headers:
             key, value = h.split(";")[0].split("=", maxsplit=1)
             cookies[key] = value

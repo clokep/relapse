@@ -13,7 +13,7 @@
 # limitations under the License.
 import logging
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING
 
 from relapse.http.servlet import RestServlet, parse_string
 from relapse.http.site import RelapseRequest
@@ -43,7 +43,7 @@ class UsernameAvailableRestServlet(RestServlet):
         self.auth = hs.get_auth()
         self.registration_handler = hs.get_registration_handler()
 
-    async def on_GET(self, request: RelapseRequest) -> Tuple[int, JsonDict]:
+    async def on_GET(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         await assert_requester_is_admin(self.auth, request)
 
         username = parse_string(request, "username", required=True)

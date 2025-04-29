@@ -15,9 +15,10 @@
 import collections
 import logging
 import typing
+from collections.abc import Sized
 from enum import Enum, auto
 from sys import intern
-from typing import Any, Callable, Dict, List, Optional, Sized, TypeVar
+from typing import Any, Callable, Optional, TypeVar
 
 import attr
 from prometheus_client import REGISTRY
@@ -36,7 +37,7 @@ TRACK_MEMORY_USAGE = False
 # just before they are returned from the scrape endpoint.
 CACHE_METRIC_REGISTRY = DynamicCollectorRegistry()
 
-caches_by_name: Dict[str, Sized] = {}
+caches_by_name: dict[str, Sized] = {}
 
 cache_size = Gauge(
     "relapse_util_caches_cache_size", "", ["name"], registry=CACHE_METRIC_REGISTRY
@@ -133,7 +134,7 @@ class CacheMetric:
         if self.memory_usage is not None:
             self.memory_usage = 0
 
-    def describe(self) -> List[str]:
+    def describe(self) -> list[str]:
         return []
 
     def collect(self) -> None:
@@ -245,7 +246,7 @@ def intern_string(string: T) -> T:
         return string
 
 
-def intern_dict(dictionary: Dict[str, Any]) -> Dict[str, Any]:
+def intern_dict(dictionary: dict[str, Any]) -> dict[str, Any]:
     """Takes a dictionary and interns well known keys and their values"""
     return {
         KNOWN_KEYS.get(key, key): _intern_known_values(key, value)
