@@ -18,7 +18,7 @@ from abc import ABCMeta
 from collections.abc import Collection, Iterable
 from typing import TYPE_CHECKING, Any, Optional, Union
 
-from relapse.storage.database import make_in_list_sql_clause  # noqa: F401; noqa: F401
+from relapse.storage.database import make_in_list_sql_clause  # noqa: F401
 from relapse.storage.database import DatabasePool, LoggingDatabaseConnection
 from relapse.types import get_domain_from_id
 from relapse.util import json_decoder

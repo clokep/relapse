@@ -131,7 +131,7 @@ class _DummyStore:
     async def get_partial_state_events(
         self, event_ids: Collection[str]
     ) -> dict[str, bool]:
-        return {e: False for e in event_ids}
+        return dict.fromkeys(event_ids, False)
 
     async def get_state_group_delta(
         self, name: str

@@ -328,7 +328,6 @@ class PerDestinationQueue:
                     # not caught up yet
                     return
 
-            pending_pdus = []
             while True:
                 self._new_data_to_send = False
 

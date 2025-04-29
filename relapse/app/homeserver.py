@@ -75,7 +75,7 @@ def gz_wrap(r: Resource) -> Resource:
 
 
 class RelapseHomeServer(HomeServer):
-    DATASTORE_CLASS = DataStore  # type: ignore
+    DATASTORE_CLASS = DataStore
 
     def _listener_http(
         self,
