@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Awaitable, Callable, Dict
+from collections.abc import Awaitable
+from typing import Any, Callable
 from unittest.mock import AsyncMock, Mock
 
 from parameterized import parameterized
@@ -37,7 +38,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
         self.mock_federation = AsyncMock()
         self.mock_registry = Mock()
 
-        self.query_handlers: Dict[str, Callable[[dict], Awaitable[JsonDict]]] = {}
+        self.query_handlers: dict[str, Callable[[dict], Awaitable[JsonDict]]] = {}
 
         def register_query_handler(
             query_type: str, handler: Callable[[dict], Awaitable[JsonDict]]
@@ -369,7 +370,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
             self.get_success(self.handler.check_avatar_size_and_mime_type(remote_mxc))
         )
 
-    def _setup_local_files(self, names_and_props: Dict[str, Dict[str, Any]]) -> None:
+    def _setup_local_files(self, names_and_props: dict[str, dict[str, Any]]) -> None:
         """Stores metadata about files in the database.
 
         Args:

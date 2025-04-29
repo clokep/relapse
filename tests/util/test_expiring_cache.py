@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, cast
+from typing import cast
 
 from relapse.util import Clock
 from relapse.util.caches.expiringcache import ExpiringCache
@@ -51,7 +51,7 @@ class ExpiringCacheTestCase(unittest.HomeserverTestCase):
 
     def test_iterable_eviction(self) -> None:
         clock = MockClock()
-        cache: ExpiringCache[str, List[int]] = ExpiringCache(
+        cache: ExpiringCache[str, list[int]] = ExpiringCache(
             "test", cast(Clock, clock), max_len=5, iterable=True
         )
 

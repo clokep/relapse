@@ -13,7 +13,6 @@
 # limitations under the License.
 
 from http import HTTPStatus
-from typing import Tuple
 
 from twisted.web.server import Request
 
@@ -45,7 +44,7 @@ class CancellableReplicationEndpoint(ReplicationEndpoint):
     @cancellable
     async def _handle_request(  # type: ignore[override]
         self, request: Request, content: JsonDict
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         await self.clock.sleep(1.0)
         return HTTPStatus.OK, {"result": True}
 
@@ -66,7 +65,7 @@ class UncancellableReplicationEndpoint(ReplicationEndpoint):
 
     async def _handle_request(  # type: ignore[override]
         self, request: Request, content: JsonDict
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         await self.clock.sleep(1.0)
         return HTTPStatus.OK, {"result": True}
 

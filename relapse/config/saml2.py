@@ -14,7 +14,7 @@
 # limitations under the License.
 
 import logging
-from typing import Any, List, Set
+from typing import Any
 
 from relapse.config.sso import SsoAttributeRequirement
 from relapse.types import JsonDict
@@ -155,7 +155,7 @@ class SAML2Config(Config):
 
         # Get the desired saml auth response attributes from the module
         saml2_config_dict = self._default_saml_config_dict(
-            *self.saml2_user_mapping_provider_class.get_saml_attributes(
+            *self.saml2_user_mapping_provider_class.get_saml_attributes(  # type: ignore[attr-defined]
                 self.saml2_user_mapping_provider_config
             )
         )
@@ -185,7 +185,7 @@ class SAML2Config(Config):
         )
 
     def _default_saml_config_dict(
-        self, required_attributes: Set[str], optional_attributes: Set[str]
+        self, required_attributes: set[str], optional_attributes: set[str]
     ) -> JsonDict:
         """Generate a configuration dictionary with required and optional attributes that
         will be needed to process new user registration
@@ -233,7 +233,7 @@ ATTRIBUTE_REQUIREMENTS_SCHEMA = {
 
 def _parse_attribute_requirements_def(
     attribute_requirements: Any,
-) -> List[SsoAttributeRequirement]:
+) -> list[SsoAttributeRequirement]:
     validate_config(
         ATTRIBUTE_REQUIREMENTS_SCHEMA,
         attribute_requirements,

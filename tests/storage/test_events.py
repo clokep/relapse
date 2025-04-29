@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Optional
+from typing import Optional
 
 from twisted.test.proto_helpers import MemoryReactor
 
@@ -91,7 +91,7 @@ class ExtremPruneTestCase(HomeserverTestCase):
         )
         self.get_success(self._persistence.persist_event(event, context))
 
-    def assert_extremities(self, expected_extremities: List[str]) -> None:
+    def assert_extremities(self, expected_extremities: list[str]) -> None:
         """Assert the current extremities for the room"""
         extremities = self.get_success(
             self.store.get_prev_events_for_room(self.room_id)

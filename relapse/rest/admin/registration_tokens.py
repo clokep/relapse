@@ -15,7 +15,7 @@
 import logging
 import string
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING
 
 from relapse.api.errors import Codes, NotFoundError, RelapseError
 from relapse.http.servlet import (
@@ -73,7 +73,7 @@ class ListRegistrationTokensRestServlet(RestServlet):
         self.auth = hs.get_auth()
         self.store = hs.get_datastores().main
 
-    async def on_GET(self, request: RelapseRequest) -> Tuple[int, JsonDict]:
+    async def on_GET(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         await assert_requester_is_admin(self.auth, request)
         valid = parse_boolean(request, "valid")
         token_list = await self.store.get_registration_tokens(valid)
@@ -126,7 +126,7 @@ class NewRegistrationTokenRestServlet(RestServlet):
         self.allowed_chars = string.ascii_letters + string.digits + "._~-"
         self.allowed_chars_set = set(self.allowed_chars)
 
-    async def on_POST(self, request: RelapseRequest) -> Tuple[int, JsonDict]:
+    async def on_POST(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         await assert_requester_is_admin(self.auth, request)
         body = parse_json_object_from_request(request)
 
@@ -276,7 +276,7 @@ class RegistrationTokenRestServlet(RestServlet):
         self.auth = hs.get_auth()
         self.store = hs.get_datastores().main
 
-    async def on_GET(self, request: RelapseRequest, token: str) -> Tuple[int, JsonDict]:
+    async def on_GET(self, request: RelapseRequest, token: str) -> tuple[int, JsonDict]:
         """Retrieve a registration token."""
         await assert_requester_is_admin(self.auth, request)
         token_info = await self.store.get_one_registration_token(token)
@@ -287,7 +287,7 @@ class RegistrationTokenRestServlet(RestServlet):
 
         return HTTPStatus.OK, token_info
 
-    async def on_PUT(self, request: RelapseRequest, token: str) -> Tuple[int, JsonDict]:
+    async def on_PUT(self, request: RelapseRequest, token: str) -> tuple[int, JsonDict]:
         """Update a registration token."""
         await assert_requester_is_admin(self.auth, request)
         body = parse_json_object_from_request(request)
@@ -342,7 +342,7 @@ class RegistrationTokenRestServlet(RestServlet):
 
     async def on_DELETE(
         self, request: RelapseRequest, token: str
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         """Delete a registration token."""
         await assert_requester_is_admin(self.auth, request)
 

@@ -13,13 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import sys
-from typing import List
 
 from relapse.config._base import ConfigError
 from relapse.config.homeserver import HomeServerConfig
 
 
-def main(args: List[str]) -> None:
+def main(args: list[str]) -> None:
     action = args[1] if len(args) > 1 and args[1] == "read" else None
     # If we're reading a key in the config file, then `args[1]` will be `read`  and `args[2]`
     # will be the key to read.

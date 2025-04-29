@@ -15,7 +15,7 @@
 
 from enum import Enum
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Dict, Tuple
+from typing import TYPE_CHECKING
 
 from relapse.api.errors import RelapseError
 from relapse.http.servlet import RestServlet, parse_json_object_from_request
@@ -55,7 +55,7 @@ class ExperimentalFeaturesRestServlet(RestServlet):
         self,
         request: RelapseRequest,
         user_id: str,
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         """
         List which features are enabled for a given user
         """
@@ -80,7 +80,7 @@ class ExperimentalFeaturesRestServlet(RestServlet):
 
     async def on_PUT(
         self, request: RelapseRequest, user_id: str
-    ) -> Tuple[HTTPStatus, Dict]:
+    ) -> tuple[HTTPStatus, dict]:
         """
         Enable or disable the provided features for the requester
         """

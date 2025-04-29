@@ -38,7 +38,7 @@ import argparse
 import base64
 import json
 import sys
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Optional
 from urllib import parse as urlparse
 
 import requests
@@ -142,7 +142,7 @@ def request(
     s = requests.Session()
     s.mount("matrix-federation://", MatrixConnectionAdapter())
 
-    headers: Dict[str, str] = {
+    headers: dict[str, str] = {
         "Authorization": authorization_headers[0],
     }
 
@@ -294,7 +294,7 @@ class MatrixConnectionAdapter(HTTPAdapter):
         return super().send(request, *args, **kwargs)
 
     def get_connection(
-        self, url: str, proxies: Optional[Dict[str, str]] = None
+        self, url: str, proxies: Optional[dict[str, str]] = None
     ) -> HTTPConnectionPool:
         # overrides the get_connection() method in the base class
         parsed = urlparse.urlsplit(url)
@@ -310,7 +310,7 @@ class MatrixConnectionAdapter(HTTPAdapter):
         )
 
     @staticmethod
-    def _lookup(server_name: str) -> Tuple[str, int, str]:
+    def _lookup(server_name: str) -> tuple[str, int, str]:
         """
         Do an SRV lookup on a server name and return the host:port to connect to
         Given the server_name (after any .well-known lookup), return the host, port and

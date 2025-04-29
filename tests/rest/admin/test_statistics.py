@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Dict, List, Optional
+from typing import Optional
 
 from twisted.test.proto_helpers import MemoryReactor
 from twisted.web.resource import Resource
@@ -43,7 +43,7 @@ class UserMediaStatisticsTestCase(unittest.HomeserverTestCase):
 
         self.url = "/_relapse/admin/v1/statistics/users/media"
 
-    def create_resource_dict(self) -> Dict[str, Resource]:
+    def create_resource_dict(self) -> dict[str, Resource]:
         resources = super().create_resource_dict()
         resources["/_matrix/media"] = self.hs.get_media_repository_resource()
         return resources
@@ -478,7 +478,7 @@ class UserMediaStatisticsTestCase(unittest.HomeserverTestCase):
             # Upload some media into the room
             self.helper.upload_media(SMALL_PNG, tok=user_token, expect_code=200)
 
-    def _check_fields(self, content: List[JsonDict]) -> None:
+    def _check_fields(self, content: list[JsonDict]) -> None:
         """Checks that all attributes are present in content
         Args:
             content: List that is checked for content
@@ -490,7 +490,7 @@ class UserMediaStatisticsTestCase(unittest.HomeserverTestCase):
             self.assertIn("media_length", c)
 
     def _order_test(
-        self, order_type: str, expected_user_list: List[str], dir: Optional[str] = None
+        self, order_type: str, expected_user_list: list[str], dir: Optional[str] = None
     ) -> None:
         """Request the list of users in a certain order. Assert that order is what
         we expect

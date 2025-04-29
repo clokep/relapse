@@ -19,8 +19,9 @@ An explanation of this protocol is available in docs/tcp_replication.md
 import fcntl
 import logging
 import struct
+from collections.abc import Collection
 from inspect import isawaitable
-from typing import TYPE_CHECKING, Any, Collection, List, Optional
+from typing import TYPE_CHECKING, Any, List, Optional
 
 from prometheus_client import Counter
 from zope.interface import Interface, implementer
@@ -146,7 +147,7 @@ class BaseReplicationStreamProtocol(LineOnlyReceiver):
         self.conn_id = random_string(5)  # To dedupe in case of name clashes.
 
         # List of pending commands to send once we've established the connection
-        self.pending_commands: List[Command] = []
+        self.pending_commands: list[Command] = []
 
         # The LoopingCall for sending pings.
         self._send_ping_loop: Optional[task.LoopingCall] = None

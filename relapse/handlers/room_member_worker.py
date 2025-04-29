@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import logging
-from typing import TYPE_CHECKING, List, Optional, Tuple
+from typing import TYPE_CHECKING, Optional
 
 from relapse.handlers.room_member import NoKnownServersError, RoomMemberHandler
 from relapse.replication.http.membership import (
@@ -44,11 +44,11 @@ class RoomMemberWorkerHandler(RoomMemberHandler):
     async def _remote_join(
         self,
         requester: Requester,
-        remote_room_hosts: List[str],
+        remote_room_hosts: list[str],
         room_id: str,
         user: UserID,
         content: dict,
-    ) -> Tuple[str, int]:
+    ) -> tuple[str, int]:
         """Implements RoomMemberHandler._remote_join"""
         if len(remote_room_hosts) == 0:
             raise NoKnownServersError()
@@ -69,7 +69,7 @@ class RoomMemberWorkerHandler(RoomMemberHandler):
         txn_id: Optional[str],
         requester: Requester,
         content: dict,
-    ) -> Tuple[str, int]:
+    ) -> tuple[str, int]:
         """
         Rejects an out-of-band invite received from a remote user
 
@@ -89,7 +89,7 @@ class RoomMemberWorkerHandler(RoomMemberHandler):
         txn_id: Optional[str],
         requester: Requester,
         content: JsonDict,
-    ) -> Tuple[str, int]:
+    ) -> tuple[str, int]:
         """
         Rescinds a local knock made on a remote room
 
@@ -114,11 +114,11 @@ class RoomMemberWorkerHandler(RoomMemberHandler):
     async def remote_knock(
         self,
         requester: Requester,
-        remote_room_hosts: List[str],
+        remote_room_hosts: list[str],
         room_id: str,
         user: UserID,
         content: dict,
-    ) -> Tuple[str, int]:
+    ) -> tuple[str, int]:
         """Sends a knock to a room.
 
         Implements RoomMemberHandler.remote_knock

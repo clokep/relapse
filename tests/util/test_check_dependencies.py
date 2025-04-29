@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from collections.abc import Generator
 from contextlib import contextmanager
 from os import PathLike
-from typing import Generator, Optional, Union
+from typing import Optional, Union
 from unittest.mock import patch
 
 from relapse.util.check_dependencies import (

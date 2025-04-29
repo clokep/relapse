@@ -14,7 +14,7 @@
 
 import logging
 import os
-from typing import Any, Dict, List, Tuple
+from typing import Any
 from urllib.request import getproxies_environment  # type: ignore
 
 import attr
@@ -74,8 +74,8 @@ class MediaStorageProviderConfig:
 
 
 def parse_thumbnail_requirements(
-    thumbnail_sizes: List[JsonDict],
-) -> Dict[str, Tuple[ThumbnailRequirement, ...]]:
+    thumbnail_sizes: list[JsonDict],
+) -> dict[str, tuple[ThumbnailRequirement, ...]]:
     """Takes a list of dictionaries with "width", "height", and "method" keys
     and creates a map from image media types to the thumbnail size, thumbnailing
     method, and thumbnail media type to precalculate
@@ -86,7 +86,7 @@ def parse_thumbnail_requirements(
     Returns:
         Dictionary mapping from media type string to list of ThumbnailRequirement.
     """
-    requirements: Dict[str, List[ThumbnailRequirement]] = {}
+    requirements: dict[str, list[ThumbnailRequirement]] = {}
     for size in thumbnail_sizes:
         width = size["width"]
         height = size["height"]
@@ -183,7 +183,7 @@ class ContentRepositoryConfig(Config):
         #
         # We don't create the storage providers here as not all workers need
         # them to be started.
-        self.media_storage_providers: List[tuple] = []
+        self.media_storage_providers: list[tuple] = []
 
         for i, provider_config in enumerate(storage_providers):
             # We special case the module "file_system" so as not to need to

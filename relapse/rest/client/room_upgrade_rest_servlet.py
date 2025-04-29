@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import logging
-from typing import TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING
 
 from relapse.api.errors import Codes, RelapseError, ShadowBanError
 from relapse.api.room_versions import KNOWN_ROOM_VERSIONS
@@ -65,7 +65,7 @@ class RoomUpgradeRestServlet(RestServlet):
 
     async def on_POST(
         self, request: RelapseRequest, room_id: str
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         requester = await self._auth.get_user_by_req(request)
 
         content = parse_json_object_from_request(request)

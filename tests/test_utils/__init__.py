@@ -19,7 +19,8 @@ import json
 import sys
 import warnings
 from binascii import unhexlify
-from typing import TYPE_CHECKING, Awaitable, Callable, Tuple, TypeVar
+from collections.abc import Awaitable
+from typing import TYPE_CHECKING, Callable, TypeVar
 
 import attr
 import zope.interface
@@ -93,7 +94,7 @@ class FakeResponse:  # type: ignore[misc]
     attribute, and didn't support deliverBody until recently.
     """
 
-    version: Tuple[bytes, int, int] = (b"HTTP", 1, 1)
+    version: tuple[bytes, int, int] = (b"HTTP", 1, 1)
 
     # HTTP response code
     code: int = 200

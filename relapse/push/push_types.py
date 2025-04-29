@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List, Optional
+from typing import Optional
 
 from typing_extensions import TypedDict
 
@@ -86,7 +86,7 @@ class NotifVars(TypedDict):
 
     link: str
     ts: Optional[int]
-    messages: List[MessageVars]
+    messages: list[MessageVars]
 
 
 class RoomVars(TypedDict):
@@ -105,7 +105,7 @@ class RoomVars(TypedDict):
     title: Optional[str]
     hash: int
     invite: bool
-    notifs: List[NotifVars]
+    notifs: list[NotifVars]
     link: str
     avatar_url: Optional[str]
 
@@ -132,5 +132,5 @@ class TemplateVars(TypedDict, total=False):
     user_display_name: str
     unsubscribe_link: str
     summary_text: str
-    rooms: List[RoomVars]
+    rooms: list[RoomVars]
     reason: EmailReason

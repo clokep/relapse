@@ -20,23 +20,22 @@ import inspect
 import itertools
 import logging
 import typing
+from collections.abc import (
+    AsyncIterator,
+    Awaitable,
+    Collection,
+    Coroutine,
+    Generator,
+    Hashable,
+    Iterable,
+)
 from contextlib import asynccontextmanager
 from typing import (
     Any,
     AsyncContextManager,
-    AsyncIterator,
-    Awaitable,
     Callable,
-    Collection,
-    Coroutine,
-    Dict,
-    Generator,
     Generic,
-    Hashable,
-    Iterable,
-    List,
     Optional,
-    Set,
     Tuple,
     TypeVar,
     Union,
@@ -102,8 +101,8 @@ class ObservableDeferred(Generic[_T], AbstractObservableDeferred[_T]):
     __slots__ = ["_deferred", "_observers", "_result"]
 
     _deferred: "defer.Deferred[_T]"
-    _observers: Union[List["defer.Deferred[_T]"], Tuple[()]]
-    _result: Union[None, Tuple[Literal[True], _T], Tuple[Literal[False], Failure]]
+    _observers: Union[list["defer.Deferred[_T]"], tuple[()]]
+    _result: Union[None, tuple[Literal[True], _T], tuple[Literal[False], Failure]]
 
     def __init__(self, deferred: "defer.Deferred[_T]", consumeErrors: bool = False):
         object.__setattr__(self, "_deferred", deferred)
@@ -262,7 +261,7 @@ async def yieldable_gather_results(
     iter: Iterable[T],
     *args: P.args,
     **kwargs: P.kwargs,
-) -> List[R]:
+) -> list[R]:
     """Executes the function with each argument concurrently.
 
     Args:
@@ -312,7 +311,7 @@ async def yieldable_gather_results_delaying_cancellation(
     iter: Iterable[T],
     *args: P.args,
     **kwargs: P.kwargs,
-) -> List[R]:
+) -> list[R]:
     """Executes the function with each argument concurrently.
     Cancellation is delayed until after all the results have been gathered.
 
@@ -350,14 +349,14 @@ T4 = TypeVar("T4")
 
 @overload
 def gather_results(
-    deferredList: Tuple[()], consumeErrors: bool = ...
+    deferredList: tuple[()], consumeErrors: bool = ...
 ) -> "defer.Deferred[Tuple[()]]":
     ...
 
 
 @overload
 def gather_results(
-    deferredList: Tuple["defer.Deferred[T1]"],
+    deferredList: tuple["defer.Deferred[T1]"],
     consumeErrors: bool = ...,
 ) -> "defer.Deferred[Tuple[T1]]":
     ...
@@ -365,7 +364,7 @@ def gather_results(
 
 @overload
 def gather_results(
-    deferredList: Tuple["defer.Deferred[T1]", "defer.Deferred[T2]"],
+    deferredList: tuple["defer.Deferred[T1]", "defer.Deferred[T2]"],
     consumeErrors: bool = ...,
 ) -> "defer.Deferred[Tuple[T1, T2]]":
     ...
@@ -373,7 +372,7 @@ def gather_results(
 
 @overload
 def gather_results(
-    deferredList: Tuple[
+    deferredList: tuple[
         "defer.Deferred[T1]", "defer.Deferred[T2]", "defer.Deferred[T3]"
     ],
     consumeErrors: bool = ...,
@@ -383,7 +382,7 @@ def gather_results(
 
 @overload
 def gather_results(
-    deferredList: Tuple[
+    deferredList: tuple[
         "defer.Deferred[T1]",
         "defer.Deferred[T2]",
         "defer.Deferred[T3]",
@@ -395,7 +394,7 @@ def gather_results(
 
 
 def gather_results(  # type: ignore[misc]
-    deferredList: Tuple["defer.Deferred[T1]", ...],
+    deferredList: tuple["defer.Deferred[T1]", ...],
     consumeErrors: bool = False,
 ) -> "defer.Deferred[Tuple[T1, ...]]":
     """Combines a tuple of `Deferred`s into a single `Deferred`.
@@ -451,7 +450,7 @@ class Linearizer:
         self.max_count = max_count
 
         # key_to_defer is a map from the key to a _LinearizerEntry.
-        self.key_to_defer: Dict[Hashable, _LinearizerEntry] = {}
+        self.key_to_defer: dict[Hashable, _LinearizerEntry] = {}
 
     def is_queued(self, key: Hashable) -> bool:
         """Checks whether there is a process queued up waiting"""
@@ -586,10 +585,10 @@ class ReadWriteLock:
 
     def __init__(self) -> None:
         # Latest readers queued
-        self.key_to_current_readers: Dict[str, Set[defer.Deferred]] = {}
+        self.key_to_current_readers: dict[str, set[defer.Deferred]] = {}
 
         # Latest writer queued
-        self.key_to_current_writer: Dict[str, defer.Deferred] = {}
+        self.key_to_current_writer: dict[str, defer.Deferred] = {}
 
     def read(self, key: str) -> AsyncContextManager:
         @asynccontextmanager
@@ -846,7 +845,7 @@ class AwakenableSleeper:
     """
 
     def __init__(self, reactor: IReactorTime) -> None:
-        self._streams: Dict[str, Set[defer.Deferred[None]]] = {}
+        self._streams: dict[str, set[defer.Deferred[None]]] = {}
         self._reactor = reactor
 
     def wake(self, name: str) -> None:

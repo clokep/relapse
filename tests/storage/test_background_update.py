@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-from typing import List, Tuple, cast
+from typing import cast
 from unittest.mock import AsyncMock, Mock
 
 import yaml
@@ -528,7 +528,7 @@ class BackgroundUpdateValidateConstraintTestCase(unittest.HomeserverTestCase):
 
         # Check the correct values are in the new table.
         rows = cast(
-            List[Tuple[int, int]],
+            list[tuple[int, int]],
             self.get_success(
                 self.store.db_pool.simple_select_list(
                     table="test_constraint",
@@ -645,7 +645,7 @@ class BackgroundUpdateValidateConstraintTestCase(unittest.HomeserverTestCase):
 
         # Check the correct values are in the new table.
         rows = cast(
-            List[Tuple[int, int]],
+            list[tuple[int, int]],
             self.get_success(
                 self.store.db_pool.simple_select_list(
                     table="test_constraint",

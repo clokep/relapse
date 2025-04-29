@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import logging
-from typing import TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING
 
 from relapse.api.constants import ReceiptTypes
 from relapse.http.server import HttpServer
@@ -49,7 +49,7 @@ class ReadMarkerRestServlet(RestServlet):
 
     async def on_POST(
         self, request: RelapseRequest, room_id: str
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         requester = await self.auth.get_user_by_req(request)
 
         await self.presence_handler.bump_presence_active_time(

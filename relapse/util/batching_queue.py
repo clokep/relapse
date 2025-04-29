@@ -13,17 +13,8 @@
 # limitations under the License.
 
 import logging
-from typing import (
-    Awaitable,
-    Callable,
-    Dict,
-    Generic,
-    Hashable,
-    List,
-    Set,
-    Tuple,
-    TypeVar,
-)
+from collections.abc import Awaitable, Hashable
+from typing import Callable, Generic, TypeVar
 
 from prometheus_client import Gauge
 
@@ -87,17 +78,17 @@ class BatchingQueue(Generic[V, R]):
         self,
         name: str,
         clock: Clock,
-        process_batch_callback: Callable[[List[V]], Awaitable[R]],
+        process_batch_callback: Callable[[list[V]], Awaitable[R]],
     ):
         self._name = name
         self._clock = clock
 
         # The set of keys currently being processed.
-        self._processing_keys: Set[Hashable] = set()
+        self._processing_keys: set[Hashable] = set()
 
         # The currently pending batch of values by key, with a Deferred to call
         # with the result of the corresponding `_process_batch_callback` call.
-        self._next_values: Dict[Hashable, List[Tuple[V, defer.Deferred]]] = {}
+        self._next_values: dict[Hashable, list[tuple[V, defer.Deferred]]] = {}
 
         # The function to call with batches of values.
         self._process_batch_callback = process_batch_callback

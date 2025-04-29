@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Callable, FrozenSet, List, Optional, Set
+from typing import Callable, FrozenSet, Optional
 from unittest.mock import AsyncMock, Mock
 
 from signedjson import key, sign
@@ -299,7 +299,7 @@ class FederationSenderDevicesTestCases(HomeserverTestCase):
 
         hs.get_datastores().main.get_rooms_for_user = get_rooms_for_user  # type: ignore[assignment]
 
-        async def get_current_hosts_in_room(room_id: str) -> Set[str]:
+        async def get_current_hosts_in_room(room_id: str) -> set[str]:
             if room_id == test_room_id:
                 return {"host2"}
             else:
@@ -315,7 +315,7 @@ class FederationSenderDevicesTestCases(HomeserverTestCase):
         self.device_handler = device_handler
 
         # whenever send_transaction is called, record the edu data
-        self.edus: List[JsonDict] = []
+        self.edus: list[JsonDict] = []
         self.federation_transport_client.send_transaction.side_effect = (
             self.record_transaction
         )

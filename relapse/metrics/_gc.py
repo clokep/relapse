@@ -17,7 +17,7 @@ import gc
 import logging
 import platform
 import time
-from typing import Iterable
+from collections.abc import Iterable
 
 from prometheus_client.core import (
     REGISTRY,

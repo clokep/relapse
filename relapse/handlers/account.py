@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import TYPE_CHECKING, Dict, List, Tuple
+from typing import TYPE_CHECKING
 
 from relapse.api.errors import Codes, RelapseError
 from relapse.types import JsonDict, UserID
@@ -33,9 +33,9 @@ class AccountHandler:
 
     async def get_account_statuses(
         self,
-        user_ids: List[str],
+        user_ids: list[str],
         allow_remote: bool,
-    ) -> Tuple[JsonDict, List[str]]:
+    ) -> tuple[JsonDict, list[str]]:
         """Get account statuses for a list of user IDs.
 
         If one or more account(s) belong to remote homeservers, retrieve their status(es)
@@ -56,7 +56,7 @@ class AccountHandler:
         """
         statuses = {}
         failures = []
-        remote_users: List[UserID] = []
+        remote_users: list[UserID] = []
 
         for raw_user_id in user_ids:
             try:
@@ -120,8 +120,8 @@ class AccountHandler:
         return status
 
     async def _get_remote_account_statuses(
-        self, remote_users: List[UserID]
-    ) -> Tuple[JsonDict, List[str]]:
+        self, remote_users: list[UserID]
+    ) -> tuple[JsonDict, list[str]]:
         """Send out federation requests to retrieve the statuses of remote accounts.
 
         Args:
@@ -133,7 +133,7 @@ class AccountHandler:
         """
         # Group remote users by destination, so we only send one request per remote
         # homeserver.
-        by_destination: Dict[str, List[str]] = {}
+        by_destination: dict[str, list[str]] = {}
         for user in remote_users:
             if user.domain not in by_destination:
                 by_destination[user.domain] = []
@@ -142,7 +142,7 @@ class AccountHandler:
 
         # Retrieve the statuses and failures for remote accounts.
         final_statuses: JsonDict = {}
-        final_failures: List[str] = []
+        final_failures: list[str] = []
         for destination, users in by_destination.items():
             statuses, failures = await self._federation_client.get_account_status(
                 destination,

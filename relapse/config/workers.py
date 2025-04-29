@@ -15,7 +15,7 @@
 
 import argparse
 import logging
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Optional, Union
 
 import attr
 
@@ -67,7 +67,7 @@ MAIN_PROCESS_INSTANCE_MAP_NAME = "main"
 logger = logging.getLogger(__name__)
 
 
-def _instance_to_list_converter(obj: Union[str, List[str]]) -> List[str]:
+def _instance_to_list_converter(obj: Union[str, list[str]]) -> list[str]:
     """Helper for allowing parsing a string or list of strings to a config
     option expecting a list of strings.
     """
@@ -151,27 +151,27 @@ class WriterLocations:
             can only be a single instance.
     """
 
-    events: List[str] = attr.ib(
+    events: list[str] = attr.ib(
         default=["master"],
         converter=_instance_to_list_converter,
     )
-    typing: List[str] = attr.ib(
+    typing: list[str] = attr.ib(
         default=["master"],
         converter=_instance_to_list_converter,
     )
-    to_device: List[str] = attr.ib(
+    to_device: list[str] = attr.ib(
         default=["master"],
         converter=_instance_to_list_converter,
     )
-    account_data: List[str] = attr.ib(
+    account_data: list[str] = attr.ib(
         default=["master"],
         converter=_instance_to_list_converter,
     )
-    receipts: List[str] = attr.ib(
+    receipts: list[str] = attr.ib(
         default=["master"],
         converter=_instance_to_list_converter,
     )
-    presence: List[str] = attr.ib(
+    presence: list[str] = attr.ib(
         default=["master"],
         converter=_instance_to_list_converter,
     )
@@ -187,8 +187,8 @@ class OutboundFederationRestrictedTo:
         locations: list of instance locations to connect to proxy via.
     """
 
-    instances: Optional[List[str]]
-    locations: List[InstanceLocationConfig] = attr.Factory(list)
+    instances: Optional[list[str]]
+    locations: list[InstanceLocationConfig] = attr.Factory(list)
 
     def __contains__(self, instance: str) -> bool:
         # It feels a bit dirty to return `True` if `instances` is `None`, but it makes
@@ -268,7 +268,7 @@ class WorkerConfig(Config):
         # A map from instance name to host/port of their HTTP replication endpoint.
         # Check if the main process is declared. The main process itself doesn't need
         # this data as it would never have to talk to itself.
-        instance_map: Dict[str, Any] = config.get("instance_map", {})
+        instance_map: dict[str, Any] = config.get("instance_map", {})
 
         if self.instance_name is not MAIN_PROCESS_INSTANCE_NAME:
             # TODO: The next 3 condition blocks can be deleted after some time has
@@ -315,7 +315,7 @@ class WorkerConfig(Config):
                 )
 
         # type-ignore: the expression `Union[A, B]` is not a Type[Union[A, B]] currently
-        self.instance_map: Dict[
+        self.instance_map: dict[
             str, InstanceLocationConfig
         ] = parse_and_validate_mapping(
             instance_map, InstanceLocationConfig  # type: ignore[arg-type]
@@ -436,7 +436,7 @@ class WorkerConfig(Config):
 
     def _should_this_worker_perform_duty(
         self,
-        config: Dict[str, Any],
+        config: dict[str, Any],
         legacy_master_option_name: str,
         legacy_worker_app_name: str,
         new_option_name: str,
@@ -528,11 +528,11 @@ class WorkerConfig(Config):
 
     def _worker_names_performing_this_duty(
         self,
-        config: Dict[str, Any],
+        config: dict[str, Any],
         legacy_option_name: str,
         legacy_app_name: str,
         modern_instance_list_name: str,
-    ) -> List[str]:
+    ) -> list[str]:
         """
         Retrieves the names of the workers handling a given duty, by either legacy
         option or instance list.

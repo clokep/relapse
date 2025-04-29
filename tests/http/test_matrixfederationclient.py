@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Dict, Generator
+from collections.abc import Generator
+from typing import Any
 from unittest.mock import ANY, Mock, create_autospec
 
 from netaddr import IPSet
@@ -666,7 +667,7 @@ class FederationClientTests(HomeserverTestCase):
 
 
 class FederationClientProxyTests(BaseMultiWorkerStreamTestCase):
-    def default_config(self) -> Dict[str, Any]:
+    def default_config(self) -> dict[str, Any]:
         conf = super().default_config()
         conf["instance_map"] = {
             "main": {"host": "testserv", "port": 8765},

@@ -19,23 +19,12 @@ import logging
 import types
 import urllib
 import urllib.parse
+from collections.abc import Awaitable, Iterable, Iterator
 from http import HTTPStatus
 from http.client import FOUND
 from inspect import isawaitable
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Awaitable,
-    Callable,
-    Dict,
-    Iterable,
-    Iterator,
-    List,
-    Optional,
-    Pattern,
-    Tuple,
-    Union,
-)
+from re import Pattern
+from typing import TYPE_CHECKING, Any, Callable, Optional, Union
 
 import attr
 import jinja2
@@ -256,7 +245,7 @@ def wrap_async_request_handler(
 # it is actually called with a RelapseRequest and a kwargs dict for the params,
 # but I can't figure out how to represent that.
 ServletCallback = Callable[
-    ..., Union[None, Awaitable[None], Tuple[int, Any], Awaitable[Tuple[int, Any]]]
+    ..., Union[None, Awaitable[None], tuple[int, Any], Awaitable[tuple[int, Any]]]
 ]
 
 
@@ -337,7 +326,7 @@ class _AsyncResource(resource.Resource, metaclass=abc.ABCMeta):
 
     async def _async_render(
         self, request: "RelapseRequest"
-    ) -> Optional[Tuple[int, Any]]:
+    ) -> Optional[tuple[int, Any]]:
         """Delegates to `_async_render_<METHOD>` methods, or returns a 400 if
         no appropriate method exists. Can be overridden in sub classes for
         different routing.
@@ -447,7 +436,7 @@ class JsonResource(DirectServeJsonResource):
         super().__init__(canonical_json, extract_context)
         self.clock = hs.get_clock()
         # Map of path regex -> method -> callback.
-        self._routes: Dict[Pattern[str], Dict[bytes, _PathEntry]] = {}
+        self._routes: dict[Pattern[str], dict[bytes, _PathEntry]] = {}
         self.hs = hs
 
     def register_paths(
@@ -483,7 +472,7 @@ class JsonResource(DirectServeJsonResource):
 
     def _get_handler_for_request(
         self, request: "RelapseRequest"
-    ) -> Tuple[ServletCallback, str, Dict[str, str]]:
+    ) -> tuple[ServletCallback, str, dict[str, str]]:
         """Finds a callback method to handle the given request.
 
         Returns:
@@ -512,7 +501,7 @@ class JsonResource(DirectServeJsonResource):
         # Huh. No one wanted to handle that? Fiiiiiine.
         raise UnrecognizedRequestError(code=404)
 
-    async def _async_render(self, request: "RelapseRequest") -> Tuple[int, Any]:
+    async def _async_render(self, request: "RelapseRequest") -> tuple[int, Any]:
         callback, servlet_classname, group_dict = self._get_handler_for_request(request)
 
         request.is_render_cancellable = is_function_cancellable(callback)
@@ -683,7 +672,7 @@ class _ByteProducer:
             # Start producing if `registerProducer` was successful
             self.resumeProducing()
 
-    def _send_data(self, data: List[bytes]) -> None:
+    def _send_data(self, data: list[bytes]) -> None:
         """
         Send a list of bytes as a chunk of a response.
         """

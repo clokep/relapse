@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import logging
-from typing import TYPE_CHECKING, Any, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Optional
 
 import attr
 import msgpack
@@ -56,10 +56,10 @@ class RoomListHandler:
         self.hs = hs
         self.enable_room_list_search = hs.config.roomdirectory.enable_room_list_search
         self.response_cache: ResponseCache[
-            Tuple[Optional[int], Optional[str], Optional[ThirdPartyInstanceID]]
+            tuple[Optional[int], Optional[str], Optional[ThirdPartyInstanceID]]
         ] = ResponseCache(hs.get_clock(), "room_list")
         self.remote_response_cache: ResponseCache[
-            Tuple[str, Optional[int], Optional[str], bool, Optional[str]]
+            tuple[str, Optional[int], Optional[str], bool, Optional[str]]
         ] = ResponseCache(hs.get_clock(), "remote_room_list", timeout_ms=30 * 1000)
 
     async def get_local_public_room_list(
@@ -147,7 +147,7 @@ class RoomListHandler:
         if since_token:
             batch_token = RoomListNextBatch.from_token(since_token)
 
-            bounds: Optional[Tuple[int, str]] = (
+            bounds: Optional[tuple[int, str]] = (
                 batch_token.last_joined_members,
                 batch_token.last_room_id,
             )

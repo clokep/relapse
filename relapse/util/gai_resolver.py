@@ -3,6 +3,7 @@
 # We copy it here as we need to instantiate `GAIResolver` manually, but it is a
 # private class.
 
+from collections.abc import Sequence
 from socket import (
     AF_INET,
     AF_INET6,
@@ -14,17 +15,7 @@ from socket import (
     gaierror,
     getaddrinfo,
 )
-from typing import (
-    TYPE_CHECKING,
-    Callable,
-    List,
-    NoReturn,
-    Optional,
-    Sequence,
-    Tuple,
-    Type,
-    Union,
-)
+from typing import TYPE_CHECKING, Callable, NoReturn, Optional, Union
 
 from zope.interface import implementer
 
@@ -91,13 +82,13 @@ _socktypeToType = {
 }
 
 
-_GETADDRINFO_RESULT = List[
-    Tuple[
+_GETADDRINFO_RESULT = list[
+    tuple[
         AddressFamily,
         SocketKind,
         int,
         str,
-        Union[Tuple[str, int], Tuple[str, int, int, int]],
+        Union[tuple[str, int], tuple[str, int, int, int]],
     ]
 ]
 
@@ -141,7 +132,7 @@ class GAIResolver:
         resolutionReceiver: IResolutionReceiver,
         hostName: str,
         portNumber: int = 0,
-        addressTypes: Optional[Sequence[Type[IAddress]]] = None,
+        addressTypes: Optional[Sequence[type[IAddress]]] = None,
         transportSemantics: str = "TCP",
     ) -> IHostResolution:
         """

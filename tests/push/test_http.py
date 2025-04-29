@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, List, Tuple
+from typing import Any
 from unittest.mock import Mock
 
 from twisted.internet.defer import Deferred
@@ -41,7 +41,7 @@ class HTTPPusherTests(HomeserverTestCase):
     hijack_auth = False
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
-        self.push_attempts: List[Tuple[Deferred, str, dict]] = []
+        self.push_attempts: list[tuple[Deferred, str, dict]] = []
 
         m = Mock()
 
@@ -737,7 +737,7 @@ class HTTPPusherTests(HomeserverTestCase):
 
     def _make_user_with_pusher(
         self, username: str, enabled: bool = True
-    ) -> Tuple[str, str]:
+    ) -> tuple[str, str]:
         """Registers a user and creates a pusher for them.
 
         Args:
@@ -915,7 +915,7 @@ class HTTPPusherTests(HomeserverTestCase):
         ret = self.get_success(
             self.hs.get_datastores().main.get_pushers_by({"user_name": user_id})
         )
-        pushers: List[PusherConfig] = list(ret)
+        pushers: list[PusherConfig] = list(ret)
 
         # Check that we still have one pusher, and that the device ID associated with
         # it didn't change.
