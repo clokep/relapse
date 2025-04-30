@@ -13,7 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-""" This module contains REST servlets to do with rooms: /rooms/<paths> """
+"""This module contains REST servlets to do with rooms: /rooms/<paths>"""
+
 import logging
 import re
 from collections.abc import Awaitable

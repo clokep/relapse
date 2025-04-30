@@ -146,8 +146,7 @@ def login_id_phone_to_thirdparty(identifier: JsonDict) -> dict[str, str]:
     if "country" not in identifier or (
         # The specification requires a "phone" field, while Relapse used to require a "number"
         # field. Accept both for backwards compatibility.
-        "phone" not in identifier
-        and "number" not in identifier
+        "phone" not in identifier and "number" not in identifier
     ):
         raise RelapseError(
             400, "Invalid phone-type identifier", errcode=Codes.INVALID_PARAM

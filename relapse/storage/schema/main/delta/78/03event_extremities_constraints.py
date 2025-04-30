@@ -16,6 +16,7 @@
 """
 This migration adds foreign key constraint to `event_forward_extremities` table.
 """
+
 from relapse.storage.background_updates import (
     ForeignKeyConstraint,
     run_validate_constraint_and_delete_rows_schema_delta,

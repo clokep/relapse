@@ -73,9 +73,9 @@ class LockStore(SQLBaseStore):
 
         # A map from `(lock_name, lock_key)` to lock that we think we
         # currently hold.
-        self._live_lock_tokens: WeakValueDictionary[
-            tuple[str, str], Lock
-        ] = WeakValueDictionary()
+        self._live_lock_tokens: WeakValueDictionary[tuple[str, str], Lock] = (
+            WeakValueDictionary()
+        )
 
         # A map from `(lock_name, lock_key, token)` to read/write lock that we
         # think we currently hold. For a given lock_name/lock_key, there can be

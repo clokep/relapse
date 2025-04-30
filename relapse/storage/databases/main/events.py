@@ -102,9 +102,9 @@ class PersistEventsStore:
         self.is_mine_id = hs.is_mine_id
 
         # This should only exist on instances that are configured to write
-        assert (
-            hs.get_instance_name() in hs.config.worker.writers.events
-        ), "Can only instantiate EventsStore on master"
+        assert hs.get_instance_name() in hs.config.worker.writers.events, (
+            "Can only instantiate EventsStore on master"
+        )
 
         # Since we have been configured to write, we ought to have id generators,
         # rather than id trackers.
@@ -1274,9 +1274,9 @@ class PersistEventsStore:
         Returns:
             filtered list
         """
-        new_events_and_contexts: OrderedDict[
-            str, tuple[EventBase, EventContext]
-        ] = OrderedDict()
+        new_events_and_contexts: OrderedDict[str, tuple[EventBase, EventContext]] = (
+            OrderedDict()
+        )
         for event, context in events_and_contexts:
             prev_event_context = new_events_and_contexts.get(event.event_id)
             if prev_event_context:
@@ -2299,7 +2299,7 @@ class PersistEventsStore:
         )
 
         potential_backwards_extremities.difference_update(
-            e for e, in existing_events_outliers
+            e for (e,) in existing_events_outliers
         )
 
         if potential_backwards_extremities:
@@ -2332,8 +2332,7 @@ class PersistEventsStore:
         # Delete all these events that we've already fetched and now know that their
         # prev events are the new backwards extremeties.
         query = (
-            "DELETE FROM event_backward_extremities"
-            " WHERE event_id = ? AND room_id = ?"
+            "DELETE FROM event_backward_extremities WHERE event_id = ? AND room_id = ?"
         )
         backward_extremity_tuples_to_remove = [
             (ev.event_id, ev.room_id)

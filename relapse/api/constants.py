@@ -37,7 +37,6 @@ MAIN_TIMELINE: Final = "main"
 
 
 class Membership:
-
     """Represents the membership states of a user in a room."""
 
     INVITE: Final = "invite"

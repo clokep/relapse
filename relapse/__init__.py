@@ -14,8 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-""" This is an implementation of a Matrix homeserver.
-"""
+"""This is an implementation of a Matrix homeserver."""
 
 import os
 import sys

@@ -963,12 +963,12 @@ class StreamToken:
         return attr.evolve(self, **{key.value: new_value})
 
     @overload
-    def get_field(self, key: Literal[StreamKeyType.ROOM]) -> RoomStreamToken:
-        ...
+    def get_field(self, key: Literal[StreamKeyType.ROOM]) -> RoomStreamToken: ...
 
     @overload
-    def get_field(self, key: Literal[StreamKeyType.RECEIPT]) -> MultiWriterStreamToken:
-        ...
+    def get_field(
+        self, key: Literal[StreamKeyType.RECEIPT]
+    ) -> MultiWriterStreamToken: ...
 
     @overload
     def get_field(
@@ -982,14 +982,12 @@ class StreamToken:
             StreamKeyType.TYPING,
             StreamKeyType.UN_PARTIAL_STATED_ROOMS,
         ],
-    ) -> int:
-        ...
+    ) -> int: ...
 
     @overload
     def get_field(
         self, key: StreamKeyType
-    ) -> Union[int, RoomStreamToken, MultiWriterStreamToken]:
-        ...
+    ) -> Union[int, RoomStreamToken, MultiWriterStreamToken]: ...
 
     def get_field(
         self, key: StreamKeyType
@@ -1104,7 +1102,7 @@ class DeviceListUpdates:
 
 
 def get_verify_key_from_cross_signing_key(
-    key_info: Mapping[str, Any]
+    key_info: Mapping[str, Any],
 ) -> tuple[str, VerifyKey]:
     """Get the key ID and signedjson verify key from a cross-signing key dict
 

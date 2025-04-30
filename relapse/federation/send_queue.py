@@ -72,9 +72,9 @@ class FederationRemoteSendQueue(AbstractFederationSender):
         # Stores the destinations we need to explicitly send presence to about a
         # given user.
         # Stream position -> (user_id, destinations)
-        self.presence_destinations: SortedDict[
-            int, tuple[str, Iterable[str]]
-        ] = SortedDict()
+        self.presence_destinations: SortedDict[int, tuple[str, Iterable[str]]] = (
+            SortedDict()
+        )
 
         # (destination, key) -> EDU
         self.keyed_edu: dict[tuple[str, tuple], Edu] = {}

@@ -251,8 +251,7 @@ class HomeServer(metaclass=abc.ABCMeta):
     # instantiated during setup() for future return by get_datastores()
     @property
     @abc.abstractmethod
-    def DATASTORE_CLASS(self) -> Any:
-        ...
+    def DATASTORE_CLASS(self) -> Any: ...
 
     def __init__(
         self,

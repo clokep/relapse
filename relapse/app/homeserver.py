@@ -182,9 +182,9 @@ class RelapseHomeServer(HomeServer):
                     PasswordResetSubmitTokenResource,
                 )
 
-                resources[
-                    "/_relapse/client/password_reset/email/submit_token"
-                ] = PasswordResetSubmitTokenResource(self)
+                resources["/_relapse/client/password_reset/email/submit_token"] = (
+                    PasswordResetSubmitTokenResource(self)
+                )
 
         if name == "consent":
             from relapse.rest.consent.consent_resource import ConsentResource
@@ -266,8 +266,7 @@ class RelapseHomeServer(HomeServer):
             elif listener.type == "metrics":
                 if not self.config.metrics.enable_metrics:
                     logger.warning(
-                        "Metrics listener configured, but "
-                        "enable_metrics is not True!"
+                        "Metrics listener configured, but enable_metrics is not True!"
                     )
                 else:
                     if isinstance(listener, TCPListenerConfig):

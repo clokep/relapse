@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""A circular doubly linked list implementation.
-"""
+"""A circular doubly linked list implementation."""
 
 import threading
 from typing import Generic, Optional, TypeVar

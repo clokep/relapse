@@ -162,6 +162,7 @@ Gotchas
   than one caller? Will all of those calling functions have be in a context
   with an active span?
 """
+
 import contextlib
 import enum
 import inspect
@@ -375,15 +376,13 @@ def only_if_tracing(func: Callable[P, R]) -> Callable[P, Optional[R]]:
 @overload
 def ensure_active_span(
     message: str,
-) -> Callable[[Callable[P, R]], Callable[P, Optional[R]]]:
-    ...
+) -> Callable[[Callable[P, R]], Callable[P, Optional[R]]]: ...
 
 
 @overload
 def ensure_active_span(
     message: str, ret: T
-) -> Callable[[Callable[P, R]], Callable[P, Union[T, R]]]:
-    ...
+) -> Callable[[Callable[P, R]], Callable[P, Union[T, R]]]: ...
 
 
 def ensure_active_span(
@@ -403,7 +402,7 @@ def ensure_active_span(
     """
 
     def ensure_active_span_inner_1(
-        func: Callable[P, R]
+        func: Callable[P, R],
     ) -> Callable[P, Union[Optional[T], R]]:
         @wraps(func)
         def ensure_active_span_inner_2(
@@ -689,7 +688,7 @@ def set_operation_name(operation_name: str) -> None:
 
 @only_if_tracing
 def force_tracing(
-    span: Union["opentracing.Span", _Sentinel] = _Sentinel.sentinel
+    span: Union["opentracing.Span", _Sentinel] = _Sentinel.sentinel,
 ) -> None:
     """Force sampling for the active/given span and its children.
 
@@ -1082,9 +1081,9 @@ def trace_servlet(
 
             # Mypy seems to think that start_context.tag below can be Optional[str], but
             # that doesn't appear to be correct and works in practice.
-            request_tags[
-                RelapseTags.REQUEST_TAG
-            ] = request.request_metrics.start_context.tag  # type: ignore[assignment]
+            request_tags[RelapseTags.REQUEST_TAG] = (
+                request.request_metrics.start_context.tag  # type: ignore[assignment]
+            )
 
             # set the tags *after* the servlet completes, in case it decided to
             # prioritise the span (tags will get dropped on unprioritised spans)

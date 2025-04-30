@@ -1163,9 +1163,9 @@ class SsoHandler:
         """
 
         # It is expected that this is the main process.
-        assert isinstance(
-            self._device_handler, DeviceHandler
-        ), "revoking SSO sessions can only be called on the main process"
+        assert isinstance(self._device_handler, DeviceHandler), (
+            "revoking SSO sessions can only be called on the main process"
+        )
 
         # Invalidate any running user-mapping sessions
         to_delete = []

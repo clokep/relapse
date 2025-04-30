@@ -32,9 +32,7 @@ logger = logging.getLogger(__name__)
 
 class ReceiptRestServlet(RestServlet):
     PATTERNS = client_patterns(
-        "/rooms/(?P<room_id>[^/]*)"
-        "/receipt/(?P<receipt_type>[^/]*)"
-        "/(?P<event_id>[^/]*)$"
+        "/rooms/(?P<room_id>[^/]*)/receipt/(?P<receipt_type>[^/]*)/(?P<event_id>[^/]*)$"
     )
     CATEGORY = "Receipts requests"
 

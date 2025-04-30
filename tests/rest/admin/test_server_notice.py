@@ -524,9 +524,7 @@ class ServerNoticeTestCase(unittest.HomeserverTestCase):
 
         # simulate a change in server config after a server restart.
         new_display_name = "new display name"
-        self.server_notices_manager._config.servernotices.server_notices_mxid_display_name = (
-            new_display_name
-        )
+        self.server_notices_manager._config.servernotices.server_notices_mxid_display_name = new_display_name
         self.server_notices_manager.get_or_create_notice_room_for_user.cache.invalidate_all()
 
         self.make_request(
@@ -570,9 +568,7 @@ class ServerNoticeTestCase(unittest.HomeserverTestCase):
 
         # simulate a change in server config after a server restart.
         new_avatar_url = "test/new-url"
-        self.server_notices_manager._config.servernotices.server_notices_mxid_avatar_url = (
-            new_avatar_url
-        )
+        self.server_notices_manager._config.servernotices.server_notices_mxid_avatar_url = new_avatar_url
         self.server_notices_manager.get_or_create_notice_room_for_user.cache.invalidate_all()
 
         self.make_request(
@@ -685,9 +681,7 @@ class ServerNoticeTestCase(unittest.HomeserverTestCase):
 
         # simulate a change in server config after a server restart.
         new_avatar_url = "test/new-url"
-        self.server_notices_manager._config.servernotices.server_notices_room_avatar_url = (
-            new_avatar_url
-        )
+        self.server_notices_manager._config.servernotices.server_notices_room_avatar_url = new_avatar_url
         self.server_notices_manager.get_or_create_notice_room_for_user.cache.invalidate_all()
 
         self.make_request(

@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-""" Thread-local-alike tracking of log contexts within relapse
+"""Thread-local-alike tracking of log contexts within relapse
 
 This module provides objects and utilities for tracking contexts through
 relapse code, so that log lines can include a request identifier, and so that
@@ -22,6 +22,7 @@ them.
 
 See doc/log_contexts.rst for details on how this works.
 """
+
 import logging
 import threading
 import typing
@@ -728,15 +729,14 @@ def preserve_fn(
 
 
 @overload
-def preserve_fn(f: Callable[P, R]) -> Callable[P, "defer.Deferred[R]"]:
-    ...
+def preserve_fn(f: Callable[P, R]) -> Callable[P, "defer.Deferred[R]"]: ...
 
 
 def preserve_fn(
     f: Union[
         Callable[P, R],
         Callable[P, Awaitable[R]],
-    ]
+    ],
 ) -> Callable[P, "defer.Deferred[R]"]:
     """Function decorator which wraps the function with run_in_background"""
 
@@ -758,8 +758,7 @@ def run_in_background(
 @overload
 def run_in_background(
     f: Callable[P, R], *args: P.args, **kwargs: P.kwargs
-) -> "defer.Deferred[R]":
-    ...
+) -> "defer.Deferred[R]": ...
 
 
 def run_in_background(  # type: ignore[misc]

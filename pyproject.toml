@@ -34,18 +34,13 @@
         name = "Internal Changes"
         showcontent = true
 
-[tool.black]
-target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
-# black ignores everything in .gitignore by default, see
-# https://black.readthedocs.io/en/stable/usage_and_configuration/file_collection_and_discovery.html#gitignore
-# Use `extend-exclude` if you want to exclude something in addition to this.
-
 [tool.ruff]
 line-length = 88
 
+[tool.ruff.lint]
 # See https://beta.ruff.rs/docs/rules/#error-e
 # for error codes. The ones we ignore are:
-#  E501: Line too long (black enforces this for us)
+#  E501: Line too long (ruff format enforces this for us)
 #  E731: do not assign a lambda expression, use a def
 #
 # flake8-bugbear compatible checks. Its error codes are described at
@@ -76,19 +71,19 @@ select = [
     "PIE",
     # flake8-executable
     "EXE",
+    # isort
+    "I",
 ]
 
-[tool.isort]
-line_length = 88
-sections = ["FUTURE", "STDLIB", "THIRDPARTY", "TWISTED", "FIRSTPARTY", "TESTS", "LOCALFOLDER"]
-default_section = "THIRDPARTY"
-known_first_party = ["relapse"]
-known_tests = ["tests"]
-known_twisted = ["twisted", "OpenSSL"]
-multi_line_output = 3
-include_trailing_comma = true
-combine_as_imports = true
-skip_gitignore = true
+[tool.ruff.lint.isort]
+section-order = ["future", "standard-library", "third-party", "twisted", "first-party", "tests", "local-folder"]
+default-section = "third-party"
+known-first-party = ["relapse"]
+combine-as-imports = true
+
+[tool.ruff.lint.isort.sections]
+tests = ["tests"]
+twisted = ["twisted", "OpenSSL"]
 
 [tool.maturin]
 manifest-path = "rust/Cargo.toml"
@@ -312,8 +307,6 @@ all = [
 # failing on new releases. Keeping lower bounds loose here means that dependabot
 # can bump versions without having to update the content-hash in the lockfile.
 # This helps prevents merge conflicts when running a batch of dependabot updates.
-isort = ">=5.10.1"
-black = ">=22.7.0"
 ruff = "0.11.7"
 # Type checking only works with the pydantic.v1 compat module from pydantic v2
 pydantic = "^2"

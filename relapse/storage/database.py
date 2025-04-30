@@ -89,8 +89,7 @@ class _PoolConnection(Connection):
     A Connection from twisted.enterprise.adbapi.Connection.
     """
 
-    def reconnect(self) -> None:
-        ...
+    def reconnect(self) -> None: ...
 
 
 def make_pool(
@@ -1581,8 +1580,7 @@ class DatabasePool:
         retcols: Collection[str],
         allow_none: Literal[False] = False,
         desc: str = "simple_select_one",
-    ) -> tuple[Any, ...]:
-        ...
+    ) -> tuple[Any, ...]: ...
 
     @overload
     async def simple_select_one(
@@ -1592,8 +1590,7 @@ class DatabasePool:
         retcols: Collection[str],
         allow_none: Literal[True] = True,
         desc: str = "simple_select_one",
-    ) -> Optional[tuple[Any, ...]]:
-        ...
+    ) -> Optional[tuple[Any, ...]]: ...
 
     async def simple_select_one(
         self,
@@ -1632,8 +1629,7 @@ class DatabasePool:
         retcol: str,
         allow_none: Literal[False] = False,
         desc: str = "simple_select_one_onecol",
-    ) -> Any:
-        ...
+    ) -> Any: ...
 
     @overload
     async def simple_select_one_onecol(
@@ -1643,8 +1639,7 @@ class DatabasePool:
         retcol: str,
         allow_none: Literal[True] = True,
         desc: str = "simple_select_one_onecol",
-    ) -> Optional[Any]:
-        ...
+    ) -> Optional[Any]: ...
 
     async def simple_select_one_onecol(
         self,
@@ -1684,8 +1679,7 @@ class DatabasePool:
         keyvalues: dict[str, Any],
         retcol: str,
         allow_none: Literal[False] = False,
-    ) -> Any:
-        ...
+    ) -> Any: ...
 
     @overload
     @classmethod
@@ -1696,8 +1690,7 @@ class DatabasePool:
         keyvalues: dict[str, Any],
         retcol: str,
         allow_none: Literal[True] = True,
-    ) -> Optional[Any]:
-        ...
+    ) -> Optional[Any]: ...
 
     @classmethod
     def simple_select_one_onecol_txn(
@@ -2479,8 +2472,7 @@ def make_tuple_in_list_sql_clause(
     database_engine: BaseDatabaseEngine,
     columns: tuple[str, str],
     iterable: Collection[tuple[Any, Any]],
-) -> tuple[str, list]:
-    ...
+) -> tuple[str, list]: ...
 
 
 def make_tuple_in_list_sql_clause(

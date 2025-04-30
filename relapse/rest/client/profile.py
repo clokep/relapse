@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-""" This module contains REST servlets to do with profile: /profile/<paths> """
+"""This module contains REST servlets to do with profile: /profile/<paths>"""
 
 from http import HTTPStatus
 from typing import TYPE_CHECKING

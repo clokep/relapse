@@ -15,6 +15,7 @@
 # limitations under the License.
 
 """Utilities for interacting with Identity Servers"""
+
 import logging
 import urllib.parse
 from collections.abc import Awaitable

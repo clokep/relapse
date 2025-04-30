@@ -614,9 +614,7 @@ class DeviceWorkerStore(RoomMemberWorkerStore, EndToEndKeyWorkerStore):
                         result["keys"] = keys
 
                     device_display_name = None
-                    if (
-                        self.hs.config.federation.allow_device_name_lookup_over_federation
-                    ):
+                    if self.hs.config.federation.allow_device_name_lookup_over_federation:
                         device_display_name = device.display_name
                     if device_display_name:
                         result["device_display_name"] = device_display_name
@@ -870,7 +868,7 @@ class DeviceWorkerStore(RoomMemberWorkerStore, EndToEndKeyWorkerStore):
             from_key,
             to_key,
         )
-        return {u for u, in rows}
+        return {u for (u,) in rows}
 
     @cancellable
     async def get_users_whose_devices_changed(
@@ -921,7 +919,7 @@ class DeviceWorkerStore(RoomMemberWorkerStore, EndToEndKeyWorkerStore):
                     txn.database_engine, "user_id", chunk
                 )
                 txn.execute(sql % (clause,), [from_key, to_key] + args)
-                changes.update(user_id for user_id, in txn)
+                changes.update(user_id for (user_id,) in txn)
 
             return changes
 
@@ -1467,7 +1465,7 @@ class DeviceWorkerStore(RoomMemberWorkerStore, EndToEndKeyWorkerStore):
             args: list[Any],
         ) -> set[str]:
             txn.execute(sql.format(clause=clause), args)
-            return {user_id for user_id, in txn}
+            return {user_id for (user_id,) in txn}
 
         changes = set()
         for chunk in batch_iter(room_ids, 1000):
@@ -1684,9 +1682,9 @@ class DeviceStore(DeviceWorkerStore, DeviceBackgroundUpdateStore):
 
         # Map of (user_id, device_id) -> bool. If there is an entry that implies
         # the device exists.
-        self.device_id_exists_cache: LruCache[
-            tuple[str, str], Literal[True]
-        ] = LruCache(cache_name="device_id_exists", max_size=10000)
+        self.device_id_exists_cache: LruCache[tuple[str, str], Literal[True]] = (
+            LruCache(cache_name="device_id_exists", max_size=10000)
+        )
 
     async def store_device(
         self,

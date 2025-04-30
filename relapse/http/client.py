@@ -1139,6 +1139,5 @@ def is_unknown_endpoint(
         )
     ) or (
         # Older Relapses returned a 400 error.
-        e.code == 400
-        and relapse_error.errcode == Codes.UNRECOGNIZED
+        e.code == 400 and relapse_error.errcode == Codes.UNRECOGNIZED
     )

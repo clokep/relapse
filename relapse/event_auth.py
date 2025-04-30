@@ -69,8 +69,7 @@ class _EventSourceStore(Protocol):
         redact_behaviour: EventRedactBehaviour,
         get_prev_content: bool = False,
         allow_rejected: bool = False,
-    ) -> dict[str, "EventBase"]:
-        ...
+    ) -> dict[str, "EventBase"]: ...
 
 
 def validate_event_for_room_version(event: "EventBase") -> None:
@@ -857,7 +856,8 @@ def _check_power_levels(
                     raise RelapseError(400, f"{v!r} must be an integer.")
             if k in {"events", "notifications", "users"}:
                 if not isinstance(v, collections.abc.Mapping) or not all(
-                    type(v) is int for v in v.values()  # noqa: E721
+                    type(v) is int
+                    for v in v.values()  # noqa: E721
                 ):
                     raise RelapseError(
                         400,
@@ -928,8 +928,7 @@ def _check_power_levels(
             if old_level == user_level:
                 raise AuthError(
                     403,
-                    "You don't have permission to remove ops level equal "
-                    "to your own",
+                    "You don't have permission to remove ops level equal to your own",
                 )
 
         # Check if the old and new levels are greater than the user level

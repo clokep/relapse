@@ -16,6 +16,7 @@
 The VALID_SERVER_COMMANDS and VALID_CLIENT_COMMANDS define which commands are
 allowed to be sent by which side.
 """
+
 import abc
 import logging
 from typing import Optional, TypeVar

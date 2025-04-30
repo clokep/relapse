@@ -209,9 +209,7 @@ class RoomMemberWorkerStore(EventsWorkerStore, CacheInvalidationWorkerStore):
                 AND m.room_id = c.room_id
                 AND m.user_id = c.state_key
                 WHERE c.type = 'm.room.member' AND c.room_id = ? AND m.membership = ? AND %s
-            """ % (
-                clause,
-            )
+            """ % (clause,)
             txn.execute(sql, (room_id, Membership.JOIN, *ids))
 
             return {r[0]: ProfileInfo(display_name=r[1], avatar_url=r[2]) for r in txn}
@@ -447,9 +445,7 @@ class RoomMemberWorkerStore(EventsWorkerStore, CacheInvalidationWorkerStore):
             WHERE
                 user_id = ?
                 AND %s
-        """ % (
-            clause,
-        )
+        """ % (clause,)
 
         txn.execute(sql, (user_id, *args))
         results = [RoomsForUser(*r) for r in txn]
@@ -771,7 +767,7 @@ class RoomMemberWorkerStore(EventsWorkerStore, CacheInvalidationWorkerStore):
             """
 
             txn.execute(sql, (user_id, *args))
-            return {u: True for u, in txn}
+            return {u: True for (u,) in txn}
 
         to_return = {}
         for batch_user_ids in batch_iter(other_user_ids, 1000):
@@ -989,7 +985,7 @@ class RoomMemberWorkerStore(EventsWorkerStore, CacheInvalidationWorkerStore):
                     AND room_id = ?
             """
             txn.execute(sql, (room_id,))
-            return {d for d, in txn}
+            return {d for (d,) in txn}
 
         return await self.db_pool.runInteraction(
             "get_current_hosts_in_room", get_current_hosts_in_room_txn
@@ -1057,7 +1053,7 @@ class RoomMemberWorkerStore(EventsWorkerStore, CacheInvalidationWorkerStore):
             """
             txn.execute(sql, (room_id,))
             # `server_domain` will be `NULL` for malformed MXIDs with no colons.
-            return tuple(d for d, in txn if d is not None)
+            return tuple(d for (d,) in txn if d is not None)
 
         return await self.db_pool.runInteraction(
             "get_current_hosts_in_room_ordered", get_current_hosts_in_room_ordered_txn
@@ -1252,9 +1248,7 @@ class RoomMemberWorkerStore(EventsWorkerStore, CacheInvalidationWorkerStore):
                 room_id = ? AND membership = ?
                 AND NOT (%s)
                 LIMIT 1
-        """ % (
-            clause,
-        )
+        """ % (clause,)
 
         def _is_local_host_in_room_ignoring_users_txn(
             txn: LoggingTransaction,
@@ -1346,10 +1340,12 @@ class RoomMemberBackgroundUpdateStore(SQLBaseStore):
         self, progress: JsonDict, batch_size: int
     ) -> int:
         target_min_stream_id = progress.get(
-            "target_min_stream_id_inclusive", self._min_stream_order_on_start  # type: ignore[attr-defined]
+            "target_min_stream_id_inclusive",
+            self._min_stream_order_on_start,  # type: ignore[attr-defined]
         )
         max_stream_id = progress.get(
-            "max_stream_id_exclusive", self._stream_order_on_start + 1  # type: ignore[attr-defined]
+            "max_stream_id_exclusive",
+            self._stream_order_on_start + 1,  # type: ignore[attr-defined]
         )
 
         def add_membership_profile_txn(txn: LoggingTransaction) -> int:

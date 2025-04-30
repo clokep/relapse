@@ -12,5 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-""" This package includes all the federation specific logic.
-"""
+"""This package includes all the federation specific logic."""

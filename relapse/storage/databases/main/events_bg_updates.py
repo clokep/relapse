@@ -579,7 +579,8 @@ class EventsBackgroundUpdatesStore(SQLBaseStore):
                 room_ids = {row[0] for row in rows}
                 for room_id in room_ids:
                     txn.call_after(
-                        self.get_latest_event_ids_in_room.invalidate, (room_id,)  # type: ignore[attr-defined]
+                        self.get_latest_event_ids_in_room.invalidate,  # type: ignore[attr-defined]
+                        (room_id,),
                     )
 
             self.db_pool.simple_delete_many_txn(
@@ -1224,10 +1225,14 @@ class EventsBackgroundUpdatesStore(SQLBaseStore):
                 # Iterate the parent IDs and invalidate caches.
                 cache_tuples = {(r[1],) for r in relations_to_insert}
                 self._invalidate_cache_and_stream_bulk(  # type: ignore[attr-defined]
-                    txn, self.get_relations_for_event, cache_tuples  # type: ignore[attr-defined]
+                    txn,
+                    self.get_relations_for_event,  # type: ignore[attr-defined]
+                    cache_tuples,
                 )
                 self._invalidate_cache_and_stream_bulk(  # type: ignore[attr-defined]
-                    txn, self.get_thread_summary, cache_tuples  # type: ignore[attr-defined]
+                    txn,
+                    self.get_thread_summary,  # type: ignore[attr-defined]
+                    cache_tuples,
                 )
 
             if results:
