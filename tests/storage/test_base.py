@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from collections import OrderedDict
-from typing import Generator
+from collections.abc import Generator
 from unittest.mock import Mock, call, patch
 
 from twisted.internet import defer
@@ -342,7 +342,7 @@ class SQLBaseStoreTestCase(unittest.TestCase):
         )
 
         self.mock_txn.execute.assert_called_once_with(
-            "UPDATE tablename SET colC = ?, colD = ? WHERE" " colA = ? AND colB = ?",
+            "UPDATE tablename SET colC = ?, colD = ? WHERE colA = ? AND colB = ?",
             [3, 4, 1, 2],
         )
 

@@ -16,7 +16,7 @@
 import logging
 import os
 import sys
-from typing import Dict, Iterable, List
+from collections.abc import Iterable
 
 from twisted.internet.tcp import Port
 from twisted.web.resource import EncodingResourceWrapper, Resource
@@ -75,7 +75,7 @@ def gz_wrap(r: Resource) -> Resource:
 
 
 class RelapseHomeServer(HomeServer):
-    DATASTORE_CLASS = DataStore  # type: ignore
+    DATASTORE_CLASS = DataStore
 
     def _listener_http(
         self,
@@ -87,7 +87,7 @@ class RelapseHomeServer(HomeServer):
         site_tag = listener_config.get_site_tag()
 
         # We always include a health resource.
-        resources: Dict[str, Resource] = {"/health": HealthResource()}
+        resources: dict[str, Resource] = {"/health": HealthResource()}
 
         for res in listener_config.http_options.resources:
             for name in res.names:
@@ -152,7 +152,7 @@ class RelapseHomeServer(HomeServer):
 
     def _configure_named_resource(
         self, name: str, compress: bool = False
-    ) -> Dict[str, Resource]:
+    ) -> dict[str, Resource]:
         """Build a resource map for a named resource
 
         Args:
@@ -162,7 +162,7 @@ class RelapseHomeServer(HomeServer):
         Returns:
             map from path to HTTP resource
         """
-        resources: Dict[str, Resource] = {}
+        resources: dict[str, Resource] = {}
         if name == "client":
             client_resource: Resource = ClientRestResource(self)
             if compress:
@@ -182,9 +182,9 @@ class RelapseHomeServer(HomeServer):
                     PasswordResetSubmitTokenResource,
                 )
 
-                resources[
-                    "/_relapse/client/password_reset/email/submit_token"
-                ] = PasswordResetSubmitTokenResource(self)
+                resources["/_relapse/client/password_reset/email/submit_token"] = (
+                    PasswordResetSubmitTokenResource(self)
+                )
 
         if name == "consent":
             from relapse.rest.consent.consent_resource import ConsentResource
@@ -266,8 +266,7 @@ class RelapseHomeServer(HomeServer):
             elif listener.type == "metrics":
                 if not self.config.metrics.enable_metrics:
                     logger.warning(
-                        "Metrics listener configured, but "
-                        "enable_metrics is not True!"
+                        "Metrics listener configured, but enable_metrics is not True!"
                     )
                 else:
                     if isinstance(listener, TCPListenerConfig):
@@ -286,7 +285,7 @@ class RelapseHomeServer(HomeServer):
                 logger.warning("Unrecognized listener type: %s", listener.type)
 
 
-def setup(config_options: List[str]) -> RelapseHomeServer:
+def setup(config_options: list[str]) -> RelapseHomeServer:
     """
     Args:
         config_options_options: The options passed to Relapse. Usually `sys.argv[1:]`.

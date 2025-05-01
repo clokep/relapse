@@ -15,19 +15,8 @@ import abc
 import hashlib
 import io
 import logging
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Awaitable,
-    Callable,
-    Dict,
-    Iterable,
-    List,
-    Mapping,
-    NoReturn,
-    Optional,
-    Set,
-)
+from collections.abc import Awaitable, Iterable, Mapping
+from typing import TYPE_CHECKING, Any, Callable, NoReturn, Optional
 from urllib.parse import urlencode
 
 import attr
@@ -219,10 +208,10 @@ class SsoHandler:
         self._mapping_lock = Linearizer(name="sso_user_mapping", clock=hs.get_clock())
 
         # a map from session id to session data
-        self._username_mapping_sessions: Dict[str, UsernameMappingSession] = {}
+        self._username_mapping_sessions: dict[str, UsernameMappingSession] = {}
 
         # map from idp_id to SsoIdentityProvider
-        self._identity_providers: Dict[str, SsoIdentityProvider] = {}
+        self._identity_providers: dict[str, SsoIdentityProvider] = {}
 
         self._consent_at_registration = hs.config.consent.user_consent_at_registration
 
@@ -983,7 +972,7 @@ class SsoHandler:
         session.use_display_name = use_display_name
 
         emails_from_idp = set(session.emails)
-        filtered_emails: Set[str] = set()
+        filtered_emails: set[str] = set()
 
         # we iterate through the list rather than just building a set conjunction, so
         # that we can log attempts to use unknown addresses
@@ -1123,7 +1112,7 @@ class SsoHandler:
     def check_required_attributes(
         self,
         request: RelapseRequest,
-        attributes: Mapping[str, List[Any]],
+        attributes: Mapping[str, list[Any]],
         attribute_requirements: Iterable[SsoAttributeRequirement],
     ) -> bool:
         """
@@ -1174,9 +1163,9 @@ class SsoHandler:
         """
 
         # It is expected that this is the main process.
-        assert isinstance(
-            self._device_handler, DeviceHandler
-        ), "revoking SSO sessions can only be called on the main process"
+        assert isinstance(self._device_handler, DeviceHandler), (
+            "revoking SSO sessions can only be called on the main process"
+        )
 
         # Invalidate any running user-mapping sessions
         to_delete = []
@@ -1243,7 +1232,7 @@ def get_username_mapping_session_cookie_from_request(request: IRequest) -> str:
 
 
 def _check_attribute_requirement(
-    attributes: Mapping[str, List[Any]], req: SsoAttributeRequirement
+    attributes: Mapping[str, list[Any]], req: SsoAttributeRequirement
 ) -> bool:
     """Check if SSO attributes meet the proper requirements.
 

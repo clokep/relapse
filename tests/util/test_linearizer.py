@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Hashable, Tuple
+from collections.abc import Hashable
 
 from typing_extensions import Protocol
 
@@ -28,14 +28,13 @@ from tests import unittest
 
 
 class UnblockFunction(Protocol):
-    def __call__(self, pump_reactor: bool = True) -> None:
-        ...
+    def __call__(self, pump_reactor: bool = True) -> None: ...
 
 
 class LinearizerTestCase(unittest.TestCase):
     def _start_task(
         self, linearizer: Linearizer, key: Hashable
-    ) -> Tuple["Deferred[None]", "Deferred[None]", UnblockFunction]:
+    ) -> tuple["Deferred[None]", "Deferred[None]", UnblockFunction]:
         """Starts a task which acquires the linearizer lock, blocks, then completes.
 
         Args:

@@ -14,7 +14,8 @@
 import logging
 import random
 import re
-from typing import Any, Collection, Dict, List, Optional, Sequence, Tuple
+from collections.abc import Collection, Sequence
+from typing import Any, Optional
 from urllib.parse import urlparse
 from urllib.request import (  # type: ignore[attr-defined]
     getproxies_environment,
@@ -129,7 +130,7 @@ class ProxyAgent(_AgentBase):
         else:
             self.proxy_reactor = proxy_reactor
 
-        self._endpoint_kwargs: Dict[str, Any] = {}
+        self._endpoint_kwargs: dict[str, Any] = {}
         if connectTimeout is not None:
             self._endpoint_kwargs["timeout"] = connectTimeout
         if bindAddress is not None:
@@ -160,11 +161,11 @@ class ProxyAgent(_AgentBase):
         self._federation_proxy_endpoint: Optional[IStreamClientEndpoint] = None
         self._federation_proxy_credentials: Optional[ProxyCredentials] = None
         if federation_proxy_locations:
-            assert (
-                federation_proxy_credentials is not None
-            ), "`federation_proxy_credentials` are required when using `federation_proxy_locations`"
+            assert federation_proxy_credentials is not None, (
+                "`federation_proxy_credentials` are required when using `federation_proxy_locations`"
+            )
 
-            endpoints: List[IStreamClientEndpoint] = []
+            endpoints: list[IStreamClientEndpoint] = []
             for federation_proxy_location in federation_proxy_locations:
                 endpoint: IStreamClientEndpoint
                 if isinstance(federation_proxy_location, InstanceTcpLocationConfig):
@@ -289,9 +290,9 @@ class ProxyAgent(_AgentBase):
             parsed_uri.scheme == b"matrix-federation"
             and self._federation_proxy_endpoint
         ):
-            assert (
-                self._federation_proxy_credentials is not None
-            ), "`federation_proxy_credentials` are required when using `federation_proxy_locations`"
+            assert self._federation_proxy_credentials is not None, (
+                "`federation_proxy_credentials` are required when using `federation_proxy_locations`"
+            )
 
             # Set a Proxy-Authorization header
             if headers is None:
@@ -345,7 +346,7 @@ def http_proxy_endpoint(
     reactor: IReactorCore,
     tls_options_factory: Optional[IPolicyForHTTPS],
     **kwargs: object,
-) -> Tuple[Optional[IStreamClientEndpoint], Optional[ProxyCredentials]]:
+) -> tuple[Optional[IStreamClientEndpoint], Optional[ProxyCredentials]]:
     """Parses an http proxy setting and returns an endpoint for the proxy
 
     Args:
@@ -391,7 +392,7 @@ def http_proxy_endpoint(
 
 def parse_proxy(
     proxy: bytes, default_scheme: bytes = b"http", default_port: int = 1080
-) -> Tuple[bytes, bytes, int, Optional[ProxyCredentials]]:
+) -> tuple[bytes, bytes, int, Optional[ProxyCredentials]]:
     """
     Parse a proxy connection string.
 
@@ -460,7 +461,7 @@ class _RandomSampleEndpoints:
         return run_in_background(self._do_connect, protocol_factory)
 
     async def _do_connect(self, protocol_factory: IProtocolFactory) -> IProtocol:
-        failures: List[Failure] = []
+        failures: list[Failure] = []
         for endpoint in random.sample(self._endpoints, k=len(self._endpoints)):
             try:
                 return await endpoint.connect(protocol_factory)

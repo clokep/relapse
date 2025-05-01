@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List, Sequence
+from collections.abc import Sequence
 
 from twisted.test.proto_helpers import MemoryReactor
 
@@ -524,9 +524,7 @@ class ServerNoticeTestCase(unittest.HomeserverTestCase):
 
         # simulate a change in server config after a server restart.
         new_display_name = "new display name"
-        self.server_notices_manager._config.servernotices.server_notices_mxid_display_name = (
-            new_display_name
-        )
+        self.server_notices_manager._config.servernotices.server_notices_mxid_display_name = new_display_name
         self.server_notices_manager.get_or_create_notice_room_for_user.cache.invalidate_all()
 
         self.make_request(
@@ -570,9 +568,7 @@ class ServerNoticeTestCase(unittest.HomeserverTestCase):
 
         # simulate a change in server config after a server restart.
         new_avatar_url = "test/new-url"
-        self.server_notices_manager._config.servernotices.server_notices_mxid_avatar_url = (
-            new_avatar_url
-        )
+        self.server_notices_manager._config.servernotices.server_notices_mxid_avatar_url = new_avatar_url
         self.server_notices_manager.get_or_create_notice_room_for_user.cache.invalidate_all()
 
         self.make_request(
@@ -685,9 +681,7 @@ class ServerNoticeTestCase(unittest.HomeserverTestCase):
 
         # simulate a change in server config after a server restart.
         new_avatar_url = "test/new-url"
-        self.server_notices_manager._config.servernotices.server_notices_room_avatar_url = (
-            new_avatar_url
-        )
+        self.server_notices_manager._config.servernotices.server_notices_room_avatar_url = new_avatar_url
         self.server_notices_manager.get_or_create_notice_room_for_user.cache.invalidate_all()
 
         self.make_request(
@@ -728,7 +722,7 @@ class ServerNoticeTestCase(unittest.HomeserverTestCase):
 
         return invited_rooms
 
-    def _sync_and_get_messages(self, room_id: str, token: str) -> List[JsonDict]:
+    def _sync_and_get_messages(self, room_id: str, token: str) -> list[JsonDict]:
         """
         Do a sync and get messages of a room.
 

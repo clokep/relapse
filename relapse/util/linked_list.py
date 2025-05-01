@@ -12,11 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""A circular doubly linked list implementation.
-"""
+"""A circular doubly linked list implementation."""
 
 import threading
-from typing import Generic, Optional, Type, TypeVar
+from typing import Generic, Optional, TypeVar
 
 P = TypeVar("P")
 LN = TypeVar("LN", bound="ListNode")
@@ -47,7 +46,7 @@ class ListNode(Generic[P]):
         self.next_node: Optional[ListNode[P]] = None
 
     @classmethod
-    def create_root_node(cls: Type["ListNode[P]"]) -> "ListNode[P]":
+    def create_root_node(cls: type["ListNode[P]"]) -> "ListNode[P]":
         """Create a new linked list by creating a "root" node, which is a node
         that has prev_node/next_node pointing to itself and no associated cache
         entry.
@@ -59,7 +58,7 @@ class ListNode(Generic[P]):
 
     @classmethod
     def insert_after(
-        cls: Type[LN],
+        cls: type[LN],
         cache_entry: P,
         node: "ListNode[P]",
     ) -> LN:

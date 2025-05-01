@@ -12,7 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from typing import TYPE_CHECKING, Dict, FrozenSet, List, Tuple, cast
+from typing import TYPE_CHECKING, cast
 
 from relapse.storage.database import DatabasePool, LoggingDatabaseConnection
 from relapse.storage.databases.main import CacheInvalidationWorkerStore
@@ -33,7 +33,7 @@ class ExperimentalFeaturesStore(CacheInvalidationWorkerStore):
         super().__init__(database, db_conn, hs)
 
     @cached()
-    async def list_enabled_features(self, user_id: str) -> FrozenSet[str]:
+    async def list_enabled_features(self, user_id: str) -> frozenset[str]:
         """
         Checks to see what features are enabled for a given user
         Args:
@@ -43,7 +43,7 @@ class ExperimentalFeaturesStore(CacheInvalidationWorkerStore):
             the features currently enabled for the user
         """
         enabled = cast(
-            List[Tuple[str]],
+            list[tuple[str]],
             await self.db_pool.simple_select_list(
                 table="per_user_experimental_features",
                 keyvalues={"user_id": user_id, "enabled": True},
@@ -56,7 +56,7 @@ class ExperimentalFeaturesStore(CacheInvalidationWorkerStore):
     async def set_features_for_user(
         self,
         user: str,
-        features: Dict["ExperimentalFeature", bool],
+        features: dict["ExperimentalFeature", bool],
     ) -> None:
         """
         Enables or disables features for a given user

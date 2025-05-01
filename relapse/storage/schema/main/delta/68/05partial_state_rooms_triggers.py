@@ -18,6 +18,7 @@ This migration adds triggers to the partial_state_events tables to enforce uniqu
 
 Triggers cannot be expressed in .sql files, so we have to use a separate file.
 """
+
 from relapse.storage.database import LoggingTransaction
 from relapse.storage.engines import BaseDatabaseEngine, PostgresEngine, Sqlite3Engine
 

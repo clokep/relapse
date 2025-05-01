@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-from typing import TYPE_CHECKING, Dict, List, Mapping, Optional, Tuple, cast
+from collections.abc import Mapping
+from typing import TYPE_CHECKING, Optional, cast
 
 from relapse.metrics.background_process_metrics import wrap_as_background_process
 from relapse.storage.database import (
@@ -89,7 +90,7 @@ class MonthlyActiveUsersWorkerStore(RegistrationWorkerStore):
                 WHERE (users.appservice_id IS NULL OR users.appservice_id = '');
             """
             txn.execute(sql)
-            (count,) = cast(Tuple[int], txn.fetchone())
+            (count,) = cast(tuple[int], txn.fetchone())
             return count
 
         return await self.db_pool.runInteraction("count_users", _count_users)
@@ -107,7 +108,7 @@ class MonthlyActiveUsersWorkerStore(RegistrationWorkerStore):
 
         """
 
-        def _count_users_by_service(txn: LoggingTransaction) -> Dict[str, int]:
+        def _count_users_by_service(txn: LoggingTransaction) -> dict[str, int]:
             sql = """
                 SELECT COALESCE(appservice_id, 'native'), COUNT(*)
                 FROM monthly_active_users
@@ -116,7 +117,7 @@ class MonthlyActiveUsersWorkerStore(RegistrationWorkerStore):
             """
 
             txn.execute(sql)
-            result = cast(List[Tuple[str, int]], txn.fetchall())
+            result = cast(list[tuple[str, int]], txn.fetchall())
             return dict(result)
 
         return await self.db_pool.runInteraction(
@@ -125,7 +126,7 @@ class MonthlyActiveUsersWorkerStore(RegistrationWorkerStore):
 
     async def get_monthly_active_users_by_service(
         self, start_timestamp: Optional[int] = None, end_timestamp: Optional[int] = None
-    ) -> List[Tuple[str, str]]:
+    ) -> list[tuple[str, str]]:
         """Generates list of monthly active users and their services.
         Please see "get_monthly_active_count_by_service" docstring for more details
         about services.
@@ -155,7 +156,7 @@ class MonthlyActiveUsersWorkerStore(RegistrationWorkerStore):
             where_clause = ""
             query_params = []
 
-        def _list_users(txn: LoggingTransaction) -> List[Tuple[str, str]]:
+        def _list_users(txn: LoggingTransaction) -> list[tuple[str, str]]:
             sql = f"""
                     SELECT COALESCE(appservice_id, 'native'), user_id
                     FROM monthly_active_users
@@ -164,11 +165,11 @@ class MonthlyActiveUsersWorkerStore(RegistrationWorkerStore):
                 """
 
             txn.execute(sql, query_params)
-            return cast(List[Tuple[str, str]], txn.fetchall())
+            return cast(list[tuple[str, str]], txn.fetchall())
 
         return await self.db_pool.runInteraction("list_users", _list_users)
 
-    async def get_registered_reserved_users(self) -> List[str]:
+    async def get_registered_reserved_users(self) -> list[str]:
         """Of the reserved threepids defined in config, retrieve those that are associated
         with registered users
 
@@ -214,7 +215,7 @@ class MonthlyActiveUsersWorkerStore(RegistrationWorkerStore):
         entries exist.
         """
 
-        def _reap_users(txn: LoggingTransaction, reserved_users: List[str]) -> None:
+        def _reap_users(txn: LoggingTransaction, reserved_users: list[str]) -> None:
             """
             Args:
                 reserved_users: reserved users to preserve
@@ -289,7 +290,7 @@ class MonthlyActiveUsersWorkerStore(RegistrationWorkerStore):
         )
 
     def _initialise_reserved_users(
-        self, txn: LoggingTransaction, threepids: List[dict]
+        self, txn: LoggingTransaction, threepids: list[dict]
     ) -> None:
         """Ensures that reserved threepids are accounted for in the MAU table, should
         be called on start up.
@@ -298,9 +299,9 @@ class MonthlyActiveUsersWorkerStore(RegistrationWorkerStore):
             txn:
             threepids: List of threepid dicts to reserve
         """
-        assert (
-            self._update_on_this_worker
-        ), "This worker is not designated to update MAUs"
+        assert self._update_on_this_worker, (
+            "This worker is not designated to update MAUs"
+        )
 
         # XXX what is this function trying to achieve?  It upserts into
         # monthly_active_users for each *registered* reserved mau user, but why?
@@ -334,9 +335,9 @@ class MonthlyActiveUsersWorkerStore(RegistrationWorkerStore):
         Args:
             user_id: user to add/update
         """
-        assert (
-            self._update_on_this_worker
-        ), "This worker is not designated to update MAUs"
+        assert self._update_on_this_worker, (
+            "This worker is not designated to update MAUs"
+        )
 
         # Support user never to be included in MAU stats. Note I can't easily call this
         # from upsert_monthly_active_user_txn because then I need a _txn form of
@@ -373,9 +374,9 @@ class MonthlyActiveUsersWorkerStore(RegistrationWorkerStore):
             txn:
             user_id: user to add/update
         """
-        assert (
-            self._update_on_this_worker
-        ), "This worker is not designated to update MAUs"
+        assert self._update_on_this_worker, (
+            "This worker is not designated to update MAUs"
+        )
 
         # Am consciously deciding to lock the table on the basis that is ought
         # never be a big table and alternative approaches (batching multiple
@@ -403,9 +404,9 @@ class MonthlyActiveUsersWorkerStore(RegistrationWorkerStore):
         Args:
             user_id: the user_id to query
         """
-        assert (
-            self._update_on_this_worker
-        ), "This worker is not designated to update MAUs"
+        assert self._update_on_this_worker, (
+            "This worker is not designated to update MAUs"
+        )
 
         if self._limit_usage_by_mau or self._mau_stats_only:
             # Trial users and guests should not be included as part of MAU group

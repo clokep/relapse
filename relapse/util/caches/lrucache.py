@@ -16,20 +16,15 @@ import logging
 import math
 import threading
 import weakref
+from collections.abc import Collection, Iterable
 from enum import Enum
 from functools import wraps
 from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
-    Collection,
-    Dict,
     Generic,
-    Iterable,
-    List,
     Optional,
-    Tuple,
-    Type,
     TypeVar,
     Union,
     cast,
@@ -281,7 +276,7 @@ class _Node(Generic[KT, VT]):
         # footprint down. Storing `None` is free as its a singleton, while empty
         # lists are 56 bytes (and empty sets are 216 bytes, if we did the naive
         # thing and used sets).
-        self.callbacks: Optional[List[Callable[[], None]]] = None
+        self.callbacks: Optional[list[Callable[[], None]]] = None
 
         self.add_callbacks(callbacks)
 
@@ -373,7 +368,7 @@ class LruCache(Generic[KT, VT]):
         self,
         max_size: int,
         cache_name: Optional[str] = None,
-        cache_type: Type[Union[dict, TreeCache]] = dict,
+        cache_type: type[Union[dict, TreeCache]] = dict,
         size_callback: Optional[Callable[[VT], int]] = None,
         metrics_collection_callback: Optional[Callable[[], None]] = None,
         apply_cache_factor_from_config: bool = True,
@@ -417,7 +412,7 @@ class LruCache(Generic[KT, VT]):
         else:
             real_clock = clock
 
-        cache: Union[Dict[KT, _Node[KT, VT]], TreeCache] = cache_type()
+        cache: Union[dict[KT, _Node[KT, VT]], TreeCache] = cache_type()
         self.cache = cache  # Used for introspection.
         self.apply_cache_factor_from_config = apply_cache_factor_from_config
 
@@ -542,8 +537,7 @@ class LruCache(Generic[KT, VT]):
             callbacks: Collection[Callable[[], None]] = ...,
             update_metrics: bool = ...,
             update_last_access: bool = ...,
-        ) -> Optional[VT]:
-            ...
+        ) -> Optional[VT]: ...
 
         @overload
         def cache_get(
@@ -552,8 +546,7 @@ class LruCache(Generic[KT, VT]):
             callbacks: Collection[Callable[[], None]] = ...,
             update_metrics: bool = ...,
             update_last_access: bool = ...,
-        ) -> Union[T, VT]:
-            ...
+        ) -> Union[T, VT]: ...
 
         @synchronized
         def cache_get(
@@ -596,23 +589,21 @@ class LruCache(Generic[KT, VT]):
             key: tuple,
             default: Literal[None] = None,
             update_metrics: bool = True,
-        ) -> Union[None, Iterable[Tuple[KT, VT]]]:
-            ...
+        ) -> Union[None, Iterable[tuple[KT, VT]]]: ...
 
         @overload
         def cache_get_multi(
             key: tuple,
             default: T,
             update_metrics: bool = True,
-        ) -> Union[T, Iterable[Tuple[KT, VT]]]:
-            ...
+        ) -> Union[T, Iterable[tuple[KT, VT]]]: ...
 
         @synchronized
         def cache_get_multi(
             key: tuple,
             default: Optional[T] = None,
             update_metrics: bool = True,
-        ) -> Union[None, T, Iterable[Tuple[KT, VT]]]:
+        ) -> Union[None, T, Iterable[tuple[KT, VT]]]:
             """Returns a generator yielding all entries under the given key.
 
             Can only be used if backed by a tree cache.
@@ -690,12 +681,10 @@ class LruCache(Generic[KT, VT]):
                 return value
 
         @overload
-        def cache_pop(key: KT, default: Literal[None] = None) -> Optional[VT]:
-            ...
+        def cache_pop(key: KT, default: Literal[None] = None) -> Optional[VT]: ...
 
         @overload
-        def cache_pop(key: KT, default: T) -> Union[T, VT]:
-            ...
+        def cache_pop(key: KT, default: T) -> Union[T, VT]: ...
 
         @synchronized
         def cache_pop(key: KT, default: Optional[T] = None) -> Union[None, T, VT]:

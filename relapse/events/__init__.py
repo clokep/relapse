@@ -17,20 +17,8 @@
 import abc
 import collections.abc
 import os
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Dict,
-    Generic,
-    Iterable,
-    List,
-    Optional,
-    Tuple,
-    Type,
-    TypeVar,
-    Union,
-    overload,
-)
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, Any, Generic, Optional, TypeVar, Union, overload
 
 import attr
 from typing_extensions import Literal
@@ -85,22 +73,20 @@ class DictProperty(Generic[T]):
     def __get__(
         self,
         instance: Literal[None],
-        owner: Optional[Type[_DictPropertyInstance]] = None,
-    ) -> "DictProperty":
-        ...
+        owner: Optional[type[_DictPropertyInstance]] = None,
+    ) -> "DictProperty": ...
 
     @overload
     def __get__(
         self,
         instance: _DictPropertyInstance,
-        owner: Optional[Type[_DictPropertyInstance]] = None,
-    ) -> T:
-        ...
+        owner: Optional[type[_DictPropertyInstance]] = None,
+    ) -> T: ...
 
     def __get__(
         self,
         instance: Optional[_DictPropertyInstance],
-        owner: Optional[Type[_DictPropertyInstance]] = None,
+        owner: Optional[type[_DictPropertyInstance]] = None,
     ) -> Union[T, "DictProperty"]:
         # if the property is accessed as a class property rather than an instance
         # property, return the property itself rather than the value
@@ -153,22 +139,20 @@ class DefaultDictProperty(DictProperty, Generic[T]):
     def __get__(
         self,
         instance: Literal[None],
-        owner: Optional[Type[_DictPropertyInstance]] = None,
-    ) -> "DefaultDictProperty":
-        ...
+        owner: Optional[type[_DictPropertyInstance]] = None,
+    ) -> "DefaultDictProperty": ...
 
     @overload
     def __get__(
         self,
         instance: _DictPropertyInstance,
-        owner: Optional[Type[_DictPropertyInstance]] = None,
-    ) -> T:
-        ...
+        owner: Optional[type[_DictPropertyInstance]] = None,
+    ) -> T: ...
 
     def __get__(
         self,
         instance: Optional[_DictPropertyInstance],
-        owner: Optional[Type[_DictPropertyInstance]] = None,
+        owner: Optional[type[_DictPropertyInstance]] = None,
     ) -> Union[T, "DefaultDictProperty"]:
         if instance is None:
             return self
@@ -212,7 +196,7 @@ class _EventInternalMetadata:
     # be here
     before: DictProperty[RoomStreamToken] = DictProperty("before")
     after: DictProperty[RoomStreamToken] = DictProperty("after")
-    order: DictProperty[Tuple[int, int]] = DictProperty("order")
+    order: DictProperty[tuple[int, int]] = DictProperty("order")
 
     def get_dict(self) -> JsonDict:
         return dict(self._dict)
@@ -302,7 +286,7 @@ class EventBase(metaclass=abc.ABCMeta):
         self,
         event_dict: JsonDict,
         room_version: RoomVersion,
-        signatures: Dict[str, Dict[str, str]],
+        signatures: dict[str, dict[str, str]],
         unsigned: JsonDict,
         internal_metadata_dict: JsonDict,
         rejected_reason: Optional[str],
@@ -320,7 +304,7 @@ class EventBase(metaclass=abc.ABCMeta):
 
     depth: DictProperty[int] = DictProperty("depth")
     content: DictProperty[JsonDict] = DictProperty("content")
-    hashes: DictProperty[Dict[str, str]] = DictProperty("hashes")
+    hashes: DictProperty[dict[str, str]] = DictProperty("hashes")
     origin: DictProperty[str] = DictProperty("origin")
     origin_server_ts: DictProperty[int] = DictProperty("origin_server_ts")
     room_id: DictProperty[str] = DictProperty("room_id")
@@ -401,13 +385,13 @@ class EventBase(metaclass=abc.ABCMeta):
     def __contains__(self, field: str) -> bool:
         return field in self._dict
 
-    def items(self) -> List[Tuple[str, Optional[Any]]]:
+    def items(self) -> list[tuple[str, Optional[Any]]]:
         return list(self._dict.items())
 
     def keys(self) -> Iterable[str]:
         return self._dict.keys()
 
-    def prev_event_ids(self) -> List[str]:
+    def prev_event_ids(self) -> list[str]:
         """Returns the list of prev event IDs. The order matches the order
         specified in the event, though there is no meaning to it.
 
@@ -552,7 +536,7 @@ class FrozenEventV2(EventBase):
         self._event_id = "$" + encode_base64(compute_event_reference_hash(self)[1])
         return self._event_id
 
-    def prev_event_ids(self) -> List[str]:
+    def prev_event_ids(self) -> list[str]:
         """Returns the list of prev event IDs. The order matches the order
         specified in the event, though there is no meaning to it.
 
@@ -592,7 +576,7 @@ class FrozenEventV3(FrozenEventV2):
 
 def _event_type_from_format_version(
     format_version: int,
-) -> Type[Union[FrozenEvent, FrozenEventV2, FrozenEventV3]]:
+) -> type[Union[FrozenEvent, FrozenEventV2, FrozenEventV3]]:
     """Returns the python type to use to construct an Event object for the
     given event format version.
 

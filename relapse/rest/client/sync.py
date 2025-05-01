@@ -14,7 +14,7 @@
 import itertools
 import logging
 from collections import defaultdict
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Optional, Union
 
 from relapse.api.constants import AccountDataTypes, EduTypes, Membership, PresenceState
 from relapse.api.errors import Codes, RelapseError, StoreError
@@ -103,7 +103,7 @@ class SyncRestServlet(RestServlet):
         self._msc2654_enabled = hs.config.experimental.msc2654_enabled
         self._msc3773_enabled = hs.config.experimental.msc3773_enabled
 
-    async def on_GET(self, request: RelapseRequest) -> Tuple[int, JsonDict]:
+    async def on_GET(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         # This will always be set by the time Twisted calls us.
         assert request.args is not None
 
@@ -306,12 +306,12 @@ class SyncRestServlet(RestServlet):
 
         # https://github.com/matrix-org/matrix-doc/blob/54255851f642f84a4f1aaf7bc063eebe3d76752b/proposals/2732-olm-fallback-keys.md
         # states that this field should always be included, as long as the server supports the feature.
-        response[
-            "org.matrix.msc2732.device_unused_fallback_key_types"
-        ] = sync_result.device_unused_fallback_key_types
-        response[
-            "device_unused_fallback_key_types"
-        ] = sync_result.device_unused_fallback_key_types
+        response["org.matrix.msc2732.device_unused_fallback_key_types"] = (
+            sync_result.device_unused_fallback_key_types
+        )
+        response["device_unused_fallback_key_types"] = (
+            sync_result.device_unused_fallback_key_types
+        )
 
         if joined:
             response["rooms"][Membership.JOIN] = joined
@@ -325,7 +325,7 @@ class SyncRestServlet(RestServlet):
         return response
 
     @staticmethod
-    def encode_presence(events: List[UserPresenceState], time_now: int) -> JsonDict:
+    def encode_presence(events: list[UserPresenceState], time_now: int) -> JsonDict:
         return {
             "events": [
                 {
@@ -342,7 +342,7 @@ class SyncRestServlet(RestServlet):
     @trace_with_opname("sync.encode_joined")
     async def encode_joined(
         self,
-        rooms: List[JoinedSyncResult],
+        rooms: list[JoinedSyncResult],
         time_now: int,
         serialize_options: SerializeEventConfig,
     ) -> JsonDict:
@@ -367,7 +367,7 @@ class SyncRestServlet(RestServlet):
     @trace_with_opname("sync.encode_invited")
     async def encode_invited(
         self,
-        rooms: List[InvitedSyncResult],
+        rooms: list[InvitedSyncResult],
         time_now: int,
         serialize_options: SerializeEventConfig,
     ) -> JsonDict:
@@ -398,10 +398,10 @@ class SyncRestServlet(RestServlet):
     @trace_with_opname("sync.encode_knocked")
     async def encode_knocked(
         self,
-        rooms: List[KnockedSyncResult],
+        rooms: list[KnockedSyncResult],
         time_now: int,
         serialize_options: SerializeEventConfig,
-    ) -> Dict[str, Dict[str, Any]]:
+    ) -> dict[str, dict[str, Any]]:
         """
         Encode the rooms we've knocked on in a sync result.
 
@@ -447,7 +447,7 @@ class SyncRestServlet(RestServlet):
     @trace_with_opname("sync.encode_archived")
     async def encode_archived(
         self,
-        rooms: List[ArchivedSyncResult],
+        rooms: list[ArchivedSyncResult],
         time_now: int,
         serialize_options: SerializeEventConfig,
     ) -> JsonDict:
@@ -536,9 +536,9 @@ class SyncRestServlet(RestServlet):
             if room.unread_thread_notifications:
                 result["unread_thread_notifications"] = room.unread_thread_notifications
                 if self._msc3773_enabled:
-                    result[
-                        "org.matrix.msc3773.unread_thread_notifications"
-                    ] = room.unread_thread_notifications
+                    result["org.matrix.msc3773.unread_thread_notifications"] = (
+                        room.unread_thread_notifications
+                    )
             result["summary"] = room.summary
             if self._msc2654_enabled:
                 result["org.matrix.msc2654.unread_count"] = room.unread_count

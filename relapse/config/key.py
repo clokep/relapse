@@ -16,7 +16,8 @@
 import hashlib
 import logging
 import os
-from typing import TYPE_CHECKING, Any, Dict, Iterator, List, Optional
+from collections.abc import Iterator
+from typing import TYPE_CHECKING, Any, Optional
 
 import attr
 import jsonschema
@@ -93,7 +94,7 @@ class TrustedKeyServer:
     server_name: str
 
     # map from key id to key object, or None to disable signature verification.
-    verify_keys: Optional[Dict[str, VerifyKey]] = None
+    verify_keys: Optional[dict[str, VerifyKey]] = None
 
 
 class KeyConfig(Config):
@@ -193,18 +194,15 @@ class KeyConfig(Config):
             )
             form_secret = 'form_secret: "%s"' % random_string_with_symbols(50)
 
-        return (
-            """\
+        return """\
         %(macaroon_secret_key)s
         %(form_secret)s
         signing_key_path: "%(base_key_name)s.signing.key"
         trusted_key_servers:
           - server_name: "matrix.org"
-        """
-            % locals()
-        )
+        """ % locals()
 
-    def read_signing_keys(self, signing_key_path: str, name: str) -> List[SigningKey]:
+    def read_signing_keys(self, signing_key_path: str, name: str) -> list[SigningKey]:
         """Read the signing keys in the given path.
 
         Args:
@@ -234,7 +232,7 @@ class KeyConfig(Config):
 
     def read_old_signing_keys(
         self, old_signing_keys: Optional[JsonDict]
-    ) -> Dict[str, "VerifyKeyWithExpiry"]:
+    ) -> dict[str, "VerifyKeyWithExpiry"]:
         if old_signing_keys is None:
             return {}
         keys = {}
@@ -242,7 +240,9 @@ class KeyConfig(Config):
             if is_signing_algorithm_supported(key_id):
                 key_base64 = key_data["key"]
                 key_bytes = decode_base64(key_base64)
-                verify_key: "VerifyKeyWithExpiry" = decode_verify_key_bytes(key_id, key_bytes)  # type: ignore[assignment]
+                verify_key: "VerifyKeyWithExpiry" = decode_verify_key_bytes(
+                    key_id, key_bytes
+                )  # type: ignore[assignment]
                 verify_key.expired = key_data["expired_ts"]
                 keys[key_id] = verify_key
             else:
@@ -251,7 +251,7 @@ class KeyConfig(Config):
                 )
         return keys
 
-    def generate_files(self, config: Dict[str, Any], config_dir_path: str) -> None:
+    def generate_files(self, config: dict[str, Any], config_dir_path: str) -> None:
         if "signing_key" in config:
             return
 
@@ -345,7 +345,7 @@ TRUSTED_KEY_SERVERS_SCHEMA = {
 
 
 def _parse_key_servers(
-    key_servers: List[Any], federation_verify_certificates: bool
+    key_servers: list[Any], federation_verify_certificates: bool
 ) -> Iterator[TrustedKeyServer]:
     try:
         jsonschema.validate(key_servers, TRUSTED_KEY_SERVERS_SCHEMA)
@@ -360,7 +360,7 @@ def _parse_key_servers(
         server_name = server["server_name"]
         result = TrustedKeyServer(server_name=server_name)
 
-        verify_keys: Optional[Dict[str, str]] = server.get("verify_keys")
+        verify_keys: Optional[dict[str, str]] = server.get("verify_keys")
         if verify_keys is not None:
             result.verify_keys = {}
             for key_id, key_base64 in verify_keys.items():

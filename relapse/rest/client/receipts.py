@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import logging
-from typing import TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING
 
 from relapse.api.constants import MAIN_TIMELINE, ReceiptTypes
 from relapse.api.errors import Codes, RelapseError
@@ -32,9 +32,7 @@ logger = logging.getLogger(__name__)
 
 class ReceiptRestServlet(RestServlet):
     PATTERNS = client_patterns(
-        "/rooms/(?P<room_id>[^/]*)"
-        "/receipt/(?P<receipt_type>[^/]*)"
-        "/(?P<event_id>[^/]*)$"
+        "/rooms/(?P<room_id>[^/]*)/receipt/(?P<receipt_type>[^/]*)/(?P<event_id>[^/]*)$"
     )
     CATEGORY = "Receipts requests"
 
@@ -54,7 +52,7 @@ class ReceiptRestServlet(RestServlet):
 
     async def on_POST(
         self, request: RelapseRequest, room_id: str, receipt_type: str, event_id: str
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         requester = await self.auth.get_user_by_req(request)
 
         if not RoomID.is_valid(room_id) or not event_id.startswith(EventID.SIGIL):

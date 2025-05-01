@@ -14,7 +14,7 @@
 import json
 import time
 import urllib.parse
-from typing import List, Optional
+from typing import Optional
 from unittest.mock import AsyncMock, Mock
 
 from parameterized import parameterized
@@ -1303,7 +1303,7 @@ class RoomTestCase(unittest.HomeserverTestCase):
         # Check that response json body contains a "rooms" key
         self.assertTrue(
             "rooms" in channel.json_body,
-            msg="Response body does not " "contain a 'rooms' key",
+            msg="Response body does not contain a 'rooms' key",
         )
 
         # Check that 3 rooms were returned
@@ -1519,7 +1519,7 @@ class RoomTestCase(unittest.HomeserverTestCase):
 
         def _order_test(
             order_type: str,
-            expected_room_list: List[str],
+            expected_room_list: list[str],
             reverse: bool = False,
         ) -> None:
             """Request the list of rooms in a certain order. Assert that order is what

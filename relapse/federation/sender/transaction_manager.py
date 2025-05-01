@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 from prometheus_client import Gauge
 
@@ -69,8 +69,8 @@ class TransactionManager:
     async def send_new_transaction(
         self,
         destination: str,
-        pdus: List[EventBase],
-        edus: List[Edu],
+        pdus: list[EventBase],
+        edus: list[Edu],
     ) -> None:
         """
         Args:

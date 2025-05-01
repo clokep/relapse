@@ -15,17 +15,9 @@ import importlib.util
 import logging
 import os
 import re
-from collections import Counter
-from typing import (
-    Collection,
-    Counter as CounterType,
-    Generator,
-    Iterable,
-    List,
-    Optional,
-    TextIO,
-    Tuple,
-)
+from collections import Counter, Counter as CounterType
+from collections.abc import Collection, Generator, Iterable
+from typing import Optional, TextIO
 
 import attr
 
@@ -263,7 +255,7 @@ def _setup_new_database(
         for database in databases
     )
 
-    directory_entries: List[_DirectoryListing] = []
+    directory_entries: list[_DirectoryListing] = []
     for directory in directories:
         directory_entries.extend(
             _DirectoryListing(file_name, os.path.join(directory, file_name))
@@ -446,7 +438,7 @@ def _upgrade_existing_database(
         file_name_counter: CounterType[str] = Counter()
 
         # Now find which directories have anything of interest.
-        directory_entries: List[_DirectoryListing] = []
+        directory_entries: list[_DirectoryListing] = []
         for directory in directories:
             logger.debug("Looking for schema deltas in %s", directory)
             try:
@@ -586,7 +578,7 @@ def _apply_module_schema_files(
     cur: Cursor,
     database_engine: BaseDatabaseEngine,
     modname: str,
-    names_and_streams: Iterable[Tuple[str, TextIO]],
+    names_and_streams: Iterable[tuple[str, TextIO]],
 ) -> None:
     """Apply the module schemas for a single module
 
@@ -600,7 +592,7 @@ def _apply_module_schema_files(
         "SELECT file FROM applied_module_schemas WHERE module_name = ?",
         (modname,),
     )
-    applied_deltas = {d for d, in cur}
+    applied_deltas = {d for (d,) in cur}
     for name, stream in names_and_streams:
         if name in applied_deltas:
             continue
@@ -703,7 +695,7 @@ def _get_or_create_schema_state(
         "SELECT file FROM applied_schema_deltas WHERE version >= ?",
         (current_version,),
     )
-    applied_deltas = tuple(d for d, in txn)
+    applied_deltas = tuple(d for (d,) in txn)
 
     return _SchemaState(
         current_version=current_version,

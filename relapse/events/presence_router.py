@@ -12,19 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Awaitable,
-    Callable,
-    Dict,
-    Iterable,
-    List,
-    Optional,
-    Set,
-    TypeVar,
-    Union,
-)
+from collections.abc import Awaitable, Iterable
+from typing import TYPE_CHECKING, Any, Callable, Optional, TypeVar, Union
 
 from typing_extensions import ParamSpec
 
@@ -37,10 +26,10 @@ if TYPE_CHECKING:
     from relapse.server import HomeServer
 
 GET_USERS_FOR_STATES_CALLBACK = Callable[
-    [Iterable[UserPresenceState]], Awaitable[Dict[str, Set[UserPresenceState]]]
+    [Iterable[UserPresenceState]], Awaitable[dict[str, set[UserPresenceState]]]
 ]
 # This must either return a set of strings or the constant PresenceRouter.ALL_USERS.
-GET_INTERESTED_USERS_CALLBACK = Callable[[str], Awaitable[Union[Set[str], str]]]
+GET_INTERESTED_USERS_CALLBACK = Callable[[str], Awaitable[Union[set[str], str]]]
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +62,7 @@ def load_legacy_presence_router(hs: "HomeServer") -> None:
     # All methods that the module provides should be async, but this wasn't enforced
     # in the old module system, so we wrap them if needed
     def async_wrapper(
-        f: Optional[Callable[P, R]]
+        f: Optional[Callable[P, R]],
     ) -> Optional[Callable[P, Awaitable[R]]]:
         # f might be None if the callback isn't implemented by the module. In this
         # case we don't want to register a callback at all so we return None.
@@ -91,7 +80,7 @@ def load_legacy_presence_router(hs: "HomeServer") -> None:
         return run
 
     # Register the hooks through the module API.
-    hooks: Dict[str, Optional[Callable[..., Any]]] = {
+    hooks: dict[str, Optional[Callable[..., Any]]] = {
         hook: async_wrapper(getattr(presence_router, hook, None))
         for hook in presence_router_methods
     }
@@ -109,8 +98,8 @@ class PresenceRouter:
 
     def __init__(self, hs: "HomeServer"):
         # Initially there are no callbacks
-        self._get_users_for_states_callbacks: List[GET_USERS_FOR_STATES_CALLBACK] = []
-        self._get_interested_users_callbacks: List[GET_INTERESTED_USERS_CALLBACK] = []
+        self._get_users_for_states_callbacks: list[GET_USERS_FOR_STATES_CALLBACK] = []
+        self._get_interested_users_callbacks: list[GET_INTERESTED_USERS_CALLBACK] = []
 
     def register_presence_router_callbacks(
         self,
@@ -136,7 +125,7 @@ class PresenceRouter:
     async def get_users_for_states(
         self,
         state_updates: Iterable[UserPresenceState],
-    ) -> Dict[str, Set[UserPresenceState]]:
+    ) -> dict[str, set[UserPresenceState]]:
         """
         Given an iterable of user presence updates, determine where each one
         needs to go.
@@ -154,7 +143,7 @@ class PresenceRouter:
             # Don't include any extra destinations for presence updates
             return {}
 
-        users_for_states: Dict[str, Set[UserPresenceState]] = {}
+        users_for_states: dict[str, set[UserPresenceState]] = {}
         # run all the callbacks for get_users_for_states and combine the results
         for callback in self._get_users_for_states_callbacks:
             try:
@@ -167,7 +156,7 @@ class PresenceRouter:
                 logger.warning("Failed to run module API callback %s: %s", callback, e)
                 continue
 
-            if not isinstance(result, Dict):
+            if not isinstance(result, dict):
                 logger.warning(
                     "Wrong type returned by module API callback %s: %s, expected Dict",
                     callback,
@@ -176,7 +165,7 @@ class PresenceRouter:
                 continue
 
             for key, new_entries in result.items():
-                if not isinstance(new_entries, Set):
+                if not isinstance(new_entries, set):
                     logger.warning(
                         "Wrong type returned by module API callback %s: %s, expected Set",
                         callback,
@@ -187,7 +176,7 @@ class PresenceRouter:
 
         return users_for_states
 
-    async def get_interested_users(self, user_id: str) -> Union[Set[str], str]:
+    async def get_interested_users(self, user_id: str) -> Union[set[str], str]:
         """
         Retrieve a list of users that `user_id` is interested in receiving the
         presence of. This will be in addition to those they share a room with.
@@ -227,7 +216,7 @@ class PresenceRouter:
             if result == PresenceRouter.ALL_USERS:
                 return PresenceRouter.ALL_USERS
 
-            if not isinstance(result, Set):
+            if not isinstance(result, set):
                 logger.warning(
                     "Wrong type returned by module API callback %s: %s, expected set",
                     callback,

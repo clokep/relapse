@@ -14,7 +14,7 @@
 
 import logging
 import time
-from typing import Any, Callable, Dict, Generic, Tuple, TypeVar, Union
+from typing import Any, Callable, Generic, TypeVar, Union
 
 import attr
 from sortedcontainers import SortedList
@@ -35,7 +35,7 @@ class TTLCache(Generic[KT, VT]):
 
     def __init__(self, cache_name: str, timer: Callable[[], float] = time.time):
         # map from key to _CacheEntry
-        self._data: Dict[KT, _CacheEntry[KT, VT]] = {}
+        self._data: dict[KT, _CacheEntry[KT, VT]] = {}
 
         # the _CacheEntries, sorted by expiry time
         self._expiry_list: SortedList[_CacheEntry[KT, VT]] = SortedList()
@@ -86,7 +86,7 @@ class TTLCache(Generic[KT, VT]):
         self._metrics.inc_hits()
         return e.value
 
-    def get_with_expiry(self, key: KT) -> Tuple[VT, float, float]:
+    def get_with_expiry(self, key: KT) -> tuple[VT, float, float]:
         """Get a value, and its expiry time, from the cache
 
         Args:

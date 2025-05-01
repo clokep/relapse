@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import logging
-from typing import TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING
 
 from relapse.api.errors import RelapseError
 from relapse.http.server import HttpServer
@@ -39,7 +39,7 @@ class UserDirectorySearchRestServlet(RestServlet):
         self.auth = hs.get_auth()
         self.user_directory_handler = hs.get_user_directory_handler()
 
-    async def on_POST(self, request: RelapseRequest) -> Tuple[int, JsonMapping]:
+    async def on_POST(self, request: RelapseRequest) -> tuple[int, JsonMapping]:
         """Searches for users in directory
 
         Returns:

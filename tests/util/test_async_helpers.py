@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import traceback
-from typing import Generator, List, NoReturn, Optional
+from collections.abc import Generator
+from typing import NoReturn, Optional
 
 from parameterized import parameterized_class
 
@@ -60,7 +61,7 @@ class ObservableDeferredTest(TestCase):
         observer1.addBoth(check_called_first)
 
         # store the results
-        results: List[Optional[int]] = [None, None]
+        results: list[Optional[int]] = [None, None]
 
         def check_val(res: int, idx: int) -> int:
             results[idx] = res
@@ -91,7 +92,7 @@ class ObservableDeferredTest(TestCase):
         observer1.addBoth(check_called_first)
 
         # store the results
-        results: List[Optional[Failure]] = [None, None]
+        results: list[Optional[Failure]] = [None, None]
 
         def check_failure(res: Failure, idx: int) -> None:
             results[idx] = res

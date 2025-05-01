@@ -25,22 +25,18 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - name: Setup Poetry
-        uses: matrix-org/setup-python-poetry@v1
+        uses: matrix-org/setup-python-poetry@v2
         with:
           python-version: "3.12.x"
           install-project: "false"
 
-      - name: Import order (isort)
+      - name: Code style (ruff)
         continue-on-error: true
-        run: poetry run isort .
-
-      - name: Code style (black)
-        continue-on-error: true
-        run: poetry run black .
+        run: poetry run ruff format .
 
       - name: Semantic checks (ruff)
         continue-on-error: true
-        run: poetry run ruff --fix .
+        run: poetry run ruff check --fix .
 
       - run: cargo clippy --all-features --fix -- -D warnings
         continue-on-error: true

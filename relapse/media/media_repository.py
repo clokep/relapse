@@ -17,7 +17,7 @@ import logging
 import os
 import shutil
 from io import BytesIO
-from typing import IO, TYPE_CHECKING, Dict, List, Optional, Set, Tuple
+from typing import IO, TYPE_CHECKING, Optional
 
 import attr
 from matrix_common.types.mxc_uri import MXCUri
@@ -96,8 +96,8 @@ class MediaRepository:
 
         self.remote_media_linearizer = Linearizer(name="media_remote")
 
-        self.recently_accessed_remotes: Set[Tuple[str, str]] = set()
-        self.recently_accessed_locals: Set[str] = set()
+        self.recently_accessed_remotes: set[tuple[str, str]] = set()
+        self.recently_accessed_locals: set[str] = set()
 
         self.federation_domain_whitelist = (
             hs.config.federation.federation_domain_whitelist
@@ -191,7 +191,7 @@ class MediaRepository:
             self.recently_accessed_locals.add(media_id)
 
     @trace
-    async def create_media_id(self, auth_user: UserID) -> Tuple[str, int]:
+    async def create_media_id(self, auth_user: UserID) -> tuple[str, int]:
         """Create and store a media ID for a local user and return the MXC URI and its
         expiration.
 
@@ -212,7 +212,7 @@ class MediaRepository:
         return f"mxc://{self.server_name}/{media_id}", now + self.unused_expiration_time
 
     @trace
-    async def reached_pending_media_limit(self, auth_user: UserID) -> Tuple[bool, int]:
+    async def reached_pending_media_limit(self, auth_user: UserID) -> tuple[bool, int]:
         """Check if the user is over the limit for pending media uploads.
 
         Args:
@@ -547,7 +547,7 @@ class MediaRepository:
 
     async def _get_remote_media_impl(
         self, server_name: str, media_id: str, max_timeout_ms: int
-    ) -> Tuple[Optional[Responder], RemoteMedia]:
+    ) -> tuple[Optional[Responder], RemoteMedia]:
         """Looks for media in local cache, if not there then attempt to
         download from remote server.
 
@@ -731,7 +731,7 @@ class MediaRepository:
 
     def _get_thumbnail_requirements(
         self, media_type: str
-    ) -> Tuple[ThumbnailRequirement, ...]:
+    ) -> tuple[ThumbnailRequirement, ...]:
         scpos = media_type.find(";")
         if scpos > 0:
             media_type = media_type[:scpos]
@@ -982,7 +982,7 @@ class MediaRepository:
 
             # We deduplicate the thumbnail sizes by ignoring the cropped versions if
             # they have the same dimensions of a scaled one.
-            thumbnails: Dict[Tuple[int, int, str], str] = {}
+            thumbnails: dict[tuple[int, int, str], str] = {}
             for requirement in requirements:
                 if requirement.method == "crop":
                     thumbnails.setdefault(
@@ -995,9 +995,9 @@ class MediaRepository:
                     )
                     t_width = min(m_width, t_width)
                     t_height = min(m_height, t_height)
-                    thumbnails[
-                        (t_width, t_height, requirement.media_type)
-                    ] = requirement.method
+                    thumbnails[(t_width, t_height, requirement.media_type)] = (
+                        requirement.method
+                    )
 
             # Now we generate the thumbnails for each dimension, store it
             for (t_width, t_height, t_type), t_method in thumbnails.items():
@@ -1135,7 +1135,7 @@ class MediaRepository:
                 delete_protected_media=False,
             )
 
-    async def delete_old_remote_media(self, before_ts: int) -> Dict[str, int]:
+    async def delete_old_remote_media(self, before_ts: int) -> dict[str, int]:
         old_media = await self.store.get_remote_media_ids(
             before_ts, include_quarantined_media=False
         )
@@ -1171,8 +1171,8 @@ class MediaRepository:
         return {"deleted": deleted}
 
     async def delete_local_media_ids(
-        self, media_ids: List[str]
-    ) -> Tuple[List[str], int]:
+        self, media_ids: list[str]
+    ) -> tuple[list[str], int]:
         """
         Delete the given local or remote media ID from this server
 
@@ -1190,7 +1190,7 @@ class MediaRepository:
         keep_profiles: bool = True,
         delete_quarantined_media: bool = False,
         delete_protected_media: bool = False,
-    ) -> Tuple[List[str], int]:
+    ) -> tuple[list[str], int]:
         """
         Delete local or remote media from this server by size and timestamp. Removes
         media files, any thumbnails and cached URLs.
@@ -1217,8 +1217,8 @@ class MediaRepository:
         return await self._remove_local_media_from_disk(old_media)
 
     async def _remove_local_media_from_disk(
-        self, media_ids: List[str]
-    ) -> Tuple[List[str], int]:
+        self, media_ids: list[str]
+    ) -> tuple[list[str], int]:
         """
         Delete local or remote media from this server. Removes media files,
         any thumbnails and cached URLs.

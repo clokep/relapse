@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Optional, Union
 
 import attr
 from signedjson.types import SigningKey
@@ -103,8 +103,8 @@ class EventBuilder:
 
     async def build(
         self,
-        prev_event_ids: List[str],
-        auth_event_ids: Optional[List[str]],
+        prev_event_ids: list[str],
+        auth_event_ids: Optional[list[str]],
         depth: Optional[int] = None,
     ) -> EventBase:
         """Transform into a fully signed and hashed event
@@ -136,8 +136,8 @@ class EventBuilder:
 
         format_version = self.room_version.event_format
         # The types of auth/prev events changes between event versions.
-        prev_events: Union[StrCollection, List[Tuple[str, Dict[str, str]]]]
-        auth_events: Union[List[str], List[Tuple[str, Dict[str, str]]]]
+        prev_events: Union[StrCollection, list[tuple[str, dict[str, str]]]]
+        auth_events: Union[list[str], list[tuple[str, dict[str, str]]]]
         if format_version == EventFormatVersions.ROOM_V1_V2:
             auth_events = await self._store.add_event_hashes(auth_event_ids)
             prev_events = await self._store.add_event_hashes(prev_event_ids)
@@ -159,7 +159,7 @@ class EventBuilder:
         # the db)
         depth = min(depth, MAX_DEPTH)
 
-        event_dict: Dict[str, Any] = {
+        event_dict: dict[str, Any] = {
             "auth_events": auth_events,
             "prev_events": prev_events,
             "type": self.type,

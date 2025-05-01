@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Dict, Iterable, List, Sequence
+from collections.abc import Iterable, Sequence
 
 from relapse.util.iterutils import (
     chunk_seq,
@@ -60,13 +60,13 @@ class SortTopologically(TestCase):
     def test_empty(self) -> None:
         "Test that an empty graph works correctly"
 
-        graph: Dict[int, List[int]] = {}
+        graph: dict[int, list[int]] = {}
         self.assertEqual(list(sorted_topologically([], graph)), [])
 
     def test_handle_empty_graph(self) -> None:
         "Test that a graph where a node doesn't have an entry is treated as empty"
 
-        graph: Dict[int, List[int]] = {}
+        graph: dict[int, list[int]] = {}
 
         # For disconnected nodes the output is simply sorted.
         self.assertEqual(list(sorted_topologically([1, 2], graph)), [1, 2])
@@ -74,7 +74,7 @@ class SortTopologically(TestCase):
     def test_disconnected(self) -> None:
         "Test that a graph with no edges work"
 
-        graph: Dict[int, List[int]] = {1: [], 2: []}
+        graph: dict[int, list[int]] = {1: [], 2: []}
 
         # For disconnected nodes the output is simply sorted.
         self.assertEqual(list(sorted_topologically([1, 2], graph)), [1, 2])
@@ -82,19 +82,19 @@ class SortTopologically(TestCase):
     def test_linear(self) -> None:
         "Test that a simple `4 -> 3 -> 2 -> 1` graph works"
 
-        graph: Dict[int, List[int]] = {1: [], 2: [1], 3: [2], 4: [3]}
+        graph: dict[int, list[int]] = {1: [], 2: [1], 3: [2], 4: [3]}
 
         self.assertEqual(list(sorted_topologically([4, 3, 2, 1], graph)), [1, 2, 3, 4])
 
     def test_subset(self) -> None:
         "Test that only sorting a subset of the graph works"
-        graph: Dict[int, List[int]] = {1: [], 2: [1], 3: [2], 4: [3]}
+        graph: dict[int, list[int]] = {1: [], 2: [1], 3: [2], 4: [3]}
 
         self.assertEqual(list(sorted_topologically([4, 3], graph)), [3, 4])
 
     def test_fork(self) -> None:
         "Test that a forked graph works"
-        graph: Dict[int, List[int]] = {1: [], 2: [1], 3: [1], 4: [2, 3]}
+        graph: dict[int, list[int]] = {1: [], 2: [1], 3: [1], 4: [2, 3]}
 
         # Valid orderings are `[1, 3, 2, 4]` or `[1, 2, 3, 4]`, but we should
         # always get the same one.
@@ -102,13 +102,13 @@ class SortTopologically(TestCase):
 
     def test_duplicates(self) -> None:
         "Test that a graph with duplicate edges work"
-        graph: Dict[int, List[int]] = {1: [], 2: [1, 1], 3: [2, 2], 4: [3]}
+        graph: dict[int, list[int]] = {1: [], 2: [1, 1], 3: [2, 2], 4: [3]}
 
         self.assertEqual(list(sorted_topologically([4, 3, 2, 1], graph)), [1, 2, 3, 4])
 
     def test_multiple_paths(self) -> None:
         "Test that a graph with multiple paths between two nodes work"
-        graph: Dict[int, List[int]] = {1: [], 2: [1], 3: [2], 4: [3, 2, 1]}
+        graph: dict[int, list[int]] = {1: [], 2: [1], 3: [2], 4: [3, 2, 1]}
 
         self.assertEqual(list(sorted_topologically([4, 3, 2, 1], graph)), [1, 2, 3, 4])
 
@@ -119,13 +119,13 @@ class SortTopologicallyBatched(TestCase):
     def test_empty(self) -> None:
         "Test that an empty graph works correctly"
 
-        graph: Dict[int, List[int]] = {}
+        graph: dict[int, list[int]] = {}
         self.assertEqual(list(sorted_topologically_batched([], graph)), [])
 
     def test_handle_empty_graph(self) -> None:
         "Test that a graph where a node doesn't have an entry is treated as empty"
 
-        graph: Dict[int, List[int]] = {}
+        graph: dict[int, list[int]] = {}
 
         # For disconnected nodes the output is simply sorted.
         self.assertEqual(list(sorted_topologically_batched([1, 2], graph)), [[1, 2]])
@@ -133,7 +133,7 @@ class SortTopologicallyBatched(TestCase):
     def test_disconnected(self) -> None:
         "Test that a graph with no edges work"
 
-        graph: Dict[int, List[int]] = {1: [], 2: []}
+        graph: dict[int, list[int]] = {1: [], 2: []}
 
         # For disconnected nodes the output is simply sorted.
         self.assertEqual(list(sorted_topologically_batched([1, 2], graph)), [[1, 2]])
@@ -141,7 +141,7 @@ class SortTopologicallyBatched(TestCase):
     def test_linear(self) -> None:
         "Test that a simple `4 -> 3 -> 2 -> 1` graph works"
 
-        graph: Dict[int, List[int]] = {1: [], 2: [1], 3: [2], 4: [3]}
+        graph: dict[int, list[int]] = {1: [], 2: [1], 3: [2], 4: [3]}
 
         self.assertEqual(
             list(sorted_topologically_batched([4, 3, 2, 1], graph)),
@@ -150,13 +150,13 @@ class SortTopologicallyBatched(TestCase):
 
     def test_subset(self) -> None:
         "Test that only sorting a subset of the graph works"
-        graph: Dict[int, List[int]] = {1: [], 2: [1], 3: [2], 4: [3]}
+        graph: dict[int, list[int]] = {1: [], 2: [1], 3: [2], 4: [3]}
 
         self.assertEqual(list(sorted_topologically_batched([4, 3], graph)), [[3], [4]])
 
     def test_fork(self) -> None:
         "Test that a forked graph works"
-        graph: Dict[int, List[int]] = {1: [], 2: [1], 3: [1], 4: [2, 3]}
+        graph: dict[int, list[int]] = {1: [], 2: [1], 3: [1], 4: [2, 3]}
 
         # Valid orderings are `[1, 3, 2, 4]` or `[1, 2, 3, 4]`, but we should
         # always get the same one.
@@ -166,7 +166,7 @@ class SortTopologicallyBatched(TestCase):
 
     def test_duplicates(self) -> None:
         "Test that a graph with duplicate edges work"
-        graph: Dict[int, List[int]] = {1: [], 2: [1, 1], 3: [2, 2], 4: [3]}
+        graph: dict[int, list[int]] = {1: [], 2: [1, 1], 3: [2, 2], 4: [3]}
 
         self.assertEqual(
             list(sorted_topologically_batched([4, 3, 2, 1], graph)),
@@ -175,7 +175,7 @@ class SortTopologicallyBatched(TestCase):
 
     def test_multiple_paths(self) -> None:
         "Test that a graph with multiple paths between two nodes work"
-        graph: Dict[int, List[int]] = {1: [], 2: [1], 3: [2], 4: [3, 2, 1]}
+        graph: dict[int, list[int]] = {1: [], 2: [1], 3: [2], 4: [3, 2, 1]}
 
         self.assertEqual(
             list(sorted_topologically_batched([4, 3, 2, 1], graph)),

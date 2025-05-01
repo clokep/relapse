@@ -16,7 +16,7 @@
 import json
 import logging
 import urllib.parse
-from typing import TYPE_CHECKING, Any, Optional, Set, Tuple, cast
+from typing import TYPE_CHECKING, Any, Optional, cast
 
 from twisted.internet import protocol
 from twisted.internet.interfaces import ITCPTransport
@@ -59,7 +59,7 @@ HOP_BY_HOP_HEADERS = {
 
 def parse_connection_header_value(
     connection_header_value: Optional[bytes],
-) -> Set[str]:
+) -> set[str]:
     """
     Parse the `Connection` header to determine which headers we should not be copied
     over from the remote response.
@@ -80,7 +80,7 @@ def parse_connection_header_value(
         The keys are capitalized in canonical capitalization.
     """
     headers = Headers()
-    extra_headers_to_remove: Set[str] = set()
+    extra_headers_to_remove: set[str] = set()
     if connection_header_value:
         extra_headers_to_remove = {
             headers._canonicalNameCaps(connection_option.strip()).decode("ascii")
@@ -134,7 +134,7 @@ class ProxyResource(_AsyncResource):
             "Invalid Proxy-Authorization header.", Codes.UNAUTHORIZED
         )
 
-    async def _async_render(self, request: "RelapseRequest") -> Tuple[int, Any]:
+    async def _async_render(self, request: "RelapseRequest") -> tuple[int, Any]:
         uri = urllib.parse.urlparse(request.uri)
         assert uri.scheme == b"matrix-federation"
 

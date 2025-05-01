@@ -15,19 +15,9 @@
 import collections
 import itertools
 import logging
+from collections.abc import Collection, Container, Iterable, Sequence
 from http import HTTPStatus
-from typing import (
-    TYPE_CHECKING,
-    Collection,
-    Container,
-    Dict,
-    Iterable,
-    List,
-    Optional,
-    Sequence,
-    Set,
-    Tuple,
-)
+from typing import TYPE_CHECKING, Optional
 
 from prometheus_client import Counter, Histogram
 
@@ -182,7 +172,7 @@ class FederationEventHandler:
         # For each room, a list of (pdu, origin) tuples.
         # TODO: replace this with something more elegant, probably based around the
         # federation event staging area.
-        self.room_queues: Dict[str, List[Tuple[EventBase, str]]] = {}
+        self.room_queues: dict[str, list[tuple[EventBase, str]]] = {}
 
         self._room_pdu_linearizer = Linearizer("fed_room_pdu")
 
@@ -338,7 +328,7 @@ class FederationEventHandler:
 
     async def on_send_membership_event(
         self, origin: str, event: EventBase
-    ) -> Tuple[EventBase, EventContext]:
+    ) -> tuple[EventBase, EventContext]:
         """
         We have received a join/leave/knock event for a room via send_join/leave/knock.
 
@@ -465,8 +455,8 @@ class FederationEventHandler:
         self,
         origin: str,
         room_id: str,
-        auth_events: List[EventBase],
-        state: List[EventBase],
+        auth_events: list[EventBase],
+        state: list[EventBase],
         event: EventBase,
         room_version: RoomVersion,
         partial_state: bool,
@@ -549,7 +539,7 @@ class FederationEventHandler:
                 )
                 missing_event_ids = prev_event_ids - seen_event_ids
 
-                state_maps_to_resolve: List[StateMap[str]] = []
+                state_maps_to_resolve: list[StateMap[str]] = []
 
                 # Fetch the state after the prev events that we know about.
                 state_maps_to_resolve.extend(
@@ -705,7 +695,7 @@ class FederationEventHandler:
 
     @trace
     async def _get_missing_events_for_pdu(
-        self, origin: str, pdu: EventBase, prevs: Set[str], min_depth: int
+        self, origin: str, pdu: EventBase, prevs: set[str], min_depth: int
     ) -> None:
         """
         Args:
@@ -852,7 +842,7 @@ class FederationEventHandler:
             [event.event_id for event in events]
         )
 
-        new_events: List[EventBase] = []
+        new_events: list[EventBase] = []
         for event in events:
             event_id = event.event_id
 
@@ -1141,7 +1131,7 @@ class FederationEventHandler:
             )
 
             # state_maps is a list of mappings from (type, state_key) to event_id
-            state_maps: List[StateMap[str]] = list(ours.values())
+            state_maps: list[StateMap[str]] = list(ours.values())
 
             # we don't need this any more, let's delete it.
             del ours
@@ -1357,9 +1347,9 @@ class FederationEventHandler:
             )
 
         if remote_event.is_state() and remote_event.rejected_reason is None:
-            state_map[
-                (remote_event.type, remote_event.state_key)
-            ] = remote_event.event_id
+            state_map[(remote_event.type, remote_event.state_key)] = (
+                remote_event.event_id
+            )
 
         return state_map
 
@@ -1597,7 +1587,7 @@ class FederationEventHandler:
 
         room_version = await self._store.get_room_version(room_id)
 
-        events: List[EventBase] = []
+        events: list[EventBase] = []
 
         async def get_event(event_id: str) -> None:
             with nested_logging_context(event_id):
@@ -1724,7 +1714,7 @@ class FederationEventHandler:
             allow_rejected=True,
         )
 
-        events_and_contexts_to_persist: List[Tuple[EventBase, EventContext]] = []
+        events_and_contexts_to_persist: list[tuple[EventBase, EventContext]] = []
 
         async def prep(event: EventBase) -> None:
             with nested_logging_context(suffix=event.event_id):
@@ -2006,7 +1996,7 @@ class FederationEventHandler:
             state_sets_d = await self._state_storage_controller.get_state_groups_ids(
                 event.room_id, extrem_ids
             )
-            state_sets: List[StateMap[str]] = list(state_sets_d.values())
+            state_sets: list[StateMap[str]] = list(state_sets_d.values())
             state_ids = await context.get_prev_state_ids()
             state_sets.append(state_ids)
             current_state_ids = (
@@ -2218,7 +2208,7 @@ class FederationEventHandler:
     async def persist_events_and_notify(
         self,
         room_id: str,
-        event_and_contexts: Sequence[Tuple[EventBase, EventContext]],
+        event_and_contexts: Sequence[tuple[EventBase, EventContext]],
         backfilled: bool = False,
     ) -> int:
         """Persists events and tells the notifier/pushers about them, if

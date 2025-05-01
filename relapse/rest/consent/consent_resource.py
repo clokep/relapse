@@ -17,7 +17,7 @@ import logging
 from hashlib import sha256
 from http import HTTPStatus
 from os import path
-from typing import TYPE_CHECKING, Any, Dict, List
+from typing import TYPE_CHECKING, Any
 
 import jinja2
 from jinja2 import TemplateNotFound
@@ -115,7 +115,7 @@ class ConsentResource(DirectServeHtmlResource):
         has_consented = False
         public_version = username == ""
         if not public_version:
-            args: Dict[bytes, List[bytes]] = request.args  # type: ignore
+            args: dict[bytes, list[bytes]] = request.args  # type: ignore
             userhmac_bytes = parse_bytes_from_args(args, "h", required=True)
 
             self._check_hash(username, userhmac_bytes)
@@ -148,7 +148,7 @@ class ConsentResource(DirectServeHtmlResource):
     async def _async_render_POST(self, request: Request) -> None:
         version = parse_string(request, "v", required=True)
         username = parse_string(request, "u", required=True)
-        args: Dict[bytes, List[bytes]] = request.args  # type: ignore
+        args: dict[bytes, list[bytes]] = request.args  # type: ignore
         userhmac = parse_bytes_from_args(args, "h", required=True)
 
         self._check_hash(username, userhmac)

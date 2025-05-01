@@ -14,8 +14,10 @@
 
 """This module contains logic for storing HTTP PUT transactions. This is used
 to ensure idempotency when performing PUTs using the REST API."""
+
 import logging
-from typing import TYPE_CHECKING, Awaitable, Callable, Dict, Hashable, Tuple
+from collections.abc import Awaitable, Hashable
+from typing import TYPE_CHECKING, Callable, Tuple
 
 from typing_extensions import ParamSpec
 
@@ -43,8 +45,8 @@ class HttpTransactionCache:
         self.hs = hs
         self.clock = self.hs.get_clock()
         # $txn_key: (ObservableDeferred<(res_code, res_json_body)>, timestamp)
-        self.transactions: Dict[
-            Hashable, Tuple[ObservableDeferred[Tuple[int, JsonDict]], int]
+        self.transactions: dict[
+            Hashable, tuple[ObservableDeferred[tuple[int, JsonDict]], int]
         ] = {}
         # Try to clean entries every 30 mins. This means entries will exist
         # for at *LEAST* 30 mins, and at *MOST* 60 mins.
@@ -86,16 +88,16 @@ class HttpTransactionCache:
         # (appservice and guest users), but does not cover access tokens minted
         # by the admin API. Use the access token ID instead.
         else:
-            assert (
-                requester.access_token_id is not None
-            ), "Requester must have an access_token_id"
+            assert requester.access_token_id is not None, (
+                "Requester must have an access_token_id"
+            )
             return (path, "user_admin", requester.access_token_id)
 
     def fetch_or_execute_request(
         self,
         request: IRequest,
         requester: Requester,
-        fn: Callable[P, Awaitable[Tuple[int, JsonDict]]],
+        fn: Callable[P, Awaitable[tuple[int, JsonDict]]],
         *args: P.args,
         **kwargs: P.kwargs,
     ) -> "Deferred[Tuple[int, JsonDict]]":

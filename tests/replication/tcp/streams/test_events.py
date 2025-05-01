@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, List, Optional
+from typing import Any, Optional
 
 from parameterized import parameterized
 
@@ -275,7 +275,7 @@ class EventsStreamTestCase(BaseStreamTestCase):
             self.assertEqual(row.data.event_id, pl_event.event_id)
 
             # the state rows are unsorted
-            state_rows: List[EventsStreamCurrentStateRow] = []
+            state_rows: list[EventsStreamCurrentStateRow] = []
             for stream_name, _, row in received_rows:
                 self.assertEqual("events", stream_name)
                 self.assertIsInstance(row, EventsStreamRow)
@@ -318,7 +318,7 @@ class EventsStreamTestCase(BaseStreamTestCase):
         pls = self.helper.get_state(
             self.room_id, EventTypes.PowerLevels, tok=self.user_tok
         )
-        pls["users"].update({u: 50 for u in user_ids})
+        pls["users"].update(dict.fromkeys(user_ids, 50))
         self.helper.send_state(
             self.room_id,
             EventTypes.PowerLevels,
@@ -331,7 +331,7 @@ class EventsStreamTestCase(BaseStreamTestCase):
             self.hs.get_datastores().main.get_latest_event_ids_in_room(self.room_id)
         )
 
-        events: List[EventBase] = []
+        events: list[EventBase] = []
         for user in user_ids:
             events.extend(
                 self._inject_state_event(sender=user) for _ in range(STATES_PER_USER)
@@ -392,7 +392,7 @@ class EventsStreamTestCase(BaseStreamTestCase):
             self.assertEqual(row.data.event_id, pl_events[i].event_id)
 
             # the state rows are unsorted
-            state_rows: List[EventsStreamCurrentStateRow] = []
+            state_rows: list[EventsStreamCurrentStateRow] = []
             for _ in range(STATES_PER_USER + 1):
                 stream_name, token, row = received_rows.pop(0)
                 self.assertEqual("events", stream_name)

@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Collection, List, Optional, Union
+from collections.abc import Collection
+from typing import Optional, Union
 from unittest.mock import AsyncMock, Mock
 
 from twisted.test.proto_helpers import MemoryReactor
@@ -91,10 +92,12 @@ class MessageAcceptTests(unittest.HomeserverTestCase):
 
         async def _check_sigs_and_hash_for_pulled_events_and_fetch(
             dest: str, pdus: Collection[EventBase], room_version: RoomVersion
-        ) -> List[EventBase]:
+        ) -> list[EventBase]:
             return list(pdus)
 
-        self.client._check_sigs_and_hash_for_pulled_events_and_fetch = _check_sigs_and_hash_for_pulled_events_and_fetch  # type: ignore[assignment]
+        self.client._check_sigs_and_hash_for_pulled_events_and_fetch = (  # type: ignore[method-assign]
+            _check_sigs_and_hash_for_pulled_events_and_fetch  # type: ignore[assignment]
+        )
 
         # Send the join, it should return None (which is not an error)
         self.assertEqual(

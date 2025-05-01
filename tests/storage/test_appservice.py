@@ -14,7 +14,7 @@
 import json
 import os
 import tempfile
-from typing import List, cast
+from typing import cast
 from unittest.mock import AsyncMock, Mock
 
 import yaml
@@ -41,7 +41,7 @@ class ApplicationServiceStoreTestCase(unittest.HomeserverTestCase):
     def setUp(self) -> None:
         super().setUp()
 
-        self.as_yaml_files: List[str] = []
+        self.as_yaml_files: list[str] = []
 
         self.hs.config.appservice.app_service_config_files = self.as_yaml_files
         self.hs.config.caches.event_cache_size = 1
@@ -110,7 +110,7 @@ class ApplicationServiceStoreTestCase(unittest.HomeserverTestCase):
 class ApplicationServiceTransactionStoreTestCase(unittest.HomeserverTestCase):
     def setUp(self) -> None:
         super().setUp()
-        self.as_yaml_files: List[str] = []
+        self.as_yaml_files: list[str] = []
 
         self.hs.config.appservice.app_service_config_files = self.as_yaml_files
         self.hs.config.caches.event_cache_size = 1
@@ -159,7 +159,7 @@ class ApplicationServiceTransactionStoreTestCase(unittest.HomeserverTestCase):
         )
 
     def _insert_txn(
-        self, as_id: str, txn_id: int, events: List[Mock]
+        self, as_id: str, txn_id: int, events: list[Mock]
     ) -> "defer.Deferred[None]":
         return self.db_pool.runOperation(
             self.engine.convert_param_style(
@@ -256,7 +256,7 @@ class ApplicationServiceTransactionStoreTestCase(unittest.HomeserverTestCase):
         self,
     ) -> None:
         service = Mock(id=self.as_list[0]["id"])
-        events = cast(List[EventBase], [Mock(event_id="e1"), Mock(event_id="e2")])
+        events = cast(list[EventBase], [Mock(event_id="e1"), Mock(event_id="e2")])
         txn = self.get_success(
             defer.ensureDeferred(
                 self.store.create_appservice_txn(

@@ -14,7 +14,8 @@
 
 import logging
 from collections import OrderedDict
-from typing import Any, Generic, Iterable, Optional, TypeVar, Union, overload
+from collections.abc import Iterable
+from typing import Any, Generic, Optional, TypeVar, Union, overload
 
 import attr
 from typing_extensions import Literal
@@ -145,12 +146,10 @@ class ExpiringCache(Generic[KT, VT]):
         return key in self._cache
 
     @overload
-    def get(self, key: KT, default: Literal[None] = None) -> Optional[VT]:
-        ...
+    def get(self, key: KT, default: Literal[None] = None) -> Optional[VT]: ...
 
     @overload
-    def get(self, key: KT, default: T) -> Union[VT, T]:
-        ...
+    def get(self, key: KT, default: T) -> Union[VT, T]: ...
 
     def get(self, key: KT, default: Optional[T] = None) -> Union[VT, Optional[T]]:
         try:

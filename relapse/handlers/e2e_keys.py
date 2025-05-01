@@ -14,7 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-from typing import TYPE_CHECKING, Dict, Iterable, List, Mapping, Optional, Tuple
+from collections.abc import Iterable, Mapping
+from typing import TYPE_CHECKING, Optional
 
 import attr
 from canonicaljson import encode_canonical_json
@@ -131,7 +132,7 @@ class E2eKeysHandler:
                 the number of in-flight queries at a time.
         """
         async with self._query_devices_linearizer.queue((from_user_id, from_device_id)):
-            device_keys_query: Dict[str, List[str]] = query_body.get("device_keys", {})
+            device_keys_query: dict[str, list[str]] = query_body.get("device_keys", {})
 
             # separate users by domain.
             # make a map from domain to user_id to device_ids
@@ -150,7 +151,7 @@ class E2eKeysHandler:
 
             # First get local devices.
             # A map of destination -> failure response.
-            failures: Dict[str, JsonDict] = {}
+            failures: dict[str, JsonDict] = {}
             results = {}
             if local_query:
                 local_result = await self.query_local_devices(local_query)
@@ -165,10 +166,10 @@ class E2eKeysHandler:
 
             # Now attempt to get any remote devices from our local cache.
             # A map of destination -> user ID -> device IDs.
-            remote_queries_not_in_cache: Dict[str, Dict[str, Iterable[str]]] = {}
+            remote_queries_not_in_cache: dict[str, dict[str, Iterable[str]]] = {}
             if remote_queries:
                 user_ids = set()
-                user_and_device_ids: List[Tuple[str, str]] = []
+                user_and_device_ids: list[tuple[str, str]] = []
                 for user_id, device_ids in remote_queries.items():
                     if device_ids:
                         user_and_device_ids.extend(
@@ -254,7 +255,7 @@ class E2eKeysHandler:
             )
 
             async def _query(
-                destination_queries: Tuple[str, Dict[str, Iterable[str]]]
+                destination_queries: tuple[str, dict[str, Iterable[str]]],
             ) -> None:
                 destination, queries = destination_queries
                 return await self._query_devices_for_destination(
@@ -280,9 +281,9 @@ class E2eKeysHandler:
         self,
         results: JsonDict,
         cross_signing_keys: JsonDict,
-        failures: Dict[str, JsonDict],
+        failures: dict[str, JsonDict],
         destination: str,
-        destination_query: Dict[str, Iterable[str]],
+        destination_query: dict[str, Iterable[str]],
         timeout: int,
     ) -> None:
         """This is called when we are querying the device list of a user on
@@ -405,7 +406,7 @@ class E2eKeysHandler:
     @cancellable
     async def get_cross_signing_keys_from_cache(
         self, query: Iterable[str], from_user_id: Optional[str]
-    ) -> Dict[str, Dict[str, JsonMapping]]:
+    ) -> dict[str, dict[str, JsonMapping]]:
         """Get cross-signing keys for users from the database
 
         Args:
@@ -452,9 +453,9 @@ class E2eKeysHandler:
     @cancellable
     async def query_local_devices(
         self,
-        query: Mapping[str, Optional[List[str]]],
+        query: Mapping[str, Optional[list[str]]],
         include_displaynames: bool = True,
-    ) -> Dict[str, Dict[str, dict]]:
+    ) -> dict[str, dict[str, dict]]:
         """Get E2E device keys for local users
 
         Args:
@@ -467,9 +468,9 @@ class E2eKeysHandler:
             A map from user_id -> device_id -> device details
         """
         set_tag("local_query", str(query))
-        local_query: List[Tuple[str, Optional[str]]] = []
+        local_query: list[tuple[str, Optional[str]]] = []
 
-        result_dict: Dict[str, Dict[str, dict]] = {}
+        result_dict: dict[str, dict[str, dict]] = {}
         for user_id, device_ids in query.items():
             # we use UserID.from_string to catch invalid user ids
             if not self.is_mine(UserID.from_string(user_id)):
@@ -519,7 +520,7 @@ class E2eKeysHandler:
         return result_dict
 
     async def on_federation_query_client_keys(
-        self, query_body: Dict[str, Dict[str, Optional[List[str]]]]
+        self, query_body: dict[str, dict[str, Optional[list[str]]]]
     ) -> JsonDict:
         """Handle a device key query from a federated server:
 
@@ -539,7 +540,7 @@ class E2eKeysHandler:
                 - self_signing_key: An optional dictionary of user ID -> self-signing
                     key info.
         """
-        device_keys_query: Dict[str, Optional[List[str]]] = query_body.get(
+        device_keys_query: dict[str, Optional[list[str]]] = query_body.get(
             "device_keys", {}
         )
         if any(
@@ -564,9 +565,9 @@ class E2eKeysHandler:
 
     async def claim_local_one_time_keys(
         self,
-        local_query: List[Tuple[str, str, str, int]],
+        local_query: list[tuple[str, str, str, int]],
         always_include_fallback_keys: bool,
-    ) -> Iterable[Dict[str, Dict[str, Dict[str, JsonDict]]]]:
+    ) -> Iterable[dict[str, dict[str, dict[str, JsonDict]]]]:
         """Claim one time keys for local users.
 
         1. Attempt to claim OTKs from the database.
@@ -660,7 +661,7 @@ class E2eKeysHandler:
     @trace
     async def claim_one_time_keys(
         self,
-        query: Dict[str, Dict[str, Dict[str, int]]],
+        query: dict[str, dict[str, dict[str, int]]],
         user: UserID,
         timeout: Optional[int],
         always_include_fallback_keys: bool,
@@ -679,8 +680,8 @@ class E2eKeysHandler:
             one_time_keys: chain of maps user ID -> device ID -> key ID -> key.
             failures: map from remote destination to a JsonDict describing the error.
         """
-        local_query: List[Tuple[str, str, str, int]] = []
-        remote_queries: Dict[str, Dict[str, Dict[str, Dict[str, int]]]] = {}
+        local_query: list[tuple[str, str, str, int]] = []
+        remote_queries: dict[str, dict[str, dict[str, dict[str, int]]]] = {}
 
         for user_id, one_time_keys in query.items():
             # we use UserID.from_string to catch invalid user ids
@@ -700,7 +701,7 @@ class E2eKeysHandler:
         )
 
         # A map of user ID -> device ID -> key ID -> key.
-        json_result: Dict[str, Dict[str, Dict[str, JsonDict]]] = {}
+        json_result: dict[str, dict[str, dict[str, JsonDict]]] = {}
         for result in results:
             for user_id, device_keys in result.items():
                 for device_id, keys in device_keys.items():
@@ -710,7 +711,7 @@ class E2eKeysHandler:
                         ).update({key_id: key})
 
         # Remote failures.
-        failures: Dict[str, JsonDict] = {}
+        failures: dict[str, JsonDict] = {}
 
         @trace
         async def claim_client_keys(destination: str) -> None:
@@ -875,10 +876,7 @@ class E2eKeysHandler:
                 if not _one_time_keys_match(ex_json, key):
                     raise RelapseError(
                         400,
-                        (
-                            "One time key %s:%s already exists. "
-                            "Old key: %s; new key: %r"
-                        )
+                        ("One time key %s:%s already exists. Old key: %s; new key: %r")
                         % (algorithm, key_id, ex_json, key),
                     )
             else:
@@ -1033,7 +1031,7 @@ class E2eKeysHandler:
 
     async def _process_self_signatures(
         self, user_id: str, signatures: JsonDict
-    ) -> Tuple[List["SignatureListItem"], Dict[str, Dict[str, dict]]]:
+    ) -> tuple[list["SignatureListItem"], dict[str, dict[str, dict]]]:
         """Process uploaded signatures of the user's own keys.
 
         Signatures of the user's own keys from this API come in two forms:
@@ -1051,8 +1049,8 @@ class E2eKeysHandler:
         Raises:
             RelapseError: if the input is malformed
         """
-        signature_list: List["SignatureListItem"] = []
-        failures: Dict[str, Dict[str, JsonDict]] = {}
+        signature_list: list["SignatureListItem"] = []
+        failures: dict[str, dict[str, JsonDict]] = {}
         if not signatures:
             return signature_list, failures
 
@@ -1088,7 +1086,7 @@ class E2eKeysHandler:
             devices = devices[user_id]
         except RelapseError as e:
             failure = _exception_to_failure(e)
-            failures[user_id] = {device: failure for device in signatures.keys()}
+            failures[user_id] = dict.fromkeys(signatures.keys(), failure)
             return signature_list, failures
 
         for device_id, device in signatures.items():
@@ -1152,8 +1150,8 @@ class E2eKeysHandler:
         master_key_id: str,
         signed_master_key: JsonDict,
         stored_master_key: JsonMapping,
-        devices: Dict[str, Dict[str, JsonDict]],
-    ) -> List["SignatureListItem"]:
+        devices: dict[str, dict[str, JsonDict]],
+    ) -> list["SignatureListItem"]:
         """Check signatures of a user's master key made by their devices.
 
         Args:
@@ -1196,8 +1194,8 @@ class E2eKeysHandler:
         return master_key_signature_list
 
     async def _process_other_signatures(
-        self, user_id: str, signatures: Dict[str, dict]
-    ) -> Tuple[List["SignatureListItem"], Dict[str, Dict[str, dict]]]:
+        self, user_id: str, signatures: dict[str, dict]
+    ) -> tuple[list["SignatureListItem"], dict[str, dict[str, dict]]]:
         """Process uploaded signatures of other users' keys.  These will be the
         target user's master keys, signed by the uploading user's user-signing
         key.
@@ -1213,8 +1211,8 @@ class E2eKeysHandler:
         Raises:
             RelapseError: if the input is malformed
         """
-        signature_list: List["SignatureListItem"] = []
-        failures: Dict[str, Dict[str, JsonDict]] = {}
+        signature_list: list["SignatureListItem"] = []
+        failures: dict[str, dict[str, JsonDict]] = {}
         if not signatures:
             return signature_list, failures
 
@@ -1228,7 +1226,7 @@ class E2eKeysHandler:
         except RelapseError as e:
             failure = _exception_to_failure(e)
             for user, devicemap in signatures.items():
-                failures[user] = {device_id: failure for device_id in devicemap.keys()}
+                failures[user] = dict.fromkeys(devicemap.keys(), failure)
             return signature_list, failures
 
         for target_user, devicemap in signatures.items():
@@ -1269,9 +1267,7 @@ class E2eKeysHandler:
                     # other devices were signed -- mark those as failures
                     logger.debug("upload signature: too many devices specified")
                     failure = _exception_to_failure(NotFoundError("Unknown device"))
-                    failures[target_user] = {
-                        device: failure for device in other_devices
-                    }
+                    failures[target_user] = dict.fromkeys(other_devices, failure)
 
                 if user_signing_key_id in master_key.get("signatures", {}).get(
                     user_id, {}
@@ -1292,9 +1288,7 @@ class E2eKeysHandler:
             except RelapseError as e:
                 failure = _exception_to_failure(e)
                 if device_id is None:
-                    failures[target_user] = {
-                        device_id: failure for device_id in devicemap.keys()
-                    }
+                    failures[target_user] = dict.fromkeys(devicemap.keys(), failure)
                 else:
                     failures.setdefault(target_user, {})[device_id] = failure
 
@@ -1302,7 +1296,7 @@ class E2eKeysHandler:
 
     async def _get_e2e_cross_signing_verify_key(
         self, user_id: str, key_type: str, from_user_id: Optional[str] = None
-    ) -> Tuple[JsonMapping, str, VerifyKey]:
+    ) -> tuple[JsonMapping, str, VerifyKey]:
         """Fetch locally or remotely query for a cross-signing public key.
 
         First, attempt to fetch the cross-signing public key from storage.
@@ -1357,7 +1351,7 @@ class E2eKeysHandler:
         self,
         user: UserID,
         desired_key_type: str,
-    ) -> Optional[Tuple[JsonMapping, str, VerifyKey]]:
+    ) -> Optional[tuple[JsonMapping, str, VerifyKey]]:
         """Queries cross-signing keys for a remote user and saves them to the database
 
         Only the key specified by `key_type` will be returned, while all retrieved keys
@@ -1450,7 +1444,7 @@ class E2eKeysHandler:
 
         return desired_key_data
 
-    async def check_cross_signing_setup(self, user_id: str) -> Tuple[bool, bool]:
+    async def check_cross_signing_setup(self, user_id: str) -> tuple[bool, bool]:
         """Checks if the user has cross-signing set up
 
         Args:
@@ -1602,7 +1596,7 @@ class SigningKeyEduUpdater:
         self._remote_edu_linearizer = Linearizer(name="remote_signing_key")
 
         # user_id -> list of updates waiting to be handled.
-        self._pending_updates: Dict[str, List[Tuple[JsonDict, JsonDict]]] = {}
+        self._pending_updates: dict[str, list[tuple[JsonDict, JsonDict]]] = {}
 
     async def incoming_signing_key_update(
         self, origin: str, edu_content: JsonDict
@@ -1648,7 +1642,7 @@ class SigningKeyEduUpdater:
                 # This can happen since we batch updates
                 return
 
-            device_ids: List[str] = []
+            device_ids: list[str] = []
 
             logger.info("pending updates: %r", pending_updates)
 

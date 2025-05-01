@@ -13,8 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""An interactive script for doing a release. See `cli()` below.
-"""
+"""An interactive script for doing a release. See `cli()` below."""
 
 import glob
 import json
@@ -25,8 +24,9 @@ import sys
 import time
 import urllib.request
 from os import path
+from re import Match
 from tempfile import TemporaryDirectory
-from typing import Any, List, Match, Optional, Union
+from typing import Any, Optional, Union
 
 import attr
 import click
@@ -789,7 +789,7 @@ def get_changes_for_version(wanted_version: version.Version) -> str:
         start_line: int
         end_line: Optional[int] = None  # Is none if its the last entry
 
-    headings: List[VersionSection] = []
+    headings: list[VersionSection] = []
     for node, _ in ast.walker():
         # We look for all text nodes that are in a level 1 heading.
         if node.t != "text":

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Dict, Optional, Tuple
+from typing import Callable, Optional
 
 import attr
 
@@ -100,7 +100,7 @@ class RoomVersion:
     # is not enough to mark it "supported": the push rule evaluator also needs to
     # support the flag. Unknown flags are ignored by the evaluator, making conditions
     # fail if used.
-    msc3931_push_features: Tuple[str, ...]  # values from PushRuleRoomFlag
+    msc3931_push_features: tuple[str, ...]  # values from PushRuleRoomFlag
 
 
 class RoomVersions:
@@ -335,7 +335,7 @@ class RoomVersions:
     )
 
 
-KNOWN_ROOM_VERSIONS: Dict[str, RoomVersion] = {
+KNOWN_ROOM_VERSIONS: dict[str, RoomVersion] = {
     v.identifier: v
     for v in (
         RoomVersions.V1,

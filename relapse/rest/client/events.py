@@ -13,8 +13,9 @@
 # limitations under the License.
 
 """This module contains REST servlets to do with event streaming, /events."""
+
 import logging
-from typing import TYPE_CHECKING, Dict, List, Tuple, Union
+from typing import TYPE_CHECKING, Union
 
 from relapse.api.errors import RelapseError
 from relapse.events.utils import SerializeEventConfig
@@ -43,9 +44,9 @@ class EventStreamRestServlet(RestServlet):
         self.auth = hs.get_auth()
         self.store = hs.get_datastores().main
 
-    async def on_GET(self, request: RelapseRequest) -> Tuple[int, JsonDict]:
+    async def on_GET(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         requester = await self.auth.get_user_by_req(request, allow_guest=True)
-        args: Dict[bytes, List[bytes]] = request.args  # type: ignore
+        args: dict[bytes, list[bytes]] = request.args  # type: ignore
         if requester.is_guest:
             if b"room_id" not in args:
                 raise RelapseError(400, "Guest users must specify room_id param")
@@ -88,7 +89,7 @@ class EventRestServlet(RestServlet):
 
     async def on_GET(
         self, request: RelapseRequest, event_id: str
-    ) -> Tuple[int, Union[str, JsonDict]]:
+    ) -> tuple[int, Union[str, JsonDict]]:
         requester = await self.auth.get_user_by_req(request)
         event = await self.event_handler.get_event(requester.user, None, event_id)
 

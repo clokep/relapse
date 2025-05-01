@@ -14,7 +14,7 @@
 # limitations under the License.
 
 import logging
-from typing import TYPE_CHECKING, Dict, Optional, cast
+from typing import TYPE_CHECKING, Optional, cast
 
 from typing_extensions import Literal
 
@@ -61,8 +61,8 @@ class E2eRoomKeysHandler:
         version: str,
         room_id: Optional[str] = None,
         session_id: Optional[str] = None,
-    ) -> Dict[
-        Literal["rooms"], Dict[str, Dict[Literal["sessions"], Dict[str, RoomKey]]]
+    ) -> dict[
+        Literal["rooms"], dict[str, dict[Literal["sessions"], dict[str, RoomKey]]]
     ]:
         """Bulk get the E2E room keys for a given backup, optionally filtered to a given
         room, or a given session.

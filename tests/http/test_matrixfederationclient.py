@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Dict, Generator
+from collections.abc import Generator
+from typing import Any
 from unittest.mock import ANY, Mock, create_autospec
 
 from netaddr import IPSet
@@ -352,8 +353,7 @@ class FederationClientTests(HomeserverTestCase):
 
         # Send it the HTTP response
         client.dataReceived(
-            b"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n"
-            b"Server: Fake\r\n\r\n"
+            b"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nServer: Fake\r\n\r\n"
         )
 
         # Push by enough to time it out
@@ -607,10 +607,7 @@ class FederationClientTests(HomeserverTestCase):
 
         # Send it a huge HTTP response
         protocol.dataReceived(
-            b"HTTP/1.1 200 OK\r\n"
-            b"Server: Fake\r\n"
-            b"Content-Type: application/json\r\n"
-            b"\r\n"
+            b"HTTP/1.1 200 OK\r\nServer: Fake\r\nContent-Type: application/json\r\n\r\n"
         )
 
         self.pump()
@@ -666,7 +663,7 @@ class FederationClientTests(HomeserverTestCase):
 
 
 class FederationClientProxyTests(BaseMultiWorkerStreamTestCase):
-    def default_config(self) -> Dict[str, Any]:
+    def default_config(self) -> dict[str, Any]:
         conf = super().default_config()
         conf["instance_map"] = {
             "main": {"host": "testserv", "port": 8765},
@@ -811,21 +808,23 @@ class FederationClientProxyTests(BaseMultiWorkerStreamTestCase):
         )
 
         # Fake `remoteserv:8008` responding to requests
-        mock_agent_on_federation_sender.request.side_effect = lambda *args, **kwargs: defer.succeed(
-            FakeResponse(
-                code=200,
-                body=b'{"foo": "bar"}',
-                headers=Headers(
-                    {
-                        "Content-Type": ["application/json"],
-                        "Connection": ["close, X-Foo, X-Bar"],
-                        # Should be removed because it's defined in the `Connection` header
-                        "X-Foo": ["foo"],
-                        "X-Bar": ["bar"],
-                        # Should be removed because it's a hop-by-hop header
-                        "Proxy-Authorization": "abcdef",
-                    }
-                ),
+        mock_agent_on_federation_sender.request.side_effect = (
+            lambda *args, **kwargs: defer.succeed(
+                FakeResponse(
+                    code=200,
+                    body=b'{"foo": "bar"}',
+                    headers=Headers(
+                        {
+                            "Content-Type": ["application/json"],
+                            "Connection": ["close, X-Foo, X-Bar"],
+                            # Should be removed because it's defined in the `Connection` header
+                            "X-Foo": ["foo"],
+                            "X-Bar": ["bar"],
+                            # Should be removed because it's a hop-by-hop header
+                            "Proxy-Authorization": "abcdef",
+                        }
+                    ),
+                )
             )
         )
 

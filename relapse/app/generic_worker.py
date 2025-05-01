@@ -14,7 +14,6 @@
 # limitations under the License.
 import logging
 import sys
-from typing import Dict, List
 
 from twisted.web.resource import Resource
 
@@ -156,13 +155,13 @@ class GenericWorkerStore(
 
 
 class GenericWorkerServer(HomeServer):
-    DATASTORE_CLASS = GenericWorkerStore  # type: ignore
+    DATASTORE_CLASS = GenericWorkerStore
 
     def _listen_http(self, listener_config: ListenerConfig) -> None:
         assert listener_config.http_options is not None
 
         # We always include a health resource.
-        resources: Dict[str, Resource] = {"/health": HealthResource()}
+        resources: dict[str, Resource] = {"/health": HealthResource()}
 
         for res in listener_config.http_options.resources:
             for name in res.names:
@@ -254,8 +253,7 @@ class GenericWorkerServer(HomeServer):
             elif listener.type == "metrics":
                 if not self.config.metrics.enable_metrics:
                     logger.warning(
-                        "Metrics listener configured, but "
-                        "enable_metrics is not True!"
+                        "Metrics listener configured, but enable_metrics is not True!"
                     )
                 else:
                     if isinstance(listener, TCPListenerConfig):
@@ -274,7 +272,7 @@ class GenericWorkerServer(HomeServer):
         self.get_replication_command_handler().start_replication(self)
 
 
-def start(config_options: List[str]) -> None:
+def start(config_options: list[str]) -> None:
     try:
         config = HomeServerConfig.load_config("Relapse worker", config_options)
     except ConfigError as e:

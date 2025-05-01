@@ -14,19 +14,8 @@
 # limitations under the License.
 import collections.abc
 import logging
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Collection,
-    Dict,
-    Iterable,
-    List,
-    Mapping,
-    Optional,
-    Set,
-    Tuple,
-    cast,
-)
+from collections.abc import Collection, Iterable, Mapping
+from typing import TYPE_CHECKING, Any, Optional, cast
 
 import attr
 
@@ -177,7 +166,7 @@ class StateGroupWorkerStore(EventsWorkerStore, SQLBaseStore):
     @trace
     async def get_metadata_for_events(
         self, event_ids: Collection[str]
-    ) -> Dict[str, EventMetadata]:
+    ) -> dict[str, EventMetadata]:
         """Get some metadata (room_id, type, state_key) for the given events.
 
         This method is a faster alternative than fetching the full events from
@@ -190,7 +179,7 @@ class StateGroupWorkerStore(EventsWorkerStore, SQLBaseStore):
         def get_metadata_for_events_txn(
             txn: LoggingTransaction,
             batch_ids: Collection[str],
-        ) -> Dict[str, EventMetadata]:
+        ) -> dict[str, EventMetadata]:
             clause, args = make_in_list_sql_clause(
                 self.database_engine, "e.event_id", batch_ids
             )
@@ -214,7 +203,7 @@ class StateGroupWorkerStore(EventsWorkerStore, SQLBaseStore):
                 for event_id, room_id, event_type, state_key, rejection_reason in txn
             }
 
-        result_map: Dict[str, EventMetadata] = {}
+        result_map: dict[str, EventMetadata] = {}
         for batch_ids in batch_iter(event_ids, 1000):
             result_map.update(
                 await self.db_pool.runInteraction(
@@ -391,7 +380,7 @@ class StateGroupWorkerStore(EventsWorkerStore, SQLBaseStore):
              RuntimeError if the state is unknown at any of the given events
         """
         rows = cast(
-            List[Tuple[str, int]],
+            list[tuple[str, int]],
             await self.db_pool.simple_select_many_batch(
                 table="event_to_state_groups",
                 column="event_id",
@@ -410,7 +399,7 @@ class StateGroupWorkerStore(EventsWorkerStore, SQLBaseStore):
 
     async def get_referenced_state_groups(
         self, state_groups: Iterable[int]
-    ) -> Set[int]:
+    ) -> set[int]:
         """Check if the state groups are referenced by events.
 
         Args:
@@ -421,7 +410,7 @@ class StateGroupWorkerStore(EventsWorkerStore, SQLBaseStore):
         """
 
         rows = cast(
-            List[Tuple[int]],
+            list[tuple[int]],
             await self.db_pool.simple_select_many_batch(
                 table="event_to_state_groups",
                 column="state_group",
@@ -440,7 +429,9 @@ class StateGroupWorkerStore(EventsWorkerStore, SQLBaseStore):
         context: EventContext,
     ) -> None:
         """Update the state group for a partial state event"""
-        async with self._un_partial_stated_events_stream_id_gen.get_next() as un_partial_state_event_stream_id:
+        async with (
+            self._un_partial_stated_events_stream_id_gen.get_next() as un_partial_state_event_stream_id
+        ):
             await self.db_pool.runInteraction(
                 "update_state_for_partial_state_event",
                 self._update_state_for_partial_state_event_txn,
@@ -552,7 +543,7 @@ class MainStateBackgroundUpdateStore(RoomMemberWorkerStore):
 
         def _background_remove_left_rooms_txn(
             txn: LoggingTransaction,
-        ) -> Tuple[bool, Set[str]]:
+        ) -> tuple[bool, set[str]]:
             # get a batch of room ids to consider
             sql = """
                 SELECT DISTINCT room_id FROM current_state_events
@@ -633,7 +624,7 @@ class MainStateBackgroundUpdateStore(RoomMemberWorkerStore):
             # server didn't share a room with the remote user and therefore may
             # have missed any device updates.
             rows = cast(
-                List[Tuple[str]],
+                list[tuple[str]],
                 self.db_pool.simple_select_many_txn(
                     txn,
                     table="current_state_events",

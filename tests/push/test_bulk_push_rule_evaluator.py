@@ -113,9 +113,11 @@ class TestBulkPushRuleEvaluator(HomeserverTestCase):
         #
         # We have seen stringy and null values for "room" in the wild, so presumably
         # some of this validation was missing in the past.
-        with patch("relapse.events.validator.validate_canonicaljson"), patch(
-            "relapse.events.validator.jsonschema.validate"
-        ), patch("relapse.handlers.event_auth.check_state_dependent_auth_rules"):
+        with (
+            patch("relapse.events.validator.validate_canonicaljson"),
+            patch("relapse.events.validator.jsonschema.validate"),
+            patch("relapse.handlers.event_auth.check_state_dependent_auth_rules"),
+        ):
             pl_event_id = self.helper.send_state(
                 self.room_id,
                 "m.room.power_levels",

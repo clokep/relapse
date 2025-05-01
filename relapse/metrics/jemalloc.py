@@ -16,7 +16,8 @@ import ctypes
 import logging
 import os
 import re
-from typing import Iterable, Optional, overload
+from collections.abc import Iterable
+from typing import Optional, overload
 
 import attr
 from prometheus_client import REGISTRY, Metric
@@ -35,14 +36,12 @@ class JemallocStats:
     @overload
     def _mallctl(
         self, name: str, read: Literal[True] = True, write: Optional[int] = None
-    ) -> int:
-        ...
+    ) -> int: ...
 
     @overload
     def _mallctl(
         self, name: str, read: Literal[False], write: Optional[int] = None
-    ) -> None:
-        ...
+    ) -> None: ...
 
     def _mallctl(
         self, name: str, read: bool = True, write: Optional[int] = None

@@ -46,7 +46,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
 
-      - uses: matrix-org/setup-python-poetry@v1
+      - uses: matrix-org/setup-python-poetry@v2
         with:
           python-version: "3.12.x"
           extras: "all"
@@ -71,7 +71,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
 
-      - uses: matrix-org/setup-python-poetry@v1
+      - uses: matrix-org/setup-python-poetry@v2
         with:
           python-version: "3.12.x"
           extras: "all test"
@@ -99,11 +99,11 @@ jobs:
     if: needs.check_repo.outputs.should_run_workflow == 'true'
     runs-on: ubuntu-latest
     container:
-      # We're using ubuntu:focal because it uses Python 3.8 which is our minimum supported Python version.
+      # We're using ubuntu:bullseye because it uses Python 3.9 which is our minimum supported Python version.
       # This job is a canary to warn us about unreleased twisted changes that would cause problems for us if
       # they were to be released immediately. For simplicity's sake (and to save CI runners) we use the oldest
       # version, assuming that any incompatibilities on newer versions would also be present on the oldest.
-      image: matrixdotorg/sytest-relapse:focal
+      image: matrixdotorg/sytest-relapse:bullseye
       volumes:
         - ${{ github.workspace }}:/src
 
@@ -207,7 +207,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: JasonEtco/create-an-issue@e27dddc79c92bc6e4562f268fffa5ed752639abd # v2.9.1
+      - uses: JasonEtco/create-an-issue@1b14a70e4d8dc185e5cc76d3bec9eab20257b2c5 # v2.9.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:

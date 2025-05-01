@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import argparse
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from relapse.api.constants import RoomCreationPreset
 from relapse.config._base import Config, ConfigError, read_file
@@ -164,9 +164,9 @@ class RegistrationConfig(Config):
             refreshable_access_token_lifetime = self.parse_duration(
                 refreshable_access_token_lifetime
             )
-        self.refreshable_access_token_lifetime: Optional[
-            int
-        ] = refreshable_access_token_lifetime
+        self.refreshable_access_token_lifetime: Optional[int] = (
+            refreshable_access_token_lifetime
+        )
 
         if (
             self.session_lifetime is not None
@@ -241,7 +241,7 @@ class RegistrationConfig(Config):
         else:
             return ""
 
-    def generate_files(self, config: Dict[str, Any], config_dir_path: str) -> None:
+    def generate_files(self, config: dict[str, Any], config_dir_path: str) -> None:
         # if 'registration_shared_secret_path' is specified, and the target file
         # does not exist, generate it.
         registration_shared_secret_path = config.get("registration_shared_secret_path")

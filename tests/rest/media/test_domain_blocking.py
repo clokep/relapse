@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Dict
 
 from twisted.test.proto_helpers import MemoryReactor
 from twisted.web.resource import Resource
@@ -57,7 +56,7 @@ class MediaDomainBlockingTests(unittest.HomeserverTestCase):
             )
         )
 
-    def create_resource_dict(self) -> Dict[str, Resource]:
+    def create_resource_dict(self) -> dict[str, Resource]:
         # We need to manually set the resource tree to include media, the
         # default only does `/_matrix/client` APIs.
         return {"/_matrix/media": self.hs.get_media_repository_resource()}

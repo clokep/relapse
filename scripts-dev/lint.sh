@@ -83,8 +83,6 @@ else
       # use it to exclude files from linters when this can't be done by config.
       #
       # To check which files the linters examine, use:
-      #     black --verbose . 2>&1 | \grep -v ignored
-      #     isort --show-files .
       #     flake8 --verbose .  # This isn't a great option
       #     mypy has explicit config in mypy.ini; there is also mypy --verbose
       files=(
@@ -102,18 +100,15 @@ echo
 # Print out the commands being run
 set -x
 
-# Ensure the sort order of imports.
-isort "${files[@]}"
-
 # Ensure Python code conforms to an opinionated style.
-python3 -m black "${files[@]}"
+ruff format "${files[@]}"
 
 # Ensure the sample configuration file conforms to style checks.
 ./scripts-dev/config-lint.sh
 
 # Catch any common programming mistakes in Python code.
 # --quiet suppresses the update check.
-ruff --quiet --fix "${files[@]}"
+ruff check --quiet --fix "${files[@]}"
 
 # Catch any common programming mistakes in Rust code.
 #

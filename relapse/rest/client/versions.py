@@ -17,7 +17,7 @@
 
 import logging
 import re
-from typing import TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING
 
 from twisted.web.server import Request
 
@@ -54,7 +54,7 @@ class VersionsRestServlet(RestServlet):
             in self.config.room.encryption_enabled_by_default_for_room_presets
         )
 
-    def on_GET(self, request: Request) -> Tuple[int, JsonDict]:
+    def on_GET(self, request: Request) -> tuple[int, JsonDict]:
         return (
             200,
             {

@@ -11,10 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""A replication client for use by relapse workers.
-"""
+"""A replication client for use by relapse workers."""
+
 import logging
-from typing import TYPE_CHECKING, Dict, Iterable, Optional, Set, Tuple
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, Optional
 
 from sortedcontainers import SortedList
 
@@ -86,8 +87,8 @@ class ReplicationDataHandler:
 
         # Map from stream and instance to list of deferreds waiting for the stream to
         # arrive at a particular position. The lists are sorted by stream position.
-        self._streams_to_waiters: Dict[
-            Tuple[str, str], SortedList[Tuple[int, Deferred]]
+        self._streams_to_waiters: dict[
+            tuple[str, str], SortedList[tuple[int, Deferred]]
         ] = {}
 
     async def on_rdata(
@@ -138,7 +139,7 @@ class ReplicationDataHandler:
                     StreamKeyType.TO_DEVICE, token, users=entities
                 )
         elif stream_name == DeviceListsStream.NAME:
-            all_room_ids: Set[str] = set()
+            all_room_ids: set[str] = set()
             for row in rows:
                 if row.entity.startswith("@") and not row.is_signature:
                     room_ids = await self.store.get_rooms_for_user(row.entity)
@@ -172,7 +173,7 @@ class ReplicationDataHandler:
                 if row.data.rejected:
                     continue
 
-                extra_users: Tuple[UserID, ...] = ()
+                extra_users: tuple[UserID, ...] = ()
                 if row.data.type == EventTypes.Member and row.data.state_key:
                     extra_users = (UserID.from_string(row.data.state_key),)
 

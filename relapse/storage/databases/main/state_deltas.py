@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import logging
-from typing import List, Optional, Tuple
+from typing import Optional
 
 import attr
 
@@ -45,7 +45,7 @@ class StateDeltasStore(SQLBaseStore):
 
     async def get_partial_current_state_deltas(
         self, prev_stream_id: int, max_stream_id: int
-    ) -> Tuple[int, List[StateDelta]]:
+    ) -> tuple[int, list[StateDelta]]:
         """Fetch a list of room state changes since the given stream id
 
         This may be the partial state if we're lazy joining the room.
@@ -64,9 +64,9 @@ class StateDeltasStore(SQLBaseStore):
         prev_stream_id = int(prev_stream_id)
 
         # check we're not going backwards
-        assert (
-            prev_stream_id <= max_stream_id
-        ), f"New stream id {max_stream_id} is smaller than prev stream id {prev_stream_id}"
+        assert prev_stream_id <= max_stream_id, (
+            f"New stream id {max_stream_id} is smaller than prev stream id {prev_stream_id}"
+        )
 
         if not self._curr_state_delta_stream_cache.has_any_entity_changed(
             prev_stream_id
@@ -78,7 +78,7 @@ class StateDeltasStore(SQLBaseStore):
 
         def get_current_state_deltas_txn(
             txn: LoggingTransaction,
-        ) -> Tuple[int, List[StateDelta]]:
+        ) -> tuple[int, list[StateDelta]]:
             # First we calculate the max stream id that will give us less than
             # N results.
             # We arbitrarily limit to 100 stream_id entries to ensure we don't

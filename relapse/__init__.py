@@ -14,13 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-""" This is an implementation of a Matrix homeserver.
-"""
+"""This is an implementation of a Matrix homeserver."""
 
 import asyncio
 import os
 import sys
-from typing import Any, Dict
+from typing import Any
 
 from PIL import ImageFile
 
@@ -36,8 +35,8 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 # Note that we use an (unneeded) variable here so that pyupgrade doesn't nuke the
 # if-statement completely.
 py_version = sys.version_info
-if py_version < (3, 8):
-    print("Relapse requires Python 3.8 or above.")
+if py_version < (3, 9):
+    print("Relapse requires Python 3.9 or above.")
     sys.exit(1)
 
 # Use the asyncio reactor, but if this is a forked run then don't crash.
@@ -67,7 +66,7 @@ try:
     from canonicaljson import register_preserialisation_callback
     from immutabledict import immutabledict
 
-    def _immutabledict_cb(d: immutabledict) -> Dict[str, Any]:
+    def _immutabledict_cb(d: immutabledict) -> dict[str, Any]:
         try:
             return d._dict
         except Exception:

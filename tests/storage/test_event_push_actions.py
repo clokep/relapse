@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, Tuple
+from typing import Optional
 
 from twisted.test.proto_helpers import MemoryReactor
 
@@ -40,7 +40,7 @@ class EventPushActionsStoreTestCase(HomeserverTestCase):
         assert persist_events_store is not None
         self.persist_events_store = persist_events_store
 
-    def _create_users_and_room(self) -> Tuple[str, str, str, str, str]:
+    def _create_users_and_room(self) -> tuple[str, str, str, str, str]:
         """
         Creates two users and a shared room.
 

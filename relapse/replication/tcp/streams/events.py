@@ -14,7 +14,8 @@
 # limitations under the License.
 import heapq
 from collections import defaultdict
-from typing import TYPE_CHECKING, Iterable, Optional, Tuple, Type, TypeVar, cast
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, Optional, TypeVar, cast
 
 import attr
 
@@ -87,7 +88,7 @@ class BaseEventsStreamRow:
     TypeId: str
 
     @classmethod
-    def from_data(cls: Type[T], data: Iterable[Optional[str]]) -> T:
+    def from_data(cls: type[T], data: Iterable[Optional[str]]) -> T:
         """Parse the data from the replication stream into a row.
 
         By default we just call the constructor with the data list as arguments
@@ -130,7 +131,7 @@ class EventsStreamAllStateRow(BaseEventsStreamRow):
     room_id: str
 
 
-_EventRows: Tuple[Type[BaseEventsStreamRow], ...] = (
+_EventRows: tuple[type[BaseEventsStreamRow], ...] = (
     EventsStreamEventRow,
     EventsStreamCurrentStateRow,
     EventsStreamAllStateRow,
@@ -194,9 +195,9 @@ class EventsStream(_StreamFromIdGen):
 
         # we rely on get_all_new_forward_event_rows strictly honouring the limit, so
         # that we know it is safe to just take upper_limit = event_rows[-1][0].
-        assert (
-            len(event_rows) <= target_row_count
-        ), "get_all_new_forward_event_rows did not honour row limit"
+        assert len(event_rows) <= target_row_count, (
+            "get_all_new_forward_event_rows did not honour row limit"
+        )
 
         # if we hit the limit on event_updates, there's no point in going beyond the
         # last stream_id in the batch for the other sources.
@@ -231,7 +232,7 @@ class EventsStream(_StreamFromIdGen):
         # distinguish the row type). At the same time, we can limit the event_rows
         # to the max stream_id from state_rows.
 
-        event_updates: Iterable[Tuple[int, Tuple]] = (
+        event_updates: Iterable[tuple[int, tuple]] = (
             (stream_id, (EventsStreamEventRow.TypeId, rest))
             for (stream_id, *rest) in event_rows
             if stream_id <= upper_limit
@@ -248,20 +249,20 @@ class EventsStream(_StreamFromIdGen):
             for room_id, stream_ids in state_updates_by_room.items()
             if len(stream_ids) >= _MAX_STATE_UPDATES_PER_ROOM
         ]
-        state_all_updates: Iterable[Tuple[int, Tuple]] = (
+        state_all_updates: Iterable[tuple[int, tuple]] = (
             (max_stream_id, (EventsStreamAllStateRow.TypeId, (room_id,)))
             for (max_stream_id, room_id) in state_all_rows
         )
 
         # Any remaining state updates are sent individually.
         state_all_rooms = {room_id for _, room_id in state_all_rows}
-        state_updates: Iterable[Tuple[int, Tuple]] = (
+        state_updates: Iterable[tuple[int, tuple]] = (
             (stream_id, (EventsStreamCurrentStateRow.TypeId, rest))
             for (stream_id, *rest) in state_rows
             if rest[0] not in state_all_rooms
         )
 
-        ex_outliers_updates: Iterable[Tuple[int, Tuple]] = (
+        ex_outliers_updates: Iterable[tuple[int, tuple]] = (
             (stream_id, (EventsStreamEventRow.TypeId, rest))
             for (stream_id, *rest) in ex_outliers_rows
         )
@@ -276,6 +277,6 @@ class EventsStream(_StreamFromIdGen):
 
     @classmethod
     def parse_row(cls, row: StreamRow) -> "EventsStreamRow":
-        (typ, data) = cast(Tuple[str, Iterable[Optional[str]]], row)
+        (typ, data) = cast(tuple[str, Iterable[Optional[str]]], row)
         event_stream_row_data = TypeToRow[typ].from_data(data)
         return EventsStreamRow(typ, event_stream_row_data)

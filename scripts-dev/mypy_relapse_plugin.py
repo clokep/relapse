@@ -16,7 +16,7 @@
 can crop up, e.g the cache descriptors.
 """
 
-from typing import Callable, Optional, Tuple, Type, Union
+from typing import Callable, Optional, Union
 
 import mypy.types
 from mypy.erasetype import remove_instance_last_known_values
@@ -252,7 +252,7 @@ AT_CACHED_MUTABLE_RETURN = ErrorCode(
 
 def is_cacheable(
     rt: mypy.types.Type, signature: CallableType, verbose: bool
-) -> Tuple[bool, Optional[str]]:
+) -> tuple[bool, Optional[str]]:
     """
     Check if a particular type is cachable.
 
@@ -347,7 +347,7 @@ def is_cacheable(
         return False, f"Don't know how to handle {type(rt).__qualname__} return type"
 
 
-def plugin(version: str) -> Type[RelapsePlugin]:
+def plugin(version: str) -> type[RelapsePlugin]:
     # This is the entry point of the plugin, and lets us deal with the fact
     # that the mypy plugin interface is *not* stable by looking at the version
     # string.

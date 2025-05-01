@@ -14,7 +14,8 @@
 
 import logging
 import string
-from typing import TYPE_CHECKING, Iterable, List, Optional, Sequence
+from collections.abc import Iterable, Sequence
+from typing import TYPE_CHECKING, Optional
 
 from typing_extensions import Literal
 
@@ -103,7 +104,7 @@ class DirectoryHandler:
         requester: Requester,
         room_alias: RoomAlias,
         room_id: str,
-        servers: Optional[List[str]] = None,
+        servers: Optional[list[str]] = None,
         check_membership: bool = True,
     ) -> None:
         """Attempt to create a new alias
@@ -505,11 +506,9 @@ class DirectoryHandler:
                 raise RelapseError(403, "Not allowed to publish room")
 
             # Check if publishing is blocked by a third party module
-            allowed_by_third_party_rules = (
-                await (
-                    self._third_party_event_rules.check_visibility_can_be_modified(
-                        room_id, visibility
-                    )
+            allowed_by_third_party_rules = await (
+                self._third_party_event_rules.check_visibility_can_be_modified(
+                    room_id, visibility
                 )
             )
             if not allowed_by_third_party_rules:

@@ -19,18 +19,9 @@ import json
 import re
 import time
 import urllib.parse
+from collections.abc import Iterable, Mapping, MutableMapping
 from http import HTTPStatus
-from typing import (
-    Any,
-    AnyStr,
-    Dict,
-    Iterable,
-    Mapping,
-    MutableMapping,
-    Optional,
-    Tuple,
-    overload,
-)
+from typing import Any, AnyStr, Optional, overload
 from urllib.parse import urlencode
 
 import attr
@@ -79,10 +70,9 @@ class RestHelper:
         room_version: Optional[str] = ...,
         tok: Optional[str] = ...,
         expect_code: Literal[200] = ...,
-        extra_content: Optional[Dict] = ...,
-        custom_headers: Optional[Iterable[Tuple[AnyStr, AnyStr]]] = ...,
-    ) -> str:
-        ...
+        extra_content: Optional[dict] = ...,
+        custom_headers: Optional[Iterable[tuple[AnyStr, AnyStr]]] = ...,
+    ) -> str: ...
 
     @overload
     def create_room_as(
@@ -92,10 +82,9 @@ class RestHelper:
         room_version: Optional[str] = ...,
         tok: Optional[str] = ...,
         expect_code: int = ...,
-        extra_content: Optional[Dict] = ...,
-        custom_headers: Optional[Iterable[Tuple[AnyStr, AnyStr]]] = ...,
-    ) -> Optional[str]:
-        ...
+        extra_content: Optional[dict] = ...,
+        custom_headers: Optional[Iterable[tuple[AnyStr, AnyStr]]] = ...,
+    ) -> Optional[str]: ...
 
     def create_room_as(
         self,
@@ -104,8 +93,8 @@ class RestHelper:
         room_version: Optional[str] = None,
         tok: Optional[str] = None,
         expect_code: int = HTTPStatus.OK,
-        extra_content: Optional[Dict] = None,
-        custom_headers: Optional[Iterable[Tuple[AnyStr, AnyStr]]] = None,
+        extra_content: Optional[dict] = None,
+        custom_headers: Optional[Iterable[tuple[AnyStr, AnyStr]]] = None,
     ) -> Optional[str]:
         """
         Create a room.
@@ -299,7 +288,7 @@ class RestHelper:
         self.auth_user_id = src
 
         path = f"/_matrix/client/r0/rooms/{room}/state/m.room.member/{targ}"
-        url_params: Dict[str, str] = {}
+        url_params: dict[str, str] = {}
 
         if tok:
             url_params["access_token"] = tok
@@ -328,12 +317,13 @@ class RestHelper:
         )
 
         if expect_errcode:
-            assert (
-                str(channel.json_body["errcode"]) == expect_errcode
-            ), "Expected: %r, got: %r, resp: %r" % (
-                expect_errcode,
-                channel.json_body["errcode"],
-                channel.result["body"],
+            assert str(channel.json_body["errcode"]) == expect_errcode, (
+                "Expected: %r, got: %r, resp: %r"
+                % (
+                    expect_errcode,
+                    channel.json_body["errcode"],
+                    channel.result["body"],
+                )
             )
 
         if expect_additional_fields is not None:
@@ -342,13 +332,14 @@ class RestHelper:
                     expect_key,
                     channel.json_body,
                 )
-                assert (
-                    channel.json_body[expect_key] == expect_value
-                ), "Expected: %s at %s, got: %s, resp: %s" % (
-                    expect_value,
-                    expect_key,
-                    channel.json_body[expect_key],
-                    channel.json_body,
+                assert channel.json_body[expect_key] == expect_value, (
+                    "Expected: %s at %s, got: %s, resp: %s"
+                    % (
+                        expect_value,
+                        expect_key,
+                        channel.json_body[expect_key],
+                        channel.json_body,
+                    )
                 )
 
         self.auth_user_id = temp_id
@@ -360,7 +351,7 @@ class RestHelper:
         txn_id: Optional[str] = None,
         tok: Optional[str] = None,
         expect_code: int = HTTPStatus.OK,
-        custom_headers: Optional[Iterable[Tuple[AnyStr, AnyStr]]] = None,
+        custom_headers: Optional[Iterable[tuple[AnyStr, AnyStr]]] = None,
     ) -> JsonDict:
         if body is None:
             body = "body_text_here"
@@ -385,7 +376,7 @@ class RestHelper:
         txn_id: Optional[str] = None,
         tok: Optional[str] = None,
         expect_code: int = HTTPStatus.OK,
-        custom_headers: Optional[Iterable[Tuple[AnyStr, AnyStr]]] = None,
+        custom_headers: Optional[Iterable[tuple[AnyStr, AnyStr]]] = None,
     ) -> JsonDict:
         if txn_id is None:
             txn_id = "m%s" % (str(time.time()))
@@ -452,7 +443,7 @@ class RestHelper:
         self,
         room_id: str,
         event_type: str,
-        body: Optional[Dict[str, Any]],
+        body: Optional[dict[str, Any]],
         tok: Optional[str],
         expect_code: int = HTTPStatus.OK,
         state_key: str = "",
@@ -530,7 +521,7 @@ class RestHelper:
         self,
         room_id: str,
         event_type: str,
-        body: Dict[str, Any],
+        body: dict[str, Any],
         tok: Optional[str],
         expect_code: int = HTTPStatus.OK,
         state_key: str = "",
@@ -639,7 +630,7 @@ class RestHelper:
         with_sid: bool = False,
         idp_id: Optional[str] = None,
         expected_status: int = 200,
-    ) -> Tuple[JsonDict, FakeAuthorizationGrant]:
+    ) -> tuple[JsonDict, FakeAuthorizationGrant]:
         """Log in (as a new user) via OIDC
 
         Returns the result of the final token login and the fake authorization grant.
@@ -699,9 +690,9 @@ class RestHelper:
             "/login",
             content={"type": "m.login.token", "token": login_token},
         )
-        assert (
-            channel.code == expected_status
-        ), f"unexpected status in response: {channel.code}"
+        assert channel.code == expected_status, (
+            f"unexpected status in response: {channel.code}"
+        )
         return channel.json_body
 
     def auth_via_oidc(
@@ -712,7 +703,7 @@ class RestHelper:
         ui_auth_session_id: Optional[str] = None,
         with_sid: bool = False,
         idp_id: Optional[str] = None,
-    ) -> Tuple[FakeChannel, FakeAuthorizationGrant]:
+    ) -> tuple[FakeChannel, FakeAuthorizationGrant]:
         """Perform an OIDC authentication flow via a mock OIDC provider.
 
         This can be used for either login or user-interactive auth.
@@ -745,7 +736,7 @@ class RestHelper:
             went.
         """
 
-        cookies: Dict[str, str] = {}
+        cookies: dict[str, str] = {}
 
         with fake_server.patch_homeserver(hs=self.hs):
             # if we're doing a ui auth, hit the ui auth redirect endpoint
@@ -779,7 +770,7 @@ class RestHelper:
         cookies: Mapping[str, str],
         user_info_dict: JsonDict,
         with_sid: bool = False,
-    ) -> Tuple[FakeChannel, FakeAuthorizationGrant]:
+    ) -> tuple[FakeChannel, FakeAuthorizationGrant]:
         """Mock out an OIDC authentication flow
 
         Assumes that an OIDC auth has been initiated by one of initiate_sso_login or

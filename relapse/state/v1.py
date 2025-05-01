@@ -14,17 +14,8 @@
 
 import hashlib
 import logging
-from typing import (
-    Awaitable,
-    Callable,
-    Dict,
-    Iterable,
-    List,
-    Optional,
-    Sequence,
-    Set,
-    Tuple,
-)
+from collections.abc import Awaitable, Iterable, Sequence
+from typing import Callable, Optional
 
 from relapse import event_auth
 from relapse.api.constants import EventTypes
@@ -43,8 +34,8 @@ async def resolve_events_with_store(
     room_id: str,
     room_version: RoomVersion,
     state_sets: Sequence[StateMap[str]],
-    event_map: Optional[Dict[str, EventBase]],
-    state_map_factory: Callable[[StrCollection], Awaitable[Dict[str, EventBase]]],
+    event_map: Optional[dict[str, EventBase]],
+    state_map_factory: Callable[[StrCollection], Awaitable[dict[str, EventBase]]],
 ) -> StateMap[str]:
     """
     Args:
@@ -139,7 +130,7 @@ async def resolve_events_with_store(
 
 def _seperate(
     state_sets: Iterable[StateMap[str]],
-) -> Tuple[MutableStateMap[str], MutableStateMap[Set[str]]]:
+) -> tuple[MutableStateMap[str], MutableStateMap[set[str]]]:
     """Takes the state_sets and figures out which keys are conflicted and
     which aren't. i.e., which have multiple different event_ids associated
     with them in different state sets.
@@ -160,7 +151,7 @@ def _seperate(
     """
     state_set_iterator = iter(state_sets)
     unconflicted_state = dict(next(state_set_iterator))
-    conflicted_state: MutableStateMap[Set[str]] = {}
+    conflicted_state: MutableStateMap[set[str]] = {}
 
     for state_set in state_set_iterator:
         for key, value in state_set.items():
@@ -190,8 +181,8 @@ def _seperate(
 def _create_auth_events_from_maps(
     room_version: RoomVersion,
     unconflicted_state: StateMap[str],
-    conflicted_state: StateMap[Set[str]],
-    state_map: Dict[str, EventBase],
+    conflicted_state: StateMap[set[str]],
+    state_map: dict[str, EventBase],
 ) -> StateMap[str]:
     """
 
@@ -222,9 +213,9 @@ def _create_auth_events_from_maps(
 def _resolve_with_state(
     room_version: RoomVersion,
     unconflicted_state_ids: MutableStateMap[str],
-    conflicted_state_ids: StateMap[Set[str]],
+    conflicted_state_ids: StateMap[set[str]],
     auth_event_ids: StateMap[str],
-    state_map: Dict[str, EventBase],
+    state_map: dict[str, EventBase],
 ) -> MutableStateMap[str]:
     conflicted_state = {}
     for key, event_ids in conflicted_state_ids.items():
@@ -257,7 +248,7 @@ def _resolve_with_state(
 
 def _resolve_state_events(
     room_version: RoomVersion,
-    conflicted_state: StateMap[List[EventBase]],
+    conflicted_state: StateMap[list[EventBase]],
     auth_events: MutableStateMap[EventBase],
 ) -> StateMap[EventBase]:
     """This is where we actually decide which of the conflicted state to
@@ -306,7 +297,7 @@ def _resolve_state_events(
 
 
 def _resolve_auth_events(
-    room_version: RoomVersion, events: List[EventBase], auth_events: StateMap[EventBase]
+    room_version: RoomVersion, events: list[EventBase], auth_events: StateMap[EventBase]
 ) -> EventBase:
     reverse = list(reversed(_ordered_events(events)))
 
@@ -341,7 +332,7 @@ def _resolve_auth_events(
 
 
 def _resolve_normal_events(
-    events: List[EventBase], auth_events: StateMap[EventBase]
+    events: list[EventBase], auth_events: StateMap[EventBase]
 ) -> EventBase:
     for event in _ordered_events(events):
         try:
@@ -359,8 +350,8 @@ def _resolve_normal_events(
     return event
 
 
-def _ordered_events(events: Iterable[EventBase]) -> List[EventBase]:
-    def key_func(e: EventBase) -> Tuple[int, str]:
+def _ordered_events(events: Iterable[EventBase]) -> list[EventBase]:
+    def key_func(e: EventBase) -> tuple[int, str]:
         # we have to use utf-8 rather than ascii here because it turns out we allow
         # people to send us events with non-ascii event IDs :/
         return -int(e.depth), hashlib.sha1(e.event_id.encode("utf-8")).hexdigest()

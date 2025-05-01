@@ -14,22 +14,11 @@
 
 import logging
 import threading
+from collections.abc import Awaitable, Iterable
 from contextlib import nullcontext
 from functools import wraps
 from types import TracebackType
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Awaitable,
-    Callable,
-    Dict,
-    Iterable,
-    Optional,
-    Set,
-    Type,
-    TypeVar,
-    Union,
-)
+from typing import TYPE_CHECKING, Any, Callable, Optional, Set, TypeVar, Union
 
 from prometheus_client import Metric
 from prometheus_client.core import REGISTRY, Counter, Gauge
@@ -112,7 +101,7 @@ _background_process_db_sched_duration = Counter(
 # map from description to a counter, so that we can name our logcontexts
 # incrementally. (It actually duplicates _background_process_start_count, but
 # it's much simpler to do so than to try to combine them.)
-_background_process_counts: Dict[str, int] = {}
+_background_process_counts: dict[str, int] = {}
 
 # Set of all running background processes that became active active since the
 # last time metrics were scraped (i.e. background processes that performed some
@@ -287,7 +276,7 @@ def wrap_as_background_process(
     """
 
     def wrap_as_background_process_inner(
-        func: Callable[P, Awaitable[Optional[R]]]
+        func: Callable[P, Awaitable[Optional[R]]],
     ) -> Callable[P, "defer.Deferred[Optional[R]]"]:
         @wraps(func)
         def wrap_as_background_process_inner_2(
@@ -348,7 +337,7 @@ class BackgroundProcessLoggingContext(LoggingContext):
 
     def __exit__(
         self,
-        type: Optional[Type[BaseException]],
+        type: Optional[type[BaseException]],
         value: Optional[BaseException],
         traceback: Optional[TracebackType],
     ) -> None:

@@ -50,9 +50,9 @@ class WellKnownBuilder:
                 "issuer": self._config.experimental.msc3861.issuer
             }
             if self._config.experimental.msc3861.account_management_url is not None:
-                result["org.matrix.msc2965.authentication"][
-                    "account"
-                ] = self._config.experimental.msc3861.account_management_url
+                result["org.matrix.msc2965.authentication"]["account"] = (
+                    self._config.experimental.msc3861.account_management_url
+                )
 
         if self._config.server.extra_well_known_client_content:
             for (

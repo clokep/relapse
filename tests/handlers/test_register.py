@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Collection, List, Optional, Tuple
+from collections.abc import Collection
+from typing import Any, Optional
 from unittest.mock import AsyncMock, Mock
 
 from twisted.test.proto_helpers import MemoryReactor
@@ -58,7 +59,7 @@ class TestSpamChecker:
         self,
         email_threepid: Optional[dict],
         username: Optional[str],
-        request_info: Collection[Tuple[str, str]],
+        request_info: Collection[tuple[str, str]],
         auth_provider_id: Optional[str],
     ) -> RegistrationBehaviour:
         return RegistrationBehaviour.ALLOW
@@ -69,7 +70,7 @@ class DenyAll(TestSpamChecker):
         self,
         email_threepid: Optional[dict],
         username: Optional[str],
-        request_info: Collection[Tuple[str, str]],
+        request_info: Collection[tuple[str, str]],
         auth_provider_id: Optional[str],
     ) -> RegistrationBehaviour:
         return RegistrationBehaviour.DENY
@@ -80,7 +81,7 @@ class BanAll(TestSpamChecker):
         self,
         email_threepid: Optional[dict],
         username: Optional[str],
-        request_info: Collection[Tuple[str, str]],
+        request_info: Collection[tuple[str, str]],
         auth_provider_id: Optional[str],
     ) -> RegistrationBehaviour:
         return RegistrationBehaviour.SHADOW_BAN
@@ -91,7 +92,7 @@ class BanBadIdPUser(TestSpamChecker):
         self,
         email_threepid: Optional[dict],
         username: Optional[str],
-        request_info: Collection[Tuple[str, str]],
+        request_info: Collection[tuple[str, str]],
         auth_provider_id: Optional[str] = None,
     ) -> RegistrationBehaviour:
         # Reject any user coming from CAS and whose username contains profanity
@@ -108,7 +109,7 @@ class TestLegacyRegistrationSpamChecker:
         self,
         email_threepid: Optional[dict],
         username: Optional[str],
-        request_info: Collection[Tuple[str, str]],
+        request_info: Collection[tuple[str, str]],
     ) -> RegistrationBehaviour:
         return RegistrationBehaviour.ALLOW
 
@@ -118,7 +119,7 @@ class LegacyAllowAll(TestLegacyRegistrationSpamChecker):
         self,
         email_threepid: Optional[dict],
         username: Optional[str],
-        request_info: Collection[Tuple[str, str]],
+        request_info: Collection[tuple[str, str]],
     ) -> RegistrationBehaviour:
         return RegistrationBehaviour.ALLOW
 
@@ -128,7 +129,7 @@ class LegacyDenyAll(TestLegacyRegistrationSpamChecker):
         self,
         email_threepid: Optional[dict],
         username: Optional[str],
-        request_info: Collection[Tuple[str, str]],
+        request_info: Collection[tuple[str, str]],
     ) -> RegistrationBehaviour:
         return RegistrationBehaviour.DENY
 
@@ -714,7 +715,7 @@ class RegistrationTestCase(unittest.HomeserverTestCase):
         localpart: str,
         displayname: Optional[str],
         password_hash: Optional[str] = None,
-    ) -> Tuple[str, str]:
+    ) -> tuple[str, str]:
         """Creates a new user if the user does not exist,
         else revokes all previous access tokens and generates a new one.
 
@@ -777,7 +778,7 @@ class RemoteAutoJoinTestCase(unittest.HomeserverTestCase):
 
         async def lookup_room_alias(
             *args: Any, **kwargs: Any
-        ) -> Tuple[RoomID, List[str]]:
+        ) -> tuple[RoomID, list[str]]:
             return RoomID.from_string(self.room_id), ["remotetest"]
 
         self.room_member_handler = Mock(spec=["update_membership", "lookup_room_alias"])

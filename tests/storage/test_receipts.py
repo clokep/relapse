@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Collection, Optional
+from collections.abc import Collection
+from typing import Optional
 
 from twisted.test.proto_helpers import MemoryReactor
 

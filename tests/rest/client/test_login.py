@@ -13,7 +13,8 @@
 # limitations under the License.
 import time
 import urllib.parse
-from typing import Any, Collection, Dict, List, Optional, Tuple, Union
+from collections.abc import Collection
+from typing import Any, Optional, Union
 from unittest.mock import Mock
 from urllib.parse import urlencode
 
@@ -105,11 +106,11 @@ class TestSpamChecker:
         user_id: str,
         device_id: Optional[str],
         initial_display_name: Optional[str],
-        request_info: Collection[Tuple[Optional[str], str]],
+        request_info: Collection[tuple[Optional[str], str]],
         auth_provider_id: Optional[str] = None,
     ) -> Union[
         Literal["NOT_SPAM"],
-        Tuple["relapse.module_api.errors.Codes", JsonDict],
+        tuple["relapse.module_api.errors.Codes", JsonDict],
     ]:
         return "NOT_SPAM"
 
@@ -129,11 +130,11 @@ class DenyAllSpamChecker:
         user_id: str,
         device_id: Optional[str],
         initial_display_name: Optional[str],
-        request_info: Collection[Tuple[Optional[str], str]],
+        request_info: Collection[tuple[Optional[str], str]],
         auth_provider_id: Optional[str] = None,
     ) -> Union[
         Literal["NOT_SPAM"],
-        Tuple["relapse.module_api.errors.Codes", JsonDict],
+        tuple["relapse.module_api.errors.Codes", JsonDict],
     ]:
         # Return an odd set of values to ensure that they get correctly passed
         # to the client.
@@ -595,7 +596,7 @@ class MultiSSOTestCase(unittest.HomeserverTestCase):
         login.register_servlets,
     ]
 
-    def default_config(self) -> Dict[str, Any]:
+    def default_config(self) -> dict[str, Any]:
         config = super().default_config()
 
         config["public_baseurl"] = BASE_URL
@@ -637,7 +638,7 @@ class MultiSSOTestCase(unittest.HomeserverTestCase):
         ]
         return config
 
-    def create_resource_dict(self) -> Dict[str, Resource]:
+    def create_resource_dict(self) -> dict[str, Resource]:
         d = super().create_resource_dict()
         d.update(build_relapse_client_resource_tree(self.hs))
         return d
@@ -689,7 +690,7 @@ class MultiSSOTestCase(unittest.HomeserverTestCase):
         p.close()
 
         # there should be a link for each href
-        returned_idps: List[str] = []
+        returned_idps: list[str] = []
         for link in p.links:
             path, query = link.split("?", 1)
             self.assertEqual(path, "pick_idp")
@@ -773,7 +774,7 @@ class MultiSSOTestCase(unittest.HomeserverTestCase):
         # ... and should have set a cookie including the redirect url
         cookie_headers = channel.headers.getRawHeaders("Set-Cookie")
         assert cookie_headers
-        cookies: Dict[str, str] = {}
+        cookies: dict[str, str] = {}
         for h in cookie_headers:
             key, value = h.split(";")[0].split("=", maxsplit=1)
             cookies[key] = value
@@ -1042,7 +1043,7 @@ class JWTTestCase(unittest.HomeserverTestCase):
         "algorithm": jwt_algorithm,
     }
 
-    def default_config(self) -> Dict[str, Any]:
+    def default_config(self) -> dict[str, Any]:
         config = super().default_config()
 
         # If jwt_config has been defined (eg via @override_config), don't replace it.
@@ -1051,7 +1052,7 @@ class JWTTestCase(unittest.HomeserverTestCase):
 
         return config
 
-    def jwt_encode(self, payload: Dict[str, Any], secret: str = jwt_secret) -> str:
+    def jwt_encode(self, payload: dict[str, Any], secret: str = jwt_secret) -> str:
         header = {"alg": self.jwt_algorithm}
         result: bytes = jwt.encode(header, payload, secret)
         return result.decode("ascii")
@@ -1265,7 +1266,7 @@ class JWTPubKeyTestCase(unittest.HomeserverTestCase):
         ]
     )
 
-    def default_config(self) -> Dict[str, Any]:
+    def default_config(self) -> dict[str, Any]:
         config = super().default_config()
         config["jwt_config"] = {
             "enabled": True,
@@ -1274,7 +1275,7 @@ class JWTPubKeyTestCase(unittest.HomeserverTestCase):
         }
         return config
 
-    def jwt_encode(self, payload: Dict[str, Any], secret: str = jwt_privatekey) -> str:
+    def jwt_encode(self, payload: dict[str, Any], secret: str = jwt_privatekey) -> str:
         header = {"alg": "RS256"}
         if secret.startswith("-----BEGIN RSA PRIVATE KEY-----"):
             secret = JsonWebKey.import_key(secret, {"kty": "RSA"})
@@ -1419,7 +1420,7 @@ class UsernamePickerTestCase(HomeserverTestCase):
 
     servlets = [login.register_servlets]
 
-    def default_config(self) -> Dict[str, Any]:
+    def default_config(self) -> dict[str, Any]:
         config = super().default_config()
         config["public_baseurl"] = BASE_URL
 
@@ -1434,7 +1435,7 @@ class UsernamePickerTestCase(HomeserverTestCase):
         config["sso"] = {"client_whitelist": ["https://x"]}
         return config
 
-    def create_resource_dict(self) -> Dict[str, Resource]:
+    def create_resource_dict(self) -> dict[str, Resource]:
         d = super().create_resource_dict()
         d.update(build_relapse_client_resource_tree(self.hs))
         return d
@@ -1459,7 +1460,7 @@ class UsernamePickerTestCase(HomeserverTestCase):
         self.assertEqual(picker_url, "/_relapse/client/pick_username/account_details")
 
         # ... with a username_mapping_session cookie
-        cookies: Dict[str, str] = {}
+        cookies: dict[str, str] = {}
         channel.extract_cookies(cookies)
         self.assertIn("username_mapping_session", cookies)
         session_id = cookies["username_mapping_session"]

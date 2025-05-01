@@ -15,7 +15,8 @@ import platform
 import sqlite3
 import struct
 import threading
-from typing import TYPE_CHECKING, Any, List, Mapping, Optional
+from collections.abc import Mapping
+from typing import TYPE_CHECKING, Any, Optional
 
 from relapse.storage.engines import BaseDatabaseEngine
 from relapse.storage.types import Cursor
@@ -169,7 +170,7 @@ class Sqlite3Engine(BaseDatabaseEngine[sqlite3.Connection, sqlite3.Cursor]):
 # Following functions taken from: https://github.com/coleifer/peewee
 
 
-def _parse_match_info(buf: bytes) -> List[int]:
+def _parse_match_info(buf: bytes) -> list[int]:
     bufsize = len(buf)
     return [struct.unpack("@I", buf[i : i + 4])[0] for i in range(0, bufsize, 4)]
 

@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from collections.abc import Generator
 from contextlib import contextmanager
 from os import PathLike
-from typing import Generator, Optional, Union
+from typing import Optional, Union
 from unittest.mock import patch
 
 from relapse.util.check_dependencies import (
@@ -101,10 +102,13 @@ class TestDependencyChecker(TestCase):
 
     def test_checks_ignore_dev_dependencies(self) -> None:
         """Both generic and per-extra checks should ignore dev dependencies."""
-        with patch(
-            "relapse.util.check_dependencies.metadata.requires",
-            return_value=["dummypkg >= 1; extra == 'mypy'"],
-        ), patch("relapse.util.check_dependencies.RUNTIME_EXTRAS", {"cool-extra"}):
+        with (
+            patch(
+                "relapse.util.check_dependencies.metadata.requires",
+                return_value=["dummypkg >= 1; extra == 'mypy'"],
+            ),
+            patch("relapse.util.check_dependencies.RUNTIME_EXTRAS", {"cool-extra"}),
+        ):
             # We're testing that none of these calls raise.
             with self.mock_installed_package(None):
                 check_requirements()
@@ -133,10 +137,13 @@ class TestDependencyChecker(TestCase):
 
     def test_check_for_extra_dependencies(self) -> None:
         """Complain if a package required for an extra is missing or old."""
-        with patch(
-            "relapse.util.check_dependencies.metadata.requires",
-            return_value=["dummypkg >= 1; extra == 'cool-extra'"],
-        ), patch("relapse.util.check_dependencies.RUNTIME_EXTRAS", {"cool-extra"}):
+        with (
+            patch(
+                "relapse.util.check_dependencies.metadata.requires",
+                return_value=["dummypkg >= 1; extra == 'cool-extra'"],
+            ),
+            patch("relapse.util.check_dependencies.RUNTIME_EXTRAS", {"cool-extra"}),
+        ):
             with self.mock_installed_package(None):
                 self.assertRaises(DependencyException, check_requirements, "cool-extra")
             with self.mock_installed_package(old):

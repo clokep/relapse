@@ -14,20 +14,11 @@
 # limitations under the License.
 
 import logging
+from collections import Counter
+from collections.abc import Iterable
 from enum import Enum
 from itertools import chain
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Counter,
-    Dict,
-    Iterable,
-    List,
-    Optional,
-    Tuple,
-    Union,
-    cast,
-)
+from typing import TYPE_CHECKING, Any, Optional, Union, cast
 
 from twisted.internet.defer import DeferredLock
 
@@ -147,7 +138,7 @@ class StatsStore(StateDeltasStore):
 
         last_user_id = progress.get("last_user_id", "")
 
-        def _get_next_batch(txn: LoggingTransaction) -> List[str]:
+        def _get_next_batch(txn: LoggingTransaction) -> list[str]:
             sql = """
                     SELECT DISTINCT name FROM users
                     WHERE name > ?
@@ -155,7 +146,7 @@ class StatsStore(StateDeltasStore):
                     LIMIT ?
                 """
             txn.execute(sql, (last_user_id, batch_size))
-            return [r for r, in txn]
+            return [r for (r,) in txn]
 
         users_to_work_on = await self.db_pool.runInteraction(
             "_populate_stats_process_users", _get_next_batch
@@ -193,7 +184,7 @@ class StatsStore(StateDeltasStore):
 
         last_room_id = progress.get("last_room_id", "")
 
-        def _get_next_batch(txn: LoggingTransaction) -> List[str]:
+        def _get_next_batch(txn: LoggingTransaction) -> list[str]:
             sql = """
                     SELECT DISTINCT room_id FROM current_state_events
                     WHERE room_id > ?
@@ -201,7 +192,7 @@ class StatsStore(StateDeltasStore):
                     LIMIT ?
                 """
             txn.execute(sql, (last_room_id, batch_size))
-            return [r for r, in txn]
+            return [r for (r,) in txn]
 
         rooms_to_work_on = await self.db_pool.runInteraction(
             "populate_stats_rooms_get_batch", _get_next_batch
@@ -238,7 +229,7 @@ class StatsStore(StateDeltasStore):
             desc="stats_incremental_position",
         )
 
-    async def update_room_state(self, room_id: str, fields: Dict[str, Any]) -> None:
+    async def update_room_state(self, room_id: str, fields: dict[str, Any]) -> None:
         """Update the state of a room.
 
         fields can contain the following keys with string values:
@@ -313,7 +304,7 @@ class StatsStore(StateDeltasStore):
         )
 
     async def bulk_update_stats_delta(
-        self, ts: int, updates: Dict[str, Dict[str, Counter[str]]], stream_id: int
+        self, ts: int, updates: dict[str, dict[str, Counter[str]]], stream_id: int
     ) -> None:
         """Bulk update stats tables for a given stream_id and updates the stats
         incremental position.
@@ -356,9 +347,9 @@ class StatsStore(StateDeltasStore):
         ts: int,
         stats_type: str,
         stats_id: str,
-        fields: Dict[str, int],
+        fields: dict[str, int],
         complete_with_stream_id: int,
-        absolute_field_overrides: Optional[Dict[str, int]] = None,
+        absolute_field_overrides: Optional[dict[str, int]] = None,
     ) -> None:
         """
         Updates the statistics for a subject, with a delta (difference/relative
@@ -394,9 +385,9 @@ class StatsStore(StateDeltasStore):
         ts: int,
         stats_type: str,
         stats_id: str,
-        fields: Dict[str, int],
+        fields: dict[str, int],
         complete_with_stream_id: int,
-        absolute_field_overrides: Optional[Dict[str, int]] = None,
+        absolute_field_overrides: Optional[dict[str, int]] = None,
     ) -> None:
         if absolute_field_overrides is None:
             absolute_field_overrides = {}
@@ -443,9 +434,9 @@ class StatsStore(StateDeltasStore):
         self,
         txn: LoggingTransaction,
         table: str,
-        keyvalues: Dict[str, Any],
-        absolutes: Dict[str, Any],
-        additive_relatives: Dict[str, int],
+        keyvalues: dict[str, Any],
+        absolutes: dict[str, Any],
+        additive_relatives: dict[str, int],
     ) -> None:
         """Used to update values in the stats tables.
 
@@ -503,11 +494,11 @@ class StatsStore(StateDeltasStore):
 
         def _fetch_current_state_stats(
             txn: LoggingTransaction,
-        ) -> Tuple[List[str], Dict[str, int], int, List[str], int]:
+        ) -> tuple[list[str], dict[str, int], int, list[str], int]:
             pos = self.get_room_max_stream_ordering()  # type: ignore[attr-defined]
 
             rows = cast(
-                List[Tuple[str]],
+                list[tuple[str]],
                 self.db_pool.simple_select_many_txn(
                     txn,
                     table="current_state_events",
@@ -537,7 +528,7 @@ class StatsStore(StateDeltasStore):
                 """,
                 (room_id,),
             )
-            membership_counts = dict(cast(Iterable[Tuple[str, int]], txn))
+            membership_counts = dict(cast(Iterable[tuple[str, int]], txn))
 
             txn.execute(
                 """
@@ -547,7 +538,7 @@ class StatsStore(StateDeltasStore):
                 (room_id,),
             )
 
-            current_state_events_count = cast(Tuple[int], txn.fetchone())[0]
+            current_state_events_count = cast(tuple[int], txn.fetchone())[0]
 
             users_in_room = self.get_users_in_room_txn(txn, room_id)  # type: ignore[attr-defined]
 
@@ -581,7 +572,7 @@ class StatsStore(StateDeltasStore):
             )
             return
 
-        room_state: Dict[str, Union[None, bool, str]] = {
+        room_state: dict[str, Union[None, bool, str]] = {
             "join_rules": None,
             "history_visibility": None,
             "encryption": None,
@@ -642,7 +633,7 @@ class StatsStore(StateDeltasStore):
     async def _calculate_and_set_initial_state_for_user(self, user_id: str) -> None:
         def _calculate_and_set_initial_state_for_user_txn(
             txn: LoggingTransaction,
-        ) -> Tuple[int, int]:
+        ) -> tuple[int, int]:
             pos = self._get_max_stream_id_in_current_state_deltas_txn(txn)
 
             txn.execute(
@@ -653,7 +644,7 @@ class StatsStore(StateDeltasStore):
                 """,
                 (user_id,),
             )
-            count = cast(Tuple[int], txn.fetchone())[0]
+            count = cast(tuple[int], txn.fetchone())[0]
             return count, pos
 
         joined_rooms, pos = await self.db_pool.runInteraction(
@@ -679,7 +670,7 @@ class StatsStore(StateDeltasStore):
         order_by: Optional[str] = UserSortOrder.USER_ID.value,
         direction: Direction = Direction.FORWARDS,
         search_term: Optional[str] = None,
-    ) -> Tuple[List[Tuple[str, Optional[str], int, int]], int]:
+    ) -> tuple[list[tuple[str, Optional[str], int, int]], int]:
         """Function to retrieve a paginated list of users and their uploaded local media
         (size and number). This will return a json list of users and the
         total number of users matching the filter criteria.
@@ -704,7 +695,7 @@ class StatsStore(StateDeltasStore):
 
         def get_users_media_usage_paginate_txn(
             txn: LoggingTransaction,
-        ) -> Tuple[List[Tuple[str, Optional[str], int, int]], int]:
+        ) -> tuple[list[tuple[str, Optional[str], int, int]], int]:
             filters = []
             args: list = []
 
@@ -745,9 +736,7 @@ class StatsStore(StateDeltasStore):
                 LEFT JOIN profiles AS p ON lmr.user_id = p.full_user_id
                 {}
                 GROUP BY lmr.user_id, displayname
-            """.format(
-                where_clause
-            )
+            """.format(where_clause)
 
             # SQLite does not support SELECT COUNT(*) OVER()
             sql = """
@@ -759,7 +748,7 @@ class StatsStore(StateDeltasStore):
                 sql_base=sql_base,
             )
             txn.execute(sql, args)
-            count = cast(Tuple[int], txn.fetchone())[0]
+            count = cast(tuple[int], txn.fetchone())[0]
 
             sql = """
                 SELECT
@@ -778,7 +767,7 @@ class StatsStore(StateDeltasStore):
 
             args += [limit, start]
             txn.execute(sql, args)
-            users = cast(List[Tuple[str, Optional[str], int, int]], txn.fetchall())
+            users = cast(list[tuple[str, Optional[str], int, int]], txn.fetchall())
 
             return users, count
 

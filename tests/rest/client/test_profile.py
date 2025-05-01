@@ -13,9 +13,10 @@
 # limitations under the License.
 
 """Tests REST events for /profile paths."""
+
 import urllib.parse
 from http import HTTPStatus
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from twisted.test.proto_helpers import MemoryReactor
 
@@ -472,7 +473,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
             # The client requested ?propagate=true, so it should have happened.
             self.assertEqual(channel.json_body.get(prop), "http://my.server/pic.gif")
 
-    def _setup_local_files(self, names_and_props: Dict[str, Dict[str, Any]]) -> None:
+    def _setup_local_files(self, names_and_props: dict[str, dict[str, Any]]) -> None:
         """Stores metadata about files in the database.
 
         Args:

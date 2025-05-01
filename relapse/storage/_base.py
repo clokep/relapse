@@ -15,10 +15,14 @@
 # limitations under the License.
 import logging
 from abc import ABCMeta
-from typing import TYPE_CHECKING, Any, Collection, Dict, Iterable, Optional, Union
+from collections.abc import Collection, Iterable
+from typing import TYPE_CHECKING, Any, Optional, Union
 
-from relapse.storage.database import make_in_list_sql_clause  # noqa: F401; noqa: F401
-from relapse.storage.database import DatabasePool, LoggingDatabaseConnection
+from relapse.storage.database import (
+    DatabasePool,
+    LoggingDatabaseConnection,
+    make_in_list_sql_clause,  # noqa: F401
+)
 from relapse.types import get_domain_from_id
 from relapse.util import json_decoder
 from relapse.util.caches.descriptors import CachedFunction
@@ -50,7 +54,7 @@ class SQLBaseStore(metaclass=ABCMeta):
         self.database_engine = database.engine
         self.db_pool = database
 
-        self.external_cached_functions: Dict[str, CachedFunction] = {}
+        self.external_cached_functions: dict[str, CachedFunction] = {}
 
     def process_replication_rows(  # noqa: B027 (no-op by design)
         self,

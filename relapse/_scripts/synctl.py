@@ -24,7 +24,8 @@ import signal
 import subprocess
 import sys
 import time
-from typing import Iterable, NoReturn, Optional, TextIO
+from collections.abc import Iterable
+from typing import NoReturn, Optional, TextIO
 
 import yaml
 
@@ -286,9 +287,9 @@ def main() -> None:
             for key in worker_config:
                 if key == "worker_app":  # But we allow worker_app
                     continue
-                assert not key.startswith(
-                    "worker_"
-                ), "Main process cannot use worker_* config"
+                assert not key.startswith("worker_"), (
+                    "Main process cannot use worker_* config"
+                )
         else:
             worker_pidfile = worker_config["worker_pid_file"]
             worker_cache_factor = worker_config.get("synctl_cache_factor")

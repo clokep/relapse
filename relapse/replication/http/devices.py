@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import logging
-from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Optional
 
 from twisted.web.server import Request
 
@@ -77,13 +77,13 @@ class ReplicationMultiUserDevicesResyncRestServlet(ReplicationEndpoint):
         self.clock = hs.get_clock()
 
     @staticmethod
-    async def _serialize_payload(user_ids: List[str]) -> JsonDict:  # type: ignore[override]
+    async def _serialize_payload(user_ids: list[str]) -> JsonDict:  # type: ignore[override]
         return {"user_ids": user_ids}
 
     async def _handle_request(  # type: ignore[override]
         self, request: Request, content: JsonDict
-    ) -> Tuple[int, Dict[str, Optional[JsonMapping]]]:
-        user_ids: List[str] = content["user_ids"]
+    ) -> tuple[int, dict[str, Optional[JsonMapping]]]:
+        user_ids: list[str] = content["user_ids"]
 
         logger.info("Resync for %r", user_ids)
         span = active_span()
@@ -147,7 +147,7 @@ class ReplicationUploadKeysForUserRestServlet(ReplicationEndpoint):
 
     async def _handle_request(  # type: ignore[override]
         self, request: Request, content: JsonDict
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         user_id = content["user_id"]
         device_id = content["device_id"]
         keys = content["keys"]

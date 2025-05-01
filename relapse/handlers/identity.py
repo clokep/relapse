@@ -15,9 +15,11 @@
 # limitations under the License.
 
 """Utilities for interacting with Identity Servers"""
+
 import logging
 import urllib.parse
-from typing import TYPE_CHECKING, Awaitable, Callable, Dict, List, Optional, Tuple
+from collections.abc import Awaitable
+from typing import TYPE_CHECKING, Callable, Optional
 
 import attr
 
@@ -98,7 +100,7 @@ class IdentityHandler:
         )
 
     async def threepid_from_creds(
-        self, id_server: str, creds: Dict[str, str]
+        self, id_server: str, creds: dict[str, str]
     ) -> Optional[JsonDict]:
         """
         Retrieve and validate a threepid identifier from a "credentials" dictionary against a
@@ -686,7 +688,7 @@ class IdentityHandler:
         inviter_display_name: str,
         inviter_avatar_url: str,
         id_access_token: str,
-    ) -> Tuple[str, List[Dict[str, str]], Dict[str, str], str]:
+    ) -> tuple[str, list[dict[str, str]], dict[str, str], str]:
         """
         Asks an identity server for a third party invite.
 
@@ -772,7 +774,7 @@ class IdentityHandler:
         return token, public_keys, fallback_public_key, display_name
 
 
-def create_id_access_token_header(id_access_token: str) -> List[str]:
+def create_id_access_token_header(id_access_token: str) -> list[str]:
     """Create an Authorization header for passing to SimpleHttpClient as the header value
     of an HTTP request.
 

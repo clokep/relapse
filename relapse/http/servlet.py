@@ -12,21 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-""" This module contains base REST classes for constructing REST servlets. """
+"""This module contains base REST classes for constructing REST servlets."""
+
 import enum
 import logging
+from collections.abc import Mapping, Sequence
 from http import HTTPStatus
-from typing import (
-    TYPE_CHECKING,
-    List,
-    Mapping,
-    Optional,
-    Sequence,
-    Tuple,
-    Type,
-    TypeVar,
-    overload,
-)
+from typing import TYPE_CHECKING, Optional, TypeVar, overload
 
 from relapse._pydantic_compat import HAS_PYDANTIC_V2
 
@@ -54,20 +46,17 @@ logger = logging.getLogger(__name__)
 
 
 @overload
-def parse_integer(request: Request, name: str, default: int) -> int:
-    ...
+def parse_integer(request: Request, name: str, default: int) -> int: ...
 
 
 @overload
-def parse_integer(request: Request, name: str, *, required: Literal[True]) -> int:
-    ...
+def parse_integer(request: Request, name: str, *, required: Literal[True]) -> int: ...
 
 
 @overload
 def parse_integer(
     request: Request, name: str, default: Optional[int] = None, required: bool = False
-) -> Optional[int]:
-    ...
+) -> Optional[int]: ...
 
 
 def parse_integer(
@@ -98,8 +87,7 @@ def parse_integer_from_args(
     args: Mapping[bytes, Sequence[bytes]],
     name: str,
     default: Optional[int] = None,
-) -> Optional[int]:
-    ...
+) -> Optional[int]: ...
 
 
 @overload
@@ -108,8 +96,7 @@ def parse_integer_from_args(
     name: str,
     *,
     required: Literal[True],
-) -> int:
-    ...
+) -> int: ...
 
 
 @overload
@@ -118,8 +105,7 @@ def parse_integer_from_args(
     name: str,
     default: Optional[int] = None,
     required: bool = False,
-) -> Optional[int]:
-    ...
+) -> Optional[int]: ...
 
 
 def parse_integer_from_args(
@@ -165,20 +151,17 @@ def parse_integer_from_args(
 
 
 @overload
-def parse_boolean(request: Request, name: str, default: bool) -> bool:
-    ...
+def parse_boolean(request: Request, name: str, default: bool) -> bool: ...
 
 
 @overload
-def parse_boolean(request: Request, name: str, *, required: Literal[True]) -> bool:
-    ...
+def parse_boolean(request: Request, name: str, *, required: Literal[True]) -> bool: ...
 
 
 @overload
 def parse_boolean(
     request: Request, name: str, default: Optional[bool] = None, required: bool = False
-) -> Optional[bool]:
-    ...
+) -> Optional[bool]: ...
 
 
 def parse_boolean(
@@ -209,8 +192,7 @@ def parse_boolean_from_args(
     args: Mapping[bytes, Sequence[bytes]],
     name: str,
     default: bool,
-) -> bool:
-    ...
+) -> bool: ...
 
 
 @overload
@@ -219,8 +201,7 @@ def parse_boolean_from_args(
     name: str,
     *,
     required: Literal[True],
-) -> bool:
-    ...
+) -> bool: ...
 
 
 @overload
@@ -229,8 +210,7 @@ def parse_boolean_from_args(
     name: str,
     default: Optional[bool] = None,
     required: bool = False,
-) -> Optional[bool]:
-    ...
+) -> Optional[bool]: ...
 
 
 def parse_boolean_from_args(
@@ -282,8 +262,7 @@ def parse_bytes_from_args(
     args: Mapping[bytes, Sequence[bytes]],
     name: str,
     default: Optional[bytes] = None,
-) -> Optional[bytes]:
-    ...
+) -> Optional[bytes]: ...
 
 
 @overload
@@ -293,8 +272,7 @@ def parse_bytes_from_args(
     default: Literal[None] = None,
     *,
     required: Literal[True],
-) -> bytes:
-    ...
+) -> bytes: ...
 
 
 @overload
@@ -303,8 +281,7 @@ def parse_bytes_from_args(
     name: str,
     default: Optional[bytes] = None,
     required: bool = False,
-) -> Optional[bytes]:
-    ...
+) -> Optional[bytes]: ...
 
 
 def parse_bytes_from_args(
@@ -348,8 +325,7 @@ def parse_string(
     *,
     allowed_values: Optional[StrCollection] = None,
     encoding: str = "ascii",
-) -> str:
-    ...
+) -> str: ...
 
 
 @overload
@@ -360,8 +336,7 @@ def parse_string(
     required: Literal[True],
     allowed_values: Optional[StrCollection] = None,
     encoding: str = "ascii",
-) -> str:
-    ...
+) -> str: ...
 
 
 @overload
@@ -373,8 +348,7 @@ def parse_string(
     required: bool = False,
     allowed_values: Optional[StrCollection] = None,
     encoding: str = "ascii",
-) -> Optional[str]:
-    ...
+) -> Optional[str]: ...
 
 
 def parse_string(
@@ -428,27 +402,25 @@ EnumT = TypeVar("EnumT", bound=enum.Enum)
 def parse_enum(
     request: Request,
     name: str,
-    E: Type[EnumT],
+    E: type[EnumT],
     default: EnumT,
-) -> EnumT:
-    ...
+) -> EnumT: ...
 
 
 @overload
 def parse_enum(
     request: Request,
     name: str,
-    E: Type[EnumT],
+    E: type[EnumT],
     *,
     required: Literal[True],
-) -> EnumT:
-    ...
+) -> EnumT: ...
 
 
 def parse_enum(
     request: Request,
     name: str,
-    E: Type[EnumT],
+    E: type[EnumT],
     default: Optional[EnumT] = None,
     required: bool = False,
 ) -> Optional[EnumT]:
@@ -474,9 +446,9 @@ def parse_enum(
             is not one of those allowed values.
     """
     # Assert the enum values are strings.
-    assert all(
-        isinstance(e.value, str) for e in E
-    ), "parse_enum only works with string values"
+    assert all(isinstance(e.value, str) for e in E), (
+        "parse_enum only works with string values"
+    )
     str_value = parse_string(
         request,
         name,
@@ -519,20 +491,18 @@ def parse_strings_from_args(
     *,
     allowed_values: Optional[StrCollection] = None,
     encoding: str = "ascii",
-) -> Optional[List[str]]:
-    ...
+) -> Optional[list[str]]: ...
 
 
 @overload
 def parse_strings_from_args(
     args: Mapping[bytes, Sequence[bytes]],
     name: str,
-    default: List[str],
+    default: list[str],
     *,
     allowed_values: Optional[StrCollection] = None,
     encoding: str = "ascii",
-) -> List[str]:
-    ...
+) -> list[str]: ...
 
 
 @overload
@@ -543,31 +513,29 @@ def parse_strings_from_args(
     required: Literal[True],
     allowed_values: Optional[StrCollection] = None,
     encoding: str = "ascii",
-) -> List[str]:
-    ...
+) -> list[str]: ...
 
 
 @overload
 def parse_strings_from_args(
     args: Mapping[bytes, Sequence[bytes]],
     name: str,
-    default: Optional[List[str]] = None,
+    default: Optional[list[str]] = None,
     *,
     required: bool = False,
     allowed_values: Optional[StrCollection] = None,
     encoding: str = "ascii",
-) -> Optional[List[str]]:
-    ...
+) -> Optional[list[str]]: ...
 
 
 def parse_strings_from_args(
     args: Mapping[bytes, Sequence[bytes]],
     name: str,
-    default: Optional[List[str]] = None,
+    default: Optional[list[str]] = None,
     required: bool = False,
     allowed_values: Optional[StrCollection] = None,
     encoding: str = "ascii",
-) -> Optional[List[str]]:
+) -> Optional[list[str]]:
     """
     Parse a string parameter from the request query string list.
 
@@ -618,8 +586,7 @@ def parse_string_from_args(
     *,
     allowed_values: Optional[StrCollection] = None,
     encoding: str = "ascii",
-) -> Optional[str]:
-    ...
+) -> Optional[str]: ...
 
 
 @overload
@@ -631,8 +598,7 @@ def parse_string_from_args(
     required: Literal[True],
     allowed_values: Optional[StrCollection] = None,
     encoding: str = "ascii",
-) -> str:
-    ...
+) -> str: ...
 
 
 @overload
@@ -643,8 +609,7 @@ def parse_string_from_args(
     required: bool = False,
     allowed_values: Optional[StrCollection] = None,
     encoding: str = "ascii",
-) -> Optional[str]:
-    ...
+) -> Optional[str]: ...
 
 
 def parse_string_from_args(
@@ -697,22 +662,19 @@ def parse_string_from_args(
 
 
 @overload
-def parse_json_value_from_request(request: Request) -> JsonDict:
-    ...
+def parse_json_value_from_request(request: Request) -> JsonDict: ...
 
 
 @overload
 def parse_json_value_from_request(
     request: Request, allow_empty_body: Literal[False]
-) -> JsonDict:
-    ...
+) -> JsonDict: ...
 
 
 @overload
 def parse_json_value_from_request(
     request: Request, allow_empty_body: bool = False
-) -> Optional[JsonDict]:
-    ...
+) -> Optional[JsonDict]: ...
 
 
 def parse_json_value_from_request(
@@ -784,7 +746,7 @@ def parse_json_object_from_request(
 Model = TypeVar("Model", bound=BaseModel)
 
 
-def validate_json_object(content: JsonDict, model_type: Type[Model]) -> Model:
+def validate_json_object(content: JsonDict, model_type: type[Model]) -> Model:
     """Validate a deserialized JSON object using the given pydantic model.
 
     Raises:
@@ -814,7 +776,7 @@ def validate_json_object(content: JsonDict, model_type: Type[Model]) -> Model:
 
 
 def parse_and_validate_json_object_from_request(
-    request: Request, model_type: Type[Model]
+    request: Request, model_type: type[Model]
 ) -> Model:
     """Parse a JSON object from the body of a twisted HTTP request, then deserialise and
     validate using the given pydantic model.
@@ -840,7 +802,6 @@ def assert_params_in_dict(body: JsonDict, required: StrCollection) -> None:
 
 
 class RestServlet:
-
     """A Relapse REST Servlet.
 
     An implementing class can either provide its own custom 'register' method,
@@ -881,8 +842,8 @@ class ResolveRoomIdMixin:
         self.room_member_handler = hs.get_room_member_handler()
 
     async def resolve_room_id(
-        self, room_identifier: str, remote_room_hosts: Optional[List[str]] = None
-    ) -> Tuple[str, Optional[List[str]]]:
+        self, room_identifier: str, remote_room_hosts: Optional[list[str]] = None
+    ) -> tuple[str, Optional[list[str]]]:
         """
         Resolve a room identifier to a room ID, if necessary.
 

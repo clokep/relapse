@@ -13,7 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import TYPE_CHECKING, Dict, Iterable, List, Mapping, Optional, Tuple, cast
+from collections.abc import Iterable, Mapping
+from typing import TYPE_CHECKING, Optional, cast
 
 from typing_extensions import Literal, TypedDict
 
@@ -180,7 +181,7 @@ class EndToEndRoomKeyStore(EndToEndRoomKeyBackgroundStore):
         )
 
     async def add_e2e_room_keys(
-        self, user_id: str, version: str, room_keys: Iterable[Tuple[str, str, RoomKey]]
+        self, user_id: str, version: str, room_keys: Iterable[tuple[str, str, RoomKey]]
     ) -> None:
         """Bulk add room keys to a given backup.
 
@@ -242,8 +243,8 @@ class EndToEndRoomKeyStore(EndToEndRoomKeyBackgroundStore):
         version: str,
         room_id: Optional[str] = None,
         session_id: Optional[str] = None,
-    ) -> Dict[
-        Literal["rooms"], Dict[str, Dict[Literal["sessions"], Dict[str, RoomKey]]]
+    ) -> dict[
+        Literal["rooms"], dict[str, dict[Literal["sessions"], dict[str, RoomKey]]]
     ]:
         """Bulk get the E2E room keys for a given backup, optionally filtered to a given
         room, or a given session.
@@ -275,7 +276,7 @@ class EndToEndRoomKeyStore(EndToEndRoomKeyBackgroundStore):
                 keyvalues["session_id"] = session_id
 
         rows = cast(
-            List[Tuple[str, str, int, int, int, str]],
+            list[tuple[str, str, int, int, int, str]],
             await self.db_pool.simple_select_list(
                 table="e2e_room_keys",
                 keyvalues=keyvalues,
@@ -291,8 +292,8 @@ class EndToEndRoomKeyStore(EndToEndRoomKeyBackgroundStore):
             ),
         )
 
-        sessions: Dict[
-            Literal["rooms"], Dict[str, Dict[Literal["sessions"], Dict[str, RoomKey]]]
+        sessions: dict[
+            Literal["rooms"], dict[str, dict[Literal["sessions"], dict[str, RoomKey]]]
         ] = {"rooms": {}}
         for (
             room_id,
@@ -318,7 +319,7 @@ class EndToEndRoomKeyStore(EndToEndRoomKeyBackgroundStore):
         user_id: str,
         version: str,
         room_keys: Mapping[str, Mapping[Literal["sessions"], Iterable[str]]],
-    ) -> Dict[str, Dict[str, RoomKey]]:
+    ) -> dict[str, dict[str, RoomKey]]:
         """Get multiple room keys at a time.  The difference between this function and
         get_e2e_room_keys is that this function can be used to retrieve
         multiple specific keys at a time, whereas get_e2e_room_keys is used for
@@ -355,7 +356,7 @@ class EndToEndRoomKeyStore(EndToEndRoomKeyBackgroundStore):
         user_id: str,
         version: int,
         room_keys: Mapping[str, Mapping[Literal["sessions"], Iterable[str]]],
-    ) -> Dict[str, Dict[str, RoomKey]]:
+    ) -> dict[str, dict[str, RoomKey]]:
         if not room_keys:
             return {}
 
@@ -381,13 +382,11 @@ class EndToEndRoomKeyStore(EndToEndRoomKeyBackgroundStore):
                is_verified, session_data
         FROM e2e_room_keys
         WHERE user_id = ? AND version = ? AND (%s)
-        """ % (
-            " OR ".join(where_clauses)
-        )
+        """ % (" OR ".join(where_clauses))
 
         txn.execute(sql, params)
 
-        ret: Dict[str, Dict[str, RoomKey]] = {}
+        ret: dict[str, dict[str, RoomKey]] = {}
 
         for row in txn:
             room_id = row[0]
@@ -470,7 +469,7 @@ class EndToEndRoomKeyStore(EndToEndRoomKeyBackgroundStore):
         )
         # `SELECT MAX() FROM ...` will always return 1 row. The value in that row will
         # be `NULL` when there are no available versions.
-        row = cast(Tuple[Optional[int]], txn.fetchone())
+        row = cast(tuple[Optional[int]], txn.fetchone())
         if row[0] is None:
             raise StoreError(404, "No current backup version")
         return row[0]
@@ -507,7 +506,7 @@ class EndToEndRoomKeyStore(EndToEndRoomKeyBackgroundStore):
                     raise StoreError(404, "No backup with that version exists")
 
             row = cast(
-                Tuple[int, str, str, Optional[int]],
+                tuple[int, str, str, Optional[int]],
                 self.db_pool.simple_select_one_txn(
                     txn,
                     table="e2e_room_keys_versions",
@@ -549,7 +548,7 @@ class EndToEndRoomKeyStore(EndToEndRoomKeyBackgroundStore):
                 "SELECT MAX(version) FROM e2e_room_keys_versions WHERE user_id=?",
                 (user_id,),
             )
-            current_version = cast(Tuple[Optional[int]], txn.fetchone())[0]
+            current_version = cast(tuple[Optional[int]], txn.fetchone())[0]
             if current_version is None:
                 current_version = 0
 
@@ -590,7 +589,7 @@ class EndToEndRoomKeyStore(EndToEndRoomKeyBackgroundStore):
             version_etag: etag of the keys in the backup. If None, then the etag
                 is not updated.
         """
-        updatevalues: Dict[str, object] = {}
+        updatevalues: dict[str, object] = {}
 
         if info is not None and "auth_data" in info:
             updatevalues["auth_data"] = json_encoder.encode(info["auth_data"])

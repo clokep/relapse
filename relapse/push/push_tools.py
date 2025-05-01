@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Dict
 
 from relapse.api.constants import EventTypes, Membership
 from relapse.events import EventBase
@@ -49,8 +48,8 @@ async def get_badge_count(store: DataStore, user_id: str, group_by_room: bool) -
 
 async def get_context_for_event(
     storage: StorageControllers, ev: EventBase, user_id: str
-) -> Dict[str, str]:
-    ctx: Dict[str, str] = {}
+) -> dict[str, str]:
+    ctx: dict[str, str] = {}
 
     if ev.internal_metadata.outlier:
         # We don't have state for outliers, so we can't compute the context

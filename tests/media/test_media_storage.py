@@ -231,8 +231,8 @@ class MediaRepoTests(unittest.HomeserverTestCase):
     user_id = "@test:user"
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
-        self.fetches: List[
-            Tuple[
+        self.fetches: list[
+            tuple[
                 "Deferred[Tuple[bytes, Tuple[int, Dict[bytes, List[bytes]]]]]",
                 str,
                 str,
@@ -253,8 +253,8 @@ class MediaRepoTests(unittest.HomeserverTestCase):
             """A mock for MatrixFederationHttpClient.get_file."""
 
             def write_to(
-                r: Tuple[bytes, Tuple[int, Dict[bytes, List[bytes]]]]
-            ) -> Tuple[int, Dict[bytes, List[bytes]]]:
+                r: tuple[bytes, tuple[int, dict[bytes, list[bytes]]]],
+            ) -> tuple[int, dict[bytes, list[bytes]]]:
                 data, response = r
                 output_stream.write(data)
                 return response
@@ -264,7 +264,7 @@ class MediaRepoTests(unittest.HomeserverTestCase):
                 output_stream.write(f.value.response)
                 return f
 
-            d: Deferred[Tuple[bytes, Tuple[int, Dict[bytes, List[bytes]]]]] = Deferred()
+            d: Deferred[tuple[bytes, tuple[int, dict[bytes, list[bytes]]]]] = Deferred()
             self.fetches.append((d, destination, path, args))
             # Note that this callback changes the value held by d.
             d_after_callback = d.addCallbacks(write_to, write_err)
@@ -302,7 +302,7 @@ class MediaRepoTests(unittest.HomeserverTestCase):
 
         self.media_id = "example.com/12345"
 
-    def create_resource_dict(self) -> Dict[str, Resource]:
+    def create_resource_dict(self) -> dict[str, Resource]:
         resources = super().create_resource_dict()
         resources["/_matrix/media"] = self.hs.get_media_repository_resource()
         return resources
@@ -733,12 +733,12 @@ class TestSpamCheckerLegacy:
     Uses the legacy Spam-Checker API.
     """
 
-    def __init__(self, config: Dict[str, Any], api: ModuleApi) -> None:
+    def __init__(self, config: dict[str, Any], api: ModuleApi) -> None:
         self.config = config
         self.api = api
 
     @staticmethod
-    def parse_config(config: Dict[str, Any]) -> Dict[str, Any]:
+    def parse_config(config: dict[str, Any]) -> dict[str, Any]:
         return config
 
     async def check_event_for_spam(self, event: EventBase) -> Union[bool, str]:
@@ -784,12 +784,12 @@ class SpamCheckerTestCaseLegacy(unittest.HomeserverTestCase):
 
         load_legacy_spam_checkers(hs)
 
-    def create_resource_dict(self) -> Dict[str, Resource]:
+    def create_resource_dict(self) -> dict[str, Resource]:
         resources = super().create_resource_dict()
         resources["/_matrix/media"] = self.hs.get_media_repository_resource()
         return resources
 
-    def default_config(self) -> Dict[str, Any]:
+    def default_config(self) -> dict[str, Any]:
         config = default_config("test")
 
         config.update(
@@ -838,14 +838,14 @@ class SpamCheckerTestCase(unittest.HomeserverTestCase):
             check_media_file_for_spam=self.check_media_file_for_spam
         )
 
-    def create_resource_dict(self) -> Dict[str, Resource]:
+    def create_resource_dict(self) -> dict[str, Resource]:
         resources = super().create_resource_dict()
         resources["/_matrix/media"] = self.hs.get_media_repository_resource()
         return resources
 
     async def check_media_file_for_spam(
         self, file_wrapper: ReadableFileWrapper, file_info: FileInfo
-    ) -> Union[Codes, Literal["NOT_SPAM"], Tuple[Codes, JsonDict]]:
+    ) -> Union[Codes, Literal["NOT_SPAM"], tuple[Codes, JsonDict]]:
         buf = BytesIO()
         await file_wrapper.write_chunks_to(buf.write)
 

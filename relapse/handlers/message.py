@@ -16,8 +16,9 @@
 # limitations under the License.
 import logging
 import random
+from collections.abc import Mapping
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Any, Dict, List, Mapping, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Optional
 
 from canonicaljson import encode_canonical_json
 
@@ -137,9 +138,9 @@ class MessageHandler:
         elif membership == Membership.LEAVE:
             key = (event_type, state_key)
             # If the membership is not JOIN, then the event ID should exist.
-            assert (
-                membership_event_id is not None
-            ), "check_user_in_room_or_world_readable returned invalid data"
+            assert membership_event_id is not None, (
+                "check_user_in_room_or_world_readable returned invalid data"
+            )
             room_state = await self._state_storage_controller.get_state_for_events(
                 [membership_event_id], StateFilter.from_types([key])
             )
@@ -167,7 +168,7 @@ class MessageHandler:
         room_id: str,
         state_filter: Optional[StateFilter] = None,
         at_token: Optional[StreamToken] = None,
-    ) -> List[dict]:
+    ) -> list[dict]:
         """Retrieve all state events for a given room. If the user is
         joined to the room then return the current state. If the user has
         left the room return the state events from when they left. If an explicit
@@ -234,9 +235,9 @@ class MessageHandler:
                 room_state = await self.store.get_events(state_ids.values())
             elif membership == Membership.LEAVE:
                 # If the membership is not JOIN, then the event ID should exist.
-                assert (
-                    membership_event_id is not None
-                ), "check_user_in_room_or_world_readable returned invalid data"
+                assert membership_event_id is not None, (
+                    "check_user_in_room_or_world_readable returned invalid data"
+                )
                 room_state_events = (
                     await self._state_storage_controller.get_state_for_events(
                         [membership_event_id], state_filter=state_filter
@@ -528,7 +529,7 @@ class EventCreationHandler:
         #
         # map from room id to time-of-last-attempt.
         #
-        self._rooms_to_exclude_from_dummy_event_insertion: Dict[str, int] = {}
+        self._rooms_to_exclude_from_dummy_event_insertion: dict[str, int] = {}
         # The number of forward extremeities before a dummy event is sent.
         self._dummy_events_threshold = hs.config.server.dummy_events_threshold
 
@@ -567,16 +568,16 @@ class EventCreationHandler:
         event_dict: dict,
         txn_id: Optional[str] = None,
         allow_no_prev_events: bool = False,
-        prev_event_ids: Optional[List[str]] = None,
-        auth_event_ids: Optional[List[str]] = None,
-        state_event_ids: Optional[List[str]] = None,
+        prev_event_ids: Optional[list[str]] = None,
+        auth_event_ids: Optional[list[str]] = None,
+        state_event_ids: Optional[list[str]] = None,
         require_consent: bool = True,
         outlier: bool = False,
         depth: Optional[int] = None,
         state_map: Optional[StateMap[str]] = None,
         for_batch: bool = False,
         current_state_group: Optional[int] = None,
-    ) -> Tuple[EventBase, UnpersistedEventContextBase]:
+    ) -> tuple[EventBase, UnpersistedEventContextBase]:
         """
         Given a dict from a client, create a new event. If bool for_batch is true, will
         create an event using the prev_event_ids, and will create an event context for
@@ -936,14 +937,14 @@ class EventCreationHandler:
         requester: Requester,
         event_dict: dict,
         allow_no_prev_events: bool = False,
-        prev_event_ids: Optional[List[str]] = None,
-        state_event_ids: Optional[List[str]] = None,
+        prev_event_ids: Optional[list[str]] = None,
+        state_event_ids: Optional[list[str]] = None,
         ratelimit: bool = True,
         txn_id: Optional[str] = None,
         ignore_shadow_ban: bool = False,
         outlier: bool = False,
         depth: Optional[int] = None,
-    ) -> Tuple[EventBase, int]:
+    ) -> tuple[EventBase, int]:
         """
         Creates an event, then sends it.
 
@@ -1056,14 +1057,14 @@ class EventCreationHandler:
         requester: Requester,
         event_dict: dict,
         allow_no_prev_events: bool = False,
-        prev_event_ids: Optional[List[str]] = None,
-        state_event_ids: Optional[List[str]] = None,
+        prev_event_ids: Optional[list[str]] = None,
+        state_event_ids: Optional[list[str]] = None,
         ratelimit: bool = True,
         txn_id: Optional[str] = None,
         ignore_shadow_ban: bool = False,
         outlier: bool = False,
         depth: Optional[int] = None,
-    ) -> Tuple[EventBase, int]:
+    ) -> tuple[EventBase, int]:
         room_id = event_dict["room_id"]
 
         # If we don't have any prev event IDs specified then we need to
@@ -1159,14 +1160,14 @@ class EventCreationHandler:
         builder: EventBuilder,
         requester: Optional[Requester] = None,
         allow_no_prev_events: bool = False,
-        prev_event_ids: Optional[List[str]] = None,
-        auth_event_ids: Optional[List[str]] = None,
-        state_event_ids: Optional[List[str]] = None,
+        prev_event_ids: Optional[list[str]] = None,
+        auth_event_ids: Optional[list[str]] = None,
+        state_event_ids: Optional[list[str]] = None,
         depth: Optional[int] = None,
         state_map: Optional[StateMap[str]] = None,
         for_batch: bool = False,
         current_state_group: Optional[int] = None,
-    ) -> Tuple[EventBase, UnpersistedEventContextBase]:
+    ) -> tuple[EventBase, UnpersistedEventContextBase]:
         """Create a new event for a local client. If bool for_batch is true, will
         create an event using the prev_event_ids, and will create an event context for
         the event using the parameters state_map and current_state_group, thus these parameters
@@ -1240,10 +1241,9 @@ class EventCreationHandler:
             )
 
         if prev_event_ids is not None:
-            assert (
-                len(prev_event_ids) <= 10
-            ), "Attempting to create an event with %i prev_events" % (
-                len(prev_event_ids),
+            assert len(prev_event_ids) <= 10, (
+                "Attempting to create an event with %i prev_events"
+                % (len(prev_event_ids),)
             )
         else:
             prev_event_ids = await self.store.get_prev_events_for_room(builder.room_id)
@@ -1258,12 +1258,14 @@ class EventCreationHandler:
                 # Allow an event to have empty list of prev_event_ids
                 # only if it has auth_event_ids.
                 or auth_event_ids
-            ), "Attempting to create a non-m.room.create event with no prev_events or auth_event_ids"
+            ), (
+                "Attempting to create a non-m.room.create event with no prev_events or auth_event_ids"
+            )
         else:
             # we now ought to have some prev_events (unless it's a create event).
-            assert (
-                builder.type == EventTypes.Create or prev_event_ids
-            ), "Attempting to create a non-m.room.create event with no prev_events"
+            assert builder.type == EventTypes.Create or prev_event_ids, (
+                "Attempting to create a non-m.room.create event with no prev_events"
+            )
 
         if for_batch:
             assert prev_event_ids is not None
@@ -1385,9 +1387,9 @@ class EventCreationHandler:
     async def handle_new_client_event(
         self,
         requester: Requester,
-        events_and_context: List[Tuple[EventBase, EventContext]],
+        events_and_context: list[tuple[EventBase, EventContext]],
         ratelimit: bool = True,
-        extra_users: Optional[List[UserID]] = None,
+        extra_users: Optional[list[UserID]] = None,
         ignore_shadow_ban: bool = False,
     ) -> EventBase:
         """Processes new events. Please note that if batch persisting events, an error in
@@ -1499,9 +1501,9 @@ class EventCreationHandler:
     async def _persist_events(
         self,
         requester: Requester,
-        events_and_context: List[Tuple[EventBase, EventContext]],
+        events_and_context: list[tuple[EventBase, EventContext]],
         ratelimit: bool = True,
-        extra_users: Optional[List[UserID]] = None,
+        extra_users: Optional[list[UserID]] = None,
     ) -> EventBase:
         """Actually persists new events. Should only be called by
         `handle_new_client_event`, and see its docstring for documentation of
@@ -1584,7 +1586,7 @@ class EventCreationHandler:
             raise
 
     async def cache_joined_hosts_for_events(
-        self, events_and_context: List[Tuple[EventBase, EventContext]]
+        self, events_and_context: list[tuple[EventBase, EventContext]]
     ) -> None:
         """Precalculate the joined hosts at each of the given events, when using Redis, so that
         external federation senders don't have to recalculate it themselves.
@@ -1649,9 +1651,9 @@ class EventCreationHandler:
                     expiry_ms=60 * 60 * 1000,
                 )
 
-                self._external_cache_joined_hosts_updates[
-                    state_entry.state_group
-                ] = None
+                self._external_cache_joined_hosts_updates[state_entry.state_group] = (
+                    None
+                )
 
     async def _validate_canonical_alias(
         self,
@@ -1690,9 +1692,9 @@ class EventCreationHandler:
     async def persist_and_notify_client_events(
         self,
         requester: Requester,
-        events_and_context: List[Tuple[EventBase, EventContext]],
+        events_and_context: list[tuple[EventBase, EventContext]],
         ratelimit: bool = True,
-        extra_users: Optional[List[UserID]] = None,
+        extra_users: Optional[list[UserID]] = None,
     ) -> EventBase:
         """Called when we have fully built the events, have already
         calculated the push actions for the events, and checked auth.
@@ -2097,7 +2099,7 @@ class EventCreationHandler:
 
     async def _rebuild_event_after_third_party_rules(
         self, third_party_result: dict, original_event: EventBase
-    ) -> Tuple[EventBase, UnpersistedEventContextBase]:
+    ) -> tuple[EventBase, UnpersistedEventContextBase]:
         # the third_party_event_rules want to replace the event.
         # we do some basic checks, and then return the replacement event.
 

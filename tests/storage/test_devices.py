@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Collection, List, Tuple
+from collections.abc import Collection
 
 from twisted.test.proto_helpers import MemoryReactor
 
@@ -29,7 +29,7 @@ class DeviceStoreTestCase(HomeserverTestCase):
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = hs.get_datastores().main
 
-    def add_device_change(self, user_id: str, device_ids: List[str], host: str) -> None:
+    def add_device_change(self, user_id: str, device_ids: list[str], host: str) -> None:
         """Add a device list change for the given device to
         `device_lists_outbound_pokes` table.
         """
@@ -196,9 +196,9 @@ class DeviceStoreTestCase(HomeserverTestCase):
         even if that means leaving an earlier batch one EDU short of the limit.
         """
 
-        assert self.hs.is_mine_id(
-            "@user_id:test"
-        ), "Test not valid: this MXID should be considered local"
+        assert self.hs.is_mine_id("@user_id:test"), (
+            "Test not valid: this MXID should be considered local"
+        )
 
         self.get_success(
             self.store.set_e2e_cross_signing_key(
@@ -291,7 +291,7 @@ class DeviceStoreTestCase(HomeserverTestCase):
     def _check_devices_in_updates(
         self,
         expected_device_ids: Collection[str],
-        device_updates: List[Tuple[str, JsonDict]],
+        device_updates: list[tuple[str, JsonDict]],
     ) -> None:
         """Check that an specific device ids exist in a list of device update EDUs"""
         self.assertEqual(len(device_updates), len(expected_device_ids))

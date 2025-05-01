@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-from typing import TYPE_CHECKING, List, Tuple
+from typing import TYPE_CHECKING
 
 from relapse.api.constants import (
     EventTypes,
@@ -113,13 +113,15 @@ class ResourceLimitsServerNotices:
             elif not currently_blocked and limit_msg:
                 # Room is not notifying of a block, when it ought to be.
                 await self._apply_limit_block_notification(
-                    user_id, limit_msg, limit_type  # type: ignore
+                    user_id,
+                    limit_msg,
+                    limit_type,  # type: ignore
                 )
         except RelapseError as e:
             logger.error("Error sending resource limits server notice: %s", e)
 
     async def _remove_limit_block_notification(
-        self, user_id: str, ref_events: List[str]
+        self, user_id: str, ref_events: list[str]
     ) -> None:
         """Utility method to remove limit block notifications from the server
         notices room.
@@ -162,7 +164,7 @@ class ResourceLimitsServerNotices:
             user_id, content, EventTypes.Pinned, ""
         )
 
-    async def _is_room_currently_blocked(self, room_id: str) -> Tuple[bool, List[str]]:
+    async def _is_room_currently_blocked(self, room_id: str) -> tuple[bool, list[str]]:
         """
         Determines if the room is currently blocked
 
@@ -190,7 +192,7 @@ class ResourceLimitsServerNotices:
             # The user has yet to join the server notices room
             pass
 
-        referenced_events: List[str] = []
+        referenced_events: list[str] = []
         if pinned_state_event is not None:
             referenced_events = list(pinned_state_event.content.get("pinned", []))
 

@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List, Optional, Sequence, Tuple, cast
+from collections.abc import Sequence
+from typing import List, Optional, Tuple, cast
 from unittest.mock import AsyncMock, Mock
 
 from typing_extensions import TypeAlias
@@ -143,7 +144,8 @@ class ApplicationServiceSchedulerTransactionCtrlTestCase(unittest.TestCase):
         self.assertEqual(1, len(self.txnctrl.recoverers))  # and stored
         self.assertEqual(0, txn.complete.call_count)  # txn not completed
         self.store.set_appservice_state.assert_called_once_with(
-            service, ApplicationServiceState.DOWN  # service marked as down
+            service,
+            ApplicationServiceState.DOWN,  # service marked as down
         )
 
 

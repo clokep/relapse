@@ -13,7 +13,8 @@
 # limitations under the License.
 
 import logging
-from typing import Any, List, Optional, Pattern
+from re import Pattern
+from typing import Any, Optional
 
 from matrix_common.regex import glob_to_regex
 
@@ -77,7 +78,7 @@ class TlsConfig(Config):
             fed_whitelist_entries = []
 
         # Support globs (*) in whitelist values
-        self.federation_certificate_verification_whitelist: List[Pattern] = []
+        self.federation_certificate_verification_whitelist: list[Pattern] = []
         for entry in fed_whitelist_entries:
             try:
                 entry_regex = glob_to_regex(entry.encode("ascii").decode("ascii"))
@@ -101,8 +102,7 @@ class TlsConfig(Config):
                 # Raise an error if this option has been specified without any
                 # corresponding certificates.
                 raise ConfigError(
-                    "federation_custom_ca_list specified without "
-                    "any certificate files"
+                    "federation_custom_ca_list specified without any certificate files"
                 )
 
             certs = []

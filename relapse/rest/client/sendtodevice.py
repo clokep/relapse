@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import logging
-from typing import TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING
 
 from relapse.http import servlet
 from relapse.http.server import HttpServer
@@ -46,7 +46,7 @@ class SendToDeviceRestServlet(servlet.RestServlet):
 
     async def on_PUT(
         self, request: RelapseRequest, message_type: str, txn_id: str
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         requester = await self.auth.get_user_by_req(request, allow_guest=True)
         set_tag("txn_id", txn_id)
         return await self.txns.fetch_or_execute_request(
@@ -63,7 +63,7 @@ class SendToDeviceRestServlet(servlet.RestServlet):
         request: RelapseRequest,
         requester: Requester,
         message_type: str,
-    ) -> Tuple[int, JsonDict]:
+    ) -> tuple[int, JsonDict]:
         content = parse_json_object_from_request(request)
         assert_params_in_dict(content, ("messages",))
 

@@ -16,7 +16,6 @@ import argparse
 import sys
 import time
 from datetime import datetime
-from typing import List
 
 import attr
 
@@ -33,6 +32,7 @@ from relapse.storage.engines import create_engine
 
 class ReviewConfig(RootConfig):
     "A config class that just pulls out the database config"
+
     config_classes = [DatabaseConfig]
 
 
@@ -40,15 +40,15 @@ class ReviewConfig(RootConfig):
 class UserInfo:
     user_id: str
     creation_ts: int
-    emails: List[str] = attr.Factory(list)
-    private_rooms: List[str] = attr.Factory(list)
-    public_rooms: List[str] = attr.Factory(list)
-    ips: List[str] = attr.Factory(list)
+    emails: list[str] = attr.Factory(list)
+    private_rooms: list[str] = attr.Factory(list)
+    public_rooms: list[str] = attr.Factory(list)
+    ips: list[str] = attr.Factory(list)
 
 
 def get_recent_users(
     txn: LoggingTransaction, since_ms: int, exclude_app_service: bool
-) -> List[UserInfo]:
+) -> list[UserInfo]:
     """Fetches recently registered users and some info on them."""
 
     sql = """
@@ -153,7 +153,11 @@ def main() -> None:
 
     with make_conn(database_config, engine, "review_recent_signups") as db_conn:
         # This generates a type of Cursor, not LoggingTransaction.
-        user_infos = get_recent_users(db_conn.cursor(), since_ms, exclude_users_with_appservice)  # type: ignore[arg-type]
+        user_infos = get_recent_users(
+            db_conn.cursor(),
+            since_ms,  # type: ignore[arg-type]
+            exclude_users_with_appservice,
+        )
 
     for user_info in user_infos:
         if exclude_users_with_email and user_info.emails:

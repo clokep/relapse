@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import TYPE_CHECKING, Iterable, Union
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, Union
 
 from relapse.server_notices.consent_server_notices import ConsentServerNotices
 from relapse.server_notices.resource_limits_server_notices import (

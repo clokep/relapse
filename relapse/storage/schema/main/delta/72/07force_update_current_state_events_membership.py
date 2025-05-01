@@ -19,6 +19,7 @@ for its completion can be removed.
 
 Note the background job must still remain defined in the database class.
 """
+
 from relapse.config.homeserver import HomeServerConfig
 from relapse.storage.database import LoggingTransaction
 from relapse.storage.engines import BaseDatabaseEngine

@@ -13,7 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Contains the URL paths to prefix various aspects of the server with. """
+"""Contains the URL paths to prefix various aspects of the server with."""
+
 import hmac
 from hashlib import sha256
 from urllib.parse import urlencode
