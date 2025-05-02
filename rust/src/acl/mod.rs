@@ -19,16 +19,17 @@ use std::str::FromStr;
 
 use anyhow::Error;
 use pyo3::prelude::*;
+use pyo3::pybacked::PyBackedStr;
 use regex::Regex;
 
 use crate::push::utils::{glob_to_regex, GlobMatchType};
 
 /// Called when registering modules with python.
-pub fn register_module(py: Python<'_>, m: &PyModule) -> PyResult<()> {
+pub fn register_module(py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     let child_module = PyModule::new(py, "acl")?;
     child_module.add_class::<ServerAclEvaluator>()?;
 
-    m.add_submodule(child_module)?;
+    m.add_submodule(&child_module)?;
 
     // We need to manually add the module to sys.modules to make `from
     // relapse.relapse_rust import acl` work.
@@ -52,8 +53,8 @@ impl ServerAclEvaluator {
     #[new]
     pub fn py_new(
         allow_ip_literals: bool,
-        allow: Vec<&str>,
-        deny: Vec<&str>,
+        allow: Vec<PyBackedStr>,
+        deny: Vec<PyBackedStr>,
     ) -> Result<Self, Error> {
         let allow = allow
             .iter()
