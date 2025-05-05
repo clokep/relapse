@@ -2546,20 +2546,19 @@ testing-integration = ["build[virtualenv]", "filelock (>=3.4.0)", "jaraco.envs (
 
 [[package]]
 name = "setuptools-rust"
-version = "1.8.1"
+version = "1.11.1"
 description = "Setuptools Rust extension plugin"
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "setuptools-rust-1.8.1.tar.gz", hash = "sha256:94b1dd5d5308b3138d5b933c3a2b55e6d6927d1a22632e509fcea9ddd0f7e486"},
-    {file = "setuptools_rust-1.8.1-py3-none-any.whl", hash = "sha256:b5324493949ccd6aa0c03890c5f6b5f02de4512e3ac1697d02e9a6c02b18aa8e"},
+    {file = "setuptools_rust-1.11.1-py3-none-any.whl", hash = "sha256:5eaaddaed268dc24a527ffa659ce56b22d3cf17b781247b779efd611031fe8ea"},
+    {file = "setuptools_rust-1.11.1.tar.gz", hash = "sha256:7dabc4392252ced314b8050d63276e05fdc5d32398fc7d3cce1f6a6ac35b76c0"},
 ]
 
 [package.dependencies]
-semantic-version = ">=2.8.2,<3"
+semantic_version = ">=2.8.2,<3"
 setuptools = ">=62.4"
-tomli = {version = ">=1.2.1", markers = "python_version < \"3.11\""}
 
 [[package]]
 name = "signedjson"
@@ -2867,12 +2866,12 @@ version = "2.0.1"
 description = "A lil' TOML parser"
 optional = false
 python-versions = ">=3.7"
-groups = ["main", "dev", "dev-docs"]
+groups = ["dev", "dev-docs"]
 files = [
     {file = "tomli-2.0.1-py3-none-any.whl", hash = "sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc"},
     {file = "tomli-2.0.1.tar.gz", hash = "sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f"},
 ]
-markers = {main = "python_version < \"3.11\"", dev-docs = "python_version < \"3.11\""}
+markers = {dev-docs = "python_version < \"3.11\""}
 
 [[package]]
 name = "tornado"
