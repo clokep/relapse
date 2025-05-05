@@ -1176,7 +1176,7 @@ class JWTTestCase(unittest.HomeserverTestCase):
         self.assertEqual(channel.json_body["errcode"], "M_FORBIDDEN")
         self.assertEqual(
             # authlib < 1.5.2 had a bug that used double quotes in error messages.
-            channel.json_body["error"].replace('"', "'"),   
+            channel.json_body["error"].replace('"', "'"),
             "JWT validation failed: invalid_claim: Invalid claim 'aud'",
         )
 
