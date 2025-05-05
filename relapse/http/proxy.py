@@ -267,8 +267,7 @@ class _ProxyResponseBody(protocol.Protocol):
             self._request.finish()
         else:
             # Abort the underlying request since our remote request also failed.
-            assert isinstance(self._request.transport, ITCPTransport)
-            self._request.transport.abortConnection()
+            cast(ITCPTransport, self._request.transport).abortConnection()
 
 
 class ProxySite(Site):

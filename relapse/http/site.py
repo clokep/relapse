@@ -15,7 +15,7 @@ import contextlib
 import logging
 import time
 from collections.abc import Generator
-from typing import TYPE_CHECKING, Any, Optional, Union
+from typing import TYPE_CHECKING, Any, Optional, Union, cast
 
 import attr
 from zope.interface import implementer
@@ -144,8 +144,7 @@ class RelapseRequest(Request):
                 self.get_method(),
                 self.get_redacted_uri(),
             )
-            assert isinstance(self.transport, ITCPTransport)
-            self.transport.abortConnection()
+            cast(ITCPTransport, self.transport).abortConnection()
             return
         super().handleContentChunk(data)
 

@@ -140,9 +140,8 @@ def return_json_error(
     # otherwise lets just kill the connection
     if request.startedWriting:
         if request.transport:
-            assert isinstance(request.transport, ITCPTransport)
             try:
-                request.transport.abortConnection()
+                cast(ITCPTransport, request.transport).abortConnection()
             except Exception:
                 # abortConnection throws if the connection is already closed
                 pass
