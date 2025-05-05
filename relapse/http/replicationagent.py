@@ -76,7 +76,7 @@ class ReplicationEndpointFactory:
         scheme = location_config.scheme()
 
         if isinstance(location_config, InstanceTcpLocationConfig):
-            endpoint = HostnameEndpoint(
+            endpoint: IStreamClientEndpoint = HostnameEndpoint(
                 self.reactor,
                 location_config.host,
                 location_config.port,

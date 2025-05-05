@@ -24,7 +24,7 @@ from http import HTTPStatus
 from http.client import FOUND
 from inspect import isawaitable
 from re import Pattern
-from typing import TYPE_CHECKING, Any, Callable, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, Optional, Union, cast
 
 import attr
 import jinja2
@@ -34,8 +34,11 @@ from zope.interface import implementer
 
 from twisted.internet import defer, interfaces
 from twisted.internet.defer import CancelledError
+from twisted.internet.interfaces import ITCPTransport
 from twisted.python import failure
 from twisted.web import resource
+
+from relapse.types import IRelapseReactor
 
 try:
     from twisted.web.pages import notFound
@@ -137,6 +140,7 @@ def return_json_error(
     # otherwise lets just kill the connection
     if request.startedWriting:
         if request.transport:
+            assert isinstance(request.transport, ITCPTransport)
             try:
                 request.transport.abortConnection()
             except Exception:
@@ -851,7 +855,9 @@ async def _async_write_json_to_request_in_thread(
 
     with start_active_span("encode_json_response"):
         span = active_span()
-        json_str = await defer_to_thread(request.reactor, encode, span)
+        json_str = await defer_to_thread(
+            cast(IRelapseReactor, request.reactor), encode, span
+        )
 
     _write_bytes_to_request(request, json_str)
 
