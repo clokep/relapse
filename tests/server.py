@@ -823,6 +823,9 @@ class FakeTransport:
 
         self.disconnected = True
 
+    def setTcpNoDelay(self, enabled: bool) -> None:
+        pass
+
     def pauseProducing(self) -> None:
         if not self.producer:
             return
