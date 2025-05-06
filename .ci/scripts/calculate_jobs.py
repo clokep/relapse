@@ -109,26 +109,11 @@ sytest_tests = [
         "postgres": "multi-postgres",
         "workers": "workers",
     },
-    {
-        "sytest-tag": "bullseye",
-        "postgres": "multi-postgres",
-        "workers": "workers",
-        "reactor": "asyncio",
-    },
 ]
 
 if not IS_PR:
     sytest_tests.extend(
         [
-            {
-                "sytest-tag": "bullseye",
-                "reactor": "asyncio",
-            },
-            {
-                "sytest-tag": "bullseye",
-                "postgres": "postgres",
-                "reactor": "asyncio",
-            },
             {
                 "sytest-tag": "testing",
                 "postgres": "postgres",

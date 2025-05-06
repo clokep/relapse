@@ -57,52 +57,12 @@ import sys
 from types import FrameType
 from typing import Any, Callable, Optional
 
-from twisted.internet.main import installReactor
-
 # a list of the original signal handlers, before we installed our custom ones.
 # We restore these in our child processes.
 _original_signal_handlers: dict[int, Any] = {}
 
 
-class ProxiedReactor:
-    """
-    Twisted tracks the 'installed' reactor as a global variable.
-    (Actually, it does some module trickery, but the effect is similar.)
-
-    The default EpollReactor is buggy if it's created before a process is
-    forked, then used in the child.
-    See https://twistedmatrix.com/trac/ticket/4759#comment:17.
-
-    However, importing certain Twisted modules will automatically create and
-    install a reactor if one hasn't already been installed.
-    It's not normally possible to re-install a reactor.
-
-    Given the goal of launching workers with fork() to only import the code once,
-    this presents a conflict.
-    Our work around is to 'install' this ProxiedReactor which prevents Twisted
-    from creating and installing one, but which lets us replace the actual reactor
-    in use later on.
-    """
-
-    def __init__(self) -> None:
-        self.___reactor_target: Any = None
-
-    def _install_real_reactor(self, new_reactor: Any) -> None:
-        """
-        Install a real reactor for this ProxiedReactor to forward lookups onto.
-
-        This method is specific to our ProxiedReactor and should not clash with
-        any names used on an actual Twisted reactor.
-        """
-        self.___reactor_target = new_reactor
-
-    def __getattr__(self, attr_name: str) -> Any:
-        return getattr(self.___reactor_target, attr_name)
-
-
-def _worker_entrypoint(
-    func: Callable[[], None], proxy_reactor: ProxiedReactor, args: list[str]
-) -> None:
+def _worker_entrypoint(func: Callable[[], None], args: list[str]) -> None:
     """
     Entrypoint for a forked worker process.
 
@@ -110,32 +70,12 @@ def _worker_entrypoint(
     and then kick off the worker's main() function.
     """
 
-    from relapse.util.stringutils import strtobool
-
     sys.argv = args
 
     # reset the custom signal handlers that we installed, so that the children start
     # from a clean slate.
     for sig, handler in _original_signal_handlers.items():
         signal.signal(sig, handler)
-
-    # Install the asyncio reactor if the
-    # RELAPSE_COMPLEMENT_FORKING_LAUNCHER_ASYNC_IO_REACTOR is set to 1. The
-    # RELAPSE_ASYNC_IO_REACTOR variable would be used, but then causes
-    # relapse/__init__.py to also try to install an asyncio reactor.
-    if strtobool(
-        os.environ.get("RELAPSE_COMPLEMENT_FORKING_LAUNCHER_ASYNC_IO_REACTOR", "0")
-    ):
-        import asyncio
-
-        from twisted.internet.asyncioreactor import AsyncioSelectorReactor
-
-        reactor = AsyncioSelectorReactor(asyncio.get_event_loop())
-        proxy_reactor._install_real_reactor(reactor)
-    else:
-        from twisted.internet.epollreactor import EPollReactor
-
-        proxy_reactor._install_real_reactor(EPollReactor())
 
     func()
 
@@ -163,11 +103,6 @@ def main() -> None:
         if cond and args
     ]
 
-    # Prevent Twisted from installing a shared reactor that all the workers will
-    # inherit when we fork(), by installing our own beforehand.
-    proxy_reactor = ProxiedReactor()
-    installReactor(proxy_reactor)
-
     # Import the entrypoints for all the workers.
     worker_functions = []
     for worker_args in args_by_worker:
@@ -182,7 +117,6 @@ def main() -> None:
         target=_worker_entrypoint,
         args=(
             update_relapse_database.main,
-            proxy_reactor,
             [
                 "update_relapse_database",
                 "--database-config",
@@ -221,7 +155,7 @@ def main() -> None:
     # which uses fork() on Unix platforms.
     for func, worker_args in zip(worker_functions, args_by_worker):
         process = multiprocessing.Process(
-            target=_worker_entrypoint, args=(func, proxy_reactor, worker_args)
+            target=_worker_entrypoint, args=(func, worker_args)
         )
         process.start()
         processes.append(process)
