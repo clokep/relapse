@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import importlib.resources
 import json
 import re
 from collections.abc import Iterable
@@ -19,7 +20,6 @@ from typing import Any, Optional
 from urllib import parse as urlparse
 
 import attr
-import pkg_resources
 
 from relapse.types import JsonDict, StrSequence
 
@@ -59,7 +59,12 @@ class OembedConfig(Config):
         """
         # Whether to use the packaged providers.json file.
         if not oembed_config.get("disable_default_providers") or False:
-            with pkg_resources.resource_stream("relapse", "res/providers.json") as s:
+            with (
+                importlib.resources.files("relapse")
+                .joinpath("res")
+                .joinpath("providers.json")
+                .open("r") as s
+            ):
                 providers = json.load(s)
 
             yield from self._parse_and_validate_provider(

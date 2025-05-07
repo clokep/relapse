@@ -11,14 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import importlib.resources
 import os
 import re
 from email.parser import Parser
 from http import HTTPStatus
 from typing import Any, Optional, Union
 from unittest.mock import Mock
-
-import pkg_resources
 
 from twisted.internet.interfaces import IReactorTCP
 from twisted.test.proto_helpers import MemoryReactor
@@ -55,7 +54,10 @@ class PasswordResetTestCase(unittest.HomeserverTestCase):
         config["email"] = {
             "enable_notifs": False,
             "template_dir": os.path.abspath(
-                pkg_resources.resource_filename("relapse", "res/templates")
+                importlib.resources.files("relapse")
+                .joinpath("res")
+                .joinpath("templates")
+                .name
             ),
             "smtp_host": "127.0.0.1",
             "smtp_port": 20,
@@ -747,7 +749,10 @@ class ThreepidEmailRestTestCase(unittest.HomeserverTestCase):
         config["email"] = {
             "enable_notifs": False,
             "template_dir": os.path.abspath(
-                pkg_resources.resource_filename("relapse", "res/templates")
+                importlib.resources.files("relapse")
+                .joinpath("res")
+                .joinpath("templates")
+                .name
             ),
             "smtp_host": "127.0.0.1",
             "smtp_port": 20,

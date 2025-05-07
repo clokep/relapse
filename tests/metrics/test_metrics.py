@@ -15,7 +15,6 @@
 from importlib import metadata
 from unittest.mock import patch
 
-from pkg_resources import parse_version
 from prometheus_client.core import Sample
 from typing_extensions import Protocol
 
@@ -181,7 +180,11 @@ class CacheMetricsTests(unittest.HomeserverTestCase):
 
 
 class PrometheusMetricsHackTestCase(unittest.HomeserverTestCase):
-    if parse_version(metadata.version("prometheus_client")) < parse_version("0.14.0"):
+    if tuple(int(v) for v in metadata.version("prometheus_client").split()) < (
+        0,
+        14,
+        0,
+    ):
         skip = "prometheus-client too old"
 
     def test_created_metrics_disabled(self) -> None:
