@@ -180,7 +180,7 @@ class CacheMetricsTests(unittest.HomeserverTestCase):
 
 
 class PrometheusMetricsHackTestCase(unittest.HomeserverTestCase):
-    if tuple(int(v) for v in metadata.version("prometheus_client").split()) < (
+    if tuple(int(v) for v in metadata.version("prometheus_client").split(".")) < (
         0,
         14,
         0,
