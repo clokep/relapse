@@ -174,13 +174,20 @@ class FakeChannel:
     def headers(self) -> Headers:
         if not self.result:
             raise Exception("No result yet.")
+        # Twisted 24.10.0 switched to directly using Headers.
+        if isinstance(self.result["headers"], Headers):
+            return self.result["headers"]
         h = Headers()
         for i in self.result["headers"]:
             h.addRawHeader(*i)
         return h
 
     def writeHeaders(
-        self, version: bytes, code: bytes, reason: bytes, headers: Headers
+        self,
+        version: bytes,
+        code: bytes,
+        reason: bytes,
+        headers: Union[Headers, Iterable[tuple[bytes, bytes]]],
     ) -> None:
         self.result["version"] = version
         self.result["code"] = code
