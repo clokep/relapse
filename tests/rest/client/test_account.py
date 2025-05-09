@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import importlib.resources
-import os
 import re
 from email.parser import Parser
 from http import HTTPStatus
@@ -53,11 +52,10 @@ class PasswordResetTestCase(unittest.HomeserverTestCase):
         # Email config.
         config["email"] = {
             "enable_notifs": False,
-            "template_dir": os.path.abspath(
+            "template_dir": str(
                 importlib.resources.files("relapse")
                 .joinpath("res")
                 .joinpath("templates")
-                .name
             ),
             "smtp_host": "127.0.0.1",
             "smtp_port": 20,
