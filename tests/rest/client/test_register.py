@@ -15,7 +15,6 @@
 # limitations under the License.
 import datetime
 import importlib.resources
-import os
 from typing import Any
 
 from twisted.test.proto_helpers import MemoryReactor
@@ -939,11 +938,10 @@ class AccountValidityRenewalByEmailTestCase(unittest.HomeserverTestCase):
 
         config["email"] = {
             "enable_notifs": True,
-            "template_dir": os.path.abspath(
+            "template_dir": str(
                 importlib.resources.files("relapse")
                 .joinpath("res")
                 .joinpath("templates")
-                .name
             ),
             "expiry_template_html": "notice_expiry.html",
             "expiry_template_text": "notice_expiry.txt",

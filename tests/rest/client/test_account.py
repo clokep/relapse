@@ -748,11 +748,10 @@ class ThreepidEmailRestTestCase(unittest.HomeserverTestCase):
         # Email config.
         config["email"] = {
             "enable_notifs": False,
-            "template_dir": os.path.abspath(
+            "template_dir": str(
                 importlib.resources.files("relapse")
                 .joinpath("res")
                 .joinpath("templates")
-                .name
             ),
             "smtp_host": "127.0.0.1",
             "smtp_port": 20,
