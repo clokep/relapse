@@ -62,7 +62,7 @@ class OembedConfig(Config):
             with (
                 importlib.resources.files("relapse")
                 .joinpath("res")
-                .joinpath("templates")
+                .joinpath("providers.json")
                 .open("r") as s
             ):
                 providers = json.load(s)
