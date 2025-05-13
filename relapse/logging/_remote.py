@@ -18,7 +18,7 @@ import traceback
 from collections import deque
 from ipaddress import IPv4Address, IPv6Address, ip_address
 from math import floor
-from typing import Callable, Deque, Optional
+from typing import TYPE_CHECKING, Callable, Deque, Optional, cast
 
 import attr
 from zope.interface import implementer
@@ -32,12 +32,14 @@ from twisted.internet.endpoints import (
 )
 from twisted.internet.interfaces import (
     IPushProducer,
-    IReactorTCP,
     IStreamClientEndpoint,
 )
 from twisted.internet.protocol import Factory, Protocol
 from twisted.internet.tcp import Connection
 from twisted.python.failure import Failure
+
+if TYPE_CHECKING:
+    from relapse.types import IRelapseReactor
 
 logger = logging.getLogger(__name__)
 
@@ -106,7 +108,7 @@ class RemoteHandler(logging.Handler):
         port: int,
         maximum_buffer: int = 1000,
         level: int = logging.NOTSET,
-        _reactor: Optional[IReactorTCP] = None,
+        _reactor: "Optional[IRelapseReactor]" = None,
     ):
         super().__init__(level=level)
         self.host = host
@@ -121,7 +123,7 @@ class RemoteHandler(logging.Handler):
         if _reactor is None:
             from twisted.internet import reactor
 
-            _reactor = reactor  # type: ignore[assignment]
+            _reactor = cast("IRelapseReactor", reactor)
 
         try:
             ip = ip_address(self.host)

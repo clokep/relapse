@@ -15,14 +15,14 @@ import contextlib
 import logging
 import time
 from collections.abc import Generator
-from typing import TYPE_CHECKING, Any, Optional, Union
+from typing import TYPE_CHECKING, Any, Optional, Union, cast
 
 import attr
 from zope.interface import implementer
 
 from twisted.internet.address import UNIXAddress
 from twisted.internet.defer import Deferred
-from twisted.internet.interfaces import IAddress
+from twisted.internet.interfaces import IAddress, ITCPTransport
 from twisted.python.failure import Failure
 from twisted.web.http import HTTPChannel
 from twisted.web.resource import IResource, Resource
@@ -144,7 +144,7 @@ class RelapseRequest(Request):
                 self.get_method(),
                 self.get_redacted_uri(),
             )
-            self.transport.abortConnection()
+            cast(ITCPTransport, self.transport).abortConnection()
             return
         super().handleContentChunk(data)
 
@@ -676,7 +676,8 @@ class RelapseSite(ProxySite):
         self.access_logger = logging.getLogger(logger_name)
         self.server_version_string = server_version_string.encode("ascii")
 
-    def log(self, request: RelapseRequest) -> None:
+    # The Request type matches whatever the internal requestFactory generates.
+    def log(self, request: RelapseRequest) -> None:  # type: ignore[override]
         pass
 
 
