@@ -1,3 +1,19 @@
+# Synapse 1.98.0 (2023-12-12)
+
+Synapse 1.98.0 will be the last Synapse release in 2023; the regular release cadence will resume in January 2024.
+
+Synapse will soon be forked by Element under an AGPLv3.0 licence (with CLA, for
+proprietary dual licensing). You can read more about this here:
+
+ - https://matrix.org/blog/2023/11/06/future-of-synapse-dendrite/
+ - https://element.io/blog/element-to-adopt-agplv3/
+
+The Matrix.org Foundation copy of the project will be archived. Any changes needed
+by server administrators will be communicated via our usual announcements channels,
+but we are striving to make this as seamless as possible.
+
+No significant changes since 1.98.0rc1.
+
 # Synapse 1.98.0rc1 (2023-12-05)
 
 Synapse 1.98.0 will be the last Synapse release in 2023; the regular release cadence will resume in January 2024.

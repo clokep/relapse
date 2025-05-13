@@ -791,12 +791,21 @@ def get_changes_for_version(wanted_version: version.Version) -> str:
 
     headings: list[VersionSection] = []
     for node, _ in ast.walker():
+        if node.parent is None:
+            continue
+
         # We look for all text nodes that are in a level 1 heading.
         if node.t != "text":
             continue
 
         if node.parent.t != "heading" or node.parent.level != 1:
             continue
+
+        # Blank titles should not exist.
+        assert node.literal is not None
+
+        # Loaded from a file, so sourcepos should exist.
+        assert node.parent.sourcepos is not None
 
         # If we have a previous heading then we update its `end_line`.
         if headings:
@@ -893,6 +902,13 @@ def build_dependabot_changelog(repo: Repo, current_version: version.Version) -> 
     # Add an extra blank line to the bottom of the section
     messages.append("")
     return "\n".join(messages)
+
+
+@cli.command()
+@click.argument("wanted")
+def test_get_changes_for_version(wanted: str) -> None:
+    """Test building the changelog."""
+    print(get_changes_for_version(version.Version(wanted)))
 
 
 @cli.command()
