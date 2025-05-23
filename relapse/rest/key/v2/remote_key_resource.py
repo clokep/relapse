@@ -17,13 +17,7 @@ import re
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Optional
 
-from relapse._pydantic_compat import HAS_PYDANTIC_V2
-
-if TYPE_CHECKING or HAS_PYDANTIC_V2:
-    from pydantic.v1 import Extra, StrictInt, StrictStr
-else:
-    from pydantic import Extra, StrictInt, StrictStr
-
+from pydantic import ConfigDict
 from signedjson.sign import sign_json
 
 from twisted.web.server import Request
@@ -48,10 +42,9 @@ logger = logging.getLogger(__name__)
 
 
 class _KeyQueryCriteriaDataModel(RequestBodyModel):
-    class Config:
-        extra = Extra.allow
+    model_config = ConfigDict(extra="allow", frozen=True, strict=True)
 
-    minimum_valid_until_ts: Optional[StrictInt]
+    minimum_valid_until_ts: Optional[int]
 
 
 class RemoteKey(RestServlet):
@@ -113,7 +106,7 @@ class RemoteKey(RestServlet):
     CATEGORY = "Federation requests"
 
     class PostBody(RequestBodyModel):
-        server_keys: dict[StrictStr, dict[StrictStr, _KeyQueryCriteriaDataModel]]
+        server_keys: dict[str, dict[str, _KeyQueryCriteriaDataModel]]
 
     def __init__(self, hs: "HomeServer"):
         self.fetcher = ServerKeyFetcher(hs)

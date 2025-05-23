@@ -17,12 +17,7 @@ import logging
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Optional
 
-from relapse._pydantic_compat import HAS_PYDANTIC_V2
-
-if TYPE_CHECKING or HAS_PYDANTIC_V2:
-    from pydantic.v1 import Extra, StrictStr
-else:
-    from pydantic import Extra, StrictStr
+from pydantic import ConfigDict
 
 from relapse.api import errors
 from relapse.api.errors import NotFoundError, RelapseError, UnrecognizedRequestError
@@ -95,8 +90,8 @@ class DeleteDevicesRestServlet(RestServlet):
         self.auth_handler = hs.get_auth_handler()
 
     class PostBody(RequestBodyModel):
-        auth: Optional[AuthenticationData]
-        devices: list[StrictStr]
+        auth: Optional[AuthenticationData] = None
+        devices: list[str]
 
     @interactive_auth_handler
     async def on_POST(self, request: RelapseRequest) -> tuple[int, JsonDict]:
@@ -168,7 +163,7 @@ class DeviceRestServlet(RestServlet):
         return 200, device
 
     class DeleteBody(RequestBodyModel):
-        auth: Optional[AuthenticationData]
+        auth: Optional[AuthenticationData] = None
 
     @interactive_auth_handler
     async def on_DELETE(
@@ -207,7 +202,7 @@ class DeviceRestServlet(RestServlet):
         return 200, {}
 
     class PutBody(RequestBodyModel):
-        display_name: Optional[StrictStr]
+        display_name: Optional[str] = None
 
     async def on_PUT(
         self, request: RelapseRequest, device_id: str
@@ -227,10 +222,9 @@ class DehydratedDeviceDataModel(RequestBodyModel):
     Expects other freeform fields. Use .dict() to access them.
     """
 
-    class Config:
-        extra = Extra.allow
+    model_config = ConfigDict(extra="allow")
 
-    algorithm: StrictStr
+    algorithm: str
 
 
 class DehydratedDeviceServlet(RestServlet):
@@ -297,7 +291,7 @@ class DehydratedDeviceServlet(RestServlet):
 
     class PutBody(RequestBodyModel):
         device_data: DehydratedDeviceDataModel
-        initial_device_display_name: Optional[StrictStr]
+        initial_device_display_name: Optional[str] = None
 
     async def on_PUT(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         submission = parse_and_validate_json_object_from_request(request, self.PutBody)
@@ -344,7 +338,7 @@ class ClaimDehydratedDeviceServlet(RestServlet):
         self.device_handler = handler
 
     class PostBody(RequestBodyModel):
-        device_id: StrictStr
+        device_id: str
 
     async def on_POST(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         requester = await self.auth.get_user_by_req(request)
@@ -373,7 +367,7 @@ class DehydratedDeviceEventsServlet(RestServlet):
         self.store = hs.get_datastores().main
 
     class PostBody(RequestBodyModel):
-        next_batch: Optional[StrictStr]
+        next_batch: Optional[str] = None
 
     async def on_POST(
         self, request: RelapseRequest, device_id: str
@@ -520,11 +514,9 @@ class DehydratedDeviceV2Servlet(RestServlet):
 
     class PutBody(RequestBodyModel):
         device_data: DehydratedDeviceDataModel
-        device_id: StrictStr
-        initial_device_display_name: Optional[StrictStr]
-
-        class Config:
-            extra = Extra.allow
+        device_id: str
+        initial_device_display_name: Optional[str] = None
+        model_config = ConfigDict(extra="allow")
 
     async def on_PUT(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         submission = parse_and_validate_json_object_from_request(request, self.PutBody)

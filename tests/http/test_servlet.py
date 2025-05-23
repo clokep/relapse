@@ -17,11 +17,14 @@ from io import BytesIO
 from typing import Union
 from unittest.mock import Mock
 
+from pydantic import BaseModel
+
 from relapse.api.errors import Codes, RelapseError
 from relapse.http.servlet import (
     RestServlet,
     parse_json_object_from_request,
     parse_json_value_from_request,
+    validate_json_object,
 )
 from relapse.http.site import RelapseRequest
 from relapse.rest.client._base import client_patterns
@@ -77,6 +80,23 @@ class TestServletUtils(unittest.TestCase):
 
         with self.assertRaises(RelapseError):
             parse_json_value_from_request(make_request(b'{"foo": Infinity}'))
+
+    def test_validate_json_object(self) -> None:
+        """Basic tests for validate_json_object."""
+
+        class Model(BaseModel):
+            test_field: str
+
+        with self.assertRaises(RelapseError) as err:
+            validate_json_object({}, Model)
+        self.assertEqual(err.exception.errcode, Codes.MISSING_PARAM)
+
+        with self.assertRaises(RelapseError) as err:
+            validate_json_object({"test_field": 1}, Model)
+        self.assertEqual(err.exception.errcode, Codes.INVALID_PARAM)
+
+        result = validate_json_object({"test_field": "string"}, Model)
+        self.assertEqual(Model(test_field="string"), result)
 
     def test_parse_json_object(self) -> None:
         """Basic tests for parse_json_object_from_request."""
