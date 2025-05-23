@@ -19,6 +19,8 @@ from typing import Any, Callable, ContextManager, Optional, TypeVar, Union
 from unittest import mock
 from unittest.mock import Mock
 
+from incremental import Version
+from twisted import version
 from twisted.internet.defer import Deferred
 from twisted.internet.error import ConnectionDone
 from twisted.python.failure import Failure
@@ -119,6 +121,9 @@ def test_disconnect(
                 f"{body!r} != {expected_body!r} : "
                 "Request did not finish with the expected status code."
             )
+
+
+SUPPORTS_CANCELLATION_TEST = version < Version("Twisted", 24, 10, 0)
 
 
 @logcontext_clean
