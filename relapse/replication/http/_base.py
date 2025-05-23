@@ -158,8 +158,9 @@ class ReplicationEndpoint(metaclass=abc.ABCMeta):
 
         raise RuntimeError("Invalid Authorization header.")
 
+    @staticmethod
     @abc.abstractmethod
-    async def _serialize_payload(**kwargs) -> JsonDict:
+    async def _serialize_payload(**kwargs: Any) -> JsonDict:
         """Static method that is called when creating a request.
 
         Concrete implementations should have explicit parameters (rather than

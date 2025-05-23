@@ -1855,7 +1855,7 @@ class EventsWorkerStore(SQLBaseStore):
             # Type safety: iterating over `txn` yields `Tuple`, i.e.
             # `Tuple[Any, ...]` of arbitrary length. Mypy detects assigning a
             # variadic tuple to a fixed length tuple and flags it up as an error.
-            for row in txn:  # type: ignore[assignment]
+            for row in txn:
                 new_event_updates.append((row[0], row[1:]))
 
             limited = False
@@ -1882,7 +1882,7 @@ class EventsWorkerStore(SQLBaseStore):
             # Type safety: iterating over `txn` yields `Tuple`, i.e.
             # `Tuple[Any, ...]` of arbitrary length. Mypy detects assigning a
             # variadic tuple to a fixed length tuple and flags it up as an error.
-            for row in txn:  # type: ignore[assignment]
+            for row in txn:
                 new_event_updates.append((row[0], row[1:]))
 
             if len(new_event_updates) >= limit:

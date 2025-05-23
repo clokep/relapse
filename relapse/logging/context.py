@@ -29,7 +29,14 @@ import typing
 import warnings
 from collections.abc import Awaitable
 from types import TracebackType
-from typing import TYPE_CHECKING, Callable, Optional, TypeVar, Union, overload
+from typing import (
+    TYPE_CHECKING,
+    Callable,
+    Optional,
+    TypeVar,
+    Union,
+    overload,
+)
 
 import attr
 from typing_extensions import Literal, ParamSpec
@@ -749,10 +756,7 @@ def preserve_fn(
 @overload
 def run_in_background(
     f: Callable[P, Awaitable[R]], *args: P.args, **kwargs: P.kwargs
-) -> "defer.Deferred[R]":
-    # The `type: ignore[misc]` above suppresses
-    # "Overloaded function signatures 1 and 2 overlap with incompatible return types"
-    ...
+) -> "defer.Deferred[R]": ...
 
 
 @overload
@@ -761,11 +765,7 @@ def run_in_background(
 ) -> "defer.Deferred[R]": ...
 
 
-def run_in_background(  # type: ignore[misc]
-    # The `type: ignore[misc]` above suppresses
-    # "Overloaded function implementation does not accept all possible arguments of signature 1"
-    # "Overloaded function implementation does not accept all possible arguments of signature 2"
-    # which seems like a bug in mypy.
+def run_in_background(
     f: Union[
         Callable[P, R],
         Callable[P, Awaitable[R]],

@@ -84,6 +84,7 @@ if __name__ == "__main__":
 
     if runner.args.worker:
         if runner.args.log:
+            assert sys.__stdout__ is not None
             globalLogBeginner.beginLoggingTo(
                 [textFileLogObserver(sys.__stdout__)], redirectStandardIO=False
             )

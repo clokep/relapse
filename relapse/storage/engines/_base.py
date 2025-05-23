@@ -23,9 +23,9 @@ if TYPE_CHECKING:
 
 
 class IsolationLevel(IntEnum):
-    READ_COMMITTED: int = 1
-    REPEATABLE_READ: int = 2
-    SERIALIZABLE: int = 3
+    READ_COMMITTED = 1
+    REPEATABLE_READ = 2
+    SERIALIZABLE = 3
 
 
 class IncorrectDatabaseSetup(RuntimeError):
