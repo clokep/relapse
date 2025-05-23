@@ -12,13 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import email.message
-import os
+import importlib.resources
 from collections.abc import Sequence
 from http import HTTPStatus
 from typing import Any
 
 import attr
-import pkg_resources
 from parameterized import parameterized
 
 from twisted.internet.defer import Deferred
@@ -56,8 +55,10 @@ class EmailPusherTests(HomeserverTestCase):
         config = self.default_config()
         config["email"] = {
             "enable_notifs": True,
-            "template_dir": os.path.abspath(
-                pkg_resources.resource_filename("relapse", "res/templates")
+            "template_dir": str(
+                importlib.resources.files("relapse")
+                .joinpath("res")
+                .joinpath("templates")
             ),
             "expiry_template_html": "notice_expiry.html",
             "expiry_template_text": "notice_expiry.txt",

@@ -14,10 +14,10 @@
 import os.path
 import subprocess
 
-from incremental import Version
 from zope.interface import implementer
 
 import twisted
+from incremental import Version
 from OpenSSL import SSL
 from OpenSSL.SSL import Connection
 from twisted.internet.address import IPv4Address

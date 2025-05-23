@@ -39,9 +39,8 @@ if py_version < (3, 9):
 
 # Allow using the asyncio reactor via env var.
 if strtobool(os.environ.get("RELAPSE_ASYNC_IO_REACTOR", "0")):
-    from incremental import Version
-
     import twisted
+    from incremental import Version
 
     # We need a bugfix that is included in Twisted 21.2.0:
     # https://twistedmatrix.com/trac/ticket/9787

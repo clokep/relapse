@@ -28,11 +28,11 @@ from typing import Any, Callable, Deque, Optional, TypeVar, Union, cast
 from unittest.mock import Mock
 
 import attr
-from incremental import Version
 from typing_extensions import ParamSpec
 from zope.interface import implementer
 
 import twisted
+from incremental import Version
 from twisted.internet import address, tcp, threads, udp
 from twisted.internet._resolver import SimpleResolverComplexifier
 from twisted.internet.defer import Deferred, fail, maybeDeferred, succeed
