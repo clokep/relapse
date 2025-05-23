@@ -15,7 +15,7 @@ import logging
 import random
 import re
 from collections.abc import Collection, Sequence
-from typing import Any, Optional
+from typing import Any, Optional, Union
 from urllib.parse import urlparse
 from urllib.request import (  # type: ignore[attr-defined]
     getproxies_environment,
@@ -345,7 +345,9 @@ def http_proxy_endpoint(
     proxy: Optional[bytes],
     reactor: IReactorCore,
     tls_options_factory: Optional[IPolicyForHTTPS],
-    **kwargs: object,
+    timeout: float = 30,
+    bindAddress: Optional[Union[bytes, str, tuple[Union[bytes, str], int]]] = None,
+    attemptDelay: Optional[float] = None,
 ) -> tuple[Optional[IStreamClientEndpoint], Optional[ProxyCredentials]]:
     """Parses an http proxy setting and returns an endpoint for the proxy
 
@@ -376,7 +378,9 @@ def http_proxy_endpoint(
     # 3.9+) on scheme-less proxies, e.g. host:port.
     scheme, host, port, credentials = parse_proxy(proxy)
 
-    proxy_endpoint = HostnameEndpoint(reactor, host, port, **kwargs)
+    proxy_endpoint: IStreamClientEndpoint = HostnameEndpoint(
+        reactor, host, port, timeout, bindAddress, attemptDelay
+    )
 
     if scheme == b"https":
         if tls_options_factory:

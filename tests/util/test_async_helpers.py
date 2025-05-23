@@ -17,6 +17,8 @@ from typing import NoReturn, Optional
 
 from parameterized import parameterized_class
 
+import twisted
+from incremental import Version
 from twisted.internet import defer
 from twisted.internet.defer import CancelledError, Deferred, ensureDeferred
 from twisted.internet.task import Clock
@@ -317,7 +319,10 @@ class ConcurrentlyExecuteTest(TestCase):
                 # is called.
                 self.assertEqual(tb[0].name, "caller")
                 self.assertEqual(tb[1].name, "concurrently_execute")
-                self.assertEqual(tb[-2].name, "callback")
+                if twisted.version < Version("Twisted", 24, 10, 0):
+                    self.assertEqual(tb[-2].name, "callback")
+                else:
+                    self.assertEqual(tb[-3].name, "callback")
             else:
                 self.fail("No exception thrown")
 

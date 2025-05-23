@@ -50,7 +50,10 @@ from relapse.util import Clock
 from relapse.util.stringutils import random_string
 
 from tests import unittest
-from tests.http.server._base import make_request_with_cancellation_test
+from tests.http.server._base import (
+    SUPPORTS_CANCELLATION_TEST,
+    make_request_with_cancellation_test,
+)
 from tests.storage.test_stream import PaginationTestCase
 from tests.test_utils.event_injection import create_event
 from tests.unittest import override_config
@@ -481,6 +484,8 @@ class RoomPermissionsTestCase(RoomBase):
 class RoomStateTestCase(RoomBase):
     """Tests /rooms/$room_id/state."""
 
+    skip = not SUPPORTS_CANCELLATION_TEST
+
     user_id = "@sid1:red"
 
     def test_get_state_cancellation(self) -> None:
@@ -666,6 +671,8 @@ class RoomsMemberListTestCase(RoomBase):
             channel.json_body["chunk"][0].items(),
         )
 
+    test_get_member_list_cancellation.skip = not SUPPORTS_CANCELLATION_TEST  # type: ignore[attr-defined]
+
     def test_get_member_list_with_at_token_cancellation(self) -> None:
         """Test cancellation of a `/rooms/$room_id/members?at=<sync token>` request."""
         room_id = self.helper.create_room_as(self.user_id)
@@ -696,6 +703,10 @@ class RoomsMemberListTestCase(RoomBase):
             }.items(),
             channel.json_body["chunk"][0].items(),
         )
+
+    test_get_member_list_with_at_token_cancellation.skip = (  # type: ignore[attr-defined]
+        not SUPPORTS_CANCELLATION_TEST
+    )
 
 
 class RoomsCreateTestCase(RoomBase):

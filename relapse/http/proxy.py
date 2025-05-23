@@ -36,6 +36,17 @@ from relapse.logging.context import make_deferred_yieldable, run_in_background
 from relapse.types import IRelapseReactor
 from relapse.util.async_helpers import timeout_deferred
 
+try:
+    from twisted.web.http_headers import _nameEncoder
+
+    def canonicalizeHeader(headers: Headers, header: bytes) -> bytes:
+        return _nameEncoder.encode(header)
+except ImportError:
+
+    def canonicalizeHeader(headers: Headers, header: bytes) -> bytes:
+        return headers._canonicalNameCaps(header)  # type: ignore[attr-defined]
+
+
 if TYPE_CHECKING:
     from relapse.http.site import RelapseRequest
     from relapse.server import HomeServer
@@ -83,7 +94,7 @@ def parse_connection_header_value(
     extra_headers_to_remove: set[str] = set()
     if connection_header_value:
         extra_headers_to_remove = {
-            headers._canonicalNameCaps(connection_option.strip()).decode("ascii")
+            canonicalizeHeader(headers, connection_option.strip()).decode("ascii")
             for connection_option in connection_header_value.split(b",")
         }
 
@@ -256,7 +267,7 @@ class _ProxyResponseBody(protocol.Protocol):
             self._request.finish()
         else:
             # Abort the underlying request since our remote request also failed.
-            self._request.transport.abortConnection()
+            cast(ITCPTransport, self._request.transport).abortConnection()
 
 
 class ProxySite(Site):

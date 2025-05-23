@@ -19,6 +19,8 @@ from typing import Any, Callable, ContextManager, Optional, TypeVar, Union
 from unittest import mock
 from unittest.mock import Mock
 
+from incremental import Version
+from twisted import version
 from twisted.internet.defer import Deferred
 from twisted.internet.error import ConnectionDone
 from twisted.python.failure import Failure
@@ -119,6 +121,9 @@ def test_disconnect(
                 f"{body!r} != {expected_body!r} : "
                 "Request did not finish with the expected status code."
             )
+
+
+SUPPORTS_CANCELLATION_TEST = version < Version("Twisted", 24, 10, 0)
 
 
 @logcontext_clean
@@ -324,7 +329,7 @@ class Deferred__next__Patch:
         self._request_number = request_number
         self._seen_awaits = seen_awaits
 
-        self._original_Deferred___next__ = Deferred.__next__  # type: ignore[misc,unused-ignore]
+        self._original_Deferred___next__ = Deferred.__next__  # type: ignore[attr-defined,misc,unused-ignore]
 
         # The number of `await`s on `Deferred`s we have seen so far.
         self.awaits_seen = 0
