@@ -445,6 +445,7 @@ class PushRuleEvaluatorTestCase(unittest.TestCase):
             {"value": False},
             "incorrect values should not match",
         )
+        value: Any
         for value in ("foobaz", 1, 1.1, None, [], {}):
             self._assert_not_matches(
                 condition,
@@ -485,6 +486,7 @@ class PushRuleEvaluatorTestCase(unittest.TestCase):
             {"value": None},
             "exact value should match",
         )
+        value: Any
         for value in ("foobaz", True, False, 1, 1.1, [], {}):
             self._assert_not_matches(
                 condition,

@@ -146,7 +146,7 @@ def _check_yield_points(
     ) -> Generator["Deferred[object]", object, T]:
         gen = f(*args, **kwargs)
 
-        last_yield_line_no = gen.gi_frame.f_lineno
+        last_yield_line_no = gen.gi_frame.f_lineno  # type: ignore[attr-defined]
         result: Any = None
         while True:
             expected_context = current_context()
@@ -182,7 +182,7 @@ def _check_yield_points(
                 # generator.
                 return cast(T, e.value)
 
-            frame = gen.gi_frame
+            frame = gen.gi_frame  # type: ignore[attr-defined]
 
             if isinstance(d, defer.Deferred) and not d.called:
                 # This happens if we yield on a deferred that doesn't follow

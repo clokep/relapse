@@ -15,7 +15,7 @@
 import logging
 import os
 from typing import Any
-from urllib.request import getproxies_environment  # type: ignore
+from urllib.request import getproxies_environment
 
 import attr
 

@@ -14,6 +14,7 @@
 import email.message
 import importlib.resources
 from collections.abc import Sequence
+from email.message import Message
 from http import HTTPStatus
 from typing import Any
 
@@ -202,9 +203,19 @@ class EmailPusherTests(HomeserverTestCase):
 
         # Multipart: plain text, base 64 encoded; html, base 64 encoded
         multipart_msg = email.message_from_bytes(msg)
-        txt = multipart_msg.get_payload()[0].get_payload(decode=True).decode()
-        html = multipart_msg.get_payload()[1].get_payload(decode=True).decode()
+        parts = multipart_msg.get_payload()
+        assert isinstance(parts, list)
+
+        assert isinstance(parts[0], Message)
+        txt_payload = parts[0].get_payload(decode=True)
+        assert isinstance(txt_payload, bytes)
+        txt = txt_payload.decode()
         self.assertIn("/_relapse/client/unsubscribe", txt)
+
+        assert isinstance(parts[1], Message)
+        html_payload = parts[1].get_payload(decode=True)
+        assert isinstance(html_payload, bytes)
+        html = html_payload.decode()
         self.assertIn("/_relapse/client/unsubscribe", html)
 
         # The unsubscribe headers should exist.
@@ -344,12 +355,12 @@ class EmailPusherTests(HomeserverTestCase):
         # That email should contain the room's avatar
         msg: bytes = args[5]
         # Multipart: plain text, base 64 encoded; html, base 64 encoded
-        html = (
-            email.message_from_bytes(msg)
-            .get_payload()[1]
-            .get_payload(decode=True)
-            .decode()
-        )
+        parts = email.message_from_bytes(msg).get_payload()
+        assert isinstance(parts, list)
+        assert isinstance(parts[1], Message)
+        html_payload = parts[1].get_payload(decode=True)
+        assert isinstance(html_payload, bytes)
+        html = html_payload.decode()
         self.assertIn("_matrix/media/v1/thumbnail/DUMMY_MEDIA_ID", html)
 
     def test_empty_room(self) -> None:

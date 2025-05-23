@@ -15,6 +15,7 @@
 from collections.abc import Generator
 from contextlib import contextmanager
 from os import PathLike
+from pathlib import Path
 from typing import Optional, Union
 from unittest.mock import patch
 
@@ -35,7 +36,7 @@ class DummyDistribution(metadata.Distribution):
     def version(self) -> str:
         return self._version
 
-    def locate_file(self, path: Union[str, PathLike]) -> PathLike:
+    def locate_file(self, path: Union[str, PathLike]) -> Path:
         raise NotImplementedError()
 
     def read_text(self, filename: str) -> None:

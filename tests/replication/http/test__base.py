@@ -38,7 +38,7 @@ class CancellableReplicationEndpoint(ReplicationEndpoint):
         self.clock = hs.get_clock()
 
     @staticmethod
-    async def _serialize_payload() -> JsonDict:
+    async def _serialize_payload() -> JsonDict:  # type: ignore[override]
         return {}
 
     @cancellable
@@ -60,7 +60,7 @@ class UncancellableReplicationEndpoint(ReplicationEndpoint):
         self.clock = hs.get_clock()
 
     @staticmethod
-    async def _serialize_payload() -> JsonDict:
+    async def _serialize_payload() -> JsonDict:  # type: ignore[override]
         return {}
 
     async def _handle_request(  # type: ignore[override]

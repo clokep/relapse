@@ -2164,7 +2164,7 @@ class PasswordAuthProvider:
                 # result is always the right type, but as it is 3rd party code it might not be
 
                 if not isinstance(result, tuple) or len(result) != 2:
-                    logger.warning(
+                    logger.warning(  # type: ignore[unreachable]
                         "Wrong type returned by module API callback %s: %s, expected"
                         " Optional[Tuple[str, Optional[Callable]]]",
                         callback,
@@ -2227,7 +2227,7 @@ class PasswordAuthProvider:
                 # result is always the right type, but as it is 3rd party code it might not be
 
                 if not isinstance(result, tuple) or len(result) != 2:
-                    logger.warning(
+                    logger.warning(  # type: ignore[unreachable]
                         "Wrong type returned by module API callback %s: %s, expected"
                         " Optional[Tuple[str, Optional[Callable]]]",
                         callback,

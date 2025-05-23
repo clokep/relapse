@@ -51,12 +51,10 @@ class _EventSourcesInner:
 class EventSources:
     def __init__(self, hs: "HomeServer"):
         self.sources = _EventSourcesInner(
-            # mypy previously warned that attribute.type is `Optional`, but we know it's
+            # mypy warns that attribute.type is `Optional`, but we know it's
             # never `None` here since all the attributes of `_EventSourcesInner` are
             # annotated.
-            # As of the stubs in attrs 22.1.0, `attr.fields()` now returns Any,
-            # so the call to `attribute.type` is not checked.
-            *(attribute.type(hs) for attribute in attr.fields(_EventSourcesInner))
+            *(attribute.type(hs) for attribute in attr.fields(_EventSourcesInner))  # type: ignore[misc]
         )
         self.store = hs.get_datastores().main
         self._instance_name = hs.get_instance_name()

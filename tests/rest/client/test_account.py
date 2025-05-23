@@ -383,7 +383,9 @@ class PasswordResetTestCase(unittest.HomeserverTestCase):
         text = None
         for part in mail.walk():
             if part.get_content_type() == "text/plain":
-                text = part.get_payload(decode=True).decode("UTF-8")
+                payload = part.get_payload(decode=True)
+                assert isinstance(payload, bytes)
+                text = payload.decode("UTF-8")
                 break
 
         if not text:
@@ -1167,7 +1169,9 @@ class ThreepidEmailRestTestCase(unittest.HomeserverTestCase):
         text = None
         for part in mail.walk():
             if part.get_content_type() == "text/plain":
-                text = part.get_payload(decode=True).decode("UTF-8")
+                payload = part.get_payload(decode=True)
+                assert isinstance(payload, bytes)
+                text = payload.decode("UTF-8")
                 break
 
         if not text:
