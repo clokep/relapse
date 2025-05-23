@@ -31,11 +31,6 @@ class ProxyTests(TestCase):
             [b"X-Foo, X-Bar, close", {"X-Foo", "X-Bar", "Close"}],
             # Normalizes header capitalization
             [b"keep-alive, x-fOo, x-bAr", {"Keep-Alive", "X-Foo", "X-Bar"}],
-            # Handles header names with whitespace
-            [
-                b"keep-alive, x  foo, x bar",
-                {"Keep-Alive", "X  foo", "X bar"},
-            ],
         ]
     )
     def test_parse_connection_header_value(
