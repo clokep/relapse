@@ -13,12 +13,8 @@
 # limitations under the License.
 from typing import TYPE_CHECKING, Optional
 
-from relapse._pydantic_compat import HAS_PYDANTIC_V2
-
-if TYPE_CHECKING or HAS_PYDANTIC_V2:
-    from pydantic.v1 import Extra, StrictInt, StrictStr, constr, validator
-else:
-    from pydantic import Extra, StrictInt, StrictStr, constr, validator
+from pydantic import ConfigDict, StringConstraints, field_validator, model_validator
+from typing_extensions import Annotated, Self
 
 from relapse.rest.models import RequestBodyModel
 from relapse.util.threepids import validate_email
@@ -34,59 +30,61 @@ class AuthenticationData(RequestBodyModel):
     `.dict(exclude_unset=True)` to access them.
     """
 
-    class Config:
-        extra = Extra.allow
+    model_config = ConfigDict(extra="allow", strict=True)
 
-    session: Optional[StrictStr] = None
-    type: Optional[StrictStr] = None
+    session: Optional[str] = None
+    type: Optional[str] = None
 
 
 if TYPE_CHECKING:
-    ClientSecretStr = StrictStr
+    ClientSecretStr = str
 else:
     # See also assert_valid_client_secret()
-    ClientSecretStr = constr(
-        regex="[0-9a-zA-Z.=_-]",  # noqa: F722
-        min_length=1,
-        max_length=255,
-        strict=True,
-    )
+    ClientSecretStr = Annotated[
+        str,
+        StringConstraints(
+            pattern="[0-9a-zA-Z.=_-]",  # noqa: F722
+            min_length=1,
+            max_length=255,
+            strict=True,
+        ),
+    ]
 
 
 class ThreepidRequestTokenBody(RequestBodyModel):
     client_secret: ClientSecretStr
-    id_server: Optional[StrictStr]
-    id_access_token: Optional[StrictStr]
-    next_link: Optional[StrictStr]
-    send_attempt: StrictInt
+    id_server: Optional[str] = None
+    id_access_token: Optional[str] = None
+    next_link: Optional[str] = None
+    send_attempt: int
 
-    @validator("id_access_token", always=True)
-    def token_required_for_identity_server(
-        cls, token: Optional[str], values: dict[str, object]
-    ) -> Optional[str]:
-        if values.get("id_server") is not None and token is None:
+    @model_validator(mode="after")
+    def token_required_for_identity_server(self) -> Self:
+        if self.id_server is not None and self.id_access_token is None:
             raise ValueError("id_access_token is required if an id_server is supplied.")
-        return token
+        return self
 
 
 class EmailRequestTokenBody(ThreepidRequestTokenBody):
-    email: StrictStr
+    email: str
 
     # Canonicalise the email address. The addresses are all stored canonicalised
     # in the database. This allows the user to reset his password without having to
     # know the exact spelling (eg. upper and lower case) of address in the database.
     # Without this, an email stored in the database as "foo@bar.com" would cause
     # user requests for "FOO@bar.com" to raise a Not Found error.
-    _email_validator = validator("email", allow_reuse=True)(validate_email)
+    _email_validator = field_validator("email")(validate_email)
 
 
 if TYPE_CHECKING:
-    ISO3116_1_Alpha_2 = StrictStr
+    ISO3116_1_Alpha_2 = str
 else:
     # Per spec: two-letter uppercase ISO-3166-1-alpha-2
-    ISO3116_1_Alpha_2 = constr(regex="[A-Z]{2}", strict=True)
+    ISO3116_1_Alpha_2 = Annotated[
+        str, StringConstraints(pattern="[A-Z]{2}", strict=True)
+    ]
 
 
 class MsisdnRequestTokenBody(ThreepidRequestTokenBody):
     country: ISO3116_1_Alpha_2
-    phone_number: StrictStr
+    phone_number: str

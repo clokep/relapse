@@ -11,21 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import TYPE_CHECKING
 
-from relapse._pydantic_compat import HAS_PYDANTIC_V2
-
-if TYPE_CHECKING or HAS_PYDANTIC_V2:
-    from pydantic.v1 import BaseModel, Extra
-else:
-    from pydantic import BaseModel, Extra
+from pydantic import BaseModel, ConfigDict
 
 
 class RequestBodyModel(BaseModel):
     """A custom version of Pydantic's BaseModel which
 
-     - ignores unknown fields and
-     - does not allow fields to be overwritten after construction,
+     - ignores unknown fields
+     - does not allow fields to be overwritten after construction
+     - uses strict conversion of types
 
     but otherwise uses Pydantic's default behaviour.
 
@@ -36,8 +31,4 @@ class RequestBodyModel(BaseModel):
     https://pydantic-docs.helpmanual.io/usage/model_config/#change-behaviour-globally
     """
 
-    class Config:
-        # By default, ignore fields that we don't recognise.
-        extra = Extra.ignore
-        # By default, don't allow fields to be reassigned after parsing.
-        allow_mutation = False
+    model_config = ConfigDict(extra="ignore", frozen=True, strict=True)

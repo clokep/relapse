@@ -15,16 +15,10 @@
 
 import argparse
 import logging
-from typing import TYPE_CHECKING, Any, Optional, Union
+from typing import Any, Optional, Union
 
 import attr
-
-from relapse._pydantic_compat import HAS_PYDANTIC_V2
-
-if TYPE_CHECKING or HAS_PYDANTIC_V2:
-    from pydantic.v1 import BaseModel, Extra, StrictBool, StrictInt, StrictStr
-else:
-    from pydantic import BaseModel, Extra, StrictBool, StrictInt, StrictStr
+from pydantic import BaseModel, ConfigDict
 
 from relapse.config._base import (
     Config,
@@ -80,8 +74,9 @@ def _instance_to_list_converter(obj: Union[str, list[str]]) -> list[str]:
 class ConfigModel(BaseModel):
     """A custom version of Pydantic's BaseModel which
 
-     - ignores unknown fields and
-     - does not allow fields to be overwritten after construction,
+     - ignores unknown fields
+     - does not allow fields to be overwritten after construction
+     - uses strict conversion of types
 
     but otherwise uses Pydantic's default behaviour.
 
@@ -93,19 +88,15 @@ class ConfigModel(BaseModel):
     https://pydantic-docs.helpmanual.io/usage/model_config/#change-behaviour-globally
     """
 
-    class Config:
-        # By default, ignore fields that we don't recognise.
-        extra = Extra.ignore
-        # By default, don't allow fields to be reassigned after parsing.
-        allow_mutation = False
+    model_config = ConfigDict(extra="ignore", frozen=True, strict=True)
 
 
 class InstanceTcpLocationConfig(ConfigModel):
     """The host and port to talk to an instance via HTTP replication."""
 
-    host: StrictStr
-    port: StrictInt
-    tls: StrictBool = False
+    host: str
+    port: int
+    tls: bool = False
 
     def scheme(self) -> str:
         """Hardcode a retrievable scheme based on self.tls"""
@@ -119,7 +110,7 @@ class InstanceTcpLocationConfig(ConfigModel):
 class InstanceUnixLocationConfig(ConfigModel):
     """The socket file to talk to an instance via HTTP replication."""
 
-    path: StrictStr
+    path: str
 
     def scheme(self) -> str:
         """Hardcode a retrievable scheme"""

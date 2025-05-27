@@ -200,24 +200,6 @@ jobs:
         env:
           PULL_REQUEST_NUMBER: ${{ github.event.number }}
 
-  lint-pydantic:
-    runs-on: ubuntu-latest
-    needs: changes
-    if: ${{ needs.changes.outputs.linting == 'true' }}
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@1.81.0
-      - uses: Swatinem/rust-cache@v2
-      - uses: matrix-org/setup-python-poetry@v2
-        with:
-          python-version: "3.12.x"
-          extras: "all"
-      - run: poetry run scripts-dev/check_pydantic_models.py
-
   lint-clippy:
     runs-on: ubuntu-latest
     needs: changes
@@ -279,7 +261,6 @@ jobs:
       - lint-mypy
       - lint-crlf
       - lint-newsfile
-      - lint-pydantic
       - check-sampleconfig
       - check-schema-delta
       - check-lockfile
