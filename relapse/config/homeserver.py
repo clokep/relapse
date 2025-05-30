@@ -46,7 +46,6 @@ from .server import ServerConfig
 from .server_notices import ServerNoticesConfig
 from .sso import SSOConfig
 from .stats import StatsConfig
-from .third_party_event_rules import ThirdPartyRulesConfig
 from .tls import TlsConfig
 from .tracer import TracerConfig
 from .user_directory import UserDirectoryConfig
@@ -90,7 +89,6 @@ class HomeServerConfig(RootConfig):
         StatsConfig,
         ServerNoticesConfig,
         RoomDirectoryConfig,
-        ThirdPartyRulesConfig,
         TracerConfig,
         WorkerConfig,
         RedisConfig,

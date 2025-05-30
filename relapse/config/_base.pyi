@@ -53,7 +53,6 @@ from relapse.config import (  # noqa: F401
     server_notices,
     sso,
     stats,
-    third_party_event_rules,
     tls,
     tracer,
     user_directory,
@@ -110,7 +109,6 @@ class RootConfig:
     stats: stats.StatsConfig
     servernotices: server_notices.ServerNoticesConfig
     roomdirectory: room_directory.RoomDirectoryConfig
-    thirdpartyrules: third_party_event_rules.ThirdPartyRulesConfig
     tracing: tracer.TracerConfig
     redis: redis.RedisConfig
     modules: modules.ModulesConfig
