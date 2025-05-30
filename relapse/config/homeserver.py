@@ -32,7 +32,6 @@ from .metrics import MetricsConfig
 from .modules import ModulesConfig
 from .oembed import OembedConfig
 from .oidc import OIDCConfig
-from .password_auth_providers import PasswordAuthProviderConfig
 from .push import PushConfig
 from .ratelimiting import RatelimitConfig
 from .redis import RedisConfig
@@ -81,7 +80,6 @@ class HomeServerConfig(RootConfig):
         JWTConfig,
         AuthConfig,
         EmailConfig,
-        PasswordAuthProviderConfig,
         PushConfig,
         RoomConfig,
         UserDirectoryConfig,

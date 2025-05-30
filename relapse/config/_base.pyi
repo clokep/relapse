@@ -39,7 +39,6 @@ from relapse.config import (  # noqa: F401
     modules,
     oembed,
     oidc,
-    password_auth_providers,
     push,
     ratelimiting,
     redis,
@@ -101,7 +100,6 @@ class RootConfig:
     auth: auth.AuthConfig
     email: emailconfig.EmailConfig
     worker: workers.WorkerConfig
-    authproviders: password_auth_providers.PasswordAuthProviderConfig
     push: push.PushConfig
     room: room.RoomConfig
     userdirectory: user_directory.UserDirectoryConfig
