@@ -44,7 +44,7 @@ def register_servlets(hs: "HomeServer", http_server: HttpServer) -> None:
 
 
 class ClientDirectoryServer(RestServlet):
-    PATTERNS = client_patterns("/directory/room/(?P<room_alias>[^/]*)$", v1=True)
+    PATTERNS = client_patterns("/directory/room/(?P<room_alias>[^/]*)$")
     CATEGORY = "Client API requests"
 
     def __init__(self, hs: "HomeServer"):
@@ -127,7 +127,7 @@ class ClientDirectoryServer(RestServlet):
 
 
 class ClientDirectoryListServer(RestServlet):
-    PATTERNS = client_patterns("/directory/list/room/(?P<room_id>[^/]*)$", v1=True)
+    PATTERNS = client_patterns("/directory/list/room/(?P<room_id>[^/]*)$")
 
     def __init__(self, hs: "HomeServer"):
         super().__init__()
@@ -161,7 +161,7 @@ class ClientDirectoryListServer(RestServlet):
 
 class ClientAppserviceDirectoryListServer(RestServlet):
     PATTERNS = client_patterns(
-        "/directory/list/appservice/(?P<network_id>[^/]*)/(?P<room_id>[^/]*)$", v1=True
+        "/directory/list/appservice/(?P<network_id>[^/]*)/(?P<room_id>[^/]*)$"
     )
 
     def __init__(self, hs: "HomeServer"):

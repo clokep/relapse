@@ -58,8 +58,6 @@ from tests.storage.test_stream import PaginationTestCase
 from tests.test_utils.event_injection import create_event
 from tests.unittest import override_config
 
-PATH_PREFIX = b"/_matrix/client/api/v1"
-
 
 class RoomBase(unittest.HomeserverTestCase):
     rmcreator_id: Optional[str] = None

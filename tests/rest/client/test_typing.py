@@ -25,8 +25,6 @@ from relapse.util import Clock
 
 from tests import unittest
 
-PATH_PREFIX = "/_matrix/client/api/v1"
-
 
 class RoomTypingTestCase(unittest.HomeserverTestCase):
     """Tests /rooms/$room_id/typing/$user_id REST API."""
