@@ -51,7 +51,6 @@ from relapse.config import (  # noqa: F401
     saml2,
     server,
     server_notices,
-    spam_checker,
     sso,
     stats,
     third_party_event_rules,
@@ -105,7 +104,6 @@ class RootConfig:
     worker: workers.WorkerConfig
     authproviders: password_auth_providers.PasswordAuthProviderConfig
     push: push.PushConfig
-    spamchecker: spam_checker.SpamCheckerConfig
     room: room.RoomConfig
     userdirectory: user_directory.UserDirectoryConfig
     consent: consent.ConsentConfig

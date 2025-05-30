@@ -101,39 +101,6 @@ class BanBadIdPUser(TestSpamChecker):
         return RegistrationBehaviour.ALLOW
 
 
-class TestLegacyRegistrationSpamChecker:
-    def __init__(self, config: None, api: ModuleApi):
-        pass
-
-    async def check_registration_for_spam(
-        self,
-        email_threepid: Optional[dict],
-        username: Optional[str],
-        request_info: Collection[tuple[str, str]],
-    ) -> RegistrationBehaviour:
-        return RegistrationBehaviour.ALLOW
-
-
-class LegacyAllowAll(TestLegacyRegistrationSpamChecker):
-    async def check_registration_for_spam(
-        self,
-        email_threepid: Optional[dict],
-        username: Optional[str],
-        request_info: Collection[tuple[str, str]],
-    ) -> RegistrationBehaviour:
-        return RegistrationBehaviour.ALLOW
-
-
-class LegacyDenyAll(TestLegacyRegistrationSpamChecker):
-    async def check_registration_for_spam(
-        self,
-        email_threepid: Optional[dict],
-        username: Optional[str],
-        request_info: Collection[tuple[str, str]],
-    ) -> RegistrationBehaviour:
-        return RegistrationBehaviour.DENY
-
-
 class RegistrationTestCase(unittest.HomeserverTestCase):
     """Tests the RegistrationHandler."""
 
@@ -611,46 +578,6 @@ class RegistrationTestCase(unittest.HomeserverTestCase):
     )
     def test_spam_checker_deny(self) -> None:
         """A spam checker can deny registration, which results in an error."""
-        self.get_failure(self.handler.register_user(localpart="user"), RelapseError)
-
-    @override_config(
-        {
-            "spam_checker": [
-                {
-                    "module": TestSpamChecker.__module__ + ".LegacyAllowAll",
-                }
-            ]
-        }
-    )
-    def test_spam_checker_legacy_allow(self) -> None:
-        """Tests that a legacy spam checker implementing the legacy 3-arg version of the
-        check_registration_for_spam callback is correctly called.
-
-        In this test and the following one we test both success and failure to make sure
-        any failure comes from the spam checker (and not something else failing in the
-        call stack) and any success comes from the spam checker (and not because a
-        misconfiguration prevented it from being loaded).
-        """
-        self.get_success(self.handler.register_user(localpart="user"))
-
-    @override_config(
-        {
-            "spam_checker": [
-                {
-                    "module": TestSpamChecker.__module__ + ".LegacyDenyAll",
-                }
-            ]
-        }
-    )
-    def test_spam_checker_legacy_deny(self) -> None:
-        """Tests that a legacy spam checker implementing the legacy 3-arg version of the
-        check_registration_for_spam callback is correctly called.
-
-        In this test and the previous one we test both success and failure to make sure
-        any failure comes from the spam checker (and not something else failing in the
-        call stack) and any success comes from the spam checker (and not because a
-        misconfiguration prevented it from being loaded).
-        """
         self.get_failure(self.handler.register_user(localpart="user"), RelapseError)
 
     @override_config(

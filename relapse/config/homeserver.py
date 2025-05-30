@@ -44,7 +44,6 @@ from .room_directory import RoomDirectoryConfig
 from .saml2 import SAML2Config
 from .server import ServerConfig
 from .server_notices import ServerNoticesConfig
-from .spam_checker import SpamCheckerConfig
 from .sso import SSOConfig
 from .stats import StatsConfig
 from .third_party_event_rules import ThirdPartyRulesConfig
@@ -85,7 +84,6 @@ class HomeServerConfig(RootConfig):
         EmailConfig,
         PasswordAuthProviderConfig,
         PushConfig,
-        SpamCheckerConfig,
         RoomConfig,
         UserDirectoryConfig,
         ConsentConfig,

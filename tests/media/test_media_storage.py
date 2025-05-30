@@ -40,7 +40,6 @@ from relapse.media.filepath import MediaFilePaths
 from relapse.media.media_storage import MediaStorage, ReadableFileWrapper
 from relapse.media.storage_provider import FileStorageProviderBackend
 from relapse.module_api import ModuleApi
-from relapse.module_api.callbacks.spamchecker_callbacks import load_legacy_spam_checkers
 from relapse.rest import admin
 from relapse.rest.client import login
 from relapse.rest.media.thumbnail_resource import ThumbnailResource
@@ -51,7 +50,6 @@ from relapse.util import Clock
 from tests import unittest
 from tests.server import FakeChannel
 from tests.test_utils import SMALL_PNG
-from tests.utils import default_config
 
 
 class MediaStorageTests(unittest.HomeserverTestCase):
@@ -770,54 +768,6 @@ class TestSpamCheckerLegacy:
         await file_wrapper.write_chunks_to(buf.write)
 
         return b"evil" in buf.getvalue()
-
-
-class SpamCheckerTestCaseLegacy(unittest.HomeserverTestCase):
-    servlets = [
-        login.register_servlets,
-        admin.register_servlets,
-    ]
-
-    def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
-        self.user = self.register_user("user", "pass")
-        self.tok = self.login("user", "pass")
-
-        load_legacy_spam_checkers(hs)
-
-    def create_resource_dict(self) -> dict[str, Resource]:
-        resources = super().create_resource_dict()
-        resources["/_matrix/media"] = self.hs.get_media_repository_resource()
-        return resources
-
-    def default_config(self) -> dict[str, Any]:
-        config = default_config("test")
-
-        config.update(
-            {
-                "spam_checker": [
-                    {
-                        "module": TestSpamCheckerLegacy.__module__
-                        + ".TestSpamCheckerLegacy",
-                        "config": {},
-                    }
-                ]
-            }
-        )
-
-        return config
-
-    def test_upload_innocent(self) -> None:
-        """Attempt to upload some innocent data that should be allowed."""
-        self.helper.upload_media(SMALL_PNG, tok=self.tok, expect_code=200)
-
-    def test_upload_ban(self) -> None:
-        """Attempt to upload some data that includes bytes "evil", which should
-        get rejected by the spam checker.
-        """
-
-        data = b"Some evil data"
-
-        self.helper.upload_media(data, tok=self.tok, expect_code=400)
 
 
 EVIL_DATA = b"Some evil data"
