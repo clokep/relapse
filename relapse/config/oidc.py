@@ -29,9 +29,6 @@ from ..util.check_dependencies import check_requirements
 from ._base import Config, ConfigError, read_file
 
 DEFAULT_USER_MAPPING_PROVIDER = "relapse.handlers.oidc.JinjaOidcMappingProvider"
-# The module that JinjaOidcMappingProvider is in was renamed, we want to
-# transparently handle both the same.
-LEGACY_USER_MAPPING_PROVIDER = "relapse.handlers.oidc_handler.JinjaOidcMappingProvider"
 
 
 class OIDCConfig(Config):
@@ -209,8 +206,6 @@ def _parse_oidc_config_dict(
     """
     ump_config = oidc_config.get("user_mapping_provider", {})
     ump_config.setdefault("module", DEFAULT_USER_MAPPING_PROVIDER)
-    if ump_config.get("module") == LEGACY_USER_MAPPING_PROVIDER:
-        ump_config["module"] = DEFAULT_USER_MAPPING_PROVIDER
     ump_config.setdefault("config", {})
 
     (
