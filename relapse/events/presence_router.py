@@ -13,14 +13,14 @@
 # limitations under the License.
 import logging
 from collections.abc import Awaitable, Iterable
-from typing import TYPE_CHECKING, Any, Callable, Optional, TypeVar, Union
+from typing import TYPE_CHECKING, Callable, Optional, TypeVar, Union
 
 from typing_extensions import ParamSpec
 
 from twisted.internet.defer import CancelledError
 
 from relapse.api.presence import UserPresenceState
-from relapse.util.async_helpers import delay_cancellation, maybe_awaitable
+from relapse.util.async_helpers import delay_cancellation
 
 if TYPE_CHECKING:
     from relapse.server import HomeServer
@@ -36,56 +36,6 @@ logger = logging.getLogger(__name__)
 
 P = ParamSpec("P")
 R = TypeVar("R")
-
-
-def load_legacy_presence_router(hs: "HomeServer") -> None:
-    """Wrapper that loads a presence router module configured using the old
-    configuration, and registers the hooks they implement.
-    """
-
-    if hs.config.server.presence_router_module_class is None:
-        return
-
-    module = hs.config.server.presence_router_module_class
-    config = hs.config.server.presence_router_config
-    api = hs.get_module_api()
-
-    presence_router = module(config=config, module_api=api)
-
-    # The known hooks. If a module implements a method which name appears in this set,
-    # we'll want to register it.
-    presence_router_methods = {
-        "get_users_for_states",
-        "get_interested_users",
-    }
-
-    # All methods that the module provides should be async, but this wasn't enforced
-    # in the old module system, so we wrap them if needed
-    def async_wrapper(
-        f: Optional[Callable[P, R]],
-    ) -> Optional[Callable[P, Awaitable[R]]]:
-        # f might be None if the callback isn't implemented by the module. In this
-        # case we don't want to register a callback at all so we return None.
-        if f is None:
-            return None
-
-        def run(*args: P.args, **kwargs: P.kwargs) -> Awaitable[R]:
-            # Assertion required because mypy can't prove we won't change `f`
-            # back to `None`. See
-            # https://mypy.readthedocs.io/en/latest/common_issues.html#narrowing-and-inner-functions
-            assert f is not None
-
-            return maybe_awaitable(f(*args, **kwargs))
-
-        return run
-
-    # Register the hooks through the module API.
-    hooks: dict[str, Optional[Callable[..., Any]]] = {
-        hook: async_wrapper(getattr(presence_router, hook, None))
-        for hook in presence_router_methods
-    }
-
-    api.register_presence_router_callbacks(**hooks)
 
 
 class PresenceRouter:

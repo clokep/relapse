@@ -62,7 +62,6 @@ from twisted.web.server import Request, Site
 
 from relapse.config.database import DatabaseConnectionConfig
 from relapse.config.homeserver import HomeServerConfig
-from relapse.events.presence_router import load_legacy_presence_router
 from relapse.handlers.auth import load_legacy_password_auth_providers
 from relapse.http.site import RelapseRequest
 from relapse.logging.context import ContextResourceUsage
@@ -1129,7 +1128,6 @@ def setup_test_homeserver(
     for module, module_config in hs.config.modules.loaded_modules:
         module(config=module_config, api=module_api)
 
-    load_legacy_presence_router(hs)
     load_legacy_password_auth_providers(hs)
 
     return hs

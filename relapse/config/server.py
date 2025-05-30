@@ -29,7 +29,6 @@ from twisted.conch.ssh.keys import Key
 
 from relapse.api.room_versions import KNOWN_ROOM_VERSIONS
 from relapse.types import JsonDict, StrSequence
-from relapse.util.module_loader import load_module
 from relapse.util.stringutils import parse_and_validate_server_name
 
 from ._base import Config, ConfigError
@@ -377,17 +376,6 @@ class ServerConfig(Config):
         self.presence_enabled = bool(presence_enabled)
         # Whether to internally track presence, requires that presence is enabled,
         self.track_presence = self.presence_enabled and presence_enabled != "untracked"
-
-        # Custom presence router module
-        # This is the legacy way of configuring it (the config should now be put in the modules section)
-        self.presence_router_module_class = None
-        self.presence_router_config = None
-        presence_router_config = presence_config.get("presence_router")
-        if presence_router_config:
-            (
-                self.presence_router_module_class,
-                self.presence_router_config,
-            ) = load_module(presence_router_config, ("presence", "presence_router"))
 
         # whether to enable the media repository endpoints. This should be set
         # to false if the media repository is running as a separate endpoint;

@@ -52,7 +52,6 @@ from relapse.config._base import format_config_error
 from relapse.config.homeserver import HomeServerConfig
 from relapse.config.server import ListenerConfig, ManholeConfig, TCPListenerConfig
 from relapse.crypto import context_factory
-from relapse.events.presence_router import load_legacy_presence_router
 from relapse.handlers.auth import load_legacy_password_auth_providers
 from relapse.http.site import RelapseSite
 from relapse.logging.context import PreserveLoggingContext
@@ -562,7 +561,6 @@ async def start(hs: "HomeServer") -> None:
         m = module(config, module_api)
         logger.info("Loaded module %s", m)
 
-    load_legacy_presence_router(hs)
     load_legacy_password_auth_providers(hs)
 
     # If we've configured an expiry time for caches, start the background job now.
