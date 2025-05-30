@@ -402,33 +402,17 @@ class ServerConfig(Config):
             "include_profile_data_on_invite", True
         )
 
-        if "restrict_public_rooms_to_local_users" in config and (
-            "allow_public_rooms_without_auth" in config
-            or "allow_public_rooms_over_federation" in config
-        ):
-            raise ConfigError(
-                "Can't use 'restrict_public_rooms_to_local_users' if"
-                " 'allow_public_rooms_without_auth' and/or"
-                " 'allow_public_rooms_over_federation' is set."
-            )
-
-        # Check if the legacy "restrict_public_rooms_to_local_users" flag is set. This
-        # flag is now obsolete but we need to check it for backward-compatibility.
-        if config.get("restrict_public_rooms_to_local_users", False):
-            self.allow_public_rooms_without_auth = False
-            self.allow_public_rooms_over_federation = False
-        else:
-            # If set to 'true', removes the need for authentication to access the server's
-            # public rooms directory through the client API, meaning that anyone can
-            # query the room directory. Defaults to 'false'.
-            self.allow_public_rooms_without_auth = config.get(
-                "allow_public_rooms_without_auth", False
-            )
-            # If set to 'true', allows any other homeserver to fetch the server's public
-            # rooms directory via federation. Defaults to 'false'.
-            self.allow_public_rooms_over_federation = config.get(
-                "allow_public_rooms_over_federation", False
-            )
+        # If set to 'true', removes the need for authentication to access the server's
+        # public rooms directory through the client API, meaning that anyone can
+        # query the room directory. Defaults to 'false'.
+        self.allow_public_rooms_without_auth = config.get(
+            "allow_public_rooms_without_auth", False
+        )
+        # If set to 'true', allows any other homeserver to fetch the server's public
+        # rooms directory via federation. Defaults to 'false'.
+        self.allow_public_rooms_over_federation = config.get(
+            "allow_public_rooms_over_federation", False
+        )
 
         default_room_version = config.get("default_room_version", DEFAULT_ROOM_VERSION)
 
