@@ -50,7 +50,7 @@ class RendezvousServlet(RestServlet):
     """
 
     PATTERNS = client_patterns(
-        "/org.matrix.msc3886/rendezvous$", releases=[], v1=False, unstable=True
+        "/org.matrix.msc3886/rendezvous$", releases=(), unstable=True
     )
 
     def __init__(self, hs: "HomeServer"):

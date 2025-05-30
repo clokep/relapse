@@ -39,7 +39,7 @@ if TYPE_CHECKING:
 
 
 class PushRuleRestServlet(RestServlet):
-    PATTERNS = client_patterns("/(?P<path>pushrules/.*)$", v1=True)
+    PATTERNS = client_patterns("/(?P<path>pushrules/.*)$")
     SLIGHTLY_PEDANTIC_TRAILING_SLASH_ERROR = (
         "Unrecognised request: You probably wanted a trailing slash"
     )

@@ -22,16 +22,13 @@ from typing import Any, Callable, TypeVar, cast
 
 from relapse.api.errors import InteractiveAuthIncompleteError
 from relapse.api.urls import CLIENT_API_PREFIX
-from relapse.types import JsonDict, StrCollection
+from relapse.types import JsonDict
 
 logger = logging.getLogger(__name__)
 
 
 def client_patterns(
-    path_regex: str,
-    releases: StrCollection = ("r0", "v3"),
-    unstable: bool = True,
-    v1: bool = False,
+    path_regex: str, releases: tuple[str, ...] = ("r0", "v3"), unstable: bool = True
 ) -> Iterable[Pattern]:
     """Creates a regex compiled client path with the correct client path
     prefix.
@@ -41,17 +38,13 @@ def client_patterns(
             as this will be prefixed.
         releases: An iterable of releases to include this endpoint under.
         unstable: If true, include this endpoint under the "unstable" prefix.
-        v1: If true, include this endpoint under the "api/v1" prefix.
     Returns:
         An iterable of patterns.
     """
-    versions = []
-
-    if v1:
-        versions.append("api/v1")
-    versions.extend(releases)
     if unstable:
-        versions.append("unstable")
+        versions = releases + ("unstable",)
+    else:
+        versions = releases
 
     if len(versions) == 1:
         versions_str = versions[0]
