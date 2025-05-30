@@ -185,7 +185,7 @@ poetry run relapse_worker --config-file [your homeserver.yaml] --config-file [yo
 ```
 ## Available worker applications
 
-### `relapse.app.generic_worker`
+### Generic worker
 
 This worker can handle API requests matching the following regular expressions.
 These endpoints can be routed to any worker. If a worker is set up to handle a
@@ -604,10 +604,6 @@ expressions to work:
 The above endpoints can be routed to any worker, though you may choose to route
 it to the chosen user directory worker.
 
-This style of configuration supersedes the legacy `relapse.app.user_dir`
-worker application type.
-
-
 #### Notifying Application Services
 
 You can designate one generic worker to send output traffic to Application Services.
@@ -621,9 +617,6 @@ notify_appservices_from_worker: worker_name
 
 This work cannot be load-balanced; please ensure the main process is restarted
 after setting this option in the shared configuration!
-
-This style of configuration supersedes the legacy `relapse.app.appservice`
-worker application type.
 
 #### Push Notifications
 
@@ -650,59 +643,15 @@ this option.
 These workers don't need to accept incoming HTTP requests to send push notifications,
 so no additional reverse proxy configuration is required for pusher workers.
 
-This style of configuration supersedes the legacy `relapse.app.pusher`
-worker application type.
-
-### `relapse.app.pusher`
-
-It is likely this option will be deprecated in the future and is not recommended for new
-installations. Instead, [use `relapse.app.generic_worker` with the `pusher_instances`](#push-notifications).
-
-Handles sending push notifications to sygnal and email. Doesn't handle any
-REST endpoints itself, but you should set
-[`start_pushers: false`](usage/configuration/config_documentation.md#start_pushers) in the
-shared configuration file to stop the main relapse sending push notifications.
-
-To run multiple instances at once the
-[`pusher_instances`](usage/configuration/config_documentation.md#pusher_instances)
-option should list all pusher instances by their
-[`worker_name`](usage/configuration/config_documentation.md#worker_name), e.g.:
-
-```yaml
-start_pushers: false
-pusher_instances:
-    - pusher_worker1
-    - pusher_worker2
-```
-
-An example for a pusher instance:
-
 ```yaml
 {{#include systemd-with-workers/workers/pusher_worker.yaml}}
 ```
 
+### Federation Sender
 
-### `relapse.app.appservice`
+You can designate generic worker to handle sending federation traffic to other servers.
 
-**Deprecated as of Relapse v1.59.** [Use `relapse.app.generic_worker` with the
-`notify_appservices_from_worker` option instead.](#notifying-application-services)
-
-Handles sending output traffic to Application Services. Doesn't handle any
-REST endpoints itself, but you should set `notify_appservices: False` in the
-shared configuration file to stop the main relapse sending appservice notifications.
-
-Note this worker cannot be load-balanced: only one instance should be active.
-
-
-### `relapse.app.federation_sender`
-
-It is likely this option will be deprecated in the future and not recommended for
-new installations. Instead, [use `relapse.app.generic_worker` with the `federation_sender_instances`](usage/configuration/config_documentation.md#federation_sender_instances).
-
-Handles sending federation traffic to other servers. Doesn't handle any
-REST endpoints itself, but you should set
-[`send_federation: false`](usage/configuration/config_documentation.md#send_federation)
-in the shared configuration file to stop the main relapse sending this traffic.
+This will stop the main process sending federation requests.
 
 If running multiple federation senders then you must list each
 instance in the
@@ -725,7 +674,7 @@ An example for a federation sender instance:
 {{#include systemd-with-workers/workers/federation_sender.yaml}}
 ```
 
-### `relapse.app.media_repository`
+### Media Repository
 
 Handles the media repository. It can handle all endpoints starting with:
 
@@ -765,54 +714,6 @@ media_instance_running_background_jobs: "media-repository-1"
 ```
 
 Note that if a reverse proxy is used , then `/_matrix/media/` must be routed for both inbound client and federation requests (if they are handled separately).
-
-### `relapse.app.user_dir`
-
-**Deprecated as of Relapse v1.59.** [Use `relapse.app.generic_worker` with the
-`update_user_directory_from_worker` option instead.](#updating-the-user-directory)
-
-Handles searches in the user directory. It can handle REST endpoints matching
-the following regular expressions:
-
-    ^/_matrix/client/(r0|v3|unstable)/user_directory/search$
-
-When using this worker you must also set `update_user_directory: false` in the
-shared configuration file to stop the main relapse running background
-jobs related to updating the user directory.
-
-Above endpoint is not *required* to be routed to this worker. By default,
-`update_user_directory` is set to `true`, which means the main process
-will handle updates. All workers configured with `client` can handle the above
-endpoint as long as either this worker or the main process are configured to
-handle it, and are online.
-
-If `update_user_directory` is set to `false`, and this worker is not running,
-the above endpoint may give outdated results.
-
-### Historical apps
-
-The following used to be separate worker application types, but are now
-equivalent to `relapse.app.generic_worker`:
-
- * `relapse.app.client_reader`
- * `relapse.app.event_creator`
- * `relapse.app.federation_reader`
- * `relapse.app.federation_sender`
- * `relapse.app.frontend_proxy`
- * `relapse.app.pusher`
- * `relapse.app.synchrotron`
-
-
-## Migration from old config
-
-A main change that has occurred is the merging of worker apps into
-`relapse.app.generic_worker`. This change is backwards compatible and so no
-changes to the config are required.
-
-To migrate apps to use `relapse.app.generic_worker` simply update the
-`worker_app` option in the worker configs, and where worker are started (e.g.
-in systemd service files, but not required for synctl).
-
 
 ## Architectural diagram
 

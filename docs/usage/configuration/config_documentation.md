@@ -4153,18 +4153,6 @@ Example configuration:
 worker_replication_secret: "secret_secret"
 ```
 ---
-### `start_pushers`
-
-Unnecessary to set if using [`pusher_instances`](#pusher_instances) with [`generic_workers`](../../workers.md#relapseappgeneric_worker).
-
-Controls sending of push notifications on the main process. Set to `false`
-if using a [pusher worker](../../workers.md#relapseapppusher). Defaults to `true`.
-
-Example configuration:
-```yaml
-start_pushers: false
-```
----
 ### `pusher_instances`
 
 It is possible to scale the processes that handle sending push notifications to [sygnal](https://github.com/matrix-org/sygnal)
@@ -4184,20 +4172,6 @@ And for multiple workers:
 pusher_instances:
   - pusher_worker1
   - pusher_worker2
-```
-
----
-### `send_federation`
-
-Unnecessary to set if using [`federation_sender_instances`](#federation_sender_instances) with [`generic_workers`](../../workers.md#relapseappgeneric_worker).
-
-Controls sending of outbound federation transactions on the main process.
-Set to `false` if using a [federation sender worker](../../workers.md#relapseappfederation_sender).
-Defaults to `true`.
-
-Example configuration:
-```yaml
-send_federation: false
 ```
 ---
 ### `federation_sender_instances`

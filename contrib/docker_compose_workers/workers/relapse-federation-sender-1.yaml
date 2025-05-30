@@ -1,4 +1,4 @@
-worker_app: relapse.app.federation_sender
+worker_app: relapse.app.generic_worker
 worker_name: relapse-federation-sender-1
 
 # The replication listener on the main relapse process.
