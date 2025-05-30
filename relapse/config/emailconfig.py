@@ -16,8 +16,6 @@
 
 # This file can't be called email.py because if it is, we cannot:
 import email.utils
-import logging
-import os
 from typing import Any
 
 import attr
@@ -25,8 +23,6 @@ import attr
 from relapse.types import JsonDict
 
 from ._base import Config, ConfigError
-
-logger = logging.getLogger(__name__)
 
 MISSING_PASSWORD_RESET_CONFIG_ERROR = """\
 Password reset emails are enabled on this homeserver due to a partial
@@ -47,14 +43,6 @@ DEFAULT_SUBJECTS = {
     "password_reset": "[%(server_name)s] Password reset",
     "email_validation": "[%(server_name)s] Validate your email",
 }
-
-LEGACY_TEMPLATE_DIR_WARNING = """
-This server's configuration file is using the deprecated 'template_dir' setting in the
-'email' section. Support for this setting has been deprecated and will be removed in a
-future version of Relapse. Server admins should instead use the new
-'custom_template_directory' setting documented here:
-https://clokep.github.io/relapse/latest/templates.html
----------------------------------------------------------------------------------------"""
 
 
 @attr.s(slots=True, frozen=True, auto_attribs=True)
@@ -119,19 +107,6 @@ class EmailConfig(Config):
             parsed = email.utils.parseaddr(self.email_notif_from)
             if parsed[1] == "":
                 raise RuntimeError("Invalid notif_from address")
-
-        # A user-configurable template directory
-        template_dir = email_config.get("template_dir")
-        if template_dir is not None:
-            logger.warning(LEGACY_TEMPLATE_DIR_WARNING)
-
-        if isinstance(template_dir, str):
-            # We need an absolute path, because we change directory after starting (and
-            # we don't yet know what auxiliary templates like mail.css we will need).
-            template_dir = os.path.abspath(template_dir)
-        elif template_dir is not None:
-            # If template_dir is something other than a str or None, warn the user
-            raise ConfigError("Config option email.template_dir must be type str")
 
         self.email_enable_notifs = email_config.get("enable_notifs", False)
 
@@ -234,14 +209,7 @@ class EmailConfig(Config):
                     registration_template_success_html,
                     add_threepid_template_success_html,
                 ],
-                (
-                    td
-                    for td in (
-                        self.root.server.custom_template_directory,
-                        template_dir,
-                    )
-                    if td
-                ),  # Filter out template_dir if not provided
+                self.root.server.custom_template_directory,
             )
 
             # Render templates that do not contain any placeholders
@@ -278,14 +246,7 @@ class EmailConfig(Config):
                 self.email_notif_template_text,
             ) = self.read_templates(
                 [notif_template_html, notif_template_text],
-                (
-                    td
-                    for td in (
-                        self.root.server.custom_template_directory,
-                        template_dir,
-                    )
-                    if td
-                ),  # Filter out template_dir if not provided
+                self.root.server.custom_template_directory,
             )
 
             self.email_notif_for_new_users = email_config.get(
@@ -313,14 +274,7 @@ class EmailConfig(Config):
                 self.account_validity_template_text,
             ) = self.read_templates(
                 [expiry_template_html, expiry_template_text],
-                (
-                    td
-                    for td in (
-                        self.root.server.custom_template_directory,
-                        template_dir,
-                    )
-                    if td
-                ),  # Filter out template_dir if not provided
+                self.root.server.custom_template_directory,
             )
 
         subjects_config = email_config.get("subjects", {})
