@@ -326,9 +326,9 @@ worker: refer to the <a href="#stream-writers">stream writers</a> section below 
 information.</p>
 <pre><code># Sync requests
 ^/_matrix/client/(r0|v3)/sync$
-^/_matrix/client/(api/v1|r0|v3)/events$
-^/_matrix/client/(api/v1|r0|v3)/initialSync$
-^/_matrix/client/(api/v1|r0|v3)/rooms/[^/]+/initialSync$
+^/_matrix/client/(r0|v3)/events$
+^/_matrix/client/(r0|v3)/initialSync$
+^/_matrix/client/(r0|v3)/rooms/[^/]+/initialSync$
 
 # Federation requests
 ^/_matrix/federation/v1/event/
@@ -354,12 +354,12 @@ information.</p>
 ^/_matrix/federation/v1/send/
 
 # Client API requests
-^/_matrix/client/(api/v1|r0|v3|unstable)/createRoom$
-^/_matrix/client/(api/v1|r0|v3|unstable)/publicRooms$
-^/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/joined_members$
-^/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/context/.*$
-^/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/members$
-^/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/state$
+^/_matrix/client/(r0|v3|unstable)/createRoom$
+^/_matrix/client/(r0|v3|unstable)/publicRooms$
+^/_matrix/client/(r0|v3|unstable)/rooms/.*/joined_members$
+^/_matrix/client/(r0|v3|unstable)/rooms/.*/context/.*$
+^/_matrix/client/(r0|v3|unstable)/rooms/.*/members$
+^/_matrix/client/(r0|v3|unstable)/rooms/.*/state$
 ^/_matrix/client/v1/rooms/.*/hierarchy$
 ^/_matrix/client/(v1|unstable)/rooms/.*/relations/
 ^/_matrix/client/v1/rooms/.*/threads$
@@ -368,14 +368,14 @@ information.</p>
 ^/_matrix/client/(r0|v3|unstable)/account/whoami$
 ^/_matrix/client/(r0|v3|unstable)/devices$
 ^/_matrix/client/versions$
-^/_matrix/client/(api/v1|r0|v3|unstable)/voip/turnServer$
-^/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/event/
-^/_matrix/client/(api/v1|r0|v3|unstable)/joined_rooms$
+^/_matrix/client/(r0|v3|unstable)/voip/turnServer$
+^/_matrix/client/(r0|v3|unstable)/rooms/.*/event/
+^/_matrix/client/(r0|v3|unstable)/joined_rooms$
 ^/_matrix/client/v1/rooms/.*/timestamp_to_event$
-^/_matrix/client/(api/v1|r0|v3|unstable/.*)/rooms/.*/aliases
-^/_matrix/client/(api/v1|r0|v3|unstable)/search$
+^/_matrix/client/(r0|v3|unstable/.*)/rooms/.*/aliases
+^/_matrix/client/(r0|v3|unstable)/search$
 ^/_matrix/client/(r0|v3|unstable)/user/.*/filter(/|$)
-^/_matrix/client/(api/v1|r0|v3|unstable)/directory/room/.*$
+^/_matrix/client/(r0|v3|unstable)/directory/room/.*$
 ^/_matrix/client/(r0|v3|unstable)/capabilities$
 ^/_matrix/client/(r0|v3|unstable)/notifications$
 
@@ -387,20 +387,20 @@ information.</p>
 ^/_matrix/client/(r0|v3|unstable)/keys/upload/
 
 # Registration/login requests
-^/_matrix/client/(api/v1|r0|v3|unstable)/login$
+^/_matrix/client/(r0|v3|unstable)/login$
 ^/_matrix/client/(r0|v3|unstable)/register$
 ^/_matrix/client/(r0|v3|unstable)/register/available$
 ^/_matrix/client/v1/register/m.login.registration_token/validity$
 ^/_matrix/client/(r0|v3|unstable)/password_policy$
 
 # Event sending requests
-^/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/redact
-^/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/send
-^/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/state/
-^/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/(join|invite|leave|ban|unban|kick)$
-^/_matrix/client/(api/v1|r0|v3|unstable)/join/
-^/_matrix/client/(api/v1|r0|v3|unstable)/knock/
-^/_matrix/client/(api/v1|r0|v3|unstable)/profile/
+^/_matrix/client/(r0|v3|unstable)/rooms/.*/redact
+^/_matrix/client/(r0|v3|unstable)/rooms/.*/send
+^/_matrix/client/(r0|v3|unstable)/rooms/.*/state/
+^/_matrix/client/(r0|v3|unstable)/rooms/.*/(join|invite|leave|ban|unban|kick)$
+^/_matrix/client/(r0|v3|unstable)/join/
+^/_matrix/client/(r0|v3|unstable)/knock/
+^/_matrix/client/(r0|v3|unstable)/profile/
 
 # Account data requests
 ^/_matrix/client/(r0|v3|unstable)/.*/tags
@@ -411,25 +411,25 @@ information.</p>
 ^/_matrix/client/(r0|v3|unstable)/rooms/.*/read_markers
 
 # Presence requests
-^/_matrix/client/(api/v1|r0|v3|unstable)/presence/
+^/_matrix/client/(r0|v3|unstable)/presence/
 
 # User directory search requests
 ^/_matrix/client/(r0|v3|unstable)/user_directory/search$
 </code></pre>
 <p>Additionally, the following REST endpoints can be handled for GET requests:</p>
-<pre><code>^/_matrix/client/(api/v1|r0|v3|unstable)/pushrules/
+<pre><code>^/_matrix/client/(r0|v3|unstable)/pushrules/
 </code></pre>
 <p>Pagination requests can also be handled, but all requests for a given
 room must be routed to the same instance. Additionally, care must be taken to
 ensure that the purge history admin API is not used while pagination requests
 for the room are in flight:</p>
-<pre><code>^/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/messages$
+<pre><code>^/_matrix/client/(r0|v3|unstable)/rooms/.*/messages$
 </code></pre>
 <p>Additionally, the following endpoints should be included if Relapse is configured
 to use SSO (you only need to include the ones for whichever SSO provider you're
 using):</p>
 <pre><code># for all SSO providers
-^/_matrix/client/(api/v1|r0|v3|unstable)/login/sso/redirect
+^/_matrix/client/(r0|v3|unstable)/login/sso/redirect
 ^/_relapse/client/pick_idp$
 ^/_relapse/client/pick_username
 ^/_relapse/client/new_user_consent$
@@ -442,7 +442,7 @@ using):</p>
 ^/_relapse/client/saml2/authn_response$
 
 # CAS requests.
-^/_matrix/client/(api/v1|r0|v3|unstable)/login/cas/ticket$
+^/_matrix/client/(r0|v3|unstable)/login/cas/ticket$
 </code></pre>
 <p>Ensure that all SSO logins go to a single process.
 For multiple workers not handling the SSO endpoints properly, see
@@ -515,15 +515,15 @@ location ~ ^/_matrix/client/(r0|v3)/sync$ {
 }
 
 # Normal sync
-location ~ ^/_matrix/client/(api/v1|r0|v3)/events$ {
+location ~ ^/_matrix/client/(r0|v3)/events$ {
 	proxy_pass http://relapse_sync;
 }
 
 # Initial_sync
-location ~ ^/_matrix/client/(api/v1|r0|v3)/initialSync$ {
+location ~ ^/_matrix/client/(r0|v3)/initialSync$ {
 	proxy_pass http://relapse_initial_sync;
 }
-location ~ ^/_matrix/client/(api/v1|r0|v3)/rooms/[^/]+/initialSync$ {
+location ~ ^/_matrix/client/(r0|v3)/rooms/[^/]+/initialSync$ {
 	proxy_pass http://relapse_initial_sync;
 }
 </code></pre>
@@ -617,7 +617,7 @@ configuration with multiple writers:</p>
 <h5 id="the-typing-stream"><a class="header" href="#the-typing-stream">The <code>typing</code> stream</a></h5>
 <p>The following endpoints should be routed directly to the worker configured as
 the stream writer for the <code>typing</code> stream:</p>
-<pre><code>^/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/typing
+<pre><code>^/_matrix/client/(r0|v3|unstable)/rooms/.*/typing
 </code></pre>
 <h5 id="the-to_device-stream"><a class="header" href="#the-to_device-stream">The <code>to_device</code> stream</a></h5>
 <p>The following endpoints should be routed directly to the worker configured as
@@ -639,7 +639,7 @@ the stream writer for the <code>receipts</code> stream:</p>
 <h5 id="the-presence-stream"><a class="header" href="#the-presence-stream">The <code>presence</code> stream</a></h5>
 <p>The following endpoints should be routed directly to the worker configured as
 the stream writer for the <code>presence</code> stream:</p>
-<pre><code>^/_matrix/client/(api/v1|r0|v3|unstable)/presence/
+<pre><code>^/_matrix/client/(r0|v3|unstable)/presence/
 </code></pre>
 <h4 id="restrict-outbound-federation-traffic-to-a-specific-set-of-workers"><a class="header" href="#restrict-outbound-federation-traffic-to-a-specific-set-of-workers">Restrict outbound federation traffic to a specific set of workers</a></h4>
 <p>The
