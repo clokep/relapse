@@ -1,1 +1,1 @@
-../../synapse/storage/schema/common/full_schemas/72/full.sql.postgres
+../../relapse/storage/schema/common/full_schemas/83/full.sql.postgres
