@@ -39,7 +39,6 @@ from relapse.config import (  # noqa: F401
     modules,
     oembed,
     oidc,
-    password_auth_providers,
     push,
     ratelimiting,
     redis,
@@ -51,10 +50,8 @@ from relapse.config import (  # noqa: F401
     saml2,
     server,
     server_notices,
-    spam_checker,
     sso,
     stats,
-    third_party_event_rules,
     tls,
     tracer,
     user_directory,
@@ -103,16 +100,13 @@ class RootConfig:
     auth: auth.AuthConfig
     email: emailconfig.EmailConfig
     worker: workers.WorkerConfig
-    authproviders: password_auth_providers.PasswordAuthProviderConfig
     push: push.PushConfig
-    spamchecker: spam_checker.SpamCheckerConfig
     room: room.RoomConfig
     userdirectory: user_directory.UserDirectoryConfig
     consent: consent.ConsentConfig
     stats: stats.StatsConfig
     servernotices: server_notices.ServerNoticesConfig
     roomdirectory: room_directory.RoomDirectoryConfig
-    thirdpartyrules: third_party_event_rules.ThirdPartyRulesConfig
     tracing: tracer.TracerConfig
     redis: redis.RedisConfig
     modules: modules.ModulesConfig

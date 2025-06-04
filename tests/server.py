@@ -62,14 +62,8 @@ from twisted.web.server import Request, Site
 
 from relapse.config.database import DatabaseConnectionConfig
 from relapse.config.homeserver import HomeServerConfig
-from relapse.events.presence_router import load_legacy_presence_router
-from relapse.handlers.auth import load_legacy_password_auth_providers
 from relapse.http.site import RelapseRequest
 from relapse.logging.context import ContextResourceUsage
-from relapse.module_api.callbacks.spamchecker_callbacks import load_legacy_spam_checkers
-from relapse.module_api.callbacks.third_party_event_rules_callbacks import (
-    load_legacy_third_party_event_rules,
-)
 from relapse.server import HomeServer
 from relapse.storage import DataStore
 from relapse.storage.database import LoggingDatabaseConnection
@@ -1132,10 +1126,5 @@ def setup_test_homeserver(
     module_api = hs.get_module_api()
     for module, module_config in hs.config.modules.loaded_modules:
         module(config=module_config, api=module_api)
-
-    load_legacy_spam_checkers(hs)
-    load_legacy_third_party_event_rules(hs)
-    load_legacy_presence_router(hs)
-    load_legacy_password_auth_providers(hs)
 
     return hs

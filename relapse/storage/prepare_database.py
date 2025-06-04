@@ -156,10 +156,6 @@ def prepare_database(
 
             _setup_new_database(cur, database_engine, databases=databases)
 
-        # check if any of our configured dynamic modules want a database
-        if config is not None:
-            _apply_module_schemas(cur, database_engine, config)
-
         cur.close()
         db_conn.commit()
     except Exception:
@@ -551,66 +547,6 @@ def _upgrade_existing_database(
             )
 
     logger.info("Schema now up to date")
-
-
-def _apply_module_schemas(
-    txn: Cursor, database_engine: BaseDatabaseEngine, config: HomeServerConfig
-) -> None:
-    """Apply the module schemas for the dynamic modules, if any
-
-    Args:
-        cur: database cursor
-        database_engine:
-        config: application config
-    """
-    # This is the old way for password_auth_provider modules to make changes
-    # to the database. This should instead be done using the module API
-    for mod, _config in config.authproviders.password_providers:
-        if not hasattr(mod, "get_db_schema_files"):
-            continue
-        modname = ".".join((mod.__module__, mod.__name__))
-        _apply_module_schema_files(
-            txn, database_engine, modname, mod.get_db_schema_files()
-        )
-
-
-def _apply_module_schema_files(
-    cur: Cursor,
-    database_engine: BaseDatabaseEngine,
-    modname: str,
-    names_and_streams: Iterable[tuple[str, TextIO]],
-) -> None:
-    """Apply the module schemas for a single module
-
-    Args:
-        cur: database cursor
-        database_engine: relapse database engine class
-        modname: fully qualified name of the module
-        names_and_streams: the names and streams of schemas to be applied
-    """
-    cur.execute(
-        "SELECT file FROM applied_module_schemas WHERE module_name = ?",
-        (modname,),
-    )
-    applied_deltas = {d for (d,) in cur}
-    for name, stream in names_and_streams:
-        if name in applied_deltas:
-            continue
-
-        root_name, ext = os.path.splitext(name)
-        if ext != ".sql":
-            raise PrepareDatabaseException(
-                "only .sql files are currently supported for module schemas"
-            )
-
-        logger.info("applying schema %s for %s", name, modname)
-        execute_statements_from_stream(cur, stream)
-
-        # Mark as done.
-        cur.execute(
-            "INSERT INTO applied_module_schemas (module_name, file) VALUES (?,?)",
-            (modname, name),
-        )
 
 
 def get_statements(f: Iterable[str]) -> Generator[str, None, None]:

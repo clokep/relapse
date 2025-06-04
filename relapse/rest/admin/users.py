@@ -744,24 +744,19 @@ class AccountValidityRenewServlet(RestServlet):
     async def on_POST(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         await assert_requester_is_admin(self.auth, request)
 
-        if self.account_validity_module_callbacks.on_legacy_admin_request_callback:
-            expiration_ts = await self.account_validity_module_callbacks.on_legacy_admin_request_callback(
-                request
-            )
-        else:
-            body = parse_json_object_from_request(request)
+        body = parse_json_object_from_request(request)
 
-            if "user_id" not in body:
-                raise RelapseError(
-                    HTTPStatus.BAD_REQUEST,
-                    "Missing property 'user_id' in the request body",
-                )
-
-            expiration_ts = await self.account_validity_handler.renew_account_for_user(
-                body["user_id"],
-                body.get("expiration_ts"),
-                not body.get("enable_renewal_emails", True),
+        if "user_id" not in body:
+            raise RelapseError(
+                HTTPStatus.BAD_REQUEST,
+                "Missing property 'user_id' in the request body",
             )
+
+        expiration_ts = await self.account_validity_handler.renew_account_for_user(
+            body["user_id"],
+            body.get("expiration_ts"),
+            not body.get("enable_renewal_emails", True),
+        )
 
         res = {"expiration_ts": expiration_ts}
         return HTTPStatus.OK, res

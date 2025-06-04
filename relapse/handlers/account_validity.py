@@ -139,11 +139,6 @@ class AccountValidityHandler:
         Raises:
             RelapseError if the user is not set to renew.
         """
-        # If a module supports sending a renewal email from here, do that, otherwise do
-        # the legacy dance.
-        if self._module_api_callbacks.on_legacy_send_mail_callback is not None:
-            await self._module_api_callbacks.on_legacy_send_mail_callback(user_id)
-            return
 
         if not self._account_validity_renew_by_email_enabled:
             raise AuthError(
@@ -264,10 +259,6 @@ class AccountValidityHandler:
         token is considered stale. A token is stale if the 'token_used_ts_ms' db column
         is non-null.
 
-        This method exists to support handling the legacy account validity /renew
-        endpoint. If a module implements the on_legacy_renew callback, then this process
-        is delegated to the module instead.
-
         Args:
             renewal_token: Token sent with the renewal request.
         Returns:
@@ -277,12 +268,6 @@ class AccountValidityHandler:
               * An int representing the user's expiry timestamp as milliseconds since the
                 epoch, or 0 if the token was invalid.
         """
-        # If a module supports triggering a renew from here, do that, otherwise do the
-        # legacy dance.
-        if self._module_api_callbacks.on_legacy_renew_callback is not None:
-            return await self._module_api_callbacks.on_legacy_renew_callback(
-                renewal_token
-            )
 
         try:
             (

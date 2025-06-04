@@ -52,18 +52,12 @@ from relapse.config._base import format_config_error
 from relapse.config.homeserver import HomeServerConfig
 from relapse.config.server import ListenerConfig, ManholeConfig, TCPListenerConfig
 from relapse.crypto import context_factory
-from relapse.events.presence_router import load_legacy_presence_router
-from relapse.handlers.auth import load_legacy_password_auth_providers
 from relapse.http.site import RelapseSite
 from relapse.logging.context import PreserveLoggingContext
 from relapse.logging.opentracing import init_tracer
 from relapse.metrics import install_gc_manager, register_threadpool
 from relapse.metrics.background_process_metrics import wrap_as_background_process
 from relapse.metrics.jemalloc import setup_jemalloc_stats
-from relapse.module_api.callbacks.spamchecker_callbacks import load_legacy_spam_checkers
-from relapse.module_api.callbacks.third_party_event_rules_callbacks import (
-    load_legacy_third_party_event_rules,
-)
 from relapse.types import IRelapseReactor, StrCollection
 from relapse.util import RELAPSE_VERSION
 from relapse.util.caches.lrucache import setup_expire_lru_cache_entries
@@ -565,11 +559,6 @@ async def start(hs: "HomeServer") -> None:
     for module, config in hs.config.modules.loaded_modules:
         m = module(config, module_api)
         logger.info("Loaded module %s", m)
-
-    load_legacy_spam_checkers(hs)
-    load_legacy_third_party_event_rules(hs)
-    load_legacy_presence_router(hs)
-    load_legacy_password_auth_providers(hs)
 
     # If we've configured an expiry time for caches, start the background job now.
     setup_expire_lru_cache_entries(hs)

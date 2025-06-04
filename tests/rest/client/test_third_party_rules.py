@@ -11,8 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import threading
-from typing import TYPE_CHECKING, Any, Optional, Union
+from typing import TYPE_CHECKING, Any, Optional
 from unittest.mock import AsyncMock, Mock
 
 from twisted.test.proto_helpers import MemoryReactor
@@ -22,9 +21,6 @@ from relapse.api.errors import RelapseError
 from relapse.api.room_versions import RoomVersion
 from relapse.config.homeserver import HomeServerConfig
 from relapse.events import EventBase
-from relapse.module_api.callbacks.third_party_event_rules_callbacks import (
-    load_legacy_third_party_event_rules,
-)
 from relapse.rest import admin
 from relapse.rest.client import account, login, profile, room
 from relapse.server import HomeServer
@@ -35,55 +31,7 @@ from relapse.util.frozenutils import unfreeze
 from tests import unittest
 
 if TYPE_CHECKING:
-    from relapse.module_api import ModuleApi
-
-thread_local = threading.local()
-
-
-class LegacyThirdPartyRulesTestModule:
-    def __init__(self, config: dict, module_api: "ModuleApi") -> None:
-        # keep a record of the "current" rules module, so that the test can patch
-        # it if desired.
-        thread_local.rules_module = self
-        self.module_api = module_api
-
-    async def on_create_room(
-        self, requester: Requester, config: dict, is_requester_admin: bool
-    ) -> bool:
-        return True
-
-    async def check_event_allowed(
-        self, event: EventBase, state: StateMap[EventBase]
-    ) -> Union[bool, dict]:
-        return True
-
-    @staticmethod
-    def parse_config(config: dict[str, Any]) -> dict[str, Any]:
-        return config
-
-
-class LegacyDenyNewRooms(LegacyThirdPartyRulesTestModule):
-    def __init__(self, config: dict, module_api: "ModuleApi") -> None:
-        super().__init__(config, module_api)
-
-    async def on_create_room(
-        self, requester: Requester, config: dict, is_requester_admin: bool
-    ) -> bool:
-        return False
-
-
-class LegacyChangeEvents(LegacyThirdPartyRulesTestModule):
-    def __init__(self, config: dict, module_api: "ModuleApi") -> None:
-        super().__init__(config, module_api)
-
-    async def check_event_allowed(
-        self, event: EventBase, state: StateMap[EventBase]
-    ) -> JsonDict:
-        d = event.get_dict()
-        content = unfreeze(event.content)
-        content["foo"] = "bar"
-        d["content"] = content
-        return d
+    pass
 
 
 class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
@@ -97,8 +45,6 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         hs = self.setup_test_homeserver()
-
-        load_legacy_third_party_event_rules(hs)
 
         # We're not going to be properly signing events as our remote homeserver is fake,
         # therefore disable event signature checks.
@@ -370,18 +316,24 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         self.assertEqual(event.type, "m.room.message")
         self.assertEqual(event.content, content)
 
-    @unittest.override_config(
-        {
-            "third_party_event_rules": {
-                "module": __name__ + ".LegacyChangeEvents",
-                "config": {},
-            }
-        }
-    )
     def test_legacy_check_event_allowed(self) -> None:
         """Tests that the wrapper for legacy check_event_allowed callbacks works
         correctly.
         """
+
+        async def check_event_allowed(
+            event: EventBase, state: StateMap[EventBase]
+        ) -> tuple[bool, JsonDict]:
+            d = event.get_dict()
+            content = unfreeze(event.content)
+            content["foo"] = "bar"
+            d["content"] = content
+            return True, d
+
+        self.hs.get_module_api().register_third_party_rules_callbacks(
+            check_event_allowed=check_event_allowed
+        )
+
         channel = self.make_request(
             "PUT",
             "/_matrix/client/r0/rooms/%s/send/m.room.message/1" % self.room_id,
@@ -405,18 +357,20 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         self.assertIn("foo", channel.json_body["content"].keys())
         self.assertEqual(channel.json_body["content"]["foo"], "bar")
 
-    @unittest.override_config(
-        {
-            "third_party_event_rules": {
-                "module": __name__ + ".LegacyDenyNewRooms",
-                "config": {},
-            }
-        }
-    )
     def test_legacy_on_create_room(self) -> None:
         """Tests that the wrapper for legacy on_create_room callbacks works
         correctly.
         """
+
+        async def on_create_room(
+            requester: Requester, config: dict, is_requester_admin: bool
+        ) -> bool:
+            raise RelapseError(403, "Denied")
+
+        self.hs.get_module_api().register_third_party_rules_callbacks(
+            on_create_room=on_create_room
+        )
+
         self.helper.create_room_as(self.user_id, tok=self.tok, expect_code=403)
 
     def test_sent_event_end_up_in_room_state(self) -> None:

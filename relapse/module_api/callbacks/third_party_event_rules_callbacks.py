@@ -13,7 +13,7 @@
 # limitations under the License.
 import logging
 from collections.abc import Awaitable
-from typing import TYPE_CHECKING, Any, Callable, Optional
+from typing import TYPE_CHECKING, Callable, Optional
 
 from twisted.internet.defer import CancelledError
 
@@ -22,7 +22,7 @@ from relapse.events import EventBase
 from relapse.events.snapshot import UnpersistedEventContextBase
 from relapse.storage.roommember import ProfileInfo
 from relapse.types import Requester, StateMap
-from relapse.util.async_helpers import delay_cancellation, maybe_awaitable
+from relapse.util.async_helpers import delay_cancellation
 
 if TYPE_CHECKING:
     from relapse.server import HomeServer
@@ -48,97 +48,6 @@ ON_USER_DEACTIVATION_STATUS_CHANGED_CALLBACK = Callable[[str, bool, bool], Await
 ON_THREEPID_BIND_CALLBACK = Callable[[str, str, str], Awaitable]
 ON_ADD_USER_THIRD_PARTY_IDENTIFIER_CALLBACK = Callable[[str, str, str], Awaitable]
 ON_REMOVE_USER_THIRD_PARTY_IDENTIFIER_CALLBACK = Callable[[str, str, str], Awaitable]
-
-
-def load_legacy_third_party_event_rules(hs: "HomeServer") -> None:
-    """Wrapper that loads a third party event rules module configured using the old
-    configuration, and registers the hooks they implement.
-    """
-    if hs.config.thirdpartyrules.third_party_event_rules is None:
-        return
-
-    module, config = hs.config.thirdpartyrules.third_party_event_rules
-
-    api = hs.get_module_api()
-    third_party_rules = module(config=config, module_api=api)
-
-    # The known hooks. If a module implements a method which name appears in this set,
-    # we'll want to register it.
-    third_party_event_rules_methods = {
-        "check_event_allowed",
-        "on_create_room",
-        "check_threepid_can_be_invited",
-        "check_visibility_can_be_modified",
-    }
-
-    def async_wrapper(f: Optional[Callable]) -> Optional[Callable[..., Awaitable]]:
-        # f might be None if the callback isn't implemented by the module. In this
-        # case we don't want to register a callback at all so we return None.
-        if f is None:
-            return None
-
-        # We return a separate wrapper for these methods because, in order to wrap them
-        # correctly, we need to await its result. Therefore it doesn't make a lot of
-        # sense to make it go through the run() wrapper.
-        if f.__name__ == "check_event_allowed":
-            # We need to wrap check_event_allowed because its old form would return either
-            # a boolean or a dict, but now we want to return the dict separately from the
-            # boolean.
-            async def wrap_check_event_allowed(
-                event: EventBase,
-                state_events: StateMap[EventBase],
-            ) -> tuple[bool, Optional[dict]]:
-                # Assertion required because mypy can't prove we won't change
-                # `f` back to `None`. See
-                # https://mypy.readthedocs.io/en/latest/common_issues.html#narrowing-and-inner-functions
-                assert f is not None
-
-                res = await f(event, state_events)
-                if isinstance(res, dict):
-                    return True, res
-                else:
-                    return res, None
-
-            return wrap_check_event_allowed
-
-        if f.__name__ == "on_create_room":
-            # We need to wrap on_create_room because its old form would return a boolean
-            # if the room creation is denied, but now we just want it to raise an
-            # exception.
-            async def wrap_on_create_room(
-                requester: Requester, config: dict, is_requester_admin: bool
-            ) -> None:
-                # Assertion required because mypy can't prove we won't change
-                # `f` back to `None`. See
-                # https://mypy.readthedocs.io/en/latest/common_issues.html#narrowing-and-inner-functions
-                assert f is not None
-
-                res = await f(requester, config, is_requester_admin)
-                if res is False:
-                    raise RelapseError(
-                        403,
-                        "Room creation forbidden with these parameters",
-                    )
-
-            return wrap_on_create_room
-
-        def run(*args: Any, **kwargs: Any) -> Awaitable:
-            # Assertion required because mypy can't prove we won't change  `f`
-            # back to `None`. See
-            # https://mypy.readthedocs.io/en/latest/common_issues.html#narrowing-and-inner-functions
-            assert f is not None
-
-            return maybe_awaitable(f(*args, **kwargs))
-
-        return run
-
-    # Register the hooks through the module API.
-    hooks = {
-        hook: async_wrapper(getattr(third_party_rules, hook, None))
-        for hook in third_party_event_rules_methods
-    }
-
-    api.register_third_party_rules_callbacks(**hooks)
 
 
 class ThirdPartyEventRulesModuleApiCallbacks:
