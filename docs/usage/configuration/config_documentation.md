@@ -686,8 +686,7 @@ This setting has the following sub-options:
 
   _New in Relapse 1.99.0._
 * `client_base_url`: Custom URL for client links within the email notifications. By default
-   links will be based on "https://matrix.to". (This setting used to be called `riot_base_url`;
-   the old name is still supported for backwards-compatibility but is now deprecated.)
+   links will be based on "https://matrix.to".
 * `validation_token_lifetime`: Configures the time that a validation email will expire after sending.
    Defaults to 1h.
 * `invite_client_location`: The web client location to direct users to during an invite. This is passed
@@ -2464,11 +2463,6 @@ their account.
 by the Matrix Identity Service API
 [specification](https://matrix.org/docs/spec/identity_service/latest).)
 
-*Deprecated in Relapse 1.64.0*: The `email` option is deprecated.
-
-*Removed in Relapse 1.66.0*: The `email` option has been removed.
-If present, Relapse will report a configuration error on startup.
-
 Example configuration:
 ```yaml
 account_threepid_delegates:
@@ -3026,9 +3020,6 @@ Normally, the connection to the key server is validated via TLS certificates.
 Additional security can be provided by configuring a `verify key`, which
 will make relapse check that the response is signed by that key.
 
-This setting supersedes an older setting named `perspectives`. The old format
-is still supported for backwards-compatibility, but it is deprecated.
-
 `trusted_key_servers` defaults to matrix.org, but using it will generate a
 warning on start-up. To suppress this warning, set
 `suppress_key_server_warning` to true.
@@ -3251,12 +3242,6 @@ List of OpenID Connect (OIDC) / OAuth 2.0 identity providers, for registration
 and login. See [here](../../openid.md)
 for information on how to configure these options.
 
-For backwards compatibility, it is also possible to configure a single OIDC
-provider via an `oidc_config` setting. This is now deprecated and admins are
-advised to migrate to the `oidc_providers` format. (When doing that migration,
-use `oidc` for the `idp_id` to ensure that existing users continue to be
-recognised.)
-
 Options for each entry include:
 * `idp_id`: a unique identifier for this identity provider. Used internally
    by Relapse; should be a single word such as 'github'.
@@ -3378,12 +3363,6 @@ Options for each entry include:
 
          This replaces and overrides `subject_claim`.
 
-       * `subject_claim`: name of the claim containing a unique identifier
-         for the user. Defaults to 'sub', which OpenID Connect
-         compliant providers should provide.
-
-         *Deprecated in Relapse v1.75.0.*
-
        * `picture_template`: Jinja2 template for an url for the user's profile picture.
          Defaults to `{{ user.picture }}`, which OpenID Connect compliant providers should
          provide and has to refer to a direct image file such as PNG, JPEG, or GIF image file.
@@ -3392,15 +3371,6 @@ Options for each entry include:
 
          Currently only supported in monolithic (single-process) server configurations
          where the media repository runs within the Relapse process.
-
-       * `picture_claim`: name of the claim containing an url for the user's profile picture.
-         Defaults to 'picture', which OpenID Connect compliant providers should provide
-         and has to refer to a direct image file such as PNG, JPEG, or GIF image file.
-
-         Currently only supported in monolithic (single-process) server configurations
-         where the media repository runs within the Relapse process.
-
-         *Deprecated in Relapse v1.75.0.*
 
        * `localpart_template`: Jinja2 template for the localpart of the MXID.
           If this is not set, the user will be prompted to choose their

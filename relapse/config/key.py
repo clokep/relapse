@@ -132,8 +132,8 @@ class KeyConfig(Config):
         else:
             self.key_server_signing_keys = list(self.signing_key)
 
-        # if neither trusted_key_servers nor perspectives are given, use the default.
-        if "perspectives" not in config and "trusted_key_servers" not in config:
+        # if trusted_key_servers are given, use the default.
+        if "trusted_key_servers" not in config:
             logger.warning(TRUSTED_KEY_SERVER_NOT_CONFIGURED_WARN)
             key_servers = [{"server_name": "matrix.org"}]
         else:
@@ -144,9 +144,6 @@ class KeyConfig(Config):
                     "trusted_key_servers, if given, must be a list, not a %s"
                     % (type(key_servers).__name__,)
                 )
-
-            # merge the 'perspectives' config into the 'trusted_key_servers' config.
-            key_servers.extend(_perspectives_to_key_servers(config))
 
             if not suppress_key_server_warning and "matrix.org" in (
                 s["server_name"] for s in key_servers
@@ -280,49 +277,6 @@ class KeyConfig(Config):
                     signing_key_path, "w", opener=lambda p, f: os.open(p, f, mode=0o640)
                 ) as signing_key_file:
                     write_signing_keys(signing_key_file, (key,))
-
-
-def _perspectives_to_key_servers(config: JsonDict) -> Iterator[JsonDict]:
-    """Convert old-style 'perspectives' configs into new-style 'trusted_key_servers'
-
-    Returns an iterable of entries to add to trusted_key_servers.
-    """
-
-    # 'perspectives' looks like:
-    #
-    # {
-    #     "servers": {
-    #         "matrix.org": {
-    #             "verify_keys": {
-    #                 "ed25519:auto": {
-    #                     "key": "Noi6WqcDj0QmPxCNQqgezwTlBKrfqehY1u2FyWP9uYw"
-    #                 }
-    #             }
-    #         }
-    #     }
-    # }
-    #
-    # 'trusted_keys' looks like:
-    #
-    # [
-    #     {
-    #         "server_name": "matrix.org",
-    #         "verify_keys": {
-    #             "ed25519:auto": "Noi6WqcDj0QmPxCNQqgezwTlBKrfqehY1u2FyWP9uYw",
-    #         }
-    #     }
-    # ]
-
-    perspectives_servers = config.get("perspectives", {}).get("servers", {})
-
-    for server_name, server_opts in perspectives_servers.items():
-        trusted_key_server_entry = {"server_name": server_name}
-        verify_keys = server_opts.get("verify_keys")
-        if verify_keys is not None:
-            trusted_key_server_entry["verify_keys"] = {
-                key_id: key_data["key"] for key_id, key_data in verify_keys.items()
-            }
-        yield trusted_key_server_entry
 
 
 TRUSTED_KEY_SERVERS_SCHEMA = {
