@@ -849,14 +849,14 @@ files = [
 
 [[package]]
 name = "immutabledict"
-version = "4.0.0"
+version = "4.2.1"
 description = "Immutable wrapper around dictionaries (a fork of frozendict)"
 optional = false
-python-versions = ">=3.8,<4.0"
+python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "immutabledict-4.0.0-py3-none-any.whl", hash = "sha256:7b28ffd8a0fbd7c6068ba8ba7a6aa0e50a158e9aae33b22d1dedd03f9aac33b6"},
-    {file = "immutabledict-4.0.0.tar.gz", hash = "sha256:fabf47437531e8bf65a3b5b47d501e65579323b2d1fe58f8ae01491c1fd29bf7"},
+    {file = "immutabledict-4.2.1-py3-none-any.whl", hash = "sha256:c56a26ced38c236f79e74af3ccce53772827cef5c3bce7cab33ff2060f756373"},
+    {file = "immutabledict-4.2.1.tar.gz", hash = "sha256:d91017248981c72eb66c8ff9834e99c2f53562346f23e7f51e7a5ebcf66a3bcc"},
 ]
 
 [[package]]
