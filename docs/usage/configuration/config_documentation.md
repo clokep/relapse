@@ -4339,10 +4339,7 @@ For guidance on setting up workers, see the [worker documentation](../../workers
 ---
 ### `worker_app`
 
-The type of worker. The currently available worker applications are listed
-in [worker documentation](../../workers.md#available-worker-applications).
-
-The only worker is the
+The type of worker. The only worker is the
 [`relapse.app.generic_worker`](../../workers.md#generic-worker).
 
 Example configuration:
