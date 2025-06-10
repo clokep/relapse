@@ -4126,7 +4126,7 @@ worker_replication_secret: "secret_secret"
 ### `pusher_instances`
 
 It is possible to scale the processes that handle sending push notifications to [sygnal](https://github.com/matrix-org/sygnal)
-and email by running a [`generic_worker`](../../workers.md#relapseappgeneric_worker) and adding it's [`worker_name`](#worker_name) to
+and email by running a [`generic_worker`](../../workers.md#push-notifications) and adding it's [`worker_name`](#worker_name) to
 a `pusher_instances` map. Doing so will remove handling of this function from the main
 process. Multiple workers can be added to this map, in which case the work is balanced
 across them. Ensure the main process and all pusher workers are restarted after changing
@@ -4147,7 +4147,7 @@ pusher_instances:
 ### `federation_sender_instances`
 
 It is possible to scale the processes that handle sending outbound federation requests
-by running a [`generic_worker`](../../workers.md#relapseappgeneric_worker) and adding it's [`worker_name`](#worker_name) to
+by running a [`generic_worker`](../../workers.md#federation-sender) and adding it's [`worker_name`](#worker_name) to
 a `federation_sender_instances` map. Doing so will remove handling of this function from
 the main process. Multiple workers can be added to this map, in which case the work is
 balanced across them.
@@ -4277,7 +4277,7 @@ _Added in Relapse 1.59.0._
 ---
 ### `media_instance_running_background_jobs`
 
-The [worker](../../workers.md#relapseappmedia_repository) that is used to run
+The [worker](../../workers.md#media-repository) that is used to run
 background tasks for media repository. If running multiple media repositories
 you must configure a single instance to run the background tasks. If not provided
 this defaults to the main process or your single `media_repository` worker.
@@ -4342,8 +4342,8 @@ For guidance on setting up workers, see the [worker documentation](../../workers
 The type of worker. The currently available worker applications are listed
 in [worker documentation](../../workers.md#available-worker-applications).
 
-The most common worker is the
-[`relapse.app.generic_worker`](../../workers.md#relapseappgeneric_worker).
+The only worker is the
+[`relapse.app.generic_worker`](../../workers.md#generic-worker).
 
 Example configuration:
 ```yaml

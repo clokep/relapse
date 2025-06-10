@@ -142,12 +142,10 @@ public internet; replication traffic is:
 
 In the config file for each worker, you must specify:
  * The type of worker ([`worker_app`](usage/configuration/config_documentation.md#worker_app)).
-   The currently available worker applications are listed [below](#available-worker-applications).
+   The only available worker applications is the [generic worker](#generic-worker).
  * A unique name for the worker ([`worker_name`](usage/configuration/config_documentation.md#worker_name)).
  * If handling HTTP requests, a [`worker_listeners`](usage/configuration/config_documentation.md#worker_listeners) option
    with an `http` listener.
- * **Relapse 1.72 and older:** if handling the `^/_matrix/client/v3/keys/upload` endpoint, the HTTP URI for
-   the main process (`worker_main_http_uri`). This config option is no longer required and is ignored when running Relapse 1.73 and newer.
 
 For example:
 
@@ -183,9 +181,7 @@ For worker setups, you can run the following command
 ```console
 poetry run relapse_worker --config-file [your homeserver.yaml] --config-file [your worker.yaml]
 ```
-## Available worker applications
-
-### Generic worker
+## Generic worker
 
 This worker can handle API requests matching the following regular expressions.
 These endpoints can be routed to any worker. If a worker is set up to handle a
@@ -326,7 +322,7 @@ with `client` and `federation` `resources` must be configured in the
 [`worker_listeners`](usage/configuration/config_documentation.md#worker_listeners)
 option in the worker config.
 
-#### Load balancing
+### Load balancing
 
 It is possible to run multiple instances of this worker app, with incoming requests
 being load-balanced between them by the reverse-proxy. However, different endpoints
@@ -423,7 +419,7 @@ the full URI, or even just round robin), the room ID is the path component after
 of events, then a dedicated set of workers can be provisioned to limit the
 effects of bursts of events from that bridge on events sent by normal users.
 
-#### Stream writers
+### Stream writers
 
 Additionally, the writing of specific streams (such as events) can be moved off
 of the main process to a particular worker.
@@ -464,7 +460,7 @@ Some of the streams have associated endpoints which, for maximum efficiency, sho
 be routed to the workers handling that stream. See below for the currently supported
 streams and the endpoints associated with them:
 
-##### The `events` stream
+#### The `events` stream
 
 The `events` stream experimentally supports having multiple writer workers, where load
 is sharded between them by room ID. Each writer is called an _event persister_. They are
@@ -483,7 +479,7 @@ so. It will then pass those events over HTTP replication to any configured event
 persisters (or the main process if none are configured).
 
 Note that `event_creator`s and `event_persister`s are implemented using the same
-[`relapse.app.generic_worker`](#relapseappgeneric_worker).
+[`relapse.app.generic_worker`](#generic-worker).
 
 An example [`stream_writers`](usage/configuration/config_documentation.md#stream_writers)
 configuration with multiple writers:
@@ -495,21 +491,21 @@ stream_writers:
         - event_persister2
 ```
 
-##### The `typing` stream
+#### The `typing` stream
 
 The following endpoints should be routed directly to the worker configured as
 the stream writer for the `typing` stream:
 
     ^/_matrix/client/(r0|v3|unstable)/rooms/.*/typing
 
-##### The `to_device` stream
+#### The `to_device` stream
 
 The following endpoints should be routed directly to the worker configured as
 the stream writer for the `to_device` stream:
 
     ^/_matrix/client/(r0|v3|unstable)/sendToDevice/
 
-##### The `account_data` stream
+#### The `account_data` stream
 
 The following endpoints should be routed directly to the worker configured as
 the stream writer for the `account_data` stream:
@@ -517,7 +513,7 @@ the stream writer for the `account_data` stream:
     ^/_matrix/client/(r0|v3|unstable)/.*/tags
     ^/_matrix/client/(r0|v3|unstable)/.*/account_data
 
-##### The `receipts` stream
+#### The `receipts` stream
 
 The following endpoints should be routed directly to the worker configured as
 the stream writer for the `receipts` stream:
@@ -525,14 +521,14 @@ the stream writer for the `receipts` stream:
     ^/_matrix/client/(r0|v3|unstable)/rooms/.*/receipt
     ^/_matrix/client/(r0|v3|unstable)/rooms/.*/read_markers
 
-##### The `presence` stream
+#### The `presence` stream
 
 The following endpoints should be routed directly to the worker configured as
 the stream writer for the `presence` stream:
 
     ^/_matrix/client/(r0|v3|unstable)/presence/
 
-#### Restrict outbound federation traffic to a specific set of workers
+### Restrict outbound federation traffic to a specific set of workers
 
 The
 [`outbound_federation_restricted_to`](usage/configuration/config_documentation.md#outbound_federation_restricted_to)
@@ -556,7 +552,7 @@ outbound_federation_restricted_to:
 worker_replication_secret: "secret_secret"
 ```
 
-#### Background tasks
+### Background tasks
 
 There is also support for moving background tasks to a separate
 worker. Background tasks are run periodically or started via replication. Exactly
@@ -574,7 +570,7 @@ run_background_tasks_on: background_worker
 
 You might also wish to investigate the
 [`update_user_directory_from_worker`](#updating-the-user-directory) and
-[`media_instance_running_background_jobs`](#relapseappmedia_repository) settings.
+[`media_instance_running_background_jobs`](#media-repository) settings.
 
 An example for a dedicated background worker instance:
 
@@ -582,7 +578,7 @@ An example for a dedicated background worker instance:
 {{#include systemd-with-workers/workers/background_worker.yaml}}
 ```
 
-#### Updating the User Directory
+### Updating the User Directory
 
 You can designate one generic worker to update the user directory.
 
@@ -604,7 +600,7 @@ expressions to work:
 The above endpoints can be routed to any worker, though you may choose to route
 it to the chosen user directory worker.
 
-#### Notifying Application Services
+### Notifying Application Services
 
 You can designate one generic worker to send output traffic to Application Services.
 Doesn't handle any REST endpoints itself, but you should specify its name in the
@@ -618,7 +614,7 @@ notify_appservices_from_worker: worker_name
 This work cannot be load-balanced; please ensure the main process is restarted
 after setting this option in the shared configuration!
 
-#### Push Notifications
+### Push Notifications
 
 You can designate generic worker to sending push notifications to
 a [push gateway](https://spec.matrix.org/v1.5/push-gateway-api/) such as
