@@ -52,7 +52,7 @@ relapse-federation-sender-1:
   volumes:
     - ${VOLUME_PATH}/data:/data:rw # Replace VOLUME_PATH with the path to your Relapse volume
   environment:
-    RELAPSE_WORKER: relapse.app.federation_sender
+    RELAPSE_WORKER: relapse.app.generic_worker
   depends_on:
     - relapse
 ```
@@ -101,12 +101,10 @@ worker_replication_http_port: 9093
 
 ### Configure Federation Senders
 
-This section is applicable if you are using Federation senders (relapse.app.federation_sender). Locate the `send_federation` and `federation_sender_instances` settings in your `homeserver.yaml` and configure them:
+This section is applicable if you are using Federation senders. Locate the `federation_sender_instances` settings in your `homeserver.yaml` and configure them:
 
 ```yaml
 # This will disable federation sending on the main Relapse instance
-send_federation: false
-
 federation_sender_instances:
   - relapse-federation-sender-1 # The worker_name setting in your federation sender worker configuration file
 ```

@@ -12,17 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
 from collections.abc import Iterable
 from typing import Any, Optional
 
 from relapse.api.constants import EventTypes
-from relapse.config._base import Config, ConfigError
+from relapse.config._base import Config
 from relapse.config._util import validate_config
 from relapse.types import JsonDict
 from relapse.types.state import StateFilter
-
-logger = logging.getLogger(__name__)
 
 
 class ApiConfig(Config):
@@ -44,22 +41,6 @@ class ApiConfig(Config):
         """Get the event types and state keys to include in the prejoin state."""
         room_prejoin_state_config = config.get("room_prejoin_state") or {}
 
-        # backwards-compatibility support for room_invite_state_types
-        if "room_invite_state_types" in config:
-            # if both "room_invite_state_types" and "room_prejoin_state" are set, then
-            # we don't really know what to do.
-            if room_prejoin_state_config:
-                raise ConfigError(
-                    "Can't specify both 'room_invite_state_types' and 'room_prejoin_state' "
-                    "in config"
-                )
-
-            logger.warning(_ROOM_INVITE_STATE_TYPES_WARNING)
-
-            for event_type in config["room_invite_state_types"]:
-                yield event_type, None
-            return
-
         if not room_prejoin_state_config.get("disable_default_event_types"):
             yield from _DEFAULT_PREJOIN_STATE_TYPES_AND_STATE_KEYS
 
@@ -69,15 +50,6 @@ class ApiConfig(Config):
             else:
                 yield entry
 
-
-_ROOM_INVITE_STATE_TYPES_WARNING = """\
-WARNING: The 'room_invite_state_types' configuration setting is now deprecated,
-and replaced with 'room_prejoin_state'. New features may not work correctly
-unless 'room_invite_state_types' is removed. See the config documentation at
-    https://clokep.github.io/relapse/latest/usage/configuration/config_documentation.html#room_prejoin_state
-for details of 'room_prejoin_state'.
---------------------------------------------------------------------------------
-"""
 
 _DEFAULT_PREJOIN_STATE_TYPES_AND_STATE_KEYS = [
     (EventTypes.JoinRules, ""),
@@ -120,14 +92,10 @@ _ROOM_PREJOIN_STATE_CONFIG_SCHEMA = {
     ]
 }
 
-# the legacy room_invite_state_types setting
-_ROOM_INVITE_STATE_TYPES_SCHEMA = {"type": "array", "items": {"type": "string"}}
-
 _MAIN_SCHEMA = {
     "type": "object",
     "properties": {
         "room_prejoin_state": _ROOM_PREJOIN_STATE_CONFIG_SCHEMA,
-        "room_invite_state_types": _ROOM_INVITE_STATE_TYPES_SCHEMA,
         "track_puppeted_user_ips": {
             "type": "boolean",
         },

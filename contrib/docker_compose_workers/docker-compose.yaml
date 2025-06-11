@@ -72,6 +72,6 @@ services:
     volumes:
       - ${VOLUME_PATH}/data:/data:rw # Replace VOLUME_PATH with the path to your Relapse volume
     environment:
-      RELAPSE_WORKER: relapse.app.federation_sender
+      RELAPSE_WORKER: relapse.app.generic_worker
     depends_on:
       - relapse

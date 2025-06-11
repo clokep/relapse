@@ -1577,9 +1577,8 @@ class JinjaOidcMappingProvider(OidcMappingProvider[JinjaOidcMappingConfig]):
             template_name = f"{option_name}_template"
             template = config.get(template_name)
             if not template:
-                # Convert the legacy subject_claim into a template.
-                claim = config.get(f"{option_name}_claim", default_claim)
-                template = "{{ user.%s }}" % (claim,)
+                # Use the default value.
+                template = "{{ user.%s }}" % (default_claim,)
 
             try:
                 return env.from_string(template)

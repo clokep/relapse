@@ -615,11 +615,9 @@ class MultiSSOTestCase(unittest.HomeserverTestCase):
             },
         }
 
-        # default OIDC provider
-        config["oidc_config"] = TEST_OIDC_CONFIG
-
-        # additional OIDC providers
+        # OIDC providers
         config["oidc_providers"] = [
+            TEST_OIDC_CONFIG,
             {
                 "idp_id": "idp1",
                 "idp_name": "IDP1",
@@ -634,7 +632,7 @@ class MultiSSOTestCase(unittest.HomeserverTestCase):
                 "user_mapping_provider": {
                     "config": {"localpart_template": "{{ user.sub }}"}
                 },
-            }
+            },
         ]
         return config
 
@@ -665,8 +663,8 @@ class MultiSSOTestCase(unittest.HomeserverTestCase):
             [
                 {"id": "cas", "name": "CAS"},
                 {"id": "saml", "name": "SAML"},
-                {"id": "oidc-idp1", "name": "IDP1"},
                 {"id": "oidc", "name": "OIDC"},
+                {"id": "oidc-idp1", "name": "IDP1"},
             ],
         )
 
@@ -1427,11 +1425,14 @@ class UsernamePickerTestCase(HomeserverTestCase):
         config = super().default_config()
         config["public_baseurl"] = BASE_URL
 
-        config["oidc_config"] = {}
-        config["oidc_config"].update(TEST_OIDC_CONFIG)
-        config["oidc_config"]["user_mapping_provider"] = {
-            "config": {"display_name_template": "{{ user.displayname }}"}
-        }
+        config["oidc_providers"] = [
+            {
+                **TEST_OIDC_CONFIG,
+                "user_mapping_provider": {
+                    "config": {"display_name_template": "{{ user.displayname }}"}
+                },
+            }
+        ]
 
         # whitelist this client URI so we redirect straight to it rather than
         # serving a confirmation page

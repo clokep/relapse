@@ -1,4 +1,4 @@
-worker_app: relapse.app.media_repository
+worker_app: relapse.app.generic_worker
 worker_name: media_worker
 
 worker_listeners:

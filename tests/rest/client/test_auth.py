@@ -182,10 +182,9 @@ class UIAuthTests(unittest.HomeserverTestCase):
 
         if HAS_OIDC:
             # we enable OIDC as a way of testing SSO flows
-            oidc_config = {}
-            oidc_config.update(TEST_OIDC_CONFIG)
-            oidc_config["allow_existing_users"] = True
-            config["oidc_config"] = oidc_config
+            config["oidc_providers"] = [
+                {**TEST_OIDC_CONFIG, "allow_existing_users": True}
+            ]
 
         return config
 
@@ -456,7 +455,7 @@ class UIAuthTests(unittest.HomeserverTestCase):
         self.delete_device(self.user_tok, self.device_id, HTTPStatus.OK)
 
     @skip_unless(HAS_OIDC, "requires OIDC")
-    @override_config({"oidc_config": TEST_OIDC_CONFIG})
+    @override_config({"oidc_providers": [TEST_OIDC_CONFIG]})
     def test_ui_auth_via_sso(self) -> None:
         """Test a successful UI Auth flow via SSO
 
@@ -501,7 +500,7 @@ class UIAuthTests(unittest.HomeserverTestCase):
         )
 
     @skip_unless(HAS_OIDC, "requires OIDC")
-    @override_config({"oidc_config": TEST_OIDC_CONFIG})
+    @override_config({"oidc_providers": [TEST_OIDC_CONFIG]})
     def test_does_not_offer_password_for_sso_user(self) -> None:
         fake_oidc_server = self.helper.fake_oidc_server()
         login_resp, _ = self.helper.login_via_oidc(fake_oidc_server, "username")
@@ -524,7 +523,7 @@ class UIAuthTests(unittest.HomeserverTestCase):
         self.assertEqual(flows, [{"stages": ["m.login.password"]}])
 
     @skip_unless(HAS_OIDC, "requires OIDC")
-    @override_config({"oidc_config": TEST_OIDC_CONFIG})
+    @override_config({"oidc_providers": [TEST_OIDC_CONFIG]})
     def test_offers_both_flows_for_upgraded_user(self) -> None:
         """A user that had a password and then logged in with SSO should get both flows"""
         fake_oidc_server = self.helper.fake_oidc_server()
@@ -544,7 +543,7 @@ class UIAuthTests(unittest.HomeserverTestCase):
         self.assertEqual(len(flows), 2)
 
     @skip_unless(HAS_OIDC, "requires OIDC")
-    @override_config({"oidc_config": TEST_OIDC_CONFIG})
+    @override_config({"oidc_providers": [TEST_OIDC_CONFIG]})
     def test_ui_auth_fails_for_incorrect_sso_user(self) -> None:
         """If the user tries to authenticate with the wrong SSO user, they get an error"""
 
@@ -584,7 +583,7 @@ class UIAuthTests(unittest.HomeserverTestCase):
     @skip_unless(HAS_OIDC, "requires OIDC")
     @override_config(
         {
-            "oidc_config": TEST_OIDC_CONFIG,
+            "oidc_providers": [TEST_OIDC_CONFIG],
             "experimental_features": {
                 "msc3866": {
                     "enabled": True,
