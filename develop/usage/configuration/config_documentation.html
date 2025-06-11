@@ -768,8 +768,7 @@ Defaults to 10 minutes.</p>
 </li>
 <li>
 <p><code>client_base_url</code>: Custom URL for client links within the email notifications. By default
-links will be based on &quot;https://matrix.to&quot;. (This setting used to be called <code>riot_base_url</code>;
-the old name is still supported for backwards-compatibility but is now deprecated.)</p>
+links will be based on &quot;https://matrix.to&quot;.</p>
 </li>
 <li>
 <p><code>validation_token_lifetime</code>: Configures the time that a validation email will expire after sending.
@@ -2223,9 +2222,6 @@ their account.</p>
 <p>(Servers handling the these requests must answer the <code>/requestToken</code> endpoints defined
 by the Matrix Identity Service API
 <a href="https://matrix.org/docs/spec/identity_service/latest">specification</a>.)</p>
-<p><em>Deprecated in Relapse 1.64.0</em>: The <code>email</code> option is deprecated.</p>
-<p><em>Removed in Relapse 1.66.0</em>: The <code>email</code> option has been removed.
-If present, Relapse will report a configuration error on startup.</p>
 <p>Example configuration:</p>
 <pre><code class="language-yaml">account_threepid_delegates:
     msisdn: http://localhost:8090  # Delegate SMS sending to this local process
@@ -2644,8 +2640,6 @@ are still valid. Defaults to 1d.</p>
 <p>Normally, the connection to the key server is validated via TLS certificates.
 Additional security can be provided by configuring a <code>verify key</code>, which
 will make relapse check that the response is signed by that key.</p>
-<p>This setting supersedes an older setting named <code>perspectives</code>. The old format
-is still supported for backwards-compatibility, but it is deprecated.</p>
 <p><code>trusted_key_servers</code> defaults to matrix.org, but using it will generate a
 warning on start-up. To suppress this warning, set
 <code>suppress_key_server_warning</code> to true.</p>
@@ -2859,11 +2853,6 @@ the IdP to use an ACS location of
 <p>List of OpenID Connect (OIDC) / OAuth 2.0 identity providers, for registration
 and login. See <a href="../../openid.html">here</a>
 for information on how to configure these options.</p>
-<p>For backwards compatibility, it is also possible to configure a single OIDC
-provider via an <code>oidc_config</code> setting. This is now deprecated and admins are
-advised to migrate to the <code>oidc_providers</code> format. (When doing that migration,
-use <code>oidc</code> for the <code>idp_id</code> to ensure that existing users continue to be
-recognised.)</p>
 <p>Options for each entry include:</p>
 <ul>
 <li>
@@ -3015,26 +3004,12 @@ Defaults to <code>{{ user.sub }}</code>, which OpenID Connect compliant provider
 <p>This replaces and overrides <code>subject_claim</code>.</p>
 </li>
 <li>
-<p><code>subject_claim</code>: name of the claim containing a unique identifier
-for the user. Defaults to 'sub', which OpenID Connect
-compliant providers should provide.</p>
-<p><em>Deprecated in Relapse v1.75.0.</em></p>
-</li>
-<li>
 <p><code>picture_template</code>: Jinja2 template for an url for the user's profile picture.
 Defaults to <code>{{ user.picture }}</code>, which OpenID Connect compliant providers should
 provide and has to refer to a direct image file such as PNG, JPEG, or GIF image file.</p>
 <p>This replaces and overrides <code>picture_claim</code>.</p>
 <p>Currently only supported in monolithic (single-process) server configurations
 where the media repository runs within the Relapse process.</p>
-</li>
-<li>
-<p><code>picture_claim</code>: name of the claim containing an url for the user's profile picture.
-Defaults to 'picture', which OpenID Connect compliant providers should provide
-and has to refer to a direct image file such as PNG, JPEG, or GIF image file.</p>
-<p>Currently only supported in monolithic (single-process) server configurations
-where the media repository runs within the Relapse process.</p>
-<p><em>Deprecated in Relapse v1.75.0.</em></p>
 </li>
 <li>
 <p><code>localpart_template</code>: Jinja2 template for the localpart of the MXID.
@@ -3732,17 +3707,9 @@ traffic between the workers and the main process is not authenticated.</p>
 <pre><code class="language-yaml">worker_replication_secret: &quot;secret_secret&quot;
 </code></pre>
 <hr />
-<h3 id="start_pushers"><a class="header" href="#start_pushers"><code>start_pushers</code></a></h3>
-<p>Unnecessary to set if using <a href="#pusher_instances"><code>pusher_instances</code></a> with <a href="../../workers.html#relapseappgeneric_worker"><code>generic_workers</code></a>.</p>
-<p>Controls sending of push notifications on the main process. Set to <code>false</code>
-if using a <a href="../../workers.html#relapseapppusher">pusher worker</a>. Defaults to <code>true</code>.</p>
-<p>Example configuration:</p>
-<pre><code class="language-yaml">start_pushers: false
-</code></pre>
-<hr />
 <h3 id="pusher_instances"><a class="header" href="#pusher_instances"><code>pusher_instances</code></a></h3>
 <p>It is possible to scale the processes that handle sending push notifications to <a href="https://github.com/matrix-org/sygnal">sygnal</a>
-and email by running a <a href="../../workers.html#relapseappgeneric_worker"><code>generic_worker</code></a> and adding it's <a href="#worker_name"><code>worker_name</code></a> to
+and email by running a <a href="../../workers.html#push-notifications"><code>generic_worker</code></a> and adding it's <a href="#worker_name"><code>worker_name</code></a> to
 a <code>pusher_instances</code> map. Doing so will remove handling of this function from the main
 process. Multiple workers can be added to this map, in which case the work is balanced
 across them. Ensure the main process and all pusher workers are restarted after changing
@@ -3757,18 +3724,9 @@ this option.</p>
   - pusher_worker2
 </code></pre>
 <hr />
-<h3 id="send_federation"><a class="header" href="#send_federation"><code>send_federation</code></a></h3>
-<p>Unnecessary to set if using <a href="#federation_sender_instances"><code>federation_sender_instances</code></a> with <a href="../../workers.html#relapseappgeneric_worker"><code>generic_workers</code></a>.</p>
-<p>Controls sending of outbound federation transactions on the main process.
-Set to <code>false</code> if using a <a href="../../workers.html#relapseappfederation_sender">federation sender worker</a>.
-Defaults to <code>true</code>.</p>
-<p>Example configuration:</p>
-<pre><code class="language-yaml">send_federation: false
-</code></pre>
-<hr />
 <h3 id="federation_sender_instances"><a class="header" href="#federation_sender_instances"><code>federation_sender_instances</code></a></h3>
 <p>It is possible to scale the processes that handle sending outbound federation requests
-by running a <a href="../../workers.html#relapseappgeneric_worker"><code>generic_worker</code></a> and adding it's <a href="#worker_name"><code>worker_name</code></a> to
+by running a <a href="../../workers.html#federation-sender"><code>generic_worker</code></a> and adding it's <a href="#worker_name"><code>worker_name</code></a> to
 a <code>federation_sender_instances</code> map. Doing so will remove handling of this function from
 the main process. Multiple workers can be added to this map, in which case the work is
 balanced across them.</p>
@@ -3865,7 +3823,7 @@ to the main process.</p>
 <p><em>Added in Relapse 1.59.0.</em></p>
 <hr />
 <h3 id="media_instance_running_background_jobs"><a class="header" href="#media_instance_running_background_jobs"><code>media_instance_running_background_jobs</code></a></h3>
-<p>The <a href="../../workers.html#relapseappmedia_repository">worker</a> that is used to run
+<p>The <a href="../../workers.html#media-repository">worker</a> that is used to run
 background tasks for media repository. If running multiple media repositories
 you must configure a single instance to run the background tasks. If not provided
 this defaults to the main process or your single <code>media_repository</code> worker.</p>
@@ -3935,10 +3893,8 @@ They should be not be provided when configuring the main process.</p>
 <p>For guidance on setting up workers, see the <a href="../../workers.html">worker documentation</a>.</p>
 <hr />
 <h3 id="worker_app"><a class="header" href="#worker_app"><code>worker_app</code></a></h3>
-<p>The type of worker. The currently available worker applications are listed
-in <a href="../../workers.html#available-worker-applications">worker documentation</a>.</p>
-<p>The most common worker is the
-<a href="../../workers.html#relapseappgeneric_worker"><code>relapse.app.generic_worker</code></a>.</p>
+<p>The type of worker. The only worker is the
+<a href="../../workers.html#generic-worker"><code>relapse.app.generic_worker</code></a>.</p>
 <p>Example configuration:</p>
 <pre><code class="language-yaml">worker_app: relapse.app.generic_worker
 </code></pre>

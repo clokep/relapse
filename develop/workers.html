@@ -277,12 +277,10 @@ is configured</li>
 <p>In the config file for each worker, you must specify:</p>
 <ul>
 <li>The type of worker (<a href="usage/configuration/config_documentation.html#worker_app"><code>worker_app</code></a>).
-The currently available worker applications are listed <a href="#available-worker-applications">below</a>.</li>
+The only available worker applications is the <a href="#generic-worker">generic worker</a>.</li>
 <li>A unique name for the worker (<a href="usage/configuration/config_documentation.html#worker_name"><code>worker_name</code></a>).</li>
 <li>If handling HTTP requests, a <a href="usage/configuration/config_documentation.html#worker_listeners"><code>worker_listeners</code></a> option
 with an <code>http</code> listener.</li>
-<li><strong>Relapse 1.72 and older:</strong> if handling the <code>^/_matrix/client/v3/keys/upload</code> endpoint, the HTTP URI for
-the main process (<code>worker_main_http_uri</code>). This config option is no longer required and is ignored when running Relapse 1.73 and newer.</li>
 </ul>
 <p>For example:</p>
 <pre><code class="language-yaml">worker_app: relapse.app.generic_worker
@@ -317,8 +315,7 @@ recommend the use of <code>systemd</code> where available: for information on se
 <p>For worker setups, you can run the following command</p>
 <pre><code class="language-console">poetry run relapse_worker --config-file [your homeserver.yaml] --config-file [your worker.yaml]
 </code></pre>
-<h2 id="available-worker-applications"><a class="header" href="#available-worker-applications">Available worker applications</a></h2>
-<h3 id="relapseappgeneric_worker"><a class="header" href="#relapseappgeneric_worker"><code>relapse.app.generic_worker</code></a></h3>
+<h2 id="generic-worker"><a class="header" href="#generic-worker">Generic worker</a></h2>
 <p>This worker can handle API requests matching the following regular expressions.
 These endpoints can be routed to any worker. If a worker is set up to handle a
 stream then, for maximum efficiency, additional endpoints should be routed to that
@@ -452,7 +449,7 @@ For multiple workers not handling the SSO endpoints properly, see
 with <code>client</code> and <code>federation</code> <code>resources</code> must be configured in the
 <a href="usage/configuration/config_documentation.html#worker_listeners"><code>worker_listeners</code></a>
 option in the worker config.</p>
-<h4 id="load-balancing"><a class="header" href="#load-balancing">Load balancing</a></h4>
+<h3 id="load-balancing"><a class="header" href="#load-balancing">Load balancing</a></h3>
 <p>It is possible to run multiple instances of this worker app, with incoming requests
 being load-balanced between them by the reverse-proxy. However, different endpoints
 have different characteristics and so admins
@@ -538,7 +535,7 @@ the full URI, or even just round robin), the room ID is the path component after
 <code>/rooms/</code>. If there is a large bridge connected that is sending or may send lots
 of events, then a dedicated set of workers can be provisioned to limit the
 effects of bursts of events from that bridge on events sent by normal users.</p>
-<h4 id="stream-writers"><a class="header" href="#stream-writers">Stream writers</a></h4>
+<h3 id="stream-writers"><a class="header" href="#stream-writers">Stream writers</a></h3>
 <p>Additionally, the writing of specific streams (such as events) can be moved off
 of the main process to a particular worker.</p>
 <p>To enable this, the worker must have:</p>
@@ -589,7 +586,7 @@ worker_log_config: /etc/matrix-relapse/event-persister-log.yaml
 <p>Some of the streams have associated endpoints which, for maximum efficiency, should
 be routed to the workers handling that stream. See below for the currently supported
 streams and the endpoints associated with them:</p>
-<h5 id="the-events-stream"><a class="header" href="#the-events-stream">The <code>events</code> stream</a></h5>
+<h4 id="the-events-stream"><a class="header" href="#the-events-stream">The <code>events</code> stream</a></h4>
 <p>The <code>events</code> stream experimentally supports having multiple writer workers, where load
 is sharded between them by room ID. Each writer is called an <em>event persister</em>. They are
 responsible for</p>
@@ -606,7 +603,7 @@ An <code>event_creator</code> listens for requests from clients to create new ev
 so. It will then pass those events over HTTP replication to any configured event
 persisters (or the main process if none are configured).</p>
 <p>Note that <code>event_creator</code>s and <code>event_persister</code>s are implemented using the same
-<a href="#relapseappgeneric_worker"><code>relapse.app.generic_worker</code></a>.</p>
+<a href="#generic-worker"><code>relapse.app.generic_worker</code></a>.</p>
 <p>An example <a href="usage/configuration/config_documentation.html#stream_writers"><code>stream_writers</code></a>
 configuration with multiple writers:</p>
 <pre><code class="language-yaml">stream_writers:
@@ -614,34 +611,34 @@ configuration with multiple writers:</p>
         - event_persister1
         - event_persister2
 </code></pre>
-<h5 id="the-typing-stream"><a class="header" href="#the-typing-stream">The <code>typing</code> stream</a></h5>
+<h4 id="the-typing-stream"><a class="header" href="#the-typing-stream">The <code>typing</code> stream</a></h4>
 <p>The following endpoints should be routed directly to the worker configured as
 the stream writer for the <code>typing</code> stream:</p>
 <pre><code>^/_matrix/client/(r0|v3|unstable)/rooms/.*/typing
 </code></pre>
-<h5 id="the-to_device-stream"><a class="header" href="#the-to_device-stream">The <code>to_device</code> stream</a></h5>
+<h4 id="the-to_device-stream"><a class="header" href="#the-to_device-stream">The <code>to_device</code> stream</a></h4>
 <p>The following endpoints should be routed directly to the worker configured as
 the stream writer for the <code>to_device</code> stream:</p>
 <pre><code>^/_matrix/client/(r0|v3|unstable)/sendToDevice/
 </code></pre>
-<h5 id="the-account_data-stream"><a class="header" href="#the-account_data-stream">The <code>account_data</code> stream</a></h5>
+<h4 id="the-account_data-stream"><a class="header" href="#the-account_data-stream">The <code>account_data</code> stream</a></h4>
 <p>The following endpoints should be routed directly to the worker configured as
 the stream writer for the <code>account_data</code> stream:</p>
 <pre><code>^/_matrix/client/(r0|v3|unstable)/.*/tags
 ^/_matrix/client/(r0|v3|unstable)/.*/account_data
 </code></pre>
-<h5 id="the-receipts-stream"><a class="header" href="#the-receipts-stream">The <code>receipts</code> stream</a></h5>
+<h4 id="the-receipts-stream"><a class="header" href="#the-receipts-stream">The <code>receipts</code> stream</a></h4>
 <p>The following endpoints should be routed directly to the worker configured as
 the stream writer for the <code>receipts</code> stream:</p>
 <pre><code>^/_matrix/client/(r0|v3|unstable)/rooms/.*/receipt
 ^/_matrix/client/(r0|v3|unstable)/rooms/.*/read_markers
 </code></pre>
-<h5 id="the-presence-stream"><a class="header" href="#the-presence-stream">The <code>presence</code> stream</a></h5>
+<h4 id="the-presence-stream"><a class="header" href="#the-presence-stream">The <code>presence</code> stream</a></h4>
 <p>The following endpoints should be routed directly to the worker configured as
 the stream writer for the <code>presence</code> stream:</p>
 <pre><code>^/_matrix/client/(r0|v3|unstable)/presence/
 </code></pre>
-<h4 id="restrict-outbound-federation-traffic-to-a-specific-set-of-workers"><a class="header" href="#restrict-outbound-federation-traffic-to-a-specific-set-of-workers">Restrict outbound federation traffic to a specific set of workers</a></h4>
+<h3 id="restrict-outbound-federation-traffic-to-a-specific-set-of-workers"><a class="header" href="#restrict-outbound-federation-traffic-to-a-specific-set-of-workers">Restrict outbound federation traffic to a specific set of workers</a></h3>
 <p>The
 <a href="usage/configuration/config_documentation.html#outbound_federation_restricted_to"><code>outbound_federation_restricted_to</code></a>
 configuration is useful to make sure outbound federation traffic only goes through a
@@ -661,7 +658,7 @@ outbound_federation_restricted_to:
 
 worker_replication_secret: &quot;secret_secret&quot;
 </code></pre>
-<h4 id="background-tasks"><a class="header" href="#background-tasks">Background tasks</a></h4>
+<h3 id="background-tasks"><a class="header" href="#background-tasks">Background tasks</a></h3>
 <p>There is also support for moving background tasks to a separate
 worker. Background tasks are run periodically or started via replication. Exactly
 which tasks are configured to run depends on your Relapse configuration (e.g. if
@@ -674,14 +671,14 @@ to a dedicated worker, the shared configuration would include:</p>
 </code></pre>
 <p>You might also wish to investigate the
 <a href="#updating-the-user-directory"><code>update_user_directory_from_worker</code></a> and
-<a href="#relapseappmedia_repository"><code>media_instance_running_background_jobs</code></a> settings.</p>
+<a href="#media-repository"><code>media_instance_running_background_jobs</code></a> settings.</p>
 <p>An example for a dedicated background worker instance:</p>
 <pre><code class="language-yaml">worker_app: relapse.app.generic_worker
 worker_name: background_worker
 
 worker_log_config: /etc/matrix-relapse/background-worker-log.yaml
 </code></pre>
-<h4 id="updating-the-user-directory"><a class="header" href="#updating-the-user-directory">Updating the User Directory</a></h4>
+<h3 id="updating-the-user-directory"><a class="header" href="#updating-the-user-directory">Updating the User Directory</a></h3>
 <p>You can designate one generic worker to update the user directory.</p>
 <p>Specify its name in the <a href="usage/configuration/config_documentation.html#update_user_directory_from_worker">shared configuration</a>
 as follows:</p>
@@ -695,9 +692,7 @@ expressions to work:</p>
 </code></pre>
 <p>The above endpoints can be routed to any worker, though you may choose to route
 it to the chosen user directory worker.</p>
-<p>This style of configuration supersedes the legacy <code>relapse.app.user_dir</code>
-worker application type.</p>
-<h4 id="notifying-application-services"><a class="header" href="#notifying-application-services">Notifying Application Services</a></h4>
+<h3 id="notifying-application-services"><a class="header" href="#notifying-application-services">Notifying Application Services</a></h3>
 <p>You can designate one generic worker to send output traffic to Application Services.
 Doesn't handle any REST endpoints itself, but you should specify its name in the
 <a href="usage/configuration/config_documentation.html#notify_appservices_from_worker">shared configuration</a>
@@ -706,9 +701,7 @@ as follows:</p>
 </code></pre>
 <p>This work cannot be load-balanced; please ensure the main process is restarted
 after setting this option in the shared configuration!</p>
-<p>This style of configuration supersedes the legacy <code>relapse.app.appservice</code>
-worker application type.</p>
-<h4 id="push-notifications"><a class="header" href="#push-notifications">Push Notifications</a></h4>
+<h3 id="push-notifications"><a class="header" href="#push-notifications">Push Notifications</a></h3>
 <p>You can designate generic worker to sending push notifications to
 a <a href="https://spec.matrix.org/v1.5/push-gateway-api/">push gateway</a> such as
 <a href="https://github.com/matrix-org/sygnal">sygnal</a> and email.</p>
@@ -725,44 +718,14 @@ across them. Ensure the main process and all pusher workers are restarted after 
 this option.</p>
 <p>These workers don't need to accept incoming HTTP requests to send push notifications,
 so no additional reverse proxy configuration is required for pusher workers.</p>
-<p>This style of configuration supersedes the legacy <code>relapse.app.pusher</code>
-worker application type.</p>
-<h3 id="relapseapppusher"><a class="header" href="#relapseapppusher"><code>relapse.app.pusher</code></a></h3>
-<p>It is likely this option will be deprecated in the future and is not recommended for new
-installations. Instead, <a href="#push-notifications">use <code>relapse.app.generic_worker</code> with the <code>pusher_instances</code></a>.</p>
-<p>Handles sending push notifications to sygnal and email. Doesn't handle any
-REST endpoints itself, but you should set
-<a href="usage/configuration/config_documentation.html#start_pushers"><code>start_pushers: false</code></a> in the
-shared configuration file to stop the main relapse sending push notifications.</p>
-<p>To run multiple instances at once the
-<a href="usage/configuration/config_documentation.html#pusher_instances"><code>pusher_instances</code></a>
-option should list all pusher instances by their
-<a href="usage/configuration/config_documentation.html#worker_name"><code>worker_name</code></a>, e.g.:</p>
-<pre><code class="language-yaml">start_pushers: false
-pusher_instances:
-    - pusher_worker1
-    - pusher_worker2
-</code></pre>
-<p>An example for a pusher instance:</p>
-<pre><code class="language-yaml">worker_app: relapse.app.pusher
+<pre><code class="language-yaml">worker_app: relapse.app.generic_worker
 worker_name: pusher_worker1
 
 worker_log_config: /etc/matrix-relapse/pusher-worker-log.yaml
 </code></pre>
-<h3 id="relapseappappservice"><a class="header" href="#relapseappappservice"><code>relapse.app.appservice</code></a></h3>
-<p><strong>Deprecated as of Relapse v1.59.</strong> <a href="#notifying-application-services">Use <code>relapse.app.generic_worker</code> with the
-<code>notify_appservices_from_worker</code> option instead.</a></p>
-<p>Handles sending output traffic to Application Services. Doesn't handle any
-REST endpoints itself, but you should set <code>notify_appservices: False</code> in the
-shared configuration file to stop the main relapse sending appservice notifications.</p>
-<p>Note this worker cannot be load-balanced: only one instance should be active.</p>
-<h3 id="relapseappfederation_sender"><a class="header" href="#relapseappfederation_sender"><code>relapse.app.federation_sender</code></a></h3>
-<p>It is likely this option will be deprecated in the future and not recommended for
-new installations. Instead, <a href="usage/configuration/config_documentation.html#federation_sender_instances">use <code>relapse.app.generic_worker</code> with the <code>federation_sender_instances</code></a>.</p>
-<p>Handles sending federation traffic to other servers. Doesn't handle any
-REST endpoints itself, but you should set
-<a href="usage/configuration/config_documentation.html#send_federation"><code>send_federation: false</code></a>
-in the shared configuration file to stop the main relapse sending this traffic.</p>
+<h3 id="federation-sender"><a class="header" href="#federation-sender">Federation Sender</a></h3>
+<p>You can designate generic worker to handle sending federation traffic to other servers.</p>
+<p>This will stop the main process sending federation requests.</p>
 <p>If running multiple federation senders then you must list each
 instance in the
 <a href="usage/configuration/config_documentation.html#federation_sender_instances"><code>federation_sender_instances</code></a>
@@ -776,12 +739,12 @@ federation_sender_instances:
     - federation_sender2
 </code></pre>
 <p>An example for a federation sender instance:</p>
-<pre><code class="language-yaml">worker_app: relapse.app.federation_sender
+<pre><code class="language-yaml">worker_app: relapse.app.generic_worker
 worker_name: federation_sender1
 
 worker_log_config: /etc/matrix-relapse/federation-sender-log.yaml
 </code></pre>
-<h3 id="relapseappmedia_repository"><a class="header" href="#relapseappmedia_repository"><code>relapse.app.media_repository</code></a></h3>
+<h3 id="media-repository"><a class="header" href="#media-repository">Media Repository</a></h3>
 <p>Handles the media repository. It can handle all endpoints starting with:</p>
 <pre><code>/_matrix/media/
 </code></pre>
@@ -802,7 +765,7 @@ able to handle the above endpoints.</p>
 <p>In the <code>media_repository</code> worker configuration file, configure the
 <a href="usage/configuration/config_documentation.html#listeners">HTTP listener</a> to
 expose the <code>media</code> resource. For example:</p>
-<pre><code class="language-yaml">worker_app: relapse.app.media_repository
+<pre><code class="language-yaml">worker_app: relapse.app.generic_worker
 worker_name: media_worker
 
 worker_listeners:
@@ -821,42 +784,6 @@ e.g.:</p>
 <pre><code class="language-yaml">media_instance_running_background_jobs: &quot;media-repository-1&quot;
 </code></pre>
 <p>Note that if a reverse proxy is used , then <code>/_matrix/media/</code> must be routed for both inbound client and federation requests (if they are handled separately).</p>
-<h3 id="relapseappuser_dir"><a class="header" href="#relapseappuser_dir"><code>relapse.app.user_dir</code></a></h3>
-<p><strong>Deprecated as of Relapse v1.59.</strong> <a href="#updating-the-user-directory">Use <code>relapse.app.generic_worker</code> with the
-<code>update_user_directory_from_worker</code> option instead.</a></p>
-<p>Handles searches in the user directory. It can handle REST endpoints matching
-the following regular expressions:</p>
-<pre><code>^/_matrix/client/(r0|v3|unstable)/user_directory/search$
-</code></pre>
-<p>When using this worker you must also set <code>update_user_directory: false</code> in the
-shared configuration file to stop the main relapse running background
-jobs related to updating the user directory.</p>
-<p>Above endpoint is not <em>required</em> to be routed to this worker. By default,
-<code>update_user_directory</code> is set to <code>true</code>, which means the main process
-will handle updates. All workers configured with <code>client</code> can handle the above
-endpoint as long as either this worker or the main process are configured to
-handle it, and are online.</p>
-<p>If <code>update_user_directory</code> is set to <code>false</code>, and this worker is not running,
-the above endpoint may give outdated results.</p>
-<h3 id="historical-apps"><a class="header" href="#historical-apps">Historical apps</a></h3>
-<p>The following used to be separate worker application types, but are now
-equivalent to <code>relapse.app.generic_worker</code>:</p>
-<ul>
-<li><code>relapse.app.client_reader</code></li>
-<li><code>relapse.app.event_creator</code></li>
-<li><code>relapse.app.federation_reader</code></li>
-<li><code>relapse.app.federation_sender</code></li>
-<li><code>relapse.app.frontend_proxy</code></li>
-<li><code>relapse.app.pusher</code></li>
-<li><code>relapse.app.synchrotron</code></li>
-</ul>
-<h2 id="migration-from-old-config"><a class="header" href="#migration-from-old-config">Migration from old config</a></h2>
-<p>A main change that has occurred is the merging of worker apps into
-<code>relapse.app.generic_worker</code>. This change is backwards compatible and so no
-changes to the config are required.</p>
-<p>To migrate apps to use <code>relapse.app.generic_worker</code> simply update the
-<code>worker_app</code> option in the worker configs, and where worker are started (e.g.
-in systemd service files, but not required for synctl).</p>
 <h2 id="architectural-diagram"><a class="header" href="#architectural-diagram">Architectural diagram</a></h2>
 <p>The following shows an example setup using Redis and a reverse proxy:</p>
 <pre><code>                     Clients &amp; Federation
