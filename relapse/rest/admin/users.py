@@ -38,7 +38,6 @@ from relapse.rest.admin._base import (
     assert_requester_is_admin,
     assert_user_is_admin,
 )
-from relapse.rest.client._base import client_patterns
 from relapse.storage.databases.main.registration import ExternalIDReuseException
 from relapse.storage.databases.main.stats import UserSortOrder
 from relapse.types import JsonDict, JsonMapping, UserID
@@ -655,37 +654,6 @@ class UserRegisterServlet(RestServlet):
             user_id, body, should_issue_refresh_token=should_issue_refresh_token
         )
         return HTTPStatus.OK, result
-
-
-class WhoisRestServlet(RestServlet):
-    path_regex = "/whois/(?P<user_id>[^/]*)$"
-    PATTERNS = [
-        *admin_patterns(path_regex),
-        # URL for spec reason
-        # https://matrix.org/docs/spec/client_server/r0.6.1#get-matrix-client-r0-admin-whois-userid
-        *client_patterns("/admin" + path_regex),
-    ]
-
-    def __init__(self, hs: "HomeServer"):
-        self.auth = hs.get_auth()
-        self.admin_handler = hs.get_admin_handler()
-        self.is_mine = hs.is_mine
-
-    async def on_GET(
-        self, request: RelapseRequest, user_id: str
-    ) -> tuple[int, JsonMapping]:
-        target_user = UserID.from_string(user_id)
-        requester = await self.auth.get_user_by_req(request)
-
-        if target_user != requester.user:
-            await assert_user_is_admin(self.auth, requester)
-
-        if not self.is_mine(target_user):
-            raise RelapseError(HTTPStatus.BAD_REQUEST, "Can only whois a local user")
-
-        ret = await self.admin_handler.get_whois(target_user)
-
-        return HTTPStatus.OK, ret
 
 
 class DeactivateAccountRestServlet(RestServlet):

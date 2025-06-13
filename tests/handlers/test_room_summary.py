@@ -115,7 +115,7 @@ class TestSpaceSummarySort(unittest.TestCase):
 
 class SpaceSummaryTestCase(unittest.HomeserverTestCase):
     servlets = [
-        admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         room.register_servlets,
         login.register_servlets,
     ]
@@ -1029,7 +1029,7 @@ class SpaceSummaryTestCase(unittest.HomeserverTestCase):
 
 class RoomSummaryTestCase(unittest.HomeserverTestCase):
     servlets = [
-        admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         room.register_servlets,
         login.register_servlets,
     ]

@@ -17,8 +17,8 @@ from unittest.mock import Mock, patch
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import relapse.rest.admin
 from relapse.api.constants import EventTypes
+from relapse.rest import admin
 from relapse.rest.client import login, room
 from relapse.server import HomeServer
 from relapse.storage import prepare_database
@@ -255,7 +255,7 @@ class CleanupExtremDummyEventsTestCase(HomeserverTestCase):
     CONSENT_VERSION = "1"
     EXTREMITIES_COUNT = 50
     servlets = [
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         login.register_servlets,
         room.register_servlets,
     ]

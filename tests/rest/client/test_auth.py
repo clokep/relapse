@@ -20,10 +20,10 @@ from twisted.internet.defer import succeed
 from twisted.test.proto_helpers import MemoryReactor
 from twisted.web.resource import Resource
 
-import relapse.rest.admin
 from relapse.api.constants import ApprovalNoticeMedium, LoginType
 from relapse.api.errors import Codes, RelapseError
 from relapse.handlers.ui_auth.checkers import UserInteractiveAuthChecker
+from relapse.rest import admin
 from relapse.rest.client import account, auth, devices, login, logout, register
 from relapse.rest.relapse.client import build_relapse_client_resource_tree
 from relapse.server import HomeServer
@@ -168,7 +168,7 @@ class UIAuthTests(unittest.HomeserverTestCase):
         auth.register_servlets,
         devices.register_servlets,
         login.register_servlets,
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         register.register_servlets,
     ]
 
@@ -620,7 +620,7 @@ class RefreshAuthTests(unittest.HomeserverTestCase):
         account.register_servlets,
         login.register_servlets,
         logout.register_servlets,
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         register.register_servlets,
     ]
     hijack_auth = False

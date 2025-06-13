@@ -15,8 +15,8 @@ from collections.abc import Sequence
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import relapse.rest.admin
 from relapse.api.errors import Codes
+from relapse.rest import admin
 from relapse.rest.client import login, room, sync
 from relapse.server import HomeServer
 from relapse.storage.roommember import RoomsForUser
@@ -30,7 +30,7 @@ from tests.unittest import override_config
 
 class ServerNoticeTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         login.register_servlets,
         room.register_servlets,
         sync.register_servlets,

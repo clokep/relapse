@@ -24,9 +24,9 @@ from parameterized import parameterized
 from twisted.internet.defer import Deferred
 from twisted.test.proto_helpers import MemoryReactor
 
-import relapse.rest.admin
 from relapse.api.errors import Codes, RelapseError
 from relapse.push.emailpusher import EmailPusher
+from relapse.rest import admin
 from relapse.rest.client import login, room
 from relapse.rest.relapse.client.unsubscribe import UnsubscribeResource
 from relapse.server import HomeServer
@@ -46,7 +46,7 @@ class _User:
 
 class EmailPusherTests(HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         room.register_servlets,
         login.register_servlets,
     ]

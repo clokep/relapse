@@ -39,7 +39,7 @@ from tests.utils import HAS_AUTHLIB
 class KeyQueryTestCase(unittest.HomeserverTestCase):
     servlets = [
         keys.register_servlets,
-        admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         login.register_servlets,
     ]
 

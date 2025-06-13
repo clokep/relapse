@@ -18,8 +18,8 @@ from unittest.mock import Mock
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import relapse.rest.admin
 from relapse.api.constants import EduTypes
+from relapse.rest import admin
 from relapse.rest.client import events, login, room
 from relapse.server import HomeServer
 from relapse.util import Clock
@@ -33,7 +33,7 @@ class EventStreamPermissionsTestCase(unittest.HomeserverTestCase):
     servlets = [
         events.register_servlets,
         room.register_servlets,
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         login.register_servlets,
     ]
 
@@ -135,7 +135,7 @@ class GetEventsTestCase(unittest.HomeserverTestCase):
     servlets = [
         events.register_servlets,
         room.register_servlets,
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         login.register_servlets,
     ]
 

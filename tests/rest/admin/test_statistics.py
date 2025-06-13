@@ -17,8 +17,8 @@ from typing import Optional
 from twisted.test.proto_helpers import MemoryReactor
 from twisted.web.resource import Resource
 
-import relapse.rest.admin
 from relapse.api.errors import Codes
+from relapse.rest import admin
 from relapse.rest.client import login
 from relapse.server import HomeServer
 from relapse.types import JsonDict
@@ -30,7 +30,7 @@ from tests.test_utils import SMALL_PNG
 
 class UserMediaStatisticsTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         login.register_servlets,
     ]
 

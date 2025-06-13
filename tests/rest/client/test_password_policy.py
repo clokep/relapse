@@ -43,7 +43,7 @@ class PasswordPolicyTestCase(unittest.HomeserverTestCase):
     """
 
     servlets = [
-        admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         login.register_servlets,
         register.register_servlets,
         password_policy.register_servlets,

@@ -447,7 +447,7 @@ class DeviceTestCase(unittest.HomeserverTestCase):
 
 class DehydrationTestCase(unittest.HomeserverTestCase):
     servlets = [
-        admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         login.register_servlets,
         register.register_servlets,
         devices.register_servlets,

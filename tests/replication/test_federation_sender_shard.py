@@ -20,7 +20,7 @@ from relapse.api.constants import EventTypes, Membership
 from relapse.events.builder import EventBuilderFactory
 from relapse.handlers.typing import TypingWriterHandler
 from relapse.http.federation.matrix_federation_agent import MatrixFederationAgent
-from relapse.rest.admin import register_servlets_for_client_rest_resource
+from relapse.rest import admin
 from relapse.rest.client import login, room
 from relapse.types import UserID, create_requester
 
@@ -40,7 +40,7 @@ class FederationSenderTestCase(BaseMultiWorkerStreamTestCase):
 
     servlets = [
         login.register_servlets,
-        register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         room.register_servlets,
     ]
 

@@ -19,9 +19,9 @@ from parameterized import parameterized
 from twisted.test.proto_helpers import MemoryReactor
 from twisted.web.resource import Resource
 
-import relapse.rest.admin
 from relapse.api.errors import Codes
 from relapse.media.filepath import MediaFilePaths
+from relapse.rest import admin
 from relapse.rest.client import login, profile, room
 from relapse.server import HomeServer
 from relapse.util import Clock
@@ -35,8 +35,8 @@ INVALID_TIMESTAMP_IN_S = 1893456000  # 2030-01-01 in seconds
 
 class _AdminMediaTests(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets,
-        relapse.rest.admin.register_servlets_for_media_repo,
+        admin.register_servlets,
+        admin.register_servlets_for_media_repo,
         login.register_servlets,
     ]
 
@@ -194,8 +194,8 @@ class DeleteMediaByIDTestCase(_AdminMediaTests):
 
 class DeleteMediaByDateSizeTestCase(_AdminMediaTests):
     servlets = [
-        relapse.rest.admin.register_servlets,
-        relapse.rest.admin.register_servlets_for_media_repo,
+        admin.register_servlets,
+        admin.register_servlets_for_media_repo,
         login.register_servlets,
         profile.register_servlets,
         room.register_servlets,
@@ -788,8 +788,8 @@ class ProtectMediaByIDTestCase(_AdminMediaTests):
 
 class PurgeMediaCacheTestCase(_AdminMediaTests):
     servlets = [
-        relapse.rest.admin.register_servlets,
-        relapse.rest.admin.register_servlets_for_media_repo,
+        admin.register_servlets,
+        admin.register_servlets_for_media_repo,
         login.register_servlets,
         profile.register_servlets,
         room.register_servlets,

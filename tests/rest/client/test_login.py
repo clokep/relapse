@@ -24,11 +24,11 @@ from typing_extensions import Literal
 from twisted.test.proto_helpers import MemoryReactor
 from twisted.web.resource import Resource
 
-import relapse.rest.admin
 from relapse.api.constants import ApprovalNoticeMedium, LoginType
 from relapse.api.errors import Codes
 from relapse.appservice import ApplicationService
 from relapse.module_api import ModuleApi
+from relapse.rest import admin
 from relapse.rest.client import devices, login, logout, register
 from relapse.rest.client.account import WhoamiRestServlet
 from relapse.rest.relapse.client import build_relapse_client_resource_tree
@@ -108,10 +108,7 @@ class TestSpamChecker:
         initial_display_name: Optional[str],
         request_info: Collection[tuple[Optional[str], str]],
         auth_provider_id: Optional[str] = None,
-    ) -> Union[
-        Literal["NOT_SPAM"],
-        tuple["relapse.module_api.errors.Codes", JsonDict],
-    ]:
+    ) -> Union[Literal["NOT_SPAM"], tuple[Codes, JsonDict]]:
         return "NOT_SPAM"
 
 
@@ -132,10 +129,7 @@ class DenyAllSpamChecker:
         initial_display_name: Optional[str],
         request_info: Collection[tuple[Optional[str], str]],
         auth_provider_id: Optional[str] = None,
-    ) -> Union[
-        Literal["NOT_SPAM"],
-        tuple["relapse.module_api.errors.Codes", JsonDict],
-    ]:
+    ) -> Union[Literal["NOT_SPAM"], tuple[Codes, JsonDict]]:
         # Return an odd set of values to ensure that they get correctly passed
         # to the client.
         return Codes.LIMIT_EXCEEDED, {"extra": "value"}
@@ -143,7 +137,7 @@ class DenyAllSpamChecker:
 
 class LoginRestServletTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         login.register_servlets,
         logout.register_servlets,
         devices.register_servlets,
@@ -1027,7 +1021,7 @@ class CASTestCase(unittest.HomeserverTestCase):
 @skip_unless(HAS_JWT, "requires authlib")
 class JWTTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         login.register_servlets,
     ]
 

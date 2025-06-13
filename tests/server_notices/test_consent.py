@@ -16,7 +16,7 @@ import os
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import relapse.rest.admin
+from relapse.rest import admin
 from relapse.rest.client import login, room, sync
 from relapse.server import HomeServer
 from relapse.util import Clock
@@ -27,7 +27,7 @@ from tests import unittest
 class ConsentNoticesTests(unittest.HomeserverTestCase):
     servlets = [
         sync.register_servlets,
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         login.register_servlets,
         room.register_servlets,
     ]

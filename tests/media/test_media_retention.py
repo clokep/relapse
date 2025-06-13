@@ -39,7 +39,7 @@ class MediaRetentionTestCase(unittest.HomeserverTestCase):
         room.register_servlets,
         login.register_servlets,
         register.register_servlets,
-        admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
     ]
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
