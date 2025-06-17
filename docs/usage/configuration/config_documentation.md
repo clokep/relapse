@@ -3135,13 +3135,11 @@ This setting has the following sub-options:
      dictionary to the module's `parse_config` method. The built-in provider takes the following two
      options:
       * `mxid_source_attribute`: The SAML attribute (after mapping via the attribute maps) to use
-          to derive the Matrix ID from. It is 'uid' by default. Note: This used to be configured by the
-          `saml2_config.mxid_source_attribute option`. If that is still defined, its value will be used instead.
+          to derive the Matrix ID from. It is 'uid' by default.
       * `mxid_mapping`: The mapping system to use for mapping the saml attribute onto a
          matrix ID. Options include: `hexencode` (which maps unpermitted characters to '=xx')
          and `dotreplace` (which replaces unpermitted characters with '.').
-         The default is `hexencode`. Note: This used to be configured by the
-         `saml2_config.mxid_mapping option`. If that is still defined, its value will be used instead.
+         The default is `hexencode`.
 * `grandfathered_mxid_source_attribute`: In previous versions of relapse, the mapping from SAML attribute to
    MXID was always calculated dynamically rather than stored in a table. For backwards- compatibility, we will look for `user_ids`
    matching such a pattern before creating a new account. This setting controls the SAML attribute which will be used for this

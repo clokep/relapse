@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
 import os
 import re
 import threading
@@ -25,8 +24,6 @@ from relapse.types import JsonDict
 from relapse.util.check_dependencies import check_requirements
 
 from ._base import Config, ConfigError
-
-logger = logging.getLogger(__name__)
 
 # The prefix for all cache factor-related environment variables
 _CACHE_PREFIX = "RELAPSE_CACHE_FACTOR"
@@ -169,22 +166,6 @@ class CacheConfig(Config):
             self.expiry_time_msec = self.parse_duration(cache_entry_ttl)
         else:
             self.expiry_time_msec = None
-
-        # Backwards compatibility support for the now-removed "expiry_time" config flag.
-        expiry_time = cache_config.get("expiry_time")
-
-        if expiry_time and expire_caches:
-            logger.warning(
-                "You have set two incompatible options, expiry_time and expire_caches. Please only use the "
-                "expire_caches and cache_entry_ttl options and delete the expiry_time option as it is "
-                "deprecated."
-            )
-        if expiry_time:
-            logger.warning(
-                "Expiry_time is a deprecated option, please use the expire_caches and cache_entry_ttl options "
-                "instead."
-            )
-            self.expiry_time_msec = self.parse_duration(expiry_time)
 
         self.cache_autotuning = cache_config.get("cache_autotuning")
         if self.cache_autotuning:

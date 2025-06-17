@@ -159,14 +159,6 @@ ROOM_COMPLEXITY_TOO_GREAT = (
     "to join this room."
 )
 
-METRICS_PORT_WARNING = """\
-The metrics_port configuration option is deprecated in Relapse 0.31 in favour of
-a listener. Please see
-https://clokep.github.io/relapse/latest/metrics-howto.html
-on how to configure the new listener.
---------------------------------------------------------------------------------"""
-
-
 KNOWN_LISTENER_TYPES = {
     "http",
     "metrics",
@@ -666,21 +658,6 @@ class ServerConfig(Config):
             priv_key=manhole_priv_key,
             pub_key=manhole_pub_key,
         )
-
-        metrics_port = config.get("metrics_port")
-        if metrics_port:
-            logger.warning(METRICS_PORT_WARNING)
-
-            self.listeners.append(
-                TCPListenerConfig(
-                    port=metrics_port,
-                    bind_addresses=[config.get("metrics_bind_host", "127.0.0.1")],
-                    type="http",
-                    http_options=HttpListenerConfig(
-                        resources=[HttpResourceConfig(names=["metrics"])]
-                    ),
-                )
-            )
 
         self.cleanup_extremities_with_dummy_events = config.get(
             "cleanup_extremities_with_dummy_events", True
