@@ -305,7 +305,6 @@ sub start
         # We remove the ip range blacklist which by default blocks federation
         # connections to local homeservers, of which sytest uses extensively
         ip_range_blacklist => [],
-        federation_ip_range_blacklist => [],
 
         # If we're using workers we need to disable these things in the main
         # process

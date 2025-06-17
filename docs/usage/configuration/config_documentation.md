@@ -396,8 +396,6 @@ push servers, and for checking key validity for third-party invite events.
 (0.0.0.0 and :: are always blacklisted, whether or not they are explicitly
 listed here, since they correspond to unroutable addresses.)
 
-This option replaces `federation_ip_range_blacklist` in Relapse v1.25.0.
-
 Note: The value is ignored when an HTTP proxy is in use.
 
 Example configuration:

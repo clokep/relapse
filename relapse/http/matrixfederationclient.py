@@ -408,8 +408,8 @@ class MatrixFederationHttpClient:
                 self.reactor,
                 tls_client_options_factory,
                 user_agent.encode("ascii"),
-                hs.config.server.federation_ip_range_allowlist,
-                hs.config.server.federation_ip_range_blocklist,
+                hs.config.server.ip_range_allowlist,
+                hs.config.server.ip_range_blocklist,
             )
         else:
             proxy_authorization_secret = hs.config.worker.worker_replication_secret
@@ -435,7 +435,7 @@ class MatrixFederationHttpClient:
         # blocking via IP literals in server names
         self.agent: IAgent = BlocklistingAgentWrapper(
             federation_agent,
-            ip_blocklist=hs.config.server.federation_ip_range_blocklist,
+            ip_blocklist=hs.config.server.ip_range_blocklist,
         )
 
         self.clock = hs.get_clock()
