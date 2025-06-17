@@ -17,10 +17,9 @@ from unittest.mock import Mock
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import relapse.rest.admin
-import relapse.storage
 from relapse.api.constants import EventTypes, JoinRules
 from relapse.api.room_versions import RoomVersions
+from relapse.rest import admin
 from relapse.rest.client import knock, login, room
 from relapse.server import HomeServer
 from relapse.types import UserID
@@ -31,7 +30,7 @@ from tests import unittest
 
 class ExfiltrateData(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         login.register_servlets,
         room.register_servlets,
         knock.register_servlets,

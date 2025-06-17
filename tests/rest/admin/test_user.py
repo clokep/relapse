@@ -20,16 +20,16 @@ from binascii import unhexlify
 from typing import Optional
 from unittest.mock import AsyncMock, Mock, patch
 
-from parameterized import parameterized, parameterized_class
+from parameterized import parameterized
 
 from twisted.test.proto_helpers import MemoryReactor
 from twisted.web.resource import Resource
 
-import relapse.rest.admin
 from relapse.api.constants import ApprovalNoticeMedium, LoginType, UserTypes
 from relapse.api.errors import Codes, HttpResponseException, ResourceLimitError
 from relapse.api.room_versions import RoomVersions
 from relapse.media.filepath import MediaFilePaths
+from relapse.rest import admin
 from relapse.rest.client import (
     devices,
     login,
@@ -52,7 +52,7 @@ from tests.unittest import override_config
 
 class UserRegisterTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         profile.register_servlets,
     ]
 
@@ -455,7 +455,7 @@ class UserRegisterTestCase(unittest.HomeserverTestCase):
 
 class UsersListTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         login.register_servlets,
         room.register_servlets,
     ]
@@ -1242,7 +1242,7 @@ class UserDevicesTestCase(unittest.HomeserverTestCase):
     """
 
     servlets = [
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         login.register_servlets,
         sync.register_servlets,
     ]
@@ -1328,7 +1328,7 @@ class UserDevicesTestCase(unittest.HomeserverTestCase):
 
 class DeactivateAccountTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         login.register_servlets,
     ]
 
@@ -1605,7 +1605,7 @@ class DeactivateAccountTestCase(unittest.HomeserverTestCase):
 
 class UserRestTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         login.register_servlets,
         sync.register_servlets,
         register.register_servlets,
@@ -3128,7 +3128,7 @@ class UserRestTestCase(unittest.HomeserverTestCase):
 
 class UserMembershipRestTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         login.register_servlets,
         room.register_servlets,
     ]
@@ -3287,7 +3287,7 @@ class UserMembershipRestTestCase(unittest.HomeserverTestCase):
 
 class PushersRestTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         login.register_servlets,
     ]
 
@@ -3415,7 +3415,7 @@ class PushersRestTestCase(unittest.HomeserverTestCase):
 
 class UserMediaRestTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         login.register_servlets,
     ]
 
@@ -3988,7 +3988,7 @@ class UserTokenRestTestCase(unittest.HomeserverTestCase):
     """Test for /_relapse/admin/v1/users/<user>/login"""
 
     servlets = [
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         login.register_servlets,
         sync.register_servlets,
         room.register_servlets,
@@ -4194,95 +4194,9 @@ class UserTokenRestTestCase(unittest.HomeserverTestCase):
         self.helper.join(room_id, user=self.other_user, tok=puppet_token)
 
 
-@parameterized_class(
-    ("url_prefix",),
-    [
-        ("/_relapse/admin/v1/whois/%s",),
-        ("/_matrix/client/r0/admin/whois/%s",),
-    ],
-)
-class WhoisRestTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        relapse.rest.admin.register_servlets,
-        login.register_servlets,
-    ]
-
-    def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
-        self.admin_user = self.register_user("admin", "pass", admin=True)
-        self.admin_user_tok = self.login("admin", "pass")
-
-        self.other_user = self.register_user("user", "pass")
-        self.url = self.url_prefix % self.other_user  # type: ignore[attr-defined]
-
-    def test_no_auth(self) -> None:
-        """
-        Try to get information of an user without authentication.
-        """
-        channel = self.make_request("GET", self.url, b"{}")
-        self.assertEqual(401, channel.code, msg=channel.json_body)
-        self.assertEqual(Codes.MISSING_TOKEN, channel.json_body["errcode"])
-
-    def test_requester_is_not_admin(self) -> None:
-        """
-        If the user is not a server admin, an error is returned.
-        """
-        self.register_user("user2", "pass")
-        other_user2_token = self.login("user2", "pass")
-
-        channel = self.make_request(
-            "GET",
-            self.url,
-            access_token=other_user2_token,
-        )
-        self.assertEqual(403, channel.code, msg=channel.json_body)
-        self.assertEqual(Codes.FORBIDDEN, channel.json_body["errcode"])
-
-    def test_user_is_not_local(self) -> None:
-        """
-        Tests that a lookup for a user that is not a local returns a 400
-        """
-        url = self.url_prefix % "@unknown_person:unknown_domain"  # type: ignore[attr-defined]
-
-        channel = self.make_request(
-            "GET",
-            url,
-            access_token=self.admin_user_tok,
-        )
-        self.assertEqual(400, channel.code, msg=channel.json_body)
-        self.assertEqual("Can only whois a local user", channel.json_body["error"])
-
-    def test_get_whois_admin(self) -> None:
-        """
-        The lookup should succeed for an admin.
-        """
-        channel = self.make_request(
-            "GET",
-            self.url,
-            access_token=self.admin_user_tok,
-        )
-        self.assertEqual(200, channel.code, msg=channel.json_body)
-        self.assertEqual(self.other_user, channel.json_body["user_id"])
-        self.assertIn("devices", channel.json_body)
-
-    def test_get_whois_user(self) -> None:
-        """
-        The lookup should succeed for a normal user looking up their own information.
-        """
-        other_user_token = self.login("user", "pass")
-
-        channel = self.make_request(
-            "GET",
-            self.url,
-            access_token=other_user_token,
-        )
-        self.assertEqual(200, channel.code, msg=channel.json_body)
-        self.assertEqual(self.other_user, channel.json_body["user_id"])
-        self.assertIn("devices", channel.json_body)
-
-
 class ShadowBanRestTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         login.register_servlets,
     ]
 
@@ -4362,7 +4276,7 @@ class ShadowBanRestTestCase(unittest.HomeserverTestCase):
 
 class RateLimitTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         login.register_servlets,
     ]
 
@@ -4587,7 +4501,7 @@ class RateLimitTestCase(unittest.HomeserverTestCase):
 
 class AccountDataTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         login.register_servlets,
     ]
 
@@ -4676,7 +4590,7 @@ class AccountDataTestCase(unittest.HomeserverTestCase):
 
 class UsersByExternalIdTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         login.register_servlets,
     ]
 
@@ -4762,7 +4676,7 @@ class UsersByExternalIdTestCase(unittest.HomeserverTestCase):
 
 class UsersByThreePidTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         login.register_servlets,
     ]
 
@@ -4856,7 +4770,7 @@ class UsersByThreePidTestCase(unittest.HomeserverTestCase):
 
 class AllowCrossSigningReplacementTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         login.register_servlets,
     ]
 

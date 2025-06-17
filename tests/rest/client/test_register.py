@@ -19,7 +19,6 @@ from typing import Any
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import relapse.rest.admin
 from relapse.api.constants import (
     APP_SERVICE_REGISTRATION_TYPE,
     ApprovalNoticeMedium,
@@ -27,6 +26,7 @@ from relapse.api.constants import (
 )
 from relapse.api.errors import Codes
 from relapse.appservice import ApplicationService
+from relapse.rest import admin
 from relapse.rest.client import account, account_validity, login, logout, register, sync
 from relapse.server import HomeServer
 from relapse.storage._base import db_to_json
@@ -41,7 +41,7 @@ class RegisterRestServletTestCase(unittest.HomeserverTestCase):
     servlets = [
         login.register_servlets,
         register.register_servlets,
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
     ]
     url = b"/_matrix/client/r0/register"
 
@@ -796,7 +796,7 @@ class RegisterRestServletTestCase(unittest.HomeserverTestCase):
 class AccountValidityTestCase(unittest.HomeserverTestCase):
     servlets = [
         register.register_servlets,
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         login.register_servlets,
         sync.register_servlets,
         logout.register_servlets,
@@ -911,7 +911,7 @@ class AccountValidityTestCase(unittest.HomeserverTestCase):
 class AccountValidityRenewalByEmailTestCase(unittest.HomeserverTestCase):
     servlets = [
         register.register_servlets,
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         login.register_servlets,
         sync.register_servlets,
         account_validity.register_servlets,
@@ -1127,7 +1127,7 @@ class AccountValidityRenewalByEmailTestCase(unittest.HomeserverTestCase):
 
 
 class AccountValidityBackgroundJobTestCase(unittest.HomeserverTestCase):
-    servlets = [relapse.rest.admin.register_servlets_for_client_rest_resource]
+    servlets = [admin.register_servlets]
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         self.validity_period = 10

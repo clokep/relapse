@@ -43,7 +43,7 @@ class MediaRepoShardTestCase(BaseMultiWorkerStreamTestCase):
     """Checks running multiple media repos work correctly."""
 
     servlets = [
-        admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         login.register_servlets,
     ]
 

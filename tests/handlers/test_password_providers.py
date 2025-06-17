@@ -20,10 +20,10 @@ from unittest.mock import AsyncMock, Mock
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import relapse
 from relapse.api.constants import LoginType
 from relapse.api.errors import Codes
 from relapse.module_api import ModuleApi
+from relapse.rest import admin
 from relapse.rest.client import account, devices, login, logout, register
 from relapse.server import HomeServer
 from relapse.types import JsonDict, UserID
@@ -107,7 +107,7 @@ def providers_config(*providers: type[Any]) -> dict:
 
 class PasswordAuthProviderTests(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         login.register_servlets,
         devices.register_servlets,
         logout.register_servlets,

@@ -20,8 +20,8 @@ from parameterized import parameterized
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import relapse.rest.admin
 from relapse.http.site import XForwardedForRequest
+from relapse.rest import admin
 from relapse.rest.client import login
 from relapse.server import HomeServer
 from relapse.storage.databases.main.client_ips import (
@@ -712,7 +712,7 @@ class ClientIpStoreTestCase(unittest.HomeserverTestCase):
 
 class ClientIpAuthTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         login.register_servlets,
     ]
 

@@ -17,9 +17,9 @@ from parameterized import parameterized
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import relapse.rest.admin
 from relapse.api.errors import Codes
-from relapse.handlers.device import DeviceHandler
+from relapse.handlers.device import MAX_DEVICE_DISPLAY_NAME_LEN, DeviceHandler
+from relapse.rest import admin
 from relapse.rest.client import login
 from relapse.server import HomeServer
 from relapse.util import Clock
@@ -29,7 +29,7 @@ from tests import unittest
 
 class DeviceRestTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         login.register_servlets,
     ]
 
@@ -168,10 +168,7 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
         )
 
         # Request to update a device display name with a new value that is longer than allowed.
-        update = {
-            "display_name": "a"
-            * (relapse.handlers.device.MAX_DEVICE_DISPLAY_NAME_LEN + 1)
-        }
+        update = {"display_name": "a" * (MAX_DEVICE_DISPLAY_NAME_LEN + 1)}
 
         channel = self.make_request(
             "PUT",
@@ -291,7 +288,7 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
 
 class DevicesRestTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         login.register_servlets,
     ]
 
@@ -414,7 +411,7 @@ class DevicesRestTestCase(unittest.HomeserverTestCase):
 
 class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         login.register_servlets,
     ]
 

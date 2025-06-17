@@ -16,8 +16,8 @@ from unittest.mock import Mock, patch
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import relapse.rest.admin
 from relapse.api.constants import EduTypes, EventTypes
+from relapse.rest import admin
 from relapse.rest.client import (
     directory,
     login,
@@ -52,7 +52,7 @@ class _ShadowBannedBase(unittest.HomeserverTestCase):
 @patch("random.randint", new=lambda a, b: 0)
 class RoomTestCase(_ShadowBannedBase):
     servlets = [
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         directory.register_servlets,
         login.register_servlets,
         room.register_servlets,
@@ -243,7 +243,7 @@ class RoomTestCase(_ShadowBannedBase):
 @patch("random.randint", new=lambda a, b: 0)
 class ProfileTestCase(_ShadowBannedBase):
     servlets = [
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         login.register_servlets,
         profile.register_servlets,
         room.register_servlets,

@@ -21,7 +21,6 @@ from unittest.mock import Mock
 from twisted.internet.interfaces import IReactorTCP
 from twisted.test.proto_helpers import MemoryReactor
 
-import relapse.rest.admin
 from relapse.api.constants import LoginType, Membership
 from relapse.api.errors import Codes, HttpResponseException
 from relapse.appservice import ApplicationService
@@ -41,7 +40,7 @@ from tests.unittest import override_config
 class PasswordResetTestCase(unittest.HomeserverTestCase):
     servlets = [
         account.register_servlets,
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         register.register_servlets,
         login.register_servlets,
     ]
@@ -423,7 +422,7 @@ class PasswordResetTestCase(unittest.HomeserverTestCase):
 
 class DeactivateTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         login.register_servlets,
         account.register_servlets,
         room.register_servlets,
@@ -663,7 +662,7 @@ class DeactivateTestCase(unittest.HomeserverTestCase):
 
 class WhoamiTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         login.register_servlets,
         account.register_servlets,
         register.register_servlets,
@@ -739,7 +738,7 @@ class ThreepidEmailRestTestCase(unittest.HomeserverTestCase):
     servlets = [
         account.register_servlets,
         login.register_servlets,
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
     ]
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:

@@ -17,8 +17,8 @@ from parameterized import parameterized
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import relapse.rest.admin
 from relapse.api.errors import Codes
+from relapse.rest import admin
 from relapse.rest.client import login, room
 from relapse.server import HomeServer
 from relapse.types import JsonDict
@@ -29,7 +29,7 @@ from tests import unittest
 
 class FederationTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         login.register_servlets,
     ]
 
@@ -530,7 +530,7 @@ class FederationTestCase(unittest.HomeserverTestCase):
 
 class DestinationMembershipTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         login.register_servlets,
         room.register_servlets,
     ]

@@ -29,7 +29,7 @@ from tests.unittest import override_config
 
 class DirectoryTestCase(unittest.HomeserverTestCase):
     servlets = [
-        admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         directory.register_servlets,
         login.register_servlets,
         room.register_servlets,

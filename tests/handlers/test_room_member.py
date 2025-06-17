@@ -2,7 +2,6 @@ from unittest.mock import AsyncMock, patch
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import relapse.rest.admin
 import relapse.rest.client.login
 import relapse.rest.client.room
 from relapse.api.constants import EventTypes, Membership
@@ -10,6 +9,7 @@ from relapse.api.errors import LimitExceededError, RelapseError
 from relapse.crypto.event_signing import add_hashes_and_signatures
 from relapse.events import FrozenEventV3
 from relapse.federation.federation_client import SendJoinResult
+from relapse.rest import admin
 from relapse.server import HomeServer
 from relapse.types import UserID, create_requester
 from relapse.util import Clock
@@ -25,7 +25,7 @@ from tests.unittest import (
 
 class TestJoinsLimitedByPerRoomRateLimiter(FederatingHomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         relapse.rest.client.login.register_servlets,
         relapse.rest.client.room.register_servlets,
     ]
@@ -222,7 +222,7 @@ class TestJoinsLimitedByPerRoomRateLimiter(FederatingHomeserverTestCase):
 
 class TestReplicatedJoinsLimitedByPerRoomRateLimiter(BaseMultiWorkerStreamTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         relapse.rest.client.login.register_servlets,
         relapse.rest.client.room.register_servlets,
     ]
@@ -295,7 +295,7 @@ class TestReplicatedJoinsLimitedByPerRoomRateLimiter(BaseMultiWorkerStreamTestCa
 
 class RoomMemberMasterHandlerTestCase(HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         relapse.rest.client.login.register_servlets,
         relapse.rest.client.room.register_servlets,
     ]

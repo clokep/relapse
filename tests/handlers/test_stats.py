@@ -32,7 +32,7 @@ EXPT_NUM_STATE_EVTS_IN_FRESH_PRIVATE_ROOM = 6
 
 class StatsRoomTests(unittest.HomeserverTestCase):
     servlets = [
-        admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         room.register_servlets,
         login.register_servlets,
     ]

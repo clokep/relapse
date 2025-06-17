@@ -17,8 +17,8 @@ from typing import Optional
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import relapse.rest.admin
 from relapse.api.errors import Codes
+from relapse.rest import admin
 from relapse.rest.client import login
 from relapse.server import HomeServer
 from relapse.util import Clock
@@ -28,7 +28,7 @@ from tests import unittest
 
 class ManageRegistrationTokensTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         login.register_servlets,
     ]
 
