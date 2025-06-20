@@ -101,25 +101,6 @@ class SAML2Config(Config):
         # Ensure a config is present
         ump_dict["config"] = ump_dict.get("config") or {}
 
-        if ump_dict["module"] == DEFAULT_USER_MAPPING_PROVIDER:
-            # Load deprecated options for use by the default module
-            old_mxid_source_attribute = saml2_config.get("mxid_source_attribute")
-            if old_mxid_source_attribute:
-                logger.warning(
-                    "The config option saml2_config.mxid_source_attribute is deprecated. "
-                    "Please use saml2_config.user_mapping_provider.config"
-                    ".mxid_source_attribute instead."
-                )
-                ump_dict["config"]["mxid_source_attribute"] = old_mxid_source_attribute
-
-            old_mxid_mapping = saml2_config.get("mxid_mapping")
-            if old_mxid_mapping:
-                logger.warning(
-                    "The config option saml2_config.mxid_mapping is deprecated. Please "
-                    "use saml2_config.user_mapping_provider.config.mxid_mapping instead."
-                )
-                ump_dict["config"]["mxid_mapping"] = old_mxid_mapping
-
         # Retrieve an instance of the module's class
         # Pass the config dictionary to the module for processing
         (
