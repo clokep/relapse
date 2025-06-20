@@ -3883,7 +3883,6 @@ address ranges (see the example below).</p>
 push servers, and for checking key validity for third-party invite events.</p>
 <p>(0.0.0.0 and :: are always blacklisted, whether or not they are explicitly
 listed here, since they correspond to unroutable addresses.)</p>
-<p>This option replaces <code>federation_ip_range_blacklist</code> in Relapse v1.25.0.</p>
 <p>Note: The value is ignored when an HTTP proxy is in use.</p>
 <p>Example configuration:</p>
 <pre><code class="language-yaml">ip_range_blacklist:
@@ -6178,13 +6177,11 @@ dictionary to the module's <code>parse_config</code> method. The built-in provid
 options:
 <ul>
 <li><code>mxid_source_attribute</code>: The SAML attribute (after mapping via the attribute maps) to use
-to derive the Matrix ID from. It is 'uid' by default. Note: This used to be configured by the
-<code>saml2_config.mxid_source_attribute option</code>. If that is still defined, its value will be used instead.</li>
+to derive the Matrix ID from. It is 'uid' by default.</li>
 <li><code>mxid_mapping</code>: The mapping system to use for mapping the saml attribute onto a
 matrix ID. Options include: <code>hexencode</code> (which maps unpermitted characters to '=xx')
 and <code>dotreplace</code> (which replaces unpermitted characters with '.').
-The default is <code>hexencode</code>. Note: This used to be configured by the
-<code>saml2_config.mxid_mapping option</code>. If that is still defined, its value will be used instead.</li>
+The default is <code>hexencode</code>.</li>
 </ul>
 </li>
 </ul>
