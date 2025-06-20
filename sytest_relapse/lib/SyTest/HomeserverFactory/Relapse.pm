@@ -28,7 +28,6 @@ sub _init
    $self->{args} = {
       relapse_dir     => "../relapse",
       python          => "python",
-      asyncio_reactor => 0,
       coverage        => 0,
       print_output    => 0,
       filter_output   => undef,
@@ -52,7 +51,6 @@ sub get_options
       'd|relapse-directory=s' => \$self->{args}{relapse_dir},
       'python=s' => \$self->{args}{python},
       'coverage+' => \$self->{args}{coverage},
-      'asyncio-reactor+' => \$self->{args}{asyncio_reactor},
 
       'S|server-log+' => \$self->{args}{print_output},
       'server-grep=s' => \$self->{args}{filter_output},
@@ -78,8 +76,6 @@ sub print_usage
        --python PATH            - path to the 'python' binary
 
        --coverage               - generate code coverage stats for relapse
-
-       --asyncio-reactor        - run Relapse with the asyncio reactor enabled
 
    -ENAME, -ENAME=VALUE         - pass extra argument NAME or NAME=VALUE to the
                                   homeserver.

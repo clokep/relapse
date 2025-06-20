@@ -29,7 +29,7 @@ sub _init
    my ( $args ) = @_;
 
    $self->{$_} = delete $args->{$_} for qw(
-      relapse_dir extra_args python coverage asyncio_reactor
+      relapse_dir extra_args python coverage
    );
 
    $self->{paths} = {};
@@ -434,7 +434,6 @@ sub start
       "PATH" => $ENV{PATH},
       "PYTHONDONTWRITEBYTECODE" => "Don't write .pyc files",
       "RELAPSE_TEST_PATCH_LOG_CONTEXTS" => 1,
-      "RELAPSE_ASYNC_IO_REACTOR" => $self->{asyncio_reactor},
    };
 
    my $loop = $self->loop;
