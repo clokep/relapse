@@ -14,17 +14,10 @@
 # limitations under the License.
 
 import argparse
-import logging
-from typing import TYPE_CHECKING, Any, Optional, Union
+from typing import Any, Optional, Union
 
 import attr
-
-from relapse._pydantic_compat import HAS_PYDANTIC_V2
-
-if TYPE_CHECKING or HAS_PYDANTIC_V2:
-    from pydantic.v1 import BaseModel, Extra, StrictBool, StrictInt, StrictStr
-else:
-    from pydantic import BaseModel, Extra, StrictBool, StrictInt, StrictStr
+from pydantic import BaseModel, ConfigDict
 
 from relapse.config._base import (
     Config,
@@ -40,11 +33,6 @@ from relapse.config.server import (
 )
 from relapse.types import JsonDict
 
-_DEPRECATED_WORKER_DUTY_OPTION_USED = """
-The '%s' configuration option is deprecated and will be removed in a future
-Relapse version. Please use ``%s: name_of_worker`` instead.
-"""
-
 _MISSING_MAIN_PROCESS_INSTANCE_MAP_DATA = """
 Missing data for a worker to connect to main process. Please include '%s' in the
 `instance_map` declared in your shared yaml configuration as defined in configuration
@@ -52,19 +40,11 @@ documentation here:
 `https://clokep.github.io/relapse/latest/usage/configuration/config_documentation.html#instance_map`
 """
 
-WORKER_REPLICATION_SETTING_DEPRECATED_MESSAGE = """
-'%s' is no longer a supported worker setting, please place '%s' onto your shared
-configuration under `main` inside the `instance_map`. See workers documentation here:
-`https://clokep.github.io/relapse/latest/workers.html#worker-configuration`
-"""
-
 # This allows for a handy knob when it's time to change from 'master' to
 # something with less 'history'
 MAIN_PROCESS_INSTANCE_NAME = "master"
 # Use this to adjust what the main process is known as in the yaml instance_map
 MAIN_PROCESS_INSTANCE_MAP_NAME = "main"
-
-logger = logging.getLogger(__name__)
 
 
 def _instance_to_list_converter(obj: Union[str, list[str]]) -> list[str]:
@@ -80,8 +60,9 @@ def _instance_to_list_converter(obj: Union[str, list[str]]) -> list[str]:
 class ConfigModel(BaseModel):
     """A custom version of Pydantic's BaseModel which
 
-     - ignores unknown fields and
-     - does not allow fields to be overwritten after construction,
+     - ignores unknown fields
+     - does not allow fields to be overwritten after construction
+     - uses strict conversion of types
 
     but otherwise uses Pydantic's default behaviour.
 
@@ -93,19 +74,15 @@ class ConfigModel(BaseModel):
     https://pydantic-docs.helpmanual.io/usage/model_config/#change-behaviour-globally
     """
 
-    class Config:
-        # By default, ignore fields that we don't recognise.
-        extra = Extra.ignore
-        # By default, don't allow fields to be reassigned after parsing.
-        allow_mutation = False
+    model_config = ConfigDict(extra="ignore", frozen=True, strict=True)
 
 
 class InstanceTcpLocationConfig(ConfigModel):
     """The host and port to talk to an instance via HTTP replication."""
 
-    host: StrictStr
-    port: StrictInt
-    tls: StrictBool = False
+    host: str
+    port: int
+    tls: bool = False
 
     def scheme(self) -> str:
         """Hardcode a retrievable scheme based on self.tls"""
@@ -119,7 +96,7 @@ class InstanceTcpLocationConfig(ConfigModel):
 class InstanceUnixLocationConfig(ConfigModel):
     """The socket file to talk to an instance via HTTP replication."""
 
-    path: StrictStr
+    path: str
 
     def scheme(self) -> str:
         """Hardcode a retrievable scheme"""
@@ -234,14 +211,6 @@ class WorkerConfig(Config):
         self.worker_name = config.get("worker_name", self.worker_app)
         self.instance_name = self.worker_name or MAIN_PROCESS_INSTANCE_NAME
 
-        # FIXME: Remove this check after a suitable amount of time.
-        self.worker_main_http_uri = config.get("worker_main_http_uri", None)
-        if self.worker_main_http_uri is not None:
-            logger.warning(
-                "The config option worker_main_http_uri is unused since Relapse 1.73. "
-                "It can be safely removed from your configuration."
-            )
-
         # This option is really only here to support `--manhole` command line
         # argument.
         manhole = config.get("worker_manhole")
@@ -255,10 +224,7 @@ class WorkerConfig(Config):
             )
 
         federation_sender_instances = self._worker_names_performing_this_duty(
-            config,
-            "send_federation",
-            "relapse.app.federation_sender",
-            "federation_sender_instances",
+            config, "federation_sender_instances"
         )
         self.send_federation = self.instance_name in federation_sender_instances
         self.federation_shard_config = ShardedWorkerHandlingConfig(
@@ -271,33 +237,6 @@ class WorkerConfig(Config):
         instance_map: dict[str, Any] = config.get("instance_map", {})
 
         if self.instance_name is not MAIN_PROCESS_INSTANCE_NAME:
-            # TODO: The next 3 condition blocks can be deleted after some time has
-            #  passed and we're ready to stop checking for these settings.
-            # The host used to connect to the main relapse
-            main_host = config.get("worker_replication_host", None)
-            if main_host:
-                raise ConfigError(
-                    WORKER_REPLICATION_SETTING_DEPRECATED_MESSAGE
-                    % ("worker_replication_host", main_host)
-                )
-
-            # The port on the main relapse for HTTP replication endpoint
-            main_port = config.get("worker_replication_http_port")
-            if main_port:
-                raise ConfigError(
-                    WORKER_REPLICATION_SETTING_DEPRECATED_MESSAGE
-                    % ("worker_replication_http_port", main_port)
-                )
-
-            # The tls mode on the main relapse for HTTP replication endpoint.
-            # For backward compatibility this defaults to False.
-            main_tls = config.get("worker_replication_http_tls", False)
-            if main_tls:
-                raise ConfigError(
-                    WORKER_REPLICATION_SETTING_DEPRECATED_MESSAGE
-                    % ("worker_replication_http_tls", main_tls)
-                )
-
             # For now, accept 'main' in the instance_map, but the replication system
             # expects 'master', force that into being until it's changed later.
             if MAIN_PROCESS_INSTANCE_MAP_NAME in instance_map:
@@ -378,10 +317,7 @@ class WorkerConfig(Config):
 
         # Handle sharded push
         pusher_instances = self._worker_names_performing_this_duty(
-            config,
-            "start_pushers",
-            "relapse.app.pusher",
-            "pusher_instances",
+            config, "pusher_instances"
         )
         self.start_pushers = self.instance_name in pusher_instances
         self.pusher_shard_config = ShardedWorkerHandlingConfig(pusher_instances)
@@ -394,23 +330,16 @@ class WorkerConfig(Config):
         #
         # No effort is made to ensure only a single instance of these tasks is
         # running.
-        background_tasks_instance = config.get("run_background_tasks_on") or "master"
-        self.run_background_tasks = (
-            self.worker_name is None and background_tasks_instance == "master"
-        ) or self.worker_name == background_tasks_instance
+        self.run_background_tasks = self._should_this_worker_perform_duty(
+            config, "run_background_tasks_on"
+        )
 
         self.should_notify_appservices = self._should_this_worker_perform_duty(
-            config,
-            legacy_master_option_name="notify_appservices",
-            legacy_worker_app_name="relapse.app.appservice",
-            new_option_name="notify_appservices_from_worker",
+            config, "notify_appservices_from_worker"
         )
 
         self.should_update_user_directory = self._should_this_worker_perform_duty(
-            config,
-            legacy_master_option_name="update_user_directory",
-            legacy_worker_app_name="relapse.app.user_dir",
-            new_option_name="update_user_directory_from_worker",
+            config, "update_user_directory_from_worker"
         )
 
         outbound_federation_restricted_to = config.get(
@@ -436,153 +365,44 @@ class WorkerConfig(Config):
                 )
 
     def _should_this_worker_perform_duty(
-        self,
-        config: dict[str, Any],
-        legacy_master_option_name: str,
-        legacy_worker_app_name: str,
-        new_option_name: str,
+        self, config: dict[str, Any], option_name: str
     ) -> bool:
         """
         Figures out whether this worker should perform a certain duty.
 
-        This function is temporary and is only to deal with the complexity
-        of allowing old, transitional and new configurations all at once.
-
-        Contradictions between the legacy and new part of a transitional configuration
-        will lead to a ConfigError.
-
         Parameters:
             config: The config dictionary
-            legacy_master_option_name: The name of a legacy option, whose value is boolean,
-                specifying whether it's the master that should handle a certain duty.
-                e.g. "notify_appservices"
-            legacy_worker_app_name: The name of a legacy Relapse worker application
-                that would traditionally perform this duty.
-                e.g. "relapse.app.appservice"
-            new_option_name: The name of the new option, whose value is the name of a
+            option_name: The name of the new option, whose value is the name of a
                 designated worker to perform the duty.
                 e.g. "notify_appservices_from_worker"
         """
 
-        # None means 'unspecified'; True means 'run here' and False means
-        # 'don't run here'.
-        new_option_should_run_here = None
-        if new_option_name in config:
-            designated_worker = config[new_option_name] or "master"
-            new_option_should_run_here = (
-                designated_worker == "master" and self.worker_name is None
-            ) or designated_worker == self.worker_name
-
-        legacy_option_should_run_here = None
-        if legacy_master_option_name in config:
-            run_on_master = bool(config[legacy_master_option_name])
-
-            legacy_option_should_run_here = (
-                self.worker_name is None and run_on_master
-            ) or (self.worker_app == legacy_worker_app_name and not run_on_master)
-
-            # Suggest using the new option instead.
-            logger.warning(
-                _DEPRECATED_WORKER_DUTY_OPTION_USED,
-                legacy_master_option_name,
-                new_option_name,
-            )
-
-        if self.worker_app == legacy_worker_app_name and config.get(
-            legacy_master_option_name, True
-        ):
-            # As an extra bit of complication, we need to check that the
-            # specialised worker is only used if the legacy config says the
-            # master isn't performing the duties.
-            raise ConfigError(
-                f"Cannot use deprecated worker app type '{legacy_worker_app_name}' whilst deprecated option '{legacy_master_option_name}' is not set to false.\n"
-                f"Consider setting `worker_app: relapse.app.generic_worker` and using the '{new_option_name}' option instead.\n"
-                f"The '{new_option_name}' option replaces '{legacy_master_option_name}'."
-            )
-
-        if new_option_should_run_here is None and legacy_option_should_run_here is None:
-            # Neither option specified; the fallback behaviour is to run on the main process
-            return self.worker_name is None
-
-        if (
-            new_option_should_run_here is not None
-            and legacy_option_should_run_here is not None
-        ):
-            # Both options specified; ensure they match!
-            if new_option_should_run_here != legacy_option_should_run_here:
-                update_worker_type = (
-                    " and set worker_app: relapse.app.generic_worker"
-                    if self.worker_app == legacy_worker_app_name
-                    else ""
-                )
-                # If the values conflict, we suggest the admin removes the legacy option
-                # for simplicity.
-                raise ConfigError(
-                    f"Conflicting configuration options: {legacy_master_option_name} (legacy), {new_option_name} (new).\n"
-                    f"Suggestion: remove {legacy_master_option_name}{update_worker_type}.\n"
-                )
-
-        # We've already validated that these aren't conflicting; now just see if
-        # either is True.
-        # (By this point, these are either the same value or only one is not None.)
-        return bool(new_option_should_run_here or legacy_option_should_run_here)
+        # The fallback behaviour is to run on the main process
+        designated_worker = config.get(option_name, "master")
+        return (
+            designated_worker == "master" and self.worker_name is None
+        ) or designated_worker == self.worker_name
 
     def _worker_names_performing_this_duty(
         self,
         config: dict[str, Any],
-        legacy_option_name: str,
-        legacy_app_name: str,
-        modern_instance_list_name: str,
+        instance_list_name: str,
     ) -> list[str]:
         """
-        Retrieves the names of the workers handling a given duty, by either legacy
-        option or instance list.
-
-        There are two ways of configuring which instances handle a given duty, e.g.
-        for configuring pushers:
-
-        1. The old way where "start_pushers" is set to false and running a
-          `relapse.app.pusher'` worker app.
-        2. Specifying the workers sending federation in `pusher_instances`.
+        Retrieves the names of the workers handling a given duty from instance
+        list name, defaults to master.
 
         Args:
             config: settings read from yaml.
-            legacy_option_name: the old way of enabling options. e.g. 'start_pushers'
-            legacy_app_name: The historical app name. e.g. 'relapse.app.pusher'
-            modern_instance_list_name: the string name of the new instance_list. e.g.
-            'pusher_instances'
+            instance_list_name: the string name of the new instance_list. e.g.
+                'pusher_instances'
 
         Returns:
             A list of worker instance names handling the given duty.
         """
-
-        legacy_option = config.get(legacy_option_name, True)
-
-        worker_instances = config.get(modern_instance_list_name)
+        worker_instances = config.get(instance_list_name)
         if worker_instances is None:
-            # Default to an empty list, which means "another, unknown, worker is
-            # responsible for it".
-            worker_instances = []
-
-            # If no worker instances are set we check if the legacy option
-            # is set, which means use the main process.
-            if legacy_option:
-                worker_instances = ["master"]
-
-            if self.worker_app == legacy_app_name:
-                if legacy_option:
-                    # If we're using `legacy_app_name`, and not using
-                    # `modern_instance_list_name`, then we should have
-                    # explicitly set `legacy_option_name` to false.
-                    raise ConfigError(
-                        f"The '{legacy_option_name}' config option must be disabled in "
-                        "the main relapse process before they can be run in a separate "
-                        "worker.\n"
-                        f"Please add `{legacy_option_name}: false` to the main config.\n",
-                    )
-
-                worker_instances = [self.worker_name]
-
+            worker_instances = ["master"]
         return worker_instances
 
     def read_arguments(self, args: argparse.Namespace) -> None:

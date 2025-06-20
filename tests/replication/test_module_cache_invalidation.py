@@ -13,8 +13,8 @@
 # limitations under the License.
 import logging
 
-import relapse
 from relapse.module_api import cached
+from relapse.rest import admin
 
 from tests.replication._base import BaseMultiWorkerStreamTestCase
 
@@ -36,7 +36,7 @@ class TestCache:
 
 class ModuleCacheInvalidationTestCase(BaseMultiWorkerStreamTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
     ]
 
     def test_module_cache_full_invalidation(self) -> None:

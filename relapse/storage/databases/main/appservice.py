@@ -139,7 +139,7 @@ class ApplicationServiceWorkerStore(RoomMemberWorkerStore):
                 return service
         return None
 
-    def get_app_service_by_id(self, as_id: str) -> Optional[ApplicationService]:
+    def get_app_service_by_id(self, as_id: str) -> ApplicationService:
         """Get the application service with the given appservice ID.
 
         Args:
@@ -150,7 +150,7 @@ class ApplicationServiceWorkerStore(RoomMemberWorkerStore):
         for service in self.services_cache:
             if service.id == as_id:
                 return service
-        return None
+        raise KeyError(f"UNable to find application service with ID: {as_id}")
 
     @cached(iterable=True, cache_context=True)
     async def get_app_service_users_in_room(

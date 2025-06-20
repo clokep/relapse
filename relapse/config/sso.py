@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import logging
 from typing import Any, Optional
 
 import attr
@@ -19,16 +18,6 @@ import attr
 from relapse.types import JsonDict
 
 from ._base import Config
-
-logger = logging.getLogger(__name__)
-
-LEGACY_TEMPLATE_DIR_WARNING = """
-This server's configuration file is using the deprecated 'template_dir' setting in the
-'sso' section. Support for this setting has been deprecated and will be removed in a
-future version of Relapse. Server admins should instead use the new
-'custom_template_directory' setting documented here:
-https://clokep.github.io/relapse/latest/templates.html
----------------------------------------------------------------------------------------"""
 
 
 @attr.s(frozen=True, auto_attribs=True)
@@ -54,17 +43,7 @@ class SSOConfig(Config):
     def read_config(self, config: JsonDict, **kwargs: Any) -> None:
         sso_config: dict[str, Any] = config.get("sso") or {}
 
-        # The sso-specific template_dir
-        self.sso_template_dir = sso_config.get("template_dir")
-        if self.sso_template_dir is not None:
-            logger.warning(LEGACY_TEMPLATE_DIR_WARNING)
-
         # Read templates from disk
-        custom_template_directories = (
-            self.root.server.custom_template_directory,
-            self.sso_template_dir,
-        )
-
         (
             self.sso_login_idp_picker_template,
             self.sso_redirect_confirm_template,
@@ -83,7 +62,7 @@ class SSOConfig(Config):
                 "sso_auth_success.html",
                 "sso_auth_bad_user.html",
             ],
-            (td for td in custom_template_directories if td),
+            self.root.server.custom_template_directory,
         )
 
         # These templates have no placeholders, so render them here

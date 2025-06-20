@@ -30,7 +30,7 @@ class DeviceListsTestCase(unittest.HomeserverTestCase):
     """Tests regarding device list changes."""
 
     servlets = [
-        admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         login.register_servlets,
         register.register_servlets,
         account.register_servlets,
@@ -206,7 +206,7 @@ class DevicesTestCase(unittest.HomeserverTestCase):
 
 class DehydratedDeviceTestCase(unittest.HomeserverTestCase):
     servlets = [
-        admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         login.register_servlets,
         register.register_servlets,
         devices.register_servlets,

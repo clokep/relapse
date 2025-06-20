@@ -12,21 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import email.message
-import os
+import importlib.resources
 from collections.abc import Sequence
+from email.message import Message
 from http import HTTPStatus
 from typing import Any
 
 import attr
-import pkg_resources
 from parameterized import parameterized
 
 from twisted.internet.defer import Deferred
 from twisted.test.proto_helpers import MemoryReactor
 
-import relapse.rest.admin
 from relapse.api.errors import Codes, RelapseError
 from relapse.push.emailpusher import EmailPusher
+from relapse.rest import admin
 from relapse.rest.client import login, room
 from relapse.rest.relapse.client.unsubscribe import UnsubscribeResource
 from relapse.server import HomeServer
@@ -46,7 +46,7 @@ class _User:
 
 class EmailPusherTests(HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         room.register_servlets,
         login.register_servlets,
     ]
@@ -56,8 +56,10 @@ class EmailPusherTests(HomeserverTestCase):
         config = self.default_config()
         config["email"] = {
             "enable_notifs": True,
-            "template_dir": os.path.abspath(
-                pkg_resources.resource_filename("relapse", "res/templates")
+            "template_dir": str(
+                importlib.resources.files("relapse")
+                .joinpath("res")
+                .joinpath("templates")
             ),
             "expiry_template_html": "notice_expiry.html",
             "expiry_template_text": "notice_expiry.txt",
@@ -201,9 +203,19 @@ class EmailPusherTests(HomeserverTestCase):
 
         # Multipart: plain text, base 64 encoded; html, base 64 encoded
         multipart_msg = email.message_from_bytes(msg)
-        txt = multipart_msg.get_payload()[0].get_payload(decode=True).decode()
-        html = multipart_msg.get_payload()[1].get_payload(decode=True).decode()
+        parts = multipart_msg.get_payload()
+        assert isinstance(parts, list)
+
+        assert isinstance(parts[0], Message)
+        txt_payload = parts[0].get_payload(decode=True)
+        assert isinstance(txt_payload, bytes)
+        txt = txt_payload.decode()
         self.assertIn("/_relapse/client/unsubscribe", txt)
+
+        assert isinstance(parts[1], Message)
+        html_payload = parts[1].get_payload(decode=True)
+        assert isinstance(html_payload, bytes)
+        html = html_payload.decode()
         self.assertIn("/_relapse/client/unsubscribe", html)
 
         # The unsubscribe headers should exist.
@@ -343,12 +355,12 @@ class EmailPusherTests(HomeserverTestCase):
         # That email should contain the room's avatar
         msg: bytes = args[5]
         # Multipart: plain text, base 64 encoded; html, base 64 encoded
-        html = (
-            email.message_from_bytes(msg)
-            .get_payload()[1]
-            .get_payload(decode=True)
-            .decode()
-        )
+        parts = email.message_from_bytes(msg).get_payload()
+        assert isinstance(parts, list)
+        assert isinstance(parts[1], Message)
+        html_payload = parts[1].get_payload(decode=True)
+        assert isinstance(html_payload, bytes)
+        html = html_payload.decode()
         self.assertIn("_matrix/media/v1/thumbnail/DUMMY_MEDIA_ID", html)
 
     def test_empty_room(self) -> None:

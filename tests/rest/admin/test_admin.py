@@ -19,8 +19,8 @@ from parameterized import parameterized
 from twisted.test.proto_helpers import MemoryReactor
 from twisted.web.resource import Resource
 
-import relapse.rest.admin
 from relapse.http.server import JsonResource
+from relapse.rest import admin
 from relapse.rest.admin import VersionServlet
 from relapse.rest.client import login, room
 from relapse.server import HomeServer
@@ -49,8 +49,8 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
     """Test /quarantine_media admin API."""
 
     servlets = [
-        relapse.rest.admin.register_servlets,
-        relapse.rest.admin.register_servlets_for_media_repo,
+        admin.register_servlets,
+        admin.register_servlets_for_media_repo,
         login.register_servlets,
         room.register_servlets,
     ]
@@ -305,7 +305,7 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
 
 class PurgeHistoryTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         login.register_servlets,
         room.register_servlets,
     ]
@@ -353,7 +353,7 @@ class PurgeHistoryTestCase(unittest.HomeserverTestCase):
 
 class ExperimentalFeaturesTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         login.register_servlets,
     ]
 

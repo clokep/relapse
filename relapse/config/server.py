@@ -29,7 +29,6 @@ from twisted.conch.ssh.keys import Key
 
 from relapse.api.room_versions import KNOWN_ROOM_VERSIONS
 from relapse.types import JsonDict, StrSequence
-from relapse.util.module_loader import load_module
 from relapse.util.stringutils import parse_and_validate_server_name
 
 from ._base import Config, ConfigError
@@ -159,14 +158,6 @@ ROOM_COMPLEXITY_TOO_GREAT = (
     "Please speak to your server administrator, or upgrade your instance "
     "to join this room."
 )
-
-METRICS_PORT_WARNING = """\
-The metrics_port configuration option is deprecated in Relapse 0.31 in favour of
-a listener. Please see
-https://clokep.github.io/relapse/latest/metrics-howto.html
-on how to configure the new listener.
---------------------------------------------------------------------------------"""
-
 
 KNOWN_LISTENER_TYPES = {
     "http",
@@ -378,17 +369,6 @@ class ServerConfig(Config):
         # Whether to internally track presence, requires that presence is enabled,
         self.track_presence = self.presence_enabled and presence_enabled != "untracked"
 
-        # Custom presence router module
-        # This is the legacy way of configuring it (the config should now be put in the modules section)
-        self.presence_router_module_class = None
-        self.presence_router_config = None
-        presence_router_config = presence_config.get("presence_router")
-        if presence_router_config:
-            (
-                self.presence_router_module_class,
-                self.presence_router_config,
-            ) = load_module(presence_router_config, ("presence", "presence_router"))
-
         # whether to enable the media repository endpoints. This should be set
         # to false if the media repository is running as a separate endpoint;
         # doing so ensures that we will not run cache cleanup jobs on the
@@ -414,33 +394,17 @@ class ServerConfig(Config):
             "include_profile_data_on_invite", True
         )
 
-        if "restrict_public_rooms_to_local_users" in config and (
-            "allow_public_rooms_without_auth" in config
-            or "allow_public_rooms_over_federation" in config
-        ):
-            raise ConfigError(
-                "Can't use 'restrict_public_rooms_to_local_users' if"
-                " 'allow_public_rooms_without_auth' and/or"
-                " 'allow_public_rooms_over_federation' is set."
-            )
-
-        # Check if the legacy "restrict_public_rooms_to_local_users" flag is set. This
-        # flag is now obsolete but we need to check it for backward-compatibility.
-        if config.get("restrict_public_rooms_to_local_users", False):
-            self.allow_public_rooms_without_auth = False
-            self.allow_public_rooms_over_federation = False
-        else:
-            # If set to 'true', removes the need for authentication to access the server's
-            # public rooms directory through the client API, meaning that anyone can
-            # query the room directory. Defaults to 'false'.
-            self.allow_public_rooms_without_auth = config.get(
-                "allow_public_rooms_without_auth", False
-            )
-            # If set to 'true', allows any other homeserver to fetch the server's public
-            # rooms directory via federation. Defaults to 'false'.
-            self.allow_public_rooms_over_federation = config.get(
-                "allow_public_rooms_over_federation", False
-            )
+        # If set to 'true', removes the need for authentication to access the server's
+        # public rooms directory through the client API, meaning that anyone can
+        # query the room directory. Defaults to 'false'.
+        self.allow_public_rooms_without_auth = config.get(
+            "allow_public_rooms_without_auth", False
+        )
+        # If set to 'true', allows any other homeserver to fetch the server's public
+        # rooms directory via federation. Defaults to 'false'.
+        self.allow_public_rooms_over_federation = config.get(
+            "allow_public_rooms_over_federation", False
+        )
 
         default_room_version = config.get("default_room_version", DEFAULT_ROOM_VERSION)
 
@@ -532,22 +496,6 @@ class ServerConfig(Config):
         self.ip_range_allowlist = generate_ip_set(
             config.get("ip_range_whitelist", ()), config_path=("ip_range_whitelist",)
         )
-        # The federation_ip_range_blacklist is used for backwards-compatibility
-        # and only applies to federation and identity servers.
-        if "federation_ip_range_blacklist" in config:
-            # Always block 0.0.0.0, ::
-            self.federation_ip_range_blocklist = generate_ip_set(
-                config["federation_ip_range_blacklist"],
-                ["0.0.0.0", "::"],
-                config_path=("federation_ip_range_blacklist",),
-            )
-            # 'federation_ip_range_whitelist' was never a supported configuration option.
-            self.federation_ip_range_allowlist = None
-        else:
-            # No backwards-compatiblity requrired, as federation_ip_range_blacklist
-            # is not given. Default to ip_range_blacklist and ip_range_whitelist.
-            self.federation_ip_range_blocklist = self.ip_range_blocklist
-            self.federation_ip_range_allowlist = self.ip_range_allowlist
 
         # (undocumented) option for torturing the worker-mode replication a bit,
         # for testing. The value defines the number of milliseconds to pause before
@@ -694,21 +642,6 @@ class ServerConfig(Config):
             priv_key=manhole_priv_key,
             pub_key=manhole_pub_key,
         )
-
-        metrics_port = config.get("metrics_port")
-        if metrics_port:
-            logger.warning(METRICS_PORT_WARNING)
-
-            self.listeners.append(
-                TCPListenerConfig(
-                    port=metrics_port,
-                    bind_addresses=[config.get("metrics_bind_host", "127.0.0.1")],
-                    type="http",
-                    http_options=HttpListenerConfig(
-                        resources=[HttpResourceConfig(names=["metrics"])]
-                    ),
-                )
-            )
 
         self.cleanup_extremities_with_dummy_events = config.get(
             "cleanup_extremities_with_dummy_events", True

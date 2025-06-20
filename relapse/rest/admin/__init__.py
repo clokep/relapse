@@ -92,7 +92,6 @@ from relapse.rest.admin.users import (
     UserRestServletV2,
     UsersRestServletV2,
     UserTokenRestServlet,
-    WhoisRestServlet,
 )
 from relapse.types import JsonDict, RoomStreamToken, TaskStatus
 from relapse.util import RELAPSE_VERSION
@@ -252,7 +251,25 @@ def register_servlets(hs: "HomeServer", http_server: HttpServer) -> None:
     if hs.config.worker.worker_app is not None:
         return
 
-    register_servlets_for_client_rest_resource(hs, http_server)
+    PurgeHistoryStatusRestServlet(hs).register(http_server)
+    PurgeHistoryRestServlet(hs).register(http_server)
+    # The following resources can only be run on the main process.
+    if hs.config.worker.worker_app is None:
+        DeactivateAccountRestServlet(hs).register(http_server)
+        if not hs.config.experimental.msc3861.enabled:
+            ResetPasswordRestServlet(hs).register(http_server)
+    SearchUsersRestServlet(hs).register(http_server)
+    if not hs.config.experimental.msc3861.enabled:
+        UserRegisterServlet(hs).register(http_server)
+        AccountValidityRenewServlet(hs).register(http_server)
+
+    # Load the media repo ones if we're using them. Otherwise load the servlets which
+    # don't need a media repo (typically readonly admin APIs).
+    if hs.config.media.can_load_media_repo:
+        register_servlets_for_media_repo(hs, http_server)
+    else:
+        ListMediaInRoom(hs).register(http_server)
+
     BlockRoomRestServlet(hs).register(http_server)
     ListRoomRestServlet(hs).register(http_server)
     RoomStateRestServlet(hs).register(http_server)
@@ -309,26 +326,4 @@ def register_servlets(hs: "HomeServer", http_server: HttpServer) -> None:
 def register_servlets_for_client_rest_resource(
     hs: "HomeServer", http_server: HttpServer
 ) -> None:
-    """Register only the servlets which need to be exposed on /_matrix/client/xxx"""
-    WhoisRestServlet(hs).register(http_server)
-    PurgeHistoryStatusRestServlet(hs).register(http_server)
-    PurgeHistoryRestServlet(hs).register(http_server)
-    # The following resources can only be run on the main process.
-    if hs.config.worker.worker_app is None:
-        DeactivateAccountRestServlet(hs).register(http_server)
-        if not hs.config.experimental.msc3861.enabled:
-            ResetPasswordRestServlet(hs).register(http_server)
-    SearchUsersRestServlet(hs).register(http_server)
-    if not hs.config.experimental.msc3861.enabled:
-        UserRegisterServlet(hs).register(http_server)
-        AccountValidityRenewServlet(hs).register(http_server)
-
-    # Load the media repo ones if we're using them. Otherwise load the servlets which
-    # don't need a media repo (typically readonly admin APIs).
-    if hs.config.media.can_load_media_repo:
-        register_servlets_for_media_repo(hs, http_server)
-    else:
-        ListMediaInRoom(hs).register(http_server)
-
-    # don't add more things here: new servlets should only be exposed on
-    # /_relapse/admin so should not go here. Instead register them in AdminRestResource.
+    pass

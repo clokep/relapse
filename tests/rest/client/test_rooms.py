@@ -29,7 +29,7 @@ from typing_extensions import Literal
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import relapse.rest.admin
+from relapse import module_api
 from relapse.api.constants import (
     EduTypes,
     EventContentFields,
@@ -50,12 +50,13 @@ from relapse.util import Clock
 from relapse.util.stringutils import random_string
 
 from tests import unittest
-from tests.http.server._base import make_request_with_cancellation_test
+from tests.http.server._base import (
+    SUPPORTS_CANCELLATION_TEST,
+    make_request_with_cancellation_test,
+)
 from tests.storage.test_stream import PaginationTestCase
 from tests.test_utils.event_injection import create_event
 from tests.unittest import override_config
-
-PATH_PREFIX = b"/_matrix/client/api/v1"
 
 
 class RoomBase(unittest.HomeserverTestCase):
@@ -481,6 +482,8 @@ class RoomPermissionsTestCase(RoomBase):
 class RoomStateTestCase(RoomBase):
     """Tests /rooms/$room_id/state."""
 
+    skip = not SUPPORTS_CANCELLATION_TEST
+
     user_id = "@sid1:red"
 
     def test_get_state_cancellation(self) -> None:
@@ -666,6 +669,8 @@ class RoomsMemberListTestCase(RoomBase):
             channel.json_body["chunk"][0].items(),
         )
 
+    test_get_member_list_cancellation.skip = not SUPPORTS_CANCELLATION_TEST  # type: ignore[attr-defined]
+
     def test_get_member_list_with_at_token_cancellation(self) -> None:
         """Test cancellation of a `/rooms/$room_id/members?at=<sync token>` request."""
         room_id = self.helper.create_room_as(self.user_id)
@@ -696,6 +701,10 @@ class RoomsMemberListTestCase(RoomBase):
             }.items(),
             channel.json_body["chunk"][0].items(),
         )
+
+    test_get_member_list_with_at_token_cancellation.skip = (  # type: ignore[attr-defined]
+        not SUPPORTS_CANCELLATION_TEST
+    )
 
 
 class RoomsCreateTestCase(RoomBase):
@@ -1218,7 +1227,7 @@ class RoomJoinTestCase(RoomBase):
 
         # Register a dummy callback. Make it allow all room joins for now.
         return_value: Union[Literal["NOT_SPAM"], tuple[Codes, dict], Codes] = (
-            relapse.module_api.NOT_SPAM
+            module_api.NOT_SPAM
         )
 
         async def user_may_join_room(
@@ -1298,7 +1307,7 @@ class RoomJoinTestCase(RoomBase):
 class RoomAppserviceTsParamTestCase(unittest.HomeserverTestCase):
     servlets = [
         room.register_servlets,
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         register.register_servlets,
     ]
 
@@ -1665,8 +1674,7 @@ class RoomMessagesTestCase(RoomBase):
             mock_content: Optional[JsonDict] = None
 
             async def check_event_for_spam(
-                self,
-                event: relapse.events.EventBase,
+                self, event: EventBase
             ) -> Union[str, Codes, tuple[Codes, JsonDict], bool]:
                 self.mock_content = event.content
                 return self.mock_return_value
@@ -2155,7 +2163,7 @@ class RoomMessageListTestCase(RoomBase):
 
 class RoomSearchTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         room.register_servlets,
         login.register_servlets,
     ]
@@ -2256,7 +2264,7 @@ class RoomSearchTestCase(unittest.HomeserverTestCase):
 
 class PublicRoomsRestrictedTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         room.register_servlets,
         login.register_servlets,
     ]
@@ -2284,7 +2292,7 @@ class PublicRoomsRestrictedTestCase(unittest.HomeserverTestCase):
 
 class PublicRoomsRoomTypeFilterTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         room.register_servlets,
         login.register_servlets,
     ]
@@ -2390,7 +2398,7 @@ class PublicRoomsTestRemoteSearchFallbackTestCase(unittest.HomeserverTestCase):
     """
 
     servlets = [
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         room.register_servlets,
         login.register_servlets,
     ]
@@ -2471,7 +2479,7 @@ class PublicRoomsTestRemoteSearchFallbackTestCase(unittest.HomeserverTestCase):
 
 class PerRoomProfilesForbiddenTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         room.register_servlets,
         login.register_servlets,
         profile.register_servlets,
@@ -2530,7 +2538,7 @@ class RoomMembershipReasonTestCase(unittest.HomeserverTestCase):
     """
 
     servlets = [
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         room.register_servlets,
         login.register_servlets,
     ]
@@ -2658,7 +2666,7 @@ class RoomMembershipReasonTestCase(unittest.HomeserverTestCase):
 
 class LabelsTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         room.register_servlets,
         login.register_servlets,
         profile.register_servlets,
@@ -3039,7 +3047,7 @@ class RelationsTestCase(PaginationTestCase):
 
 class ContextTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         room.register_servlets,
         login.register_servlets,
         account.register_servlets,
@@ -3166,7 +3174,7 @@ class ContextTestCase(unittest.HomeserverTestCase):
 
 class RoomAliasListTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         directory.register_servlets,
         login.register_servlets,
         room.register_servlets,
@@ -3256,7 +3264,7 @@ class RoomAliasListTestCase(unittest.HomeserverTestCase):
 
 class RoomCanonicalAliasTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         directory.register_servlets,
         login.register_servlets,
         room.register_servlets,
@@ -3508,10 +3516,7 @@ class ThreepidInviteTestCase(unittest.HomeserverTestCase):
         # allow everything for now.
         # `spec` argument is needed for this function mock to have `__qualname__`, which
         # is needed for `Measure` metrics buried in SpamChecker.
-        mock = AsyncMock(
-            return_value=relapse.module_api.NOT_SPAM,
-            spec=lambda *x: None,
-        )
+        mock = AsyncMock(return_value=module_api.NOT_SPAM, spec=lambda *x: None)
         self.hs.get_module_api_callbacks().spam_checker._user_may_send_3pid_invite_callbacks.append(
             mock
         )

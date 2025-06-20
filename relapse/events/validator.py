@@ -12,16 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import collections.abc
-from typing import TYPE_CHECKING, Union, cast
+from typing import Union, cast
 
 import jsonschema
-
-from relapse._pydantic_compat import HAS_PYDANTIC_V2
-
-if TYPE_CHECKING or HAS_PYDANTIC_V2:
-    from pydantic.v1 import Field, StrictBool, StrictStr
-else:
-    from pydantic import Field, StrictBool, StrictStr
+from pydantic import Field
 
 from relapse.api.constants import (
     MAX_ALIAS_LENGTH,
@@ -275,8 +269,8 @@ POWER_LEVELS_SCHEMA = {
 
 
 class Mentions(RequestBodyModel):
-    user_ids: list[StrictStr] = Field(default_factory=list)
-    room: StrictBool = False
+    user_ids: list[str] = Field(default_factory=list)
+    room: bool = False
 
 
 # This could return something newer than Draft 7, but that's the current "latest"

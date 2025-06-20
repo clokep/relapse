@@ -28,11 +28,11 @@ from typing import Any, Callable, Deque, Optional, TypeVar, Union, cast
 from unittest.mock import Mock
 
 import attr
-from incremental import Version
 from typing_extensions import ParamSpec
 from zope.interface import implementer
 
 import twisted
+from incremental import Version
 from twisted.internet import address, tcp, threads, udp
 from twisted.internet._resolver import SimpleResolverComplexifier
 from twisted.internet.defer import Deferred, fail, maybeDeferred, succeed
@@ -62,14 +62,8 @@ from twisted.web.server import Request, Site
 
 from relapse.config.database import DatabaseConnectionConfig
 from relapse.config.homeserver import HomeServerConfig
-from relapse.events.presence_router import load_legacy_presence_router
-from relapse.handlers.auth import load_legacy_password_auth_providers
 from relapse.http.site import RelapseRequest
 from relapse.logging.context import ContextResourceUsage
-from relapse.module_api.callbacks.spamchecker_callbacks import load_legacy_spam_checkers
-from relapse.module_api.callbacks.third_party_event_rules_callbacks import (
-    load_legacy_third_party_event_rules,
-)
 from relapse.server import HomeServer
 from relapse.storage import DataStore
 from relapse.storage.database import LoggingDatabaseConnection
@@ -174,13 +168,20 @@ class FakeChannel:
     def headers(self) -> Headers:
         if not self.result:
             raise Exception("No result yet.")
+        # Twisted 24.10.0 switched to directly using Headers.
+        if isinstance(self.result["headers"], Headers):
+            return self.result["headers"]
         h = Headers()
         for i in self.result["headers"]:
             h.addRawHeader(*i)
         return h
 
     def writeHeaders(
-        self, version: bytes, code: bytes, reason: bytes, headers: Headers
+        self,
+        version: bytes,
+        code: bytes,
+        reason: bytes,
+        headers: Union[Headers, Iterable[tuple[bytes, bytes]]],
     ) -> None:
         self.result["version"] = version
         self.result["code"] = code
@@ -816,6 +817,9 @@ class FakeTransport:
 
         self.disconnected = True
 
+    def setTcpNoDelay(self, enabled: bool) -> None:
+        pass
+
     def pauseProducing(self) -> None:
         if not self.producer:
             return
@@ -1122,10 +1126,5 @@ def setup_test_homeserver(
     module_api = hs.get_module_api()
     for module, module_config in hs.config.modules.loaded_modules:
         module(config=module_config, api=module_api)
-
-    load_legacy_spam_checkers(hs)
-    load_legacy_third_party_event_rules(hs)
-    load_legacy_presence_router(hs)
-    load_legacy_password_auth_providers(hs)
 
     return hs

@@ -285,7 +285,7 @@ async def yieldable_gather_results(
                 #     "T"; expected "[T, **P.args]"  [arg-type]
                 # The former looks like a mypy bug, and the latter looks like a
                 # false positive.
-                [run_in_background(func, item, *args, **kwargs) for item in iter],  # type: ignore[arg-type]
+                [run_in_background(func, item, *args, **kwargs) for item in iter],
                 consumeErrors=True,
             )
         )
@@ -331,7 +331,7 @@ async def yieldable_gather_results_delaying_cancellation(
         return await make_deferred_yieldable(
             delay_cancellation(
                 defer.gatherResults(
-                    [run_in_background(func, item, *args, **kwargs) for item in iter],  # type: ignore[arg-type]
+                    [run_in_background(func, item, *args, **kwargs) for item in iter],
                     consumeErrors=True,
                 )
             )

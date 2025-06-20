@@ -71,6 +71,16 @@ class _BackgroundUpdates:
 
     EVENTS_JUMP_TO_DATE_INDEX = "events_jump_to_date_index"
 
+    CURRENT_STATE_EVENTS_STREAM_ORDERING_INDEX_UPDATE_NAME = (
+        "current_state_events_stream_ordering_idx"
+    )
+    ROOM_MEMBERSHIPS_STREAM_ORDERING_INDEX_UPDATE_NAME = (
+        "room_memberships_stream_ordering_idx"
+    )
+    LOCAL_CURRENT_MEMBERSHIP_STREAM_ORDERING_INDEX_UPDATE_NAME = (
+        "local_current_membership_stream_ordering_idx"
+    )
+
 
 @attr.s(slots=True, frozen=True, auto_attribs=True)
 class _CalculateChainCover:
@@ -270,6 +280,27 @@ class EventsBackgroundUpdatesStore(SQLBaseStore):
             table="events",
             columns=["room_id", "origin_server_ts"],
             where_clause="NOT outlier",
+        )
+
+        # These indices are needed to validate the foreign key constraint
+        # when events are deleted.
+        self.db_pool.updates.register_background_index_update(
+            _BackgroundUpdates.CURRENT_STATE_EVENTS_STREAM_ORDERING_INDEX_UPDATE_NAME,
+            index_name="current_state_events_stream_ordering_idx",
+            table="current_state_events",
+            columns=["event_stream_ordering"],
+        )
+        self.db_pool.updates.register_background_index_update(
+            _BackgroundUpdates.ROOM_MEMBERSHIPS_STREAM_ORDERING_INDEX_UPDATE_NAME,
+            index_name="room_memberships_stream_ordering_idx",
+            table="room_memberships",
+            columns=["event_stream_ordering"],
+        )
+        self.db_pool.updates.register_background_index_update(
+            _BackgroundUpdates.LOCAL_CURRENT_MEMBERSHIP_STREAM_ORDERING_INDEX_UPDATE_NAME,
+            index_name="local_current_membership_stream_ordering_idx",
+            table="local_current_membership",
+            columns=["event_stream_ordering"],
         )
 
     async def _background_reindex_fields_sender(

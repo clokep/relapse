@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 
 class LogoutRestServlet(RestServlet):
-    PATTERNS = client_patterns("/logout$", v1=True)
+    PATTERNS = client_patterns("/logout$")
 
     def __init__(self, hs: "HomeServer"):
         super().__init__()
@@ -58,7 +58,7 @@ class LogoutRestServlet(RestServlet):
 
 
 class LogoutAllRestServlet(RestServlet):
-    PATTERNS = client_patterns("/logout/all$", v1=True)
+    PATTERNS = client_patterns("/logout/all$")
 
     def __init__(self, hs: "HomeServer"):
         super().__init__()

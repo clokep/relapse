@@ -104,7 +104,11 @@ class GAIResolver:
         self,
         reactor: IReactorThreads,
         getThreadPool: Optional[Callable[[], "ThreadPool"]] = None,
-        getaddrinfo: Callable[[str, int, int, int], _GETADDRINFO_RESULT] = getaddrinfo,
+        # getaddrinfo doesn't properly have overloads defined.
+        getaddrinfo: Callable[
+            [Union[bytes, str, None], Union[bytes, str, int, None], int, int],
+            _GETADDRINFO_RESULT,
+        ] = getaddrinfo,  # type: ignore[assignment]
     ):
         """
         Create a L{GAIResolver}.

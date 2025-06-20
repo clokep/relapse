@@ -58,8 +58,8 @@ use anyhow::{Context, Error};
 use log::warn;
 use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
-use pyo3::types::{PyBool, PyList, PyLong, PyString};
-use pythonize::{depythonize, pythonize};
+use pyo3::types::{PyBool, PyInt, PyList, PyString};
+use pythonize::{depythonize, pythonize, PythonizeError};
 use serde::de::Error as _;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -71,7 +71,7 @@ pub mod evaluator;
 pub mod utils;
 
 /// Called when registering modules with python.
-pub fn register_module(py: Python<'_>, m: &PyModule) -> PyResult<()> {
+pub fn register_module(py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     let child_module = PyModule::new(py, "push")?;
     child_module.add_class::<PushRule>()?;
     child_module.add_class::<PushRules>()?;
@@ -79,7 +79,7 @@ pub fn register_module(py: Python<'_>, m: &PyModule) -> PyResult<()> {
     child_module.add_class::<PushRuleEvaluator>()?;
     child_module.add_function(wrap_pyfunction!(get_base_rule_ids, m)?)?;
 
-    m.add_submodule(child_module)?;
+    m.add_submodule(&child_module)?;
 
     // We need to manually add the module to sys.modules to make `from
     // relapse.relapse_rust import push` work.
@@ -175,12 +175,16 @@ pub enum Action {
     Unknown(Value),
 }
 
-impl IntoPy<PyObject> for Action {
-    fn into_py(self, py: Python<'_>) -> PyObject {
+impl<'py> IntoPyObject<'py> for Action {
+    type Target = PyAny;
+    type Output = Bound<'py, Self::Target>;
+    type Error = PythonizeError;
+
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         // When we pass the `Action` struct to Python we want it to be converted
         // to a dict. We use `pythonize`, which converts the struct using the
         // `serde` serialization.
-        pythonize(py, &self).expect("valid action")
+        pythonize(py, &self)
     }
 }
 
@@ -263,13 +267,13 @@ pub enum SimpleJsonValue {
 }
 
 impl<'source> FromPyObject<'source> for SimpleJsonValue {
-    fn extract(ob: &'source PyAny) -> PyResult<Self> {
-        if let Ok(s) = <PyString as pyo3::PyTryFrom>::try_from(ob) {
+    fn extract_bound(ob: &Bound<'source, PyAny>) -> PyResult<Self> {
+        if let Ok(s) = ob.downcast::<PyString>() {
             Ok(SimpleJsonValue::Str(Cow::Owned(s.to_string())))
         // A bool *is* an int, ensure we try bool first.
-        } else if let Ok(b) = <PyBool as pyo3::PyTryFrom>::try_from(ob) {
+        } else if let Ok(b) = ob.downcast::<PyBool>() {
             Ok(SimpleJsonValue::Bool(b.extract()?))
-        } else if let Ok(i) = <PyLong as pyo3::PyTryFrom>::try_from(ob) {
+        } else if let Ok(i) = ob.downcast::<PyInt>() {
             Ok(SimpleJsonValue::Int(i.extract()?))
         } else if ob.is_none() {
             Ok(SimpleJsonValue::Null)
@@ -291,15 +295,19 @@ pub enum JsonValue {
 }
 
 impl<'source> FromPyObject<'source> for JsonValue {
-    fn extract(ob: &'source PyAny) -> PyResult<Self> {
-        if let Ok(l) = <PyList as pyo3::PyTryFrom>::try_from(ob) {
-            match l.iter().map(SimpleJsonValue::extract).collect() {
+    fn extract_bound(ob: &Bound<'source, PyAny>) -> PyResult<Self> {
+        if let Ok(l) = ob.downcast::<PyList>() {
+            match l
+                .iter()
+                .map(|sjv| SimpleJsonValue::extract_bound(&sjv))
+                .collect()
+            {
                 Ok(a) => Ok(JsonValue::Array(a)),
                 Err(e) => Err(PyTypeError::new_err(format!(
                     "Can't convert to JsonValue::Array: {e}"
                 ))),
             }
-        } else if let Ok(v) = SimpleJsonValue::extract(ob) {
+        } else if let Ok(v) = SimpleJsonValue::extract_bound(ob) {
             Ok(JsonValue::Value(v))
         } else {
             Err(PyTypeError::new_err(format!(
@@ -356,14 +364,18 @@ pub enum KnownCondition {
     },
 }
 
-impl IntoPy<PyObject> for Condition {
-    fn into_py(self, py: Python<'_>) -> PyObject {
-        pythonize(py, &self).expect("valid condition")
+impl<'py> IntoPyObject<'py> for Condition {
+    type Target = PyAny;
+    type Output = Bound<'py, Self::Target>;
+    type Error = PythonizeError;
+
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        pythonize(py, &self)
     }
 }
 
 impl<'source> FromPyObject<'source> for Condition {
-    fn extract(ob: &'source PyAny) -> PyResult<Self> {
+    fn extract_bound(ob: &Bound<'source, PyAny>) -> PyResult<Self> {
         Ok(depythonize(ob)?)
     }
 }

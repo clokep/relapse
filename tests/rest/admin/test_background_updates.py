@@ -17,8 +17,8 @@ from parameterized import parameterized
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import relapse.rest.admin
 from relapse.api.errors import Codes
+from relapse.rest import admin
 from relapse.rest.client import login
 from relapse.server import HomeServer
 from relapse.storage.background_updates import BackgroundUpdater
@@ -30,7 +30,7 @@ from tests import unittest
 
 class BackgroundUpdatesTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         login.register_servlets,
     ]
 

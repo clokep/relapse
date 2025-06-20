@@ -32,7 +32,6 @@ from .metrics import MetricsConfig
 from .modules import ModulesConfig
 from .oembed import OembedConfig
 from .oidc import OIDCConfig
-from .password_auth_providers import PasswordAuthProviderConfig
 from .push import PushConfig
 from .ratelimiting import RatelimitConfig
 from .redis import RedisConfig
@@ -44,10 +43,8 @@ from .room_directory import RoomDirectoryConfig
 from .saml2 import SAML2Config
 from .server import ServerConfig
 from .server_notices import ServerNoticesConfig
-from .spam_checker import SpamCheckerConfig
 from .sso import SSOConfig
 from .stats import StatsConfig
-from .third_party_event_rules import ThirdPartyRulesConfig
 from .tls import TlsConfig
 from .tracer import TracerConfig
 from .user_directory import UserDirectoryConfig
@@ -83,16 +80,13 @@ class HomeServerConfig(RootConfig):
         JWTConfig,
         AuthConfig,
         EmailConfig,
-        PasswordAuthProviderConfig,
         PushConfig,
-        SpamCheckerConfig,
         RoomConfig,
         UserDirectoryConfig,
         ConsentConfig,
         StatsConfig,
         ServerNoticesConfig,
         RoomDirectoryConfig,
-        ThirdPartyRulesConfig,
         TracerConfig,
         WorkerConfig,
         RedisConfig,

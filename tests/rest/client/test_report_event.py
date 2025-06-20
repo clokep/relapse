@@ -14,7 +14,7 @@
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import relapse.rest.admin
+from relapse.rest import admin
 from relapse.rest.client import login, report_event, room
 from relapse.server import HomeServer
 from relapse.types import JsonDict
@@ -25,7 +25,7 @@ from tests import unittest
 
 class ReportEventTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         login.register_servlets,
         room.register_servlets,
         report_event.register_servlets,

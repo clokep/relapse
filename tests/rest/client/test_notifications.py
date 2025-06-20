@@ -15,7 +15,7 @@ from unittest.mock import AsyncMock, Mock
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import relapse.rest.admin
+from relapse.rest import admin
 from relapse.rest.client import login, notifications, receipts, room
 from relapse.server import HomeServer
 from relapse.util import Clock
@@ -25,7 +25,7 @@ from tests.unittest import HomeserverTestCase
 
 class HTTPPusherTests(HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         room.register_servlets,
         login.register_servlets,
         receipts.register_servlets,

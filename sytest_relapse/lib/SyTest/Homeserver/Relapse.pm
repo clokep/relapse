@@ -305,12 +305,9 @@ sub start
         # We remove the ip range blacklist which by default blocks federation
         # connections to local homeservers, of which sytest uses extensively
         ip_range_blacklist => [],
-        federation_ip_range_blacklist => [],
 
         # If we're using workers we need to disable these things in the main
         # process
-        start_pushers         => ( not $self->{workers} ),
-        send_federation       => ( not $self->{workers} ),
         enable_media_repo     => ( not $self->{workers} ),
         run_background_tasks_on  => ( $self->{workers} ? "background_worker1" : "master" ),
         $self->{workers} ? (
@@ -380,6 +377,8 @@ sub start
                   port => $self->{ports}{stream_writer},
                },
             },
+            pusher_instances => [ "pusher" ],
+            federation_sender_instances => [ "federation_sender" ],
         ) : (),
 
         stream_writers => {
@@ -720,7 +719,7 @@ sub _start_relapse
 
    {
       my $pusher_config = {
-         "worker_app"              => "relapse.app.pusher",
+         "worker_app"              => "relapse.app.generic_worker",
          "worker_name"             => "pusher",
          "worker_pid_file"         => "$hsdir/pusher.pid",
          "worker_log_config"       => $self->configure_logger("pusher"),
@@ -768,7 +767,7 @@ sub _start_relapse
 
    {
       my $federation_sender_config = {
-         "worker_app"              => "relapse.app.federation_sender",
+         "worker_app"              => "relapse.app.generic_worker",
          "worker_name"             => "federation_sender",
          "worker_pid_file"         => "$hsdir/federation_sender.pid",
          "worker_log_config"       => $self->configure_logger("federation_sender"),
@@ -792,7 +791,7 @@ sub _start_relapse
 
    {
       my $synchrotron_config = {
-         "worker_app"              => "relapse.app.synchrotron",
+         "worker_app"              => "relapse.app.generic_worker",
          "worker_name"             => "synchrotron",
          "worker_pid_file"         => "$hsdir/synchrotron.pid",
          "worker_log_config"       => $self->configure_logger("synchrotron"),
@@ -822,7 +821,7 @@ sub _start_relapse
 
    {
       my $federation_reader_config = {
-         "worker_app"              => "relapse.app.federation_reader",
+         "worker_app"              => "relapse.app.generic_worker",
          "worker_name"             => "federation_reader",
          "worker_pid_file"         => "$hsdir/federation_reader.pid",
          "worker_log_config"       => $self->configure_logger("federation_reader"),
@@ -852,7 +851,7 @@ sub _start_relapse
 
    {
       my $media_repository_config ={
-         "worker_app"              => "relapse.app.media_repository",
+         "worker_app"              => "relapse.app.generic_worker",
          "worker_name"             => "media_repository",
          "worker_pid_file"         => "$hsdir/media_repository.pid",
          "worker_log_config"       => $self->configure_logger("media_repository"),
@@ -875,6 +874,7 @@ sub _start_relapse
                bind_address => $bind_host,
             },
          ],
+         "enable_media_repo"        => JSON::true,
       };
 
       push @worker_configs, $media_repository_config;
@@ -882,7 +882,7 @@ sub _start_relapse
 
    {
       my $client_reader_config = {
-         "worker_app"                   => "relapse.app.client_reader",
+         "worker_app"                   => "relapse.app.generic_worker",
          "worker_name"                  => "client_reader",
          "worker_pid_file"              => "$hsdir/client_reader.pid",
          "worker_log_config"            => $self->configure_logger("client_reader"),
@@ -942,7 +942,7 @@ sub _start_relapse
 
    {
       my $event_creator_config = {
-         "worker_app"                   => "relapse.app.event_creator",
+         "worker_app"                   => "relapse.app.generic_worker",
          "worker_name"                  => "event_creator",
          "worker_pid_file"              => "$hsdir/event_creator.pid",
          "worker_log_config"            => $self->configure_logger("event_creator"),
@@ -972,7 +972,7 @@ sub _start_relapse
 
    {
       my $frontend_proxy_config = {
-         "worker_app"                   => "relapse.app.frontend_proxy",
+         "worker_app"                   => "relapse.app.generic_worker",
          "worker_name"                  => "frontend_proxy1",
          "worker_pid_file"              => "$hsdir/frontend_proxy.pid",
          "worker_log_config"            => $self->configure_logger("frontend_proxy"),

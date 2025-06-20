@@ -284,7 +284,7 @@ class TimeEvictionTestCase(unittest.HomeserverTestCase):
     def default_config(self) -> JsonDict:
         config = super().default_config()
 
-        config.setdefault("caches", {})["expiry_time"] = "30m"
+        config.setdefault("caches", {})["cache_entry_ttl"] = "30m"
 
         return config
 

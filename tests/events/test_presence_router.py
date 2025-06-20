@@ -20,7 +20,7 @@ import attr
 from twisted.test.proto_helpers import MemoryReactor
 
 from relapse.api.constants import EduTypes
-from relapse.events.presence_router import PresenceRouter, load_legacy_presence_router
+from relapse.events.presence_router import PresenceRouter
 from relapse.federation.units import Transaction
 from relapse.handlers.presence import UserPresenceState
 from relapse.module_api import ModuleApi
@@ -41,52 +41,6 @@ from tests.unittest import (
 @attr.s
 class PresenceRouterTestConfig:
     users_who_should_receive_all_presence = attr.ib(type=list[str], default=[])
-
-
-class LegacyPresenceRouterTestModule:
-    def __init__(self, config: PresenceRouterTestConfig, module_api: ModuleApi):
-        self._config = config
-        self._module_api = module_api
-
-    async def get_users_for_states(
-        self, state_updates: Iterable[UserPresenceState]
-    ) -> dict[str, set[UserPresenceState]]:
-        users_to_state = {
-            user_id: set(state_updates)
-            for user_id in self._config.users_who_should_receive_all_presence
-        }
-        return users_to_state
-
-    async def get_interested_users(self, user_id: str) -> Union[set[str], str]:
-        if user_id in self._config.users_who_should_receive_all_presence:
-            return PresenceRouter.ALL_USERS
-
-        return set()
-
-    @staticmethod
-    def parse_config(config_dict: dict) -> PresenceRouterTestConfig:
-        """Parse a configuration dictionary from the homeserver config, do
-        some validation and return a typed PresenceRouterConfig.
-
-        Args:
-            config_dict: The configuration dictionary.
-
-        Returns:
-            A validated config object.
-        """
-        # Initialise a typed config object
-        config = PresenceRouterTestConfig()
-
-        users_who_should_receive_all_presence = config_dict.get(
-            "users_who_should_receive_all_presence"
-        )
-        assert isinstance(users_who_should_receive_all_presence, list)
-
-        config.users_who_should_receive_all_presence = (
-            users_who_should_receive_all_presence
-        )
-
-        return config
 
 
 class PresenceRouterTestModule:
@@ -163,8 +117,6 @@ class PresenceRouterTestCase(FederatingHomeserverTestCase):
             federation_transport_client=self.fed_transport_client,
         )
 
-        load_legacy_presence_router(hs)
-
         return hs
 
     def prepare(
@@ -177,23 +129,6 @@ class PresenceRouterTestCase(FederatingHomeserverTestCase):
         config = super().default_config()
         config["federation_sender_instances"] = None
         return config
-
-    @override_config(
-        {
-            "presence": {
-                "presence_router": {
-                    "module": __name__ + ".LegacyPresenceRouterTestModule",
-                    "config": {
-                        "users_who_should_receive_all_presence": [
-                            "@presence_gobbler:test",
-                        ]
-                    },
-                }
-            },
-        }
-    )
-    def test_receiving_all_presence_legacy(self) -> None:
-        self.receiving_all_presence_test_body()
 
     @override_config(
         {
@@ -210,9 +145,6 @@ class PresenceRouterTestCase(FederatingHomeserverTestCase):
         }
     )
     def test_receiving_all_presence(self) -> None:
-        self.receiving_all_presence_test_body()
-
-    def receiving_all_presence_test_body(self) -> None:
         """Test that a user that does not share a room with another other can receive
         presence for them, due to presence routing.
         """
@@ -304,25 +236,6 @@ class PresenceRouterTestCase(FederatingHomeserverTestCase):
 
     @override_config(
         {
-            "presence": {
-                "presence_router": {
-                    "module": __name__ + ".LegacyPresenceRouterTestModule",
-                    "config": {
-                        "users_who_should_receive_all_presence": [
-                            "@presence_gobbler1:test",
-                            "@presence_gobbler2:test",
-                            "@far_away_person:island",
-                        ]
-                    },
-                }
-            },
-        }
-    )
-    def test_send_local_online_presence_to_with_module_legacy(self) -> None:
-        self.send_local_online_presence_to_with_module_test_body()
-
-    @override_config(
-        {
             "modules": [
                 {
                     "module": __name__ + ".PresenceRouterTestModule",
@@ -338,9 +251,6 @@ class PresenceRouterTestCase(FederatingHomeserverTestCase):
         }
     )
     def test_send_local_online_presence_to_with_module(self) -> None:
-        self.send_local_online_presence_to_with_module_test_body()
-
-    def send_local_online_presence_to_with_module_test_body(self) -> None:
         """Tests that send_local_presence_to_users sends local online presence to a set
         of specified local and remote users, with a custom PresenceRouter module enabled.
         """

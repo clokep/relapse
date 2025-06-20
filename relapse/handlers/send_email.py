@@ -19,9 +19,8 @@ from email.mime.text import MIMEText
 from io import BytesIO
 from typing import TYPE_CHECKING, Any, Optional
 
-from pkg_resources import parse_version
-
 import twisted
+from incremental import Version
 from twisted.internet.defer import Deferred
 from twisted.internet.endpoints import HostnameEndpoint
 from twisted.internet.interfaces import IOpenSSLContextFactory, IProtocolFactory
@@ -37,7 +36,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-_is_old_twisted = parse_version(twisted.__version__) < parse_version("21")
+_is_old_twisted = twisted.version < Version("Twisted", 21, 2, 0)
 
 
 class _NoTLSESMTPSender(ESMTPSender):

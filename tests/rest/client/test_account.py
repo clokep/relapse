@@ -11,19 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import os
+import importlib.resources
 import re
 from email.parser import Parser
 from http import HTTPStatus
 from typing import Any, Optional, Union
 from unittest.mock import Mock
 
-import pkg_resources
-
 from twisted.internet.interfaces import IReactorTCP
 from twisted.test.proto_helpers import MemoryReactor
 
-import relapse.rest.admin
 from relapse.api.constants import LoginType, Membership
 from relapse.api.errors import Codes, HttpResponseException
 from relapse.appservice import ApplicationService
@@ -43,7 +40,7 @@ from tests.unittest import override_config
 class PasswordResetTestCase(unittest.HomeserverTestCase):
     servlets = [
         account.register_servlets,
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         register.register_servlets,
         login.register_servlets,
     ]
@@ -54,8 +51,10 @@ class PasswordResetTestCase(unittest.HomeserverTestCase):
         # Email config.
         config["email"] = {
             "enable_notifs": False,
-            "template_dir": os.path.abspath(
-                pkg_resources.resource_filename("relapse", "res/templates")
+            "template_dir": str(
+                importlib.resources.files("relapse")
+                .joinpath("res")
+                .joinpath("templates")
             ),
             "smtp_host": "127.0.0.1",
             "smtp_port": 20,
@@ -383,7 +382,9 @@ class PasswordResetTestCase(unittest.HomeserverTestCase):
         text = None
         for part in mail.walk():
             if part.get_content_type() == "text/plain":
-                text = part.get_payload(decode=True).decode("UTF-8")
+                payload = part.get_payload(decode=True)
+                assert isinstance(payload, bytes)
+                text = payload.decode("UTF-8")
                 break
 
         if not text:
@@ -421,7 +422,7 @@ class PasswordResetTestCase(unittest.HomeserverTestCase):
 
 class DeactivateTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         login.register_servlets,
         account.register_servlets,
         room.register_servlets,
@@ -661,7 +662,7 @@ class DeactivateTestCase(unittest.HomeserverTestCase):
 
 class WhoamiTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         login.register_servlets,
         account.register_servlets,
         register.register_servlets,
@@ -737,7 +738,7 @@ class ThreepidEmailRestTestCase(unittest.HomeserverTestCase):
     servlets = [
         account.register_servlets,
         login.register_servlets,
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
     ]
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
@@ -746,8 +747,10 @@ class ThreepidEmailRestTestCase(unittest.HomeserverTestCase):
         # Email config.
         config["email"] = {
             "enable_notifs": False,
-            "template_dir": os.path.abspath(
-                pkg_resources.resource_filename("relapse", "res/templates")
+            "template_dir": str(
+                importlib.resources.files("relapse")
+                .joinpath("res")
+                .joinpath("templates")
             ),
             "smtp_host": "127.0.0.1",
             "smtp_port": 20,
@@ -1165,7 +1168,9 @@ class ThreepidEmailRestTestCase(unittest.HomeserverTestCase):
         text = None
         for part in mail.walk():
             if part.get_content_type() == "text/plain":
-                text = part.get_payload(decode=True).decode("UTF-8")
+                payload = part.get_payload(decode=True)
+                assert isinstance(payload, bytes)
+                text = payload.decode("UTF-8")
                 break
 
         if not text:

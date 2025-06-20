@@ -15,13 +15,6 @@
 import logging
 from typing import TYPE_CHECKING, Optional
 
-from relapse._pydantic_compat import HAS_PYDANTIC_V2
-
-if TYPE_CHECKING or HAS_PYDANTIC_V2:
-    from pydantic.v1 import StrictStr
-else:
-    from pydantic import StrictStr
-
 from typing_extensions import Literal
 
 from twisted.web.server import Request
@@ -51,7 +44,7 @@ def register_servlets(hs: "HomeServer", http_server: HttpServer) -> None:
 
 
 class ClientDirectoryServer(RestServlet):
-    PATTERNS = client_patterns("/directory/room/(?P<room_alias>[^/]*)$", v1=True)
+    PATTERNS = client_patterns("/directory/room/(?P<room_alias>[^/]*)$")
     CATEGORY = "Client API requests"
 
     def __init__(self, hs: "HomeServer"):
@@ -71,9 +64,9 @@ class ClientDirectoryServer(RestServlet):
 
     class PutBody(RequestBodyModel):
         # TODO: get Pydantic to validate that this is a valid room id?
-        room_id: StrictStr
+        room_id: str
         # `servers` is unspecced
-        servers: Optional[list[StrictStr]] = None
+        servers: Optional[list[str]] = None
 
     async def on_PUT(
         self, request: RelapseRequest, room_alias: str
@@ -134,7 +127,7 @@ class ClientDirectoryServer(RestServlet):
 
 
 class ClientDirectoryListServer(RestServlet):
-    PATTERNS = client_patterns("/directory/list/room/(?P<room_id>[^/]*)$", v1=True)
+    PATTERNS = client_patterns("/directory/list/room/(?P<room_id>[^/]*)$")
 
     def __init__(self, hs: "HomeServer"):
         super().__init__()
@@ -168,7 +161,7 @@ class ClientDirectoryListServer(RestServlet):
 
 class ClientAppserviceDirectoryListServer(RestServlet):
     PATTERNS = client_patterns(
-        "/directory/list/appservice/(?P<network_id>[^/]*)/(?P<room_id>[^/]*)$", v1=True
+        "/directory/list/appservice/(?P<network_id>[^/]*)/(?P<room_id>[^/]*)$"
     )
 
     def __init__(self, hs: "HomeServer"):

@@ -24,11 +24,11 @@ from typing_extensions import Literal
 from twisted.test.proto_helpers import MemoryReactor
 from twisted.web.resource import Resource
 
-import relapse.rest.admin
 from relapse.api.constants import ApprovalNoticeMedium, LoginType
 from relapse.api.errors import Codes
 from relapse.appservice import ApplicationService
 from relapse.module_api import ModuleApi
+from relapse.rest import admin
 from relapse.rest.client import devices, login, logout, register
 from relapse.rest.client.account import WhoamiRestServlet
 from relapse.rest.relapse.client import build_relapse_client_resource_tree
@@ -108,10 +108,7 @@ class TestSpamChecker:
         initial_display_name: Optional[str],
         request_info: Collection[tuple[Optional[str], str]],
         auth_provider_id: Optional[str] = None,
-    ) -> Union[
-        Literal["NOT_SPAM"],
-        tuple["relapse.module_api.errors.Codes", JsonDict],
-    ]:
+    ) -> Union[Literal["NOT_SPAM"], tuple[Codes, JsonDict]]:
         return "NOT_SPAM"
 
 
@@ -132,10 +129,7 @@ class DenyAllSpamChecker:
         initial_display_name: Optional[str],
         request_info: Collection[tuple[Optional[str], str]],
         auth_provider_id: Optional[str] = None,
-    ) -> Union[
-        Literal["NOT_SPAM"],
-        tuple["relapse.module_api.errors.Codes", JsonDict],
-    ]:
+    ) -> Union[Literal["NOT_SPAM"], tuple[Codes, JsonDict]]:
         # Return an odd set of values to ensure that they get correctly passed
         # to the client.
         return Codes.LIMIT_EXCEEDED, {"extra": "value"}
@@ -143,7 +137,7 @@ class DenyAllSpamChecker:
 
 class LoginRestServletTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         login.register_servlets,
         logout.register_servlets,
         devices.register_servlets,
@@ -615,11 +609,9 @@ class MultiSSOTestCase(unittest.HomeserverTestCase):
             },
         }
 
-        # default OIDC provider
-        config["oidc_config"] = TEST_OIDC_CONFIG
-
-        # additional OIDC providers
+        # OIDC providers
         config["oidc_providers"] = [
+            TEST_OIDC_CONFIG,
             {
                 "idp_id": "idp1",
                 "idp_name": "IDP1",
@@ -634,7 +626,7 @@ class MultiSSOTestCase(unittest.HomeserverTestCase):
                 "user_mapping_provider": {
                     "config": {"localpart_template": "{{ user.sub }}"}
                 },
-            }
+            },
         ]
         return config
 
@@ -665,8 +657,8 @@ class MultiSSOTestCase(unittest.HomeserverTestCase):
             [
                 {"id": "cas", "name": "CAS"},
                 {"id": "saml", "name": "SAML"},
-                {"id": "oidc-idp1", "name": "IDP1"},
                 {"id": "oidc", "name": "OIDC"},
+                {"id": "oidc-idp1", "name": "IDP1"},
             ],
         )
 
@@ -953,12 +945,10 @@ class CASTestCase(unittest.HomeserverTestCase):
 
         # Test that the response is HTML.
         self.assertEqual(channel.code, 200, channel.result)
-        content_type_header_value = ""
-        for header in channel.result.get("headers", []):
-            if header[0] == b"Content-Type":
-                content_type_header_value = header[1].decode("utf8")
+        content_type_header_values = channel.headers.getRawHeaders("Content-Type", [])
+        assert len(content_type_header_values) == 1
 
-        self.assertTrue(content_type_header_value.startswith("text/html"))
+        self.assertTrue(content_type_header_values[0].startswith("text/html"))
 
         # Test that the body isn't empty.
         self.assertTrue(len(channel.result["body"]) > 0)
@@ -1031,7 +1021,7 @@ class CASTestCase(unittest.HomeserverTestCase):
 @skip_unless(HAS_JWT, "requires authlib")
 class JWTTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         login.register_servlets,
     ]
 
@@ -1120,8 +1110,9 @@ class JWTTestCase(unittest.HomeserverTestCase):
         self.assertEqual(channel.code, 403, msg=channel.result)
         self.assertEqual(channel.json_body["errcode"], "M_FORBIDDEN")
         self.assertEqual(
-            channel.json_body["error"],
-            'JWT validation failed: invalid_claim: Invalid claim "iss"',
+            # authlib < 1.5.2 had a bug that used double quotes in error messages.
+            channel.json_body["error"].replace('"', "'"),
+            "JWT validation failed: invalid_claim: Invalid claim 'iss'",
         )
 
         # Not providing an issuer.
@@ -1129,8 +1120,9 @@ class JWTTestCase(unittest.HomeserverTestCase):
         self.assertEqual(channel.code, 403, msg=channel.result)
         self.assertEqual(channel.json_body["errcode"], "M_FORBIDDEN")
         self.assertEqual(
-            channel.json_body["error"],
-            'JWT validation failed: missing_claim: Missing "iss" claim',
+            # authlib < 1.5.2 had a bug that used double quotes in error messages.
+            channel.json_body["error"].replace('"', "'"),
+            "JWT validation failed: missing_claim: Missing 'iss' claim",
         )
 
     def test_login_iss_no_config(self) -> None:
@@ -1152,8 +1144,9 @@ class JWTTestCase(unittest.HomeserverTestCase):
         self.assertEqual(channel.code, 403, msg=channel.result)
         self.assertEqual(channel.json_body["errcode"], "M_FORBIDDEN")
         self.assertEqual(
-            channel.json_body["error"],
-            'JWT validation failed: invalid_claim: Invalid claim "aud"',
+            # authlib < 1.5.2 had a bug that used double quotes in error messages.
+            channel.json_body["error"].replace('"', "'"),
+            "JWT validation failed: invalid_claim: Invalid claim 'aud'",
         )
 
         # Not providing an audience.
@@ -1161,8 +1154,9 @@ class JWTTestCase(unittest.HomeserverTestCase):
         self.assertEqual(channel.code, 403, msg=channel.result)
         self.assertEqual(channel.json_body["errcode"], "M_FORBIDDEN")
         self.assertEqual(
-            channel.json_body["error"],
-            'JWT validation failed: missing_claim: Missing "aud" claim',
+            # authlib < 1.5.2 had a bug that used double quotes in error messages.
+            channel.json_body["error"].replace('"', "'"),
+            "JWT validation failed: missing_claim: Missing 'aud' claim",
         )
 
     def test_login_aud_no_config(self) -> None:
@@ -1171,8 +1165,9 @@ class JWTTestCase(unittest.HomeserverTestCase):
         self.assertEqual(channel.code, 403, msg=channel.result)
         self.assertEqual(channel.json_body["errcode"], "M_FORBIDDEN")
         self.assertEqual(
-            channel.json_body["error"],
-            'JWT validation failed: invalid_claim: Invalid claim "aud"',
+            # authlib < 1.5.2 had a bug that used double quotes in error messages.
+            channel.json_body["error"].replace('"', "'"),
+            "JWT validation failed: invalid_claim: Invalid claim 'aud'",
         )
 
     def test_login_default_sub(self) -> None:
@@ -1424,11 +1419,14 @@ class UsernamePickerTestCase(HomeserverTestCase):
         config = super().default_config()
         config["public_baseurl"] = BASE_URL
 
-        config["oidc_config"] = {}
-        config["oidc_config"].update(TEST_OIDC_CONFIG)
-        config["oidc_config"]["user_mapping_provider"] = {
-            "config": {"display_name_template": "{{ user.displayname }}"}
-        }
+        config["oidc_providers"] = [
+            {
+                **TEST_OIDC_CONFIG,
+                "user_mapping_provider": {
+                    "config": {"display_name_template": "{{ user.displayname }}"}
+                },
+            }
+        ]
 
         # whitelist this client URI so we redirect straight to it rather than
         # serving a confirmation page

@@ -41,7 +41,11 @@ if py_version < (3, 9):
 
 # Use the asyncio reactor, but if this is a forked run then don't crash.
 if "twisted.internet.reactor" in sys.modules:
-    from twisted.internet import reactor
+    from twisted.internet import asyncioreactor, reactor
+
+    if not isinstance(reactor, asyncioreactor.AsyncioSelectorReactor):
+        print("Relapse requires using the asyncioreactor.")
+        sys.exit(1)
 
     print(f"Reactor already installed: {reactor.__class__.__name__}")
 else:

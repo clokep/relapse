@@ -189,11 +189,6 @@ class MSC3861:
         ):
             raise ConfigError("SSO cannot be enabled when OAuth delegation is enabled")
 
-        if bool(root.authproviders.password_providers):
-            raise ConfigError(
-                "Password auth providers cannot be enabled when OAuth delegation is enabled"
-            )
-
         if root.captcha.enable_registration_captcha:
             raise ConfigError(
                 "CAPTCHA cannot be enabled when OAuth delegation is enabled",

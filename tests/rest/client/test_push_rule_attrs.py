@@ -11,8 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import relapse
 from relapse.api.errors import Codes
+from relapse.rest import admin
 from relapse.rest.client import login, push_rule, room
 
 from tests.unittest import HomeserverTestCase
@@ -20,7 +20,7 @@ from tests.unittest import HomeserverTestCase
 
 class PushRuleAttributesTestCase(HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         room.register_servlets,
         login.register_servlets,
         push_rule.register_servlets,

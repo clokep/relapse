@@ -16,7 +16,6 @@ from typing import Any, Optional, Union, cast
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import relapse.rest.admin
 from relapse.api.constants import EventTypes, HistoryVisibility, Membership
 from relapse.api.room_versions import RoomVersions
 from relapse.appservice import ApplicationService
@@ -445,6 +444,7 @@ class PushRuleEvaluatorTestCase(unittest.TestCase):
             {"value": False},
             "incorrect values should not match",
         )
+        value: Any
         for value in ("foobaz", 1, 1.1, None, [], {}):
             self._assert_not_matches(
                 condition,
@@ -485,6 +485,7 @@ class PushRuleEvaluatorTestCase(unittest.TestCase):
             {"value": None},
             "exact value should match",
         )
+        value: Any
         for value in ("foobaz", True, False, 1, 1.1, [], {}):
             self._assert_not_matches(
                 condition,
@@ -800,7 +801,7 @@ class TestBulkPushRuleEvaluator(unittest.HomeserverTestCase):
     """Tests for the bulk push rule evaluator"""
 
     servlets = [
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         login.register_servlets,
         register.register_servlets,
         room.register_servlets,

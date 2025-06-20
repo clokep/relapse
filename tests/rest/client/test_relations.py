@@ -39,7 +39,7 @@ class BaseRelationsTestCase(unittest.HomeserverTestCase):
         sync.register_servlets,
         login.register_servlets,
         register.register_servlets,
-        admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
     ]
     hijack_auth = False
 

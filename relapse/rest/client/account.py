@@ -18,15 +18,9 @@ import random
 from typing import TYPE_CHECKING, Optional
 from urllib.parse import urlparse
 
-from relapse._pydantic_compat import HAS_PYDANTIC_V2
-
-if TYPE_CHECKING or HAS_PYDANTIC_V2:
-    from pydantic.v1 import StrictBool, StrictStr, constr
-else:
-    from pydantic import StrictBool, StrictStr, constr
-
 import attr
-from typing_extensions import Literal
+from pydantic import StringConstraints
+from typing_extensions import Annotated, Literal
 
 from twisted.web.server import Request
 
@@ -159,12 +153,14 @@ class PasswordRestServlet(RestServlet):
 
     class PostBody(RequestBodyModel):
         auth: Optional[AuthenticationData] = None
-        logout_devices: StrictBool = True
+        logout_devices: bool = True
         if TYPE_CHECKING:
             # workaround for https://github.com/samuelcolvin/pydantic/issues/156
-            new_password: Optional[StrictStr] = None
+            new_password: Optional[str] = None
         else:
-            new_password: Optional[constr(max_length=512, strict=True)] = None
+            new_password: Optional[
+                Annotated[str, StringConstraints(max_length=512, strict=True)]
+            ] = None
 
     @interactive_auth_handler
     async def on_POST(self, request: RelapseRequest) -> tuple[int, JsonDict]:
@@ -289,9 +285,9 @@ class DeactivateAccountRestServlet(RestServlet):
 
     class PostBody(RequestBodyModel):
         auth: Optional[AuthenticationData] = None
-        id_server: Optional[StrictStr] = None
+        id_server: Optional[str] = None
         # Not specced, see https://github.com/matrix-org/matrix-spec/issues/297
-        erase: StrictBool = False
+        erase: bool = False
 
     @interactive_auth_handler
     async def on_POST(self, request: RelapseRequest) -> tuple[int, JsonDict]:
@@ -545,8 +541,8 @@ class AddThreepidMsisdnSubmitTokenServlet(RestServlet):
 
     class PostBody(RequestBodyModel):
         client_secret: ClientSecretStr
-        sid: StrictStr
-        token: StrictStr
+        sid: str
+        token: str
 
     def __init__(self, hs: "HomeServer"):
         super().__init__()
@@ -654,7 +650,7 @@ class ThreepidAddRestServlet(RestServlet):
     class PostBody(RequestBodyModel):
         auth: Optional[AuthenticationData] = None
         client_secret: ClientSecretStr
-        sid: StrictStr
+        sid: str
 
     @interactive_auth_handler
     async def on_POST(self, request: RelapseRequest) -> tuple[int, JsonDict]:
@@ -702,9 +698,9 @@ class ThreepidBindRestServlet(RestServlet):
 
     class PostBody(RequestBodyModel):
         client_secret: ClientSecretStr
-        id_access_token: StrictStr
-        id_server: StrictStr
-        sid: StrictStr
+        id_access_token: str
+        id_server: str
+        sid: str
 
     async def on_POST(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         body = parse_and_validate_json_object_from_request(request, self.PostBody)
@@ -730,8 +726,8 @@ class ThreepidUnbindRestServlet(RestServlet):
         self.datastore = self.hs.get_datastores().main
 
     class PostBody(RequestBodyModel):
-        address: StrictStr
-        id_server: Optional[StrictStr] = None
+        address: str
+        id_server: Optional[str] = None
         medium: Literal["email", "msisdn"]
 
     async def on_POST(self, request: RelapseRequest) -> tuple[int, JsonDict]:
@@ -759,8 +755,8 @@ class ThreepidDeleteRestServlet(RestServlet):
         self.auth_handler = hs.get_auth_handler()
 
     class PostBody(RequestBodyModel):
-        address: StrictStr
-        id_server: Optional[StrictStr] = None
+        address: str
+        id_server: Optional[str] = None
         medium: Literal["email", "msisdn"]
 
     async def on_POST(self, request: RelapseRequest) -> tuple[int, JsonDict]:
@@ -877,7 +873,7 @@ class AccountStatusRestServlet(RestServlet):
     class PostBody(RequestBodyModel):
         # TODO: we could validate that each user id is an mxid here, and/or parse it
         #       as a UserID
-        user_ids: list[StrictStr]
+        user_ids: list[str]
 
     async def on_POST(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         await self._auth.get_user_by_req(request)

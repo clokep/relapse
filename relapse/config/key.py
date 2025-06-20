@@ -62,27 +62,12 @@ Relapse requires that a list of trusted key servers are specified in order to
 provide signing keys for other servers in the federation.
 
 This homeserver does not have a trusted key server configured in
-homeserver.yaml and will fall back to the default of 'matrix.org'.
+homeserver.yaml.
 
 Trusted key servers should be long-lived and stable which makes matrix.org a
 good choice for many admins, but some admins may wish to choose another. To
 suppress this warning, the admin should set 'trusted_key_servers' in
-homeserver.yaml to their desired key server and 'suppress_key_server_warning'
-to 'true'.
-
-In a future release the software-defined default will be removed entirely and
-the trusted key server will be defined exclusively by the value of
-'trusted_key_servers'.
---------------------------------------------------------------------------------"""
-
-TRUSTED_KEY_SERVER_CONFIGURED_AS_M_ORG_WARN = """\
-This server is configured to use 'matrix.org' as its trusted key server via the
-'trusted_key_servers' config option. 'matrix.org' is a good choice for a key
-server since it is long-lived, stable and trusted. However, some admins may
-wish to use another server for this purpose.
-
-To suppress this warning and continue using 'matrix.org', admins should set
-'suppress_key_server_warning' to 'true' in homeserver.yaml.
+homeserver.yaml to their desired key server.
 --------------------------------------------------------------------------------"""
 
 logger = logging.getLogger(__name__)
@@ -123,7 +108,6 @@ class KeyConfig(Config):
             config.get("key_refresh_interval", "1d")
         )
 
-        suppress_key_server_warning = config.get("suppress_key_server_warning", False)
         key_server_signing_keys_path = config.get("key_server_signing_keys_path")
         if key_server_signing_keys_path:
             self.key_server_signing_keys = self.read_signing_keys(
@@ -132,26 +116,16 @@ class KeyConfig(Config):
         else:
             self.key_server_signing_keys = list(self.signing_key)
 
-        # if neither trusted_key_servers nor perspectives are given, use the default.
-        if "perspectives" not in config and "trusted_key_servers" not in config:
+        # if trusted_key_servers are given, use the default.
+        if "trusted_key_servers" not in config:
             logger.warning(TRUSTED_KEY_SERVER_NOT_CONFIGURED_WARN)
-            key_servers = [{"server_name": "matrix.org"}]
-        else:
-            key_servers = config.get("trusted_key_servers", [])
+        key_servers = config.get("trusted_key_servers", [])
 
-            if not isinstance(key_servers, list):
-                raise ConfigError(
-                    "trusted_key_servers, if given, must be a list, not a %s"
-                    % (type(key_servers).__name__,)
-                )
-
-            # merge the 'perspectives' config into the 'trusted_key_servers' config.
-            key_servers.extend(_perspectives_to_key_servers(config))
-
-            if not suppress_key_server_warning and "matrix.org" in (
-                s["server_name"] for s in key_servers
-            ):
-                logger.warning(TRUSTED_KEY_SERVER_CONFIGURED_AS_M_ORG_WARN)
+        if not isinstance(key_servers, list):
+            raise ConfigError(
+                "trusted_key_servers, if given, must be a list, not a %s"
+                % (type(key_servers).__name__,)
+            )
 
         # list of TrustedKeyServer objects
         self.key_servers = list(
@@ -280,49 +254,6 @@ class KeyConfig(Config):
                     signing_key_path, "w", opener=lambda p, f: os.open(p, f, mode=0o640)
                 ) as signing_key_file:
                     write_signing_keys(signing_key_file, (key,))
-
-
-def _perspectives_to_key_servers(config: JsonDict) -> Iterator[JsonDict]:
-    """Convert old-style 'perspectives' configs into new-style 'trusted_key_servers'
-
-    Returns an iterable of entries to add to trusted_key_servers.
-    """
-
-    # 'perspectives' looks like:
-    #
-    # {
-    #     "servers": {
-    #         "matrix.org": {
-    #             "verify_keys": {
-    #                 "ed25519:auto": {
-    #                     "key": "Noi6WqcDj0QmPxCNQqgezwTlBKrfqehY1u2FyWP9uYw"
-    #                 }
-    #             }
-    #         }
-    #     }
-    # }
-    #
-    # 'trusted_keys' looks like:
-    #
-    # [
-    #     {
-    #         "server_name": "matrix.org",
-    #         "verify_keys": {
-    #             "ed25519:auto": "Noi6WqcDj0QmPxCNQqgezwTlBKrfqehY1u2FyWP9uYw",
-    #         }
-    #     }
-    # ]
-
-    perspectives_servers = config.get("perspectives", {}).get("servers", {})
-
-    for server_name, server_opts in perspectives_servers.items():
-        trusted_key_server_entry = {"server_name": server_name}
-        verify_keys = server_opts.get("verify_keys")
-        if verify_keys is not None:
-            trusted_key_server_entry["verify_keys"] = {
-                key_id: key_data["key"] for key_id, key_data in verify_keys.items()
-            }
-        yield trusted_key_server_entry
 
 
 TRUSTED_KEY_SERVERS_SCHEMA = {

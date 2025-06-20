@@ -279,21 +279,6 @@ def start(config_options: list[str]) -> None:
         sys.stderr.write("\n" + str(e) + "\n")
         sys.exit(1)
 
-    # For backwards compatibility let any of the old app names.
-    assert config.worker.worker_app in (
-        "relapse.app.appservice",
-        "relapse.app.client_reader",
-        "relapse.app.event_creator",
-        "relapse.app.federation_reader",
-        "relapse.app.federation_sender",
-        "relapse.app.frontend_proxy",
-        "relapse.app.generic_worker",
-        "relapse.app.media_repository",
-        "relapse.app.pusher",
-        "relapse.app.synchrotron",
-        "relapse.app.user_dir",
-    )
-
     relapse.events.USE_FROZEN_DICTS = config.server.use_frozen_dicts
     relapse.util.caches.TRACK_MEMORY_USAGE = config.caches.track_memory_usage
 
