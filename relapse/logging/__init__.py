@@ -14,11 +14,10 @@
 
 import logging
 
-from relapse.logging._remote import RemoteHandler
 from relapse.logging._terse_json import JsonFormatter, TerseJsonFormatter
 
 # These are imported to allow for nicer logging configuration files.
-__all__ = ["RemoteHandler", "JsonFormatter", "TerseJsonFormatter"]
+__all__ = ["JsonFormatter", "TerseJsonFormatter"]
 
 # Debug logger for https://github.com/matrix-org/synapse/issues/9533 etc
 issue9533_logger = logging.getLogger("relapse.9533_debug")
