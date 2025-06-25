@@ -38,7 +38,7 @@ import argparse
 import base64
 import json
 import sys
-from typing import Any, Optional
+from typing import Any, Mapping, Optional, Union
 from urllib import parse as urlparse
 
 import requests
@@ -294,8 +294,9 @@ class MatrixConnectionAdapter(HTTPAdapter):
         return super().send(request, *args, **kwargs)
 
     def get_connection(
-        self, url: str, proxies: Optional[dict[str, str]] = None
+        self, url: Union[str, bytes], proxies: Optional[Mapping[str, str]] = None
     ) -> HTTPConnectionPool:
+        assert isinstance(url, str)
         # overrides the get_connection() method in the base class
         parsed = urlparse.urlsplit(url)
         (host, port, ssl_server_name) = self._lookup(parsed.netloc)
