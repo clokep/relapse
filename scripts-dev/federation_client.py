@@ -296,6 +296,7 @@ class MatrixConnectionAdapter(HTTPAdapter):
     def get_connection(
         self, url: Union[str, bytes], proxies: Optional[Mapping[str, str]] = None
     ) -> HTTPConnectionPool:
+        assert isinstance(url, str)
         # overrides the get_connection() method in the base class
         parsed = urlparse.urlsplit(url)
         (host, port, ssl_server_name) = self._lookup(parsed.netloc)
