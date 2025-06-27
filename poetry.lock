@@ -3678,4 +3678,4 @@ url-preview = ["lxml"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.9.2"
-content-hash = "5251900dfb642e5162abe18213f9b346cf20ed63a63c459a123eff4166318d30"
+content-hash = "981c42af5b93f8d9be341a2c06ef1f16251a58e81af311c8bd5f17e0d4de1cfe"

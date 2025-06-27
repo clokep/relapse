@@ -169,8 +169,8 @@ service-identity = ">=18.1.0"
 # Twisted 22.8.0 fixes compatibility with cryptography >= 37.
 Twisted = {extras = ["tls"], version = ">=22.8.0"}
 treq = ">=21.1.0"
-# Twisted has required pyopenssl 21.0 since about Twisted 25.5.0.
-pyOpenSSL = ">=21.0.0"
+# A version that is compatible with cryptography 44.x.
+pyOpenSSL = ">=24.3.0"
 PyYAML = ">=6.0"
 pyasn1 = ">=0.1.9"
 pyasn1-modules = ">=0.0.7"
