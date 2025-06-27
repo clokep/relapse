@@ -897,24 +897,14 @@ def set_cors_headers(request: "RelapseRequest") -> None:
     request.setHeader(
         b"Access-Control-Allow-Methods", b"GET, HEAD, POST, PUT, DELETE, OPTIONS"
     )
-    if request.experimental_cors_msc3886:
-        request.setHeader(
-            b"Access-Control-Allow-Headers",
-            b"X-Requested-With, Content-Type, Authorization, Date, If-Match, If-None-Match",
-        )
-        request.setHeader(
-            b"Access-Control-Expose-Headers",
-            b"ETag, Location, X-Max-Bytes",
-        )
-    else:
-        request.setHeader(
-            b"Access-Control-Allow-Headers",
-            b"X-Requested-With, Content-Type, Authorization, Date",
-        )
-        request.setHeader(
-            b"Access-Control-Expose-Headers",
-            b"Relapse-Trace-Id, Server",
-        )
+    request.setHeader(
+        b"Access-Control-Allow-Headers",
+        b"X-Requested-With, Content-Type, Authorization, Date",
+    )
+    request.setHeader(
+        b"Access-Control-Expose-Headers",
+        b"Relapse-Trace-Id, Server",
+    )
 
 
 def set_corp_headers(request: Request) -> None:

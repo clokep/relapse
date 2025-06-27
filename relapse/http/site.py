@@ -88,7 +88,6 @@ class RelapseRequest(Request):
         self.reactor = site.reactor
         self._channel = channel  # this is used by the tests
         self.start_time = 0.0
-        self.experimental_cors_msc3886 = site.experimental_cors_msc3886
 
         # The requester, if authenticated. For federation requests this is the
         # server name, for client requests this is the Requester object.
@@ -658,10 +657,6 @@ class RelapseSite(ProxySite):
         request_class = XForwardedForRequest if proxied else RelapseRequest
 
         request_id_header = config.http_options.request_id_header
-
-        self.experimental_cors_msc3886: bool = (
-            config.http_options.experimental_cors_msc3886
-        )
 
         def request_factory(channel: HTTPChannel, queued: bool) -> Request:
             return request_class(
