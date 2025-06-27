@@ -300,12 +300,7 @@ class FakeSite:
     site_tag = "test"
     access_logger = logging.getLogger("relapse.access.http.fake")
 
-    def __init__(
-        self,
-        resource: IResource,
-        reactor: IReactorTime,
-        experimental_cors_msc3886: bool = False,
-    ):
+    def __init__(self, resource: IResource, reactor: IReactorTime):
         """
 
         Args:
@@ -313,7 +308,6 @@ class FakeSite:
         """
         self._resource = resource
         self.reactor = reactor
-        self.experimental_cors_msc3886 = experimental_cors_msc3886
 
     def getResourceFor(self, request: Request) -> IResource:
         return self._resource

@@ -45,7 +45,6 @@ from relapse.rest.client import (
     receipts,
     register,
     relations,
-    rendezvous,
     report_event,
     room,
     room_keys,
@@ -146,5 +145,4 @@ class ClientRestResource(JsonResource):
         if is_main_process:
             mutual_rooms.register_servlets(hs, client_resource)
             login_token_request.register_servlets(hs, client_resource)
-            rendezvous.register_servlets(hs, client_resource)
             auth_issuer.register_servlets(hs, client_resource)
