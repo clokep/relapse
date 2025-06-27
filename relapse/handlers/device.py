@@ -707,8 +707,8 @@ class DeviceHandler(DeviceWorkerHandler):
         user_id: str,
         device_id: Optional[str],
         device_data: JsonDict,
+        keys_for_device: JsonDict,
         initial_device_display_name: Optional[str] = None,
-        keys_for_device: Optional[JsonDict] = None,
     ) -> str:
         """Store a dehydrated device for a user, optionally storing the keys associated with
         it as well.  If the user had a previous dehydrated device, it is removed.
@@ -738,49 +738,6 @@ class DeviceHandler(DeviceWorkerHandler):
             await self.delete_devices(user_id, [old_device_id])
 
         return device_id
-
-    async def rehydrate_device(
-        self, user_id: str, access_token: str, device_id: str
-    ) -> dict:
-        """Process a rehydration request from the user.
-
-        Args:
-            user_id: the user who is rehydrating the device
-            access_token: the access token used for the request
-            device_id: the ID of the device that will be rehydrated
-        Returns:
-            a dict containing {"success": True}
-        """
-        success = await self.store.remove_dehydrated_device(user_id, device_id)
-
-        if not success:
-            raise errors.NotFoundError()
-
-        # If the dehydrated device was successfully deleted (the device ID
-        # matched the stored dehydrated device), then modify the access
-        # token and refresh token to use the dehydrated device's ID and
-        # copy the old device display name to the dehydrated device,
-        # and destroy the old device ID
-        old_device_id = await self.store.set_device_for_access_token(
-            access_token, device_id
-        )
-        await self.store.set_device_for_refresh_token(user_id, old_device_id, device_id)
-        old_device = await self.store.get_device(user_id, old_device_id)
-        if old_device is None:
-            raise errors.NotFoundError()
-        await self.store.update_device(user_id, device_id, old_device["display_name"])
-        # can't call self.delete_device because that will clobber the
-        # access token so call the storage layer directly
-        await self.store.delete_devices(user_id, [old_device_id])
-        await self.store.delete_e2e_keys_by_device(
-            user_id=user_id, device_id=old_device_id
-        )
-
-        # tell everyone that the old device is gone and that the dehydrated
-        # device has a new display name
-        await self.notify_device_update(user_id, [old_device_id, device_id])
-
-        return {"success": True}
 
     async def delete_dehydrated_device(self, user_id: str, device_id: str) -> None:
         """
