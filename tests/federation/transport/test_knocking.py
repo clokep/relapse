@@ -12,21 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from collections import OrderedDict
-from typing import Dict, List
+from typing import Any, Optional
 
-from synapse.api.constants import EventTypes, JoinRules, Membership
-from synapse.api.room_versions import RoomVersions
-from synapse.events import builder
-from synapse.rest import admin
-from synapse.rest.client import login, room
-from synapse.server import HomeServer
-from synapse.types import RoomAlias
+from twisted.test.proto_helpers import MemoryReactor
+
+from relapse.api.constants import EventTypes, JoinRules, Membership
+from relapse.api.room_versions import RoomVersion, RoomVersions
+from relapse.events import EventBase, builder
+from relapse.events.snapshot import EventContext
+from relapse.rest import admin
+from relapse.rest.client import login, room
+from relapse.server import HomeServer
+from relapse.types import RoomAlias
+from relapse.util import Clock
 
 from tests.test_utils import event_injection
-from tests.unittest import FederatingHomeserverTestCase, TestCase
+from tests.unittest import FederatingHomeserverTestCase, HomeserverTestCase
 
 
-class KnockingStrippedStateEventHelperMixin(TestCase):
+class KnockingStrippedStateEventHelperMixin(HomeserverTestCase):
     def send_example_state_events_to_room(
         self,
         hs: "HomeServer",
@@ -49,7 +53,7 @@ class KnockingStrippedStateEventHelperMixin(TestCase):
         # To set a canonical alias, we'll need to point an alias at the room first.
         canonical_alias = "#fancy_alias:test"
         self.get_success(
-            self.store.create_room_alias_association(
+            self.hs.get_datastores().main.create_room_alias_association(
                 RoomAlias.from_string(canonical_alias), room_id, ["test"]
             )
         )
@@ -150,8 +154,8 @@ class KnockingStrippedStateEventHelperMixin(TestCase):
 
     def check_knock_room_state_against_room_state(
         self,
-        knock_room_state: List[Dict],
-        expected_room_state: Dict,
+        knock_room_state: list[dict],
+        expected_room_state: dict,
     ) -> None:
         """Test a list of stripped room state events received over federation against a
         dict of expected state events.
@@ -197,7 +201,9 @@ class FederationKnockingTestCase(
         login.register_servlets,
     ]
 
-    def prepare(self, reactor, clock, homeserver):
+    def prepare(
+        self, reactor: MemoryReactor, clock: Clock, homeserver: HomeServer
+    ) -> None:
         self.store = homeserver.get_datastores().main
 
         # We're not going to be properly signing events as our remote homeserver is fake,
@@ -205,23 +211,29 @@ class FederationKnockingTestCase(
         # Note that these checks are not relevant to this test case.
 
         # Have this homeserver auto-approve all event signature checking.
-        async def approve_all_signature_checking(_, pdu):
+        async def approve_all_signature_checking(
+            room_version: RoomVersion,
+            pdu: EventBase,
+            record_failure_callback: Any = None,
+        ) -> EventBase:
             return pdu
 
-        homeserver.get_federation_server()._check_sigs_and_hash = (
+        homeserver.get_federation_server()._check_sigs_and_hash = (  # type: ignore[method-assign]
             approve_all_signature_checking
         )
 
         # Have this homeserver skip event auth checks. This is necessary due to
         # event auth checks ensuring that events were signed by the sender's homeserver.
-        async def _check_event_auth(origin, event, context, *args, **kwargs):
-            return context
+        async def _check_event_auth(
+            origin: Optional[str], event: EventBase, context: EventContext
+        ) -> None:
+            pass
 
-        homeserver.get_federation_event_handler()._check_event_auth = _check_event_auth
+        homeserver.get_federation_event_handler()._check_event_auth = _check_event_auth  # type: ignore[method-assign]
 
         return super().prepare(reactor, clock, homeserver)
 
-    def test_room_state_returned_when_knocking(self):
+    def test_room_state_returned_when_knocking(self) -> None:
         """
         Tests that specific, stripped state events from a room are returned after
         a remote homeserver successfully knocks on a local room.
@@ -296,7 +308,7 @@ class FederationKnockingTestCase(
         self.assertEqual(200, channel.code, channel.result)
 
         # Check that we got the stripped room state in return
-        room_state_events = channel.json_body["knock_state_events"]
+        room_state_events = channel.json_body["knock_room_state"]
 
         # Validate the stripped room state events
         self.check_knock_room_state_against_room_state(

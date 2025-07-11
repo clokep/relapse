@@ -13,27 +13,25 @@
 # limitations under the License.
 
 import urllib.parse
-from http import HTTPStatus
-from typing import List
 
 from parameterized import parameterized
 
 from twisted.test.proto_helpers import MemoryReactor
+from twisted.web.resource import Resource
 
-import synapse.rest.admin
-from synapse.http.server import JsonResource
-from synapse.rest.admin import VersionServlet
-from synapse.rest.client import groups, login, room
-from synapse.server import HomeServer
-from synapse.util import Clock
+from relapse.http.server import JsonResource
+from relapse.rest import admin
+from relapse.rest.admin import VersionServlet
+from relapse.rest.client import login, room
+from relapse.server import HomeServer
+from relapse.util import Clock
 
 from tests import unittest
-from tests.server import FakeSite, make_request
 from tests.test_utils import SMALL_PNG
 
 
 class VersionTestCase(unittest.HomeserverTestCase):
-    url = "/_synapse/admin/v1/server_version"
+    url = "/_relapse/admin/v1/server_version"
 
     def create_test_resource(self) -> JsonResource:
         resource = JsonResource(self.hs)
@@ -43,134 +41,42 @@ class VersionTestCase(unittest.HomeserverTestCase):
     def test_version_string(self) -> None:
         channel = self.make_request("GET", self.url, shorthand=False)
 
-        self.assertEqual(HTTPStatus.OK, channel.code, msg=channel.json_body)
-        self.assertEqual(
-            {"server_version", "python_version"}, set(channel.json_body.keys())
-        )
-
-
-class DeleteGroupTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
-        login.register_servlets,
-        groups.register_servlets,
-    ]
-
-    def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
-        self.admin_user = self.register_user("admin", "pass", admin=True)
-        self.admin_user_tok = self.login("admin", "pass")
-
-        self.other_user = self.register_user("user", "pass")
-        self.other_user_token = self.login("user", "pass")
-
-    @unittest.override_config({"experimental_features": {"groups_enabled": True}})
-    def test_delete_group(self) -> None:
-        # Create a new group
-        channel = self.make_request(
-            "POST",
-            b"/create_group",
-            access_token=self.admin_user_tok,
-            content={"localpart": "test"},
-        )
-
-        self.assertEqual(HTTPStatus.OK, channel.code, msg=channel.json_body)
-
-        group_id = channel.json_body["group_id"]
-
-        self._check_group(group_id, expect_code=HTTPStatus.OK)
-
-        # Invite/join another user
-
-        url = "/groups/%s/admin/users/invite/%s" % (group_id, self.other_user)
-        channel = self.make_request(
-            "PUT", url.encode("ascii"), access_token=self.admin_user_tok, content={}
-        )
-        self.assertEqual(HTTPStatus.OK, channel.code, msg=channel.json_body)
-
-        url = "/groups/%s/self/accept_invite" % (group_id,)
-        channel = self.make_request(
-            "PUT", url.encode("ascii"), access_token=self.other_user_token, content={}
-        )
-        self.assertEqual(HTTPStatus.OK, channel.code, msg=channel.json_body)
-
-        # Check other user knows they're in the group
-        self.assertIn(group_id, self._get_groups_user_is_in(self.admin_user_tok))
-        self.assertIn(group_id, self._get_groups_user_is_in(self.other_user_token))
-
-        # Now delete the group
-        url = "/_synapse/admin/v1/delete_group/" + group_id
-        channel = self.make_request(
-            "POST",
-            url.encode("ascii"),
-            access_token=self.admin_user_tok,
-            content={"localpart": "test"},
-        )
-
-        self.assertEqual(HTTPStatus.OK, channel.code, msg=channel.json_body)
-
-        # Check group returns HTTPStatus.NOT_FOUND
-        self._check_group(group_id, expect_code=HTTPStatus.NOT_FOUND)
-
-        # Check users don't think they're in the group
-        self.assertNotIn(group_id, self._get_groups_user_is_in(self.admin_user_tok))
-        self.assertNotIn(group_id, self._get_groups_user_is_in(self.other_user_token))
-
-    def _check_group(self, group_id: str, expect_code: int) -> None:
-        """Assert that trying to fetch the given group results in the given
-        HTTP status code
-        """
-
-        url = "/groups/%s/profile" % (group_id,)
-        channel = self.make_request(
-            "GET", url.encode("ascii"), access_token=self.admin_user_tok
-        )
-
-        self.assertEqual(expect_code, channel.code, msg=channel.json_body)
-
-    def _get_groups_user_is_in(self, access_token: str) -> List[str]:
-        """Returns the list of groups the user is in (given their access token)"""
-        channel = self.make_request("GET", b"/joined_groups", access_token=access_token)
-
-        self.assertEqual(HTTPStatus.OK, channel.code, msg=channel.json_body)
-
-        return channel.json_body["groups"]
+        self.assertEqual(200, channel.code, msg=channel.json_body)
+        self.assertEqual({"server_version"}, set(channel.json_body.keys()))
 
 
 class QuarantineMediaTestCase(unittest.HomeserverTestCase):
     """Test /quarantine_media admin API."""
 
     servlets = [
-        synapse.rest.admin.register_servlets,
-        synapse.rest.admin.register_servlets_for_media_repo,
+        admin.register_servlets,
+        admin.register_servlets_for_media_repo,
         login.register_servlets,
         room.register_servlets,
     ]
 
-    def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
-        # Allow for uploading and downloading to/from the media repo
-        self.media_repo = hs.get_media_repository_resource()
-        self.download_resource = self.media_repo.children[b"download"]
-        self.upload_resource = self.media_repo.children[b"upload"]
+    def create_resource_dict(self) -> dict[str, Resource]:
+        resources = super().create_resource_dict()
+        resources["/_matrix/media"] = self.hs.get_media_repository_resource()
+        return resources
 
     def _ensure_quarantined(
         self, admin_user_tok: str, server_and_media_id: str
     ) -> None:
         """Ensure a piece of media is quarantined when trying to access it."""
-        channel = make_request(
-            self.reactor,
-            FakeSite(self.download_resource, self.reactor),
+        channel = self.make_request(
             "GET",
-            server_and_media_id,
+            f"/_matrix/media/v3/download/{server_and_media_id}",
             shorthand=False,
             access_token=admin_user_tok,
         )
 
         # Should be quarantined
         self.assertEqual(
-            HTTPStatus.NOT_FOUND,
+            404,
             channel.code,
             msg=(
-                "Expected to receive a HTTPStatus.NOT_FOUND on accessing quarantined media: %s"
+                "Expected to receive a 404 on accessing quarantined media: %s"
                 % server_and_media_id
             ),
         )
@@ -178,9 +84,9 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
     @parameterized.expand(
         [
             # Attempt quarantine media APIs as non-admin
-            "/_synapse/admin/v1/media/quarantine/example.org/abcde12345",
+            "/_relapse/admin/v1/media/quarantine/example.org/abcde12345",
             # And the roomID/userID endpoint
-            "/_synapse/admin/v1/room/!room%3Aexample.com/media/quarantine",
+            "/_relapse/admin/v1/room/!room%3Aexample.com/media/quarantine",
         ]
     )
     def test_quarantine_media_requires_admin(self, url: str) -> None:
@@ -195,7 +101,7 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
 
         # Expect a forbidden error
         self.assertEqual(
-            HTTPStatus.FORBIDDEN,
+            403,
             channel.code,
             msg="Expected forbidden on quarantining media as a non-admin",
         )
@@ -208,29 +114,25 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
         non_admin_user_tok = self.login("id_nonadmin", "pass")
 
         # Upload some media into the room
-        response = self.helper.upload_media(
-            self.upload_resource, SMALL_PNG, tok=admin_user_tok
-        )
+        response = self.helper.upload_media(SMALL_PNG, tok=admin_user_tok)
 
         # Extract media ID from the response
         server_name_and_media_id = response["content_uri"][6:]  # Cut off 'mxc://'
         server_name, media_id = server_name_and_media_id.split("/")
 
         # Attempt to access the media
-        channel = make_request(
-            self.reactor,
-            FakeSite(self.download_resource, self.reactor),
+        channel = self.make_request(
             "GET",
-            server_name_and_media_id,
+            f"/_matrix/media/v3/download/{server_name_and_media_id}",
             shorthand=False,
             access_token=non_admin_user_tok,
         )
 
         # Should be successful
-        self.assertEqual(HTTPStatus.OK, channel.code)
+        self.assertEqual(200, channel.code)
 
         # Quarantine the media
-        url = "/_synapse/admin/v1/media/quarantine/%s/%s" % (
+        url = "/_relapse/admin/v1/media/quarantine/%s/%s" % (
             urllib.parse.quote(server_name),
             urllib.parse.quote(media_id),
         )
@@ -240,7 +142,7 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
             access_token=admin_user_tok,
         )
         self.pump(1.0)
-        self.assertEqual(HTTPStatus.OK, channel.code, msg=channel.json_body)
+        self.assertEqual(200, channel.code, msg=channel.json_body)
 
         # Attempt to access the media
         self._ensure_quarantined(admin_user_tok, server_name_and_media_id)
@@ -248,9 +150,9 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
     @parameterized.expand(
         [
             # regular API path
-            "/_synapse/admin/v1/room/%s/media/quarantine",
+            "/_relapse/admin/v1/room/%s/media/quarantine",
             # deprecated API path
-            "/_synapse/admin/v1/quarantine_media/%s",
+            "/_relapse/admin/v1/quarantine_media/%s",
         ]
     )
     def test_quarantine_all_media_in_room(self, url: str) -> None:
@@ -264,12 +166,8 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
         self.helper.join(room_id, non_admin_user, tok=non_admin_user_tok)
 
         # Upload some media
-        response_1 = self.helper.upload_media(
-            self.upload_resource, SMALL_PNG, tok=non_admin_user_tok
-        )
-        response_2 = self.helper.upload_media(
-            self.upload_resource, SMALL_PNG, tok=non_admin_user_tok
-        )
+        response_1 = self.helper.upload_media(SMALL_PNG, tok=non_admin_user_tok)
+        response_2 = self.helper.upload_media(SMALL_PNG, tok=non_admin_user_tok)
 
         # Extract mxcs
         mxc_1 = response_1["content_uri"]
@@ -297,7 +195,7 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
             access_token=admin_user_tok,
         )
         self.pump(1.0)
-        self.assertEqual(HTTPStatus.OK, channel.code, msg=channel.json_body)
+        self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertEqual(
             channel.json_body, {"num_quarantined": 2}, "Expected 2 quarantined items"
         )
@@ -318,19 +216,15 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
         non_admin_user_tok = self.login("user_nonadmin", "pass")
 
         # Upload some media
-        response_1 = self.helper.upload_media(
-            self.upload_resource, SMALL_PNG, tok=non_admin_user_tok
-        )
-        response_2 = self.helper.upload_media(
-            self.upload_resource, SMALL_PNG, tok=non_admin_user_tok
-        )
+        response_1 = self.helper.upload_media(SMALL_PNG, tok=non_admin_user_tok)
+        response_2 = self.helper.upload_media(SMALL_PNG, tok=non_admin_user_tok)
 
         # Extract media IDs
         server_and_media_id_1 = response_1["content_uri"][6:]
         server_and_media_id_2 = response_2["content_uri"][6:]
 
         # Quarantine all media by this user
-        url = "/_synapse/admin/v1/user/%s/media/quarantine" % urllib.parse.quote(
+        url = "/_relapse/admin/v1/user/%s/media/quarantine" % urllib.parse.quote(
             non_admin_user
         )
         channel = self.make_request(
@@ -339,7 +233,7 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
             access_token=admin_user_tok,
         )
         self.pump(1.0)
-        self.assertEqual(HTTPStatus.OK, channel.code, msg=channel.json_body)
+        self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertEqual(
             channel.json_body, {"num_quarantined": 2}, "Expected 2 quarantined items"
         )
@@ -356,12 +250,8 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
         non_admin_user_tok = self.login("user_nonadmin", "pass")
 
         # Upload some media
-        response_1 = self.helper.upload_media(
-            self.upload_resource, SMALL_PNG, tok=non_admin_user_tok
-        )
-        response_2 = self.helper.upload_media(
-            self.upload_resource, SMALL_PNG, tok=non_admin_user_tok
-        )
+        response_1 = self.helper.upload_media(SMALL_PNG, tok=non_admin_user_tok)
+        response_2 = self.helper.upload_media(SMALL_PNG, tok=non_admin_user_tok)
 
         # Extract media IDs
         server_and_media_id_1 = response_1["content_uri"][6:]
@@ -370,13 +260,13 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
         # Mark the second item as safe from quarantine.
         _, media_id_2 = server_and_media_id_2.split("/")
         # Quarantine the media
-        url = "/_synapse/admin/v1/media/protect/%s" % (urllib.parse.quote(media_id_2),)
+        url = "/_relapse/admin/v1/media/protect/%s" % (urllib.parse.quote(media_id_2),)
         channel = self.make_request("POST", url, access_token=admin_user_tok)
         self.pump(1.0)
-        self.assertEqual(HTTPStatus.OK, channel.code, msg=channel.json_body)
+        self.assertEqual(200, channel.code, msg=channel.json_body)
 
         # Quarantine all media by this user
-        url = "/_synapse/admin/v1/user/%s/media/quarantine" % urllib.parse.quote(
+        url = "/_relapse/admin/v1/user/%s/media/quarantine" % urllib.parse.quote(
             non_admin_user
         )
         channel = self.make_request(
@@ -385,7 +275,7 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
             access_token=admin_user_tok,
         )
         self.pump(1.0)
-        self.assertEqual(HTTPStatus.OK, channel.code, msg=channel.json_body)
+        self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertEqual(
             channel.json_body, {"num_quarantined": 1}, "Expected 1 quarantined item"
         )
@@ -395,21 +285,19 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
         self._ensure_quarantined(admin_user_tok, server_and_media_id_1)
 
         # Attempt to access each piece of media
-        channel = make_request(
-            self.reactor,
-            FakeSite(self.download_resource, self.reactor),
+        channel = self.make_request(
             "GET",
-            server_and_media_id_2,
+            f"/_matrix/media/v3/download/{server_and_media_id_2}",
             shorthand=False,
             access_token=non_admin_user_tok,
         )
 
         # Shouldn't be quarantined
         self.assertEqual(
-            HTTPStatus.OK,
+            200,
             channel.code,
             msg=(
-                "Expected to receive a HTTPStatus.OK on accessing not-quarantined media: %s"
+                "Expected to receive a 200 on accessing not-quarantined media: %s"
                 % server_and_media_id_2
             ),
         )
@@ -417,7 +305,7 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
 
 class PurgeHistoryTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        admin.register_servlets,
         login.register_servlets,
         room.register_servlets,
     ]
@@ -432,13 +320,13 @@ class PurgeHistoryTestCase(unittest.HomeserverTestCase):
         self.room_id = self.helper.create_room_as(
             self.other_user, tok=self.other_user_tok
         )
-        self.url = f"/_synapse/admin/v1/purge_history/{self.room_id}"
-        self.url_status = "/_synapse/admin/v1/purge_history_status/"
+        self.url = f"/_relapse/admin/v1/purge_history/{self.room_id}"
+        self.url_status = "/_relapse/admin/v1/purge_history_status/"
 
     def test_purge_history(self) -> None:
         """
         Simple test of purge history API.
-        Test only that is is possible to call, get status HTTPStatus.OK and purge_id.
+        Test only that is is possible to call, get status 200 and purge_id.
         """
 
         channel = self.make_request(
@@ -448,7 +336,7 @@ class PurgeHistoryTestCase(unittest.HomeserverTestCase):
             access_token=self.admin_user_tok,
         )
 
-        self.assertEqual(HTTPStatus.OK, channel.code, msg=channel.json_body)
+        self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertIn("purge_id", channel.json_body)
         purge_id = channel.json_body["purge_id"]
 
@@ -459,5 +347,128 @@ class PurgeHistoryTestCase(unittest.HomeserverTestCase):
             access_token=self.admin_user_tok,
         )
 
-        self.assertEqual(HTTPStatus.OK, channel.code, msg=channel.json_body)
+        self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertEqual("complete", channel.json_body["status"])
+
+
+class ExperimentalFeaturesTestCase(unittest.HomeserverTestCase):
+    servlets = [
+        admin.register_servlets,
+        login.register_servlets,
+    ]
+
+    def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
+        self.admin_user = self.register_user("admin", "pass", admin=True)
+        self.admin_user_tok = self.login("admin", "pass")
+
+        self.other_user = self.register_user("user", "pass")
+        self.other_user_tok = self.login("user", "pass")
+
+        self.url = "/_relapse/admin/v1/experimental_features"
+
+    def test_enable_and_disable(self) -> None:
+        """
+        Test basic functionality of ExperimentalFeatures endpoint
+        """
+        # test enabling features works
+        url = f"{self.url}/{self.other_user}"
+        channel = self.make_request(
+            "PUT",
+            url,
+            content={
+                "features": {"msc3026": True, "msc3881": True},
+            },
+            access_token=self.admin_user_tok,
+        )
+        self.assertEqual(channel.code, 200)
+
+        # list which features are enabled and ensure the ones we enabled are listed
+        self.assertEqual(channel.code, 200)
+        url = f"{self.url}/{self.other_user}"
+        channel = self.make_request(
+            "GET",
+            url,
+            access_token=self.admin_user_tok,
+        )
+        self.assertEqual(channel.code, 200)
+        self.assertEqual(
+            True,
+            channel.json_body["features"]["msc3026"],
+        )
+        self.assertEqual(
+            True,
+            channel.json_body["features"]["msc3881"],
+        )
+
+        # test disabling a feature works
+        url = f"{self.url}/{self.other_user}"
+        channel = self.make_request(
+            "PUT",
+            url,
+            content={"features": {"msc3026": False}},
+            access_token=self.admin_user_tok,
+        )
+        self.assertEqual(channel.code, 200)
+
+        # list the features enabled/disabled and ensure they are still are correct
+        self.assertEqual(channel.code, 200)
+        url = f"{self.url}/{self.other_user}"
+        channel = self.make_request(
+            "GET",
+            url,
+            access_token=self.admin_user_tok,
+        )
+        self.assertEqual(channel.code, 200)
+        self.assertEqual(
+            False,
+            channel.json_body["features"]["msc3026"],
+        )
+        self.assertEqual(
+            True,
+            channel.json_body["features"]["msc3881"],
+        )
+        self.assertEqual(
+            False,
+            channel.json_body["features"]["msc3967"],
+        )
+
+        # test nothing blows up if you try to disable a feature that isn't already enabled
+        url = f"{self.url}/{self.other_user}"
+        channel = self.make_request(
+            "PUT",
+            url,
+            content={"features": {"msc3026": False}},
+            access_token=self.admin_user_tok,
+        )
+        self.assertEqual(channel.code, 200)
+
+        # test trying to enable a feature without an admin access token is denied
+        url = f"{self.url}/f{self.other_user}"
+        channel = self.make_request(
+            "PUT",
+            url,
+            content={"features": {"msc3881": True}},
+            access_token=self.other_user_tok,
+        )
+        self.assertEqual(channel.code, 403)
+        self.assertEqual(
+            channel.json_body,
+            {"errcode": "M_FORBIDDEN", "error": "You are not a server admin"},
+        )
+
+        # test trying to enable a bogus msc is denied
+        url = f"{self.url}/{self.other_user}"
+        channel = self.make_request(
+            "PUT",
+            url,
+            content={"features": {"msc6666": True}},
+            access_token=self.admin_user_tok,
+        )
+        self.assertEqual(channel.code, 400)
+        self.assertEqual(
+            channel.json_body,
+            {
+                "errcode": "M_UNKNOWN",
+                "error": "'msc6666' is not recognised as a valid experimental feature.",
+            },
+        )

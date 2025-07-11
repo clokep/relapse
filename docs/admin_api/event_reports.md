@@ -3,11 +3,11 @@
 This API returns information about reported events.
 
 To use it, you will need to authenticate by providing an `access_token`
-for a server admin: see [Admin API](../usage/administration/admin_api).
+for a server admin: see [Admin API](../usage/administration/admin_api/).
 
 The api is:
 ```
-GET /_synapse/admin/v1/event_reports?from=0&limit=10
+GET /_relapse/admin/v1/event_reports?from=0&limit=10
 ```
 
 It returns a JSON body like the following:
@@ -93,7 +93,7 @@ This API returns information about a specific event report.
 
 The api is:
 ```
-GET /_synapse/admin/v1/event_reports/<report_id>
+GET /_relapse/admin/v1/event_reports/<report_id>
 ```
 
 It returns a JSON body like the following:
@@ -169,3 +169,17 @@ The following fields are returned in the JSON response body:
 * `canonical_alias`: string - The canonical alias of the room. `null` if the room does not
   have a canonical alias set.
 * `event_json`: object - Details of the original event that was reported.
+
+# Delete a specific event report
+
+This API deletes a specific event report. If the request is successful, the response body
+will be an empty JSON object.
+
+The api is:
+```
+DELETE /_relapse/admin/v1/event_reports/<report_id>
+```
+
+**URL parameters:**
+
+* `report_id`: string - The ID of the event report.

@@ -1,10 +1,15 @@
-# This file contains the base for the shared homeserver config file between Synapse workers,
+# This file contains the base for the shared homeserver config file between Relapse workers,
 # as part of ./Dockerfile-workers.
 # configure_workers_and_start.py uses and amends to this file depending on the workers
 # that have been selected.
 
+{% if enable_redis %}
 redis:
     enabled: true
+    {% if using_unix_sockets %}
+    path: /tmp/redis.sock
+    {% endif %}
+{% endif %}
 
 {% if appservice_registrations is not none %}
 ## Application Services ##

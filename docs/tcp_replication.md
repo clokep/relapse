@@ -24,8 +24,8 @@ with the `SERVER` command, followed by the client server to respond with the
 position of all streams. The server then periodically sends `RDATA` commands
 which have the format `RDATA <stream_name> <instance_name> <token> <row>`, where
 the format of `<row>` is defined by the individual streams. The
-`<instance_name>` is the name of the Synapse process that generated the data
-(usually "master").
+`<instance_name>` is the name of the Relapse process that generated the data
+(usually "master"). We expect an RDATA for every row in the DB.
 
 Error reporting happens by either the client or server sending an ERROR
 command, and usually the connection will be closed.
@@ -38,7 +38,7 @@ noted when manually using the protocol:
     been disabled on the main process.
 -   The server will only time connections out that have sent a `PING`
     command. If a ping is sent then the connection will be closed if no
-    further commands are receieved within 15s. Both the client and
+    further commands are received within 15s. Both the client and
     server protocol implementations will send an initial PING on
     connection and ensure at least one command every 5s is sent (not
     necessarily `PING`).
@@ -107,7 +107,7 @@ reconnect, following the steps above.
 If the server sends messages faster than the client can consume them the
 server will first buffer a (fairly large) number of commands and then
 disconnect the client. This ensures that we don't queue up an unbounded
-number of commands in memory and gives us a potential oppurtunity to
+number of commands in memory and gives us a potential opportunity to
 squawk loudly. When/if the client recovers it can reconnect to the
 server and ask for missed messages.
 
@@ -122,20 +122,20 @@ since these include tokens which can be used to restart the stream on
 connection errors.
 
 The client should keep track of the token in the last RDATA command
-received for each stream so that on reconneciton it can start streaming
+received for each stream so that on reconnection it can start streaming
 from the correct place. Note: not all RDATA have valid tokens due to
 batching. See `RdataCommand` for more details.
 
 ### Example
 
-An example iteraction is shown below. Each line is prefixed with '>'
+An example interaction is shown below. Each line is prefixed with '>'
 or '<' to indicate which side is sending, these are *not* included on
 the wire:
 
     * connection established *
     > SERVER localhost:8823
     > PING 1490197665618
-    < NAME synapse.app.appservice
+    < NAME relapse.app.appservice
     < PING 1490197665618
     < REPLICATE
     > POSITION events master 1 1
@@ -188,7 +188,8 @@ client (C):
    Two positions are included, the "new" position and the last position sent respectively.
    This allows servers to tell instances that the positions have advanced but no
    data has been written, without clients needlessly checking to see if they
-   have missed any updates.
+   have missed any updates. Instances will only fetch stuff if there is a gap between
+   their current position and the given last position.
 
 #### ERROR (S, C)
 
@@ -224,7 +225,7 @@ Asks the server for the current position of all streams.
 
    Inform other processes that a remote server may have come back online.
 
-See `synapse/replication/tcp/commands.py` for a detailed description and
+See `relapse/replication/tcp/commands.py` for a detailed description and
 the format of each command.
 
 ### Cache Invalidation Stream
@@ -251,7 +252,7 @@ invalidations into a single poke by defining a special cache name that
 workers understand to mean to expand to invalidate the correct caches.
 
 Currently the special cache names are declared in
-`synapse/storage/_base.py` and are:
+`relapse/storage/_base.py` and are:
 
 1.  `cs_cache_fake` ─ invalidates caches that depend on the current
     state

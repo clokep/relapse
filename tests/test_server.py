@@ -13,48 +13,49 @@
 # limitations under the License.
 
 import re
+from collections.abc import Awaitable
 from http import HTTPStatus
-from typing import Tuple
+from typing import Callable, NoReturn, Optional
 
 from twisted.internet.defer import Deferred
 from twisted.web.resource import Resource
 
-from synapse.api.errors import Codes, RedirectException, SynapseError
-from synapse.config.server import parse_listener_def
-from synapse.http.server import (
+from relapse.api.errors import Codes, RedirectException, RelapseError
+from relapse.config.server import parse_listener_def
+from relapse.http.server import (
     DirectServeHtmlResource,
     DirectServeJsonResource,
     JsonResource,
     OptionsResource,
-    cancellable,
 )
-from synapse.http.site import SynapseRequest, SynapseSite
-from synapse.logging.context import make_deferred_yieldable
-from synapse.types import JsonDict
-from synapse.util import Clock
+from relapse.http.site import RelapseRequest, RelapseSite
+from relapse.logging.context import make_deferred_yieldable
+from relapse.types import JsonDict
+from relapse.util import Clock
+from relapse.util.cancellation import cancellable
 
 from tests import unittest
-from tests.http.server._base import EndpointCancellationTestHelperMixin
+from tests.http.server._base import test_disconnect
 from tests.server import (
+    FakeChannel,
     FakeSite,
-    ThreadedMemoryReactorClock,
+    get_clock,
     make_request,
     setup_test_homeserver,
 )
 
 
 class JsonResourceTests(unittest.TestCase):
-    def setUp(self):
-        self.reactor = ThreadedMemoryReactorClock()
-        self.hs_clock = Clock(self.reactor)
+    def setUp(self) -> None:
+        reactor, clock = get_clock()
+        self.reactor = reactor
         self.homeserver = setup_test_homeserver(
             self.addCleanup,
-            federation_http_client=None,
-            clock=self.hs_clock,
+            clock=clock,
             reactor=self.reactor,
         )
 
-    def test_handler_for_request(self):
+    def test_handler_for_request(self) -> None:
         """
         JsonResource.handler_for_request gives correctly decoded URL args to
         the callback, while Twisted will give the raw bytes of URL query
@@ -62,7 +63,9 @@ class JsonResourceTests(unittest.TestCase):
         """
         got_kwargs = {}
 
-        def _callback(request, **kwargs):
+        def _callback(
+            request: RelapseRequest, **kwargs: object
+        ) -> tuple[int, dict[str, object]]:
             got_kwargs.update(kwargs)
             return 200, kwargs
 
@@ -83,13 +86,13 @@ class JsonResourceTests(unittest.TestCase):
 
         self.assertEqual(got_kwargs, {"room_id": "\N{SNOWMAN}"})
 
-    def test_callback_direct_exception(self):
+    def test_callback_direct_exception(self) -> None:
         """
         If the web callback raises an uncaught exception, it will be translated
         into a 500.
         """
 
-        def _callback(request, **kwargs):
+        def _callback(request: RelapseRequest, **kwargs: object) -> NoReturn:
             raise Exception("boo")
 
         res = JsonResource(self.homeserver)
@@ -101,19 +104,19 @@ class JsonResourceTests(unittest.TestCase):
             self.reactor, FakeSite(res, self.reactor), b"GET", b"/_matrix/foo"
         )
 
-        self.assertEqual(channel.result["code"], b"500")
+        self.assertEqual(channel.code, 500)
 
-    def test_callback_indirect_exception(self):
+    def test_callback_indirect_exception(self) -> None:
         """
         If the web callback raises an uncaught exception in a Deferred, it will
         be translated into a 500.
         """
 
-        def _throw(*args):
+        def _throw(*args: object) -> NoReturn:
             raise Exception("boo")
 
-        def _callback(request, **kwargs):
-            d = Deferred()
+        def _callback(request: RelapseRequest, **kwargs: object) -> "Deferred[None]":
+            d: "Deferred[None]" = Deferred()
             d.addCallback(_throw)
             self.reactor.callLater(0.5, d.callback, True)
             return make_deferred_yieldable(d)
@@ -127,16 +130,16 @@ class JsonResourceTests(unittest.TestCase):
             self.reactor, FakeSite(res, self.reactor), b"GET", b"/_matrix/foo"
         )
 
-        self.assertEqual(channel.result["code"], b"500")
+        self.assertEqual(channel.code, 500)
 
-    def test_callback_synapseerror(self):
+    def test_callback_relapseerror(self) -> None:
         """
-        If the web callback raises a SynapseError, it returns the appropriate
+        If the web callback raises a RelapseError, it returns the appropriate
         status code and message set in it.
         """
 
-        def _callback(request, **kwargs):
-            raise SynapseError(403, "Forbidden!!one!", Codes.FORBIDDEN)
+        def _callback(request: RelapseRequest, **kwargs: object) -> NoReturn:
+            raise RelapseError(403, "Forbidden!!one!", Codes.FORBIDDEN)
 
         res = JsonResource(self.homeserver)
         res.register_paths(
@@ -147,16 +150,16 @@ class JsonResourceTests(unittest.TestCase):
             self.reactor, FakeSite(res, self.reactor), b"GET", b"/_matrix/foo"
         )
 
-        self.assertEqual(channel.result["code"], b"403")
+        self.assertEqual(channel.code, 403)
         self.assertEqual(channel.json_body["error"], "Forbidden!!one!")
         self.assertEqual(channel.json_body["errcode"], "M_FORBIDDEN")
 
-    def test_no_handler(self):
+    def test_no_handler(self) -> None:
         """
-        If there is no handler to process the request, Synapse will return 400.
+        If there is no handler to process the request, Relapse will return 400.
         """
 
-        def _callback(request, **kwargs):
+        def _callback(request: RelapseRequest, **kwargs: object) -> None:
             """
             Not ever actually called!
             """
@@ -171,18 +174,20 @@ class JsonResourceTests(unittest.TestCase):
             self.reactor, FakeSite(res, self.reactor), b"GET", b"/_matrix/foobar"
         )
 
-        self.assertEqual(channel.result["code"], b"400")
+        self.assertEqual(channel.code, 404)
         self.assertEqual(channel.json_body["error"], "Unrecognized request")
         self.assertEqual(channel.json_body["errcode"], "M_UNRECOGNIZED")
 
-    def test_head_request(self):
+    def test_head_request(self) -> None:
         """
         JsonResource.handler_for_request gives correctly decoded URL args to
         the callback, while Twisted will give the raw bytes of URL query
         arguments.
         """
 
-        def _callback(request, **kwargs):
+        def _callback(
+            request: RelapseRequest, **kwargs: object
+        ) -> tuple[int, dict[str, object]]:
             return 200, {"result": True}
 
         res = JsonResource(self.homeserver)
@@ -198,105 +203,120 @@ class JsonResourceTests(unittest.TestCase):
             self.reactor, FakeSite(res, self.reactor), b"HEAD", b"/_matrix/foo"
         )
 
-        self.assertEqual(channel.result["code"], b"200")
+        self.assertEqual(channel.code, 200)
         self.assertNotIn("body", channel.result)
 
 
 class OptionsResourceTests(unittest.TestCase):
-    def setUp(self):
-        self.reactor = ThreadedMemoryReactorClock()
+    def setUp(self) -> None:
+        reactor, clock = get_clock()
+        self.reactor = reactor
+        self.homeserver = setup_test_homeserver(
+            self.addCleanup,
+            clock=clock,
+            reactor=self.reactor,
+        )
 
         class DummyResource(Resource):
             isLeaf = True
 
-            def render(self, request):
-                return request.path
+            def render(self, request: RelapseRequest) -> bytes:
+                # Type-ignore: mypy thinks request.path is Optional[Any], not bytes.
+                return request.path  # type: ignore[return-value]
 
         # Setup a resource with some children.
         self.resource = OptionsResource()
         self.resource.putChild(b"res", DummyResource())
 
-    def _make_request(self, method, path):
+    def _make_request(self, method: bytes, path: bytes) -> FakeChannel:
         """Create a request from the method/path and return a channel with the response."""
         # Create a site and query for the resource.
-        site = SynapseSite(
+        site = RelapseSite(
             "test",
             "site_tag",
-            parse_listener_def({"type": "http", "port": 0}),
+            parse_listener_def(
+                0,
+                {
+                    "type": "http",
+                    "port": 0,
+                },
+            ),
             self.resource,
             "1.0",
-            max_request_body_size=1234,
+            max_request_body_size=4096,
             reactor=self.reactor,
+            hs=self.homeserver,
         )
 
         # render the request and return the channel
         channel = make_request(self.reactor, site, method, path, shorthand=False)
         return channel
 
-    def test_unknown_options_request(self):
+    def _check_cors_standard_headers(self, channel: FakeChannel) -> None:
+        # Ensure the correct CORS headers have been added
+        # as per https://spec.matrix.org/v1.4/client-server-api/#web-browser-clients
+        self.assertEqual(
+            channel.headers.getRawHeaders(b"Access-Control-Allow-Origin"),
+            [b"*"],
+            "has correct CORS Origin header",
+        )
+        self.assertEqual(
+            channel.headers.getRawHeaders(b"Access-Control-Allow-Methods"),
+            [b"GET, HEAD, POST, PUT, DELETE, OPTIONS"],  # HEAD isn't in the spec
+            "has correct CORS Methods header",
+        )
+        self.assertEqual(
+            channel.headers.getRawHeaders(b"Access-Control-Allow-Headers"),
+            [b"X-Requested-With, Content-Type, Authorization, Date"],
+            "has correct CORS Headers header",
+        )
+        self.assertEqual(
+            channel.headers.getRawHeaders(b"Access-Control-Expose-Headers"),
+            [b"Relapse-Trace-Id, Server"],
+        )
+
+    def test_unknown_options_request(self) -> None:
         """An OPTIONS requests to an unknown URL still returns 204 No Content."""
         channel = self._make_request(b"OPTIONS", b"/foo/")
-        self.assertEqual(channel.result["code"], b"204")
+        self.assertEqual(channel.code, 204)
         self.assertNotIn("body", channel.result)
 
-        # Ensure the correct CORS headers have been added
-        self.assertTrue(
-            channel.headers.hasHeader(b"Access-Control-Allow-Origin"),
-            "has CORS Origin header",
-        )
-        self.assertTrue(
-            channel.headers.hasHeader(b"Access-Control-Allow-Methods"),
-            "has CORS Methods header",
-        )
-        self.assertTrue(
-            channel.headers.hasHeader(b"Access-Control-Allow-Headers"),
-            "has CORS Headers header",
-        )
+        self._check_cors_standard_headers(channel)
 
-    def test_known_options_request(self):
+    def test_known_options_request(self) -> None:
         """An OPTIONS requests to an known URL still returns 204 No Content."""
         channel = self._make_request(b"OPTIONS", b"/res/")
-        self.assertEqual(channel.result["code"], b"204")
+        self.assertEqual(channel.code, 204)
         self.assertNotIn("body", channel.result)
 
-        # Ensure the correct CORS headers have been added
-        self.assertTrue(
-            channel.headers.hasHeader(b"Access-Control-Allow-Origin"),
-            "has CORS Origin header",
-        )
-        self.assertTrue(
-            channel.headers.hasHeader(b"Access-Control-Allow-Methods"),
-            "has CORS Methods header",
-        )
-        self.assertTrue(
-            channel.headers.hasHeader(b"Access-Control-Allow-Headers"),
-            "has CORS Headers header",
-        )
+        self._check_cors_standard_headers(channel)
 
-    def test_unknown_request(self):
+    def test_unknown_request(self) -> None:
         """A non-OPTIONS request to an unknown URL should 404."""
         channel = self._make_request(b"GET", b"/foo/")
-        self.assertEqual(channel.result["code"], b"404")
+        self.assertEqual(channel.code, 404)
 
-    def test_known_request(self):
+    def test_known_request(self) -> None:
         """A non-OPTIONS request to an known URL should query the proper resource."""
         channel = self._make_request(b"GET", b"/res/")
-        self.assertEqual(channel.result["code"], b"200")
+        self.assertEqual(channel.code, 200)
         self.assertEqual(channel.result["body"], b"/res/")
 
 
 class WrapHtmlRequestHandlerTests(unittest.TestCase):
     class TestResource(DirectServeHtmlResource):
-        callback = None
+        callback: Optional[Callable[..., Awaitable[None]]]
 
-        async def _async_render_GET(self, request):
+        async def _async_render_GET(self, request: RelapseRequest) -> None:
+            assert self.callback is not None
             await self.callback(request)
 
-    def setUp(self):
-        self.reactor = ThreadedMemoryReactorClock()
+    def setUp(self) -> None:
+        reactor, _ = get_clock()
+        self.reactor = reactor
 
-    def test_good_response(self):
-        async def callback(request):
+    def test_good_response(self) -> None:
+        async def callback(request: RelapseRequest) -> None:
             request.write(b"response")
             request.finish()
 
@@ -307,17 +327,17 @@ class WrapHtmlRequestHandlerTests(unittest.TestCase):
             self.reactor, FakeSite(res, self.reactor), b"GET", b"/path"
         )
 
-        self.assertEqual(channel.result["code"], b"200")
+        self.assertEqual(channel.code, 200)
         body = channel.result["body"]
         self.assertEqual(body, b"response")
 
-    def test_redirect_exception(self):
+    def test_redirect_exception(self) -> None:
         """
         If the callback raises a RedirectException, it is turned into a 30x
         with the right location.
         """
 
-        async def callback(request, **kwargs):
+        async def callback(request: RelapseRequest, **kwargs: object) -> None:
             raise RedirectException(b"/look/an/eagle", 301)
 
         res = WrapHtmlRequestHandlerTests.TestResource()
@@ -327,18 +347,17 @@ class WrapHtmlRequestHandlerTests(unittest.TestCase):
             self.reactor, FakeSite(res, self.reactor), b"GET", b"/path"
         )
 
-        self.assertEqual(channel.result["code"], b"301")
-        headers = channel.result["headers"]
-        location_headers = [v for k, v in headers if k == b"Location"]
+        self.assertEqual(channel.code, 301)
+        location_headers = channel.headers.getRawHeaders(b"Location")
         self.assertEqual(location_headers, [b"/look/an/eagle"])
 
-    def test_redirect_exception_with_cookie(self):
+    def test_redirect_exception_with_cookie(self) -> None:
         """
         If the callback raises a RedirectException which sets a cookie, that is
         returned too
         """
 
-        async def callback(request, **kwargs):
+        async def callback(request: RelapseRequest, **kwargs: object) -> NoReturn:
             e = RedirectException(b"/no/over/there", 304)
             e.cookies.append(b"session=yespls")
             raise e
@@ -350,17 +369,16 @@ class WrapHtmlRequestHandlerTests(unittest.TestCase):
             self.reactor, FakeSite(res, self.reactor), b"GET", b"/path"
         )
 
-        self.assertEqual(channel.result["code"], b"304")
-        headers = channel.result["headers"]
-        location_headers = [v for k, v in headers if k == b"Location"]
+        self.assertEqual(channel.code, 304)
+        location_headers = channel.headers.getRawHeaders(b"Location")
         self.assertEqual(location_headers, [b"/no/over/there"])
-        cookies_headers = [v for k, v in headers if k == b"Set-Cookie"]
+        cookies_headers = channel.headers.getRawHeaders(b"Set-Cookie")
         self.assertEqual(cookies_headers, [b"session=yespls"])
 
-    def test_head_request(self):
+    def test_head_request(self) -> None:
         """A head request should work by being turned into a GET request."""
 
-        async def callback(request):
+        async def callback(request: RelapseRequest) -> None:
             request.write(b"response")
             request.finish()
 
@@ -371,7 +389,7 @@ class WrapHtmlRequestHandlerTests(unittest.TestCase):
             self.reactor, FakeSite(res, self.reactor), b"HEAD", b"/path"
         )
 
-        self.assertEqual(channel.result["code"], b"200")
+        self.assertEqual(channel.code, 200)
         self.assertNotIn("body", channel.result)
 
 
@@ -381,11 +399,11 @@ class CancellableDirectServeJsonResource(DirectServeJsonResource):
         self.clock = clock
 
     @cancellable
-    async def _async_render_GET(self, request: SynapseRequest) -> Tuple[int, JsonDict]:
+    async def _async_render_GET(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         await self.clock.sleep(1.0)
         return HTTPStatus.OK, {"result": True}
 
-    async def _async_render_POST(self, request: SynapseRequest) -> Tuple[int, JsonDict]:
+    async def _async_render_POST(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         await self.clock.sleep(1.0)
         return HTTPStatus.OK, {"result": True}
 
@@ -398,22 +416,22 @@ class CancellableDirectServeHtmlResource(DirectServeHtmlResource):
         self.clock = clock
 
     @cancellable
-    async def _async_render_GET(self, request: SynapseRequest) -> Tuple[int, bytes]:
+    async def _async_render_GET(self, request: RelapseRequest) -> tuple[int, bytes]:
         await self.clock.sleep(1.0)
         return HTTPStatus.OK, b"ok"
 
-    async def _async_render_POST(self, request: SynapseRequest) -> Tuple[int, bytes]:
+    async def _async_render_POST(self, request: RelapseRequest) -> tuple[int, bytes]:
         await self.clock.sleep(1.0)
         return HTTPStatus.OK, b"ok"
 
 
-class DirectServeJsonResourceCancellationTests(EndpointCancellationTestHelperMixin):
+class DirectServeJsonResourceCancellationTests(unittest.TestCase):
     """Tests for `DirectServeJsonResource` cancellation."""
 
-    def setUp(self):
-        self.reactor = ThreadedMemoryReactorClock()
-        self.clock = Clock(self.reactor)
-        self.resource = CancellableDirectServeJsonResource(self.clock)
+    def setUp(self) -> None:
+        reactor, clock = get_clock()
+        self.reactor = reactor
+        self.resource = CancellableDirectServeJsonResource(clock)
         self.site = FakeSite(self.resource, self.reactor)
 
     def test_cancellable_disconnect(self) -> None:
@@ -421,7 +439,7 @@ class DirectServeJsonResourceCancellationTests(EndpointCancellationTestHelperMix
         channel = make_request(
             self.reactor, self.site, "GET", "/sleep", await_result=False
         )
-        self._test_disconnect(
+        test_disconnect(
             self.reactor,
             channel,
             expect_cancellation=True,
@@ -433,7 +451,7 @@ class DirectServeJsonResourceCancellationTests(EndpointCancellationTestHelperMix
         channel = make_request(
             self.reactor, self.site, "POST", "/sleep", await_result=False
         )
-        self._test_disconnect(
+        test_disconnect(
             self.reactor,
             channel,
             expect_cancellation=False,
@@ -441,13 +459,13 @@ class DirectServeJsonResourceCancellationTests(EndpointCancellationTestHelperMix
         )
 
 
-class DirectServeHtmlResourceCancellationTests(EndpointCancellationTestHelperMixin):
+class DirectServeHtmlResourceCancellationTests(unittest.TestCase):
     """Tests for `DirectServeHtmlResource` cancellation."""
 
-    def setUp(self):
-        self.reactor = ThreadedMemoryReactorClock()
-        self.clock = Clock(self.reactor)
-        self.resource = CancellableDirectServeHtmlResource(self.clock)
+    def setUp(self) -> None:
+        reactor, clock = get_clock()
+        self.reactor = reactor
+        self.resource = CancellableDirectServeHtmlResource(clock)
         self.site = FakeSite(self.resource, self.reactor)
 
     def test_cancellable_disconnect(self) -> None:
@@ -455,7 +473,7 @@ class DirectServeHtmlResourceCancellationTests(EndpointCancellationTestHelperMix
         channel = make_request(
             self.reactor, self.site, "GET", "/sleep", await_result=False
         )
-        self._test_disconnect(
+        test_disconnect(
             self.reactor,
             channel,
             expect_cancellation=True,
@@ -467,6 +485,6 @@ class DirectServeHtmlResourceCancellationTests(EndpointCancellationTestHelperMix
         channel = make_request(
             self.reactor, self.site, "POST", "/sleep", await_result=False
         )
-        self._test_disconnect(
+        test_disconnect(
             self.reactor, channel, expect_cancellation=False, expected_body=b"ok"
         )

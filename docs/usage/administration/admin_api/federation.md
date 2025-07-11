@@ -1,6 +1,6 @@
 # Federation API
 
-This API allows a server administrator to manage Synapse's federation with other homeservers.
+This API allows a server administrator to manage Relapse's federation with other homeservers.
 
 Note: This API is new, experimental and "subject to change".
 
@@ -18,7 +18,7 @@ The API is:
 A standard request with no filtering:
 
 ```
-GET /_synapse/admin/v1/federation/destinations
+GET /_relapse/admin/v1/federation/destinations
 ```
 
 A response body like the following is returned:
@@ -73,15 +73,15 @@ The following fields are returned in the JSON response body:
 - `destinations` - An array of objects, each containing information about a destination.
   Destination objects contain the following fields:
   - `destination` - string - Name of the remote server to federate.
-  - `retry_last_ts` - integer - The last time Synapse tried and failed to reach the
+  - `retry_last_ts` - integer - The last time Relapse tried and failed to reach the
     remote server, in ms. This is `0` if the last attempt to communicate with the
     remote server was successful.
-  - `retry_interval` - integer - How long since the last time Synapse tried to reach
-    the remote server before trying again, in ms. This is `0` if no further retrying occuring.
-  - `failure_ts` - nullable integer - The first time Synapse tried and failed to reach the
+  - `retry_interval` - integer - How long since the last time Relapse tried to reach
+    the remote server before trying again, in ms. This is `0` if no further retrying occurring.
+  - `failure_ts` - nullable integer - The first time Relapse tried and failed to reach the
     remote server, in ms. This is `null` if communication with the remote server has never failed.
   - `last_successful_stream_ordering` - nullable integer - The stream ordering of the most
-    recent successfully-sent [PDU](understanding_synapse_through_grafana_graphs.md#federation)
+    recent successfully-sent [PDU](../understanding_relapse_through_grafana_graphs.md#federation)
     to this destination, or `null` if this information has not been tracked yet.
 - `next_token`: string representing a positive integer - Indication for pagination. See above.
 - `total` - integer - Total number of destinations.
@@ -93,7 +93,7 @@ This API gets the retry timing info for a specific remote server.
 The API is:
 
 ```
-GET /_synapse/admin/v1/federation/destinations/<destination>
+GET /_relapse/admin/v1/federation/destinations/<destination>
 ```
 
 A response body like the following is returned:
@@ -126,7 +126,7 @@ This API gets the rooms that federate with a specific remote server.
 The API is:
 
 ```
-GET /_synapse/admin/v1/federation/destinations/<destination>/rooms
+GET /_relapse/admin/v1/federation/destinations/<destination>/rooms
 ```
 
 A response body like the following is returned:
@@ -174,15 +174,15 @@ The following fields are returned in the JSON response body:
   Room objects contain the following fields:
   - `room_id` - string - The ID of the room.
   - `stream_ordering` - integer -  The stream ordering of the most recent
-    successfully-sent [PDU](understanding_synapse_through_grafana_graphs.md#federation)
+    successfully-sent [PDU](../understanding_relapse_through_grafana_graphs.md#federation)
     to this destination in this room.
 - `next_token`: string representing a positive integer - Indication for pagination. See above.
 - `total` - integer - Total number of destinations.
 
 ## Reset connection timeout
 
-Synapse makes federation requests to other homeservers. If a federation request fails,
-Synapse will mark the destination homeserver as offline, preventing any future requests
+Relapse makes federation requests to other homeservers. If a federation request fails,
+Relapse will mark the destination homeserver as offline, preventing any future requests
 to that server for a "cooldown" period. This period grows over time if the server
 continues to fail its responses
 ([exponential backoff](https://en.wikipedia.org/wiki/Exponential_backoff)).
@@ -200,7 +200,7 @@ even if the API already returns the http status 200.
 The API is:
 
 ```
-POST /_synapse/admin/v1/federation/destinations/<destination>/reset_connection
+POST /_relapse/admin/v1/federation/destinations/<destination>/reset_connection
 
 {}
 ```

@@ -14,12 +14,17 @@
 
 """Tests REST events for /rooms paths."""
 
-from typing import List
+from typing import Optional
 
-from synapse.api.constants import APP_SERVICE_REGISTRATION_TYPE, LoginType
-from synapse.api.errors import Codes, HttpResponseException, SynapseError
-from synapse.appservice import ApplicationService
-from synapse.rest.client import register, sync
+from twisted.test.proto_helpers import MemoryReactor
+
+from relapse.api.constants import APP_SERVICE_REGISTRATION_TYPE, LoginType
+from relapse.api.errors import Codes, HttpResponseException, RelapseError
+from relapse.appservice import ApplicationService
+from relapse.rest.client import register, sync
+from relapse.server import HomeServer
+from relapse.types import JsonDict
+from relapse.util import Clock
 
 from tests import unittest
 from tests.unittest import override_config
@@ -27,10 +32,9 @@ from tests.utils import default_config
 
 
 class TestMauLimit(unittest.HomeserverTestCase):
-
     servlets = [register.register_servlets, sync.register_servlets]
 
-    def default_config(self):
+    def default_config(self) -> JsonDict:
         config = default_config("test")
 
         config.update(
@@ -53,10 +57,12 @@ class TestMauLimit(unittest.HomeserverTestCase):
 
         return config
 
-    def prepare(self, reactor, clock, homeserver):
+    def prepare(
+        self, reactor: MemoryReactor, clock: Clock, homeserver: HomeServer
+    ) -> None:
         self.store = homeserver.get_datastores().main
 
-    def test_simple_deny_mau(self):
+    def test_simple_deny_mau(self) -> None:
         # Create and sync so that the MAU counts get updated
         token1 = self.create_user("kermit1")
         self.do_sync_for_user(token1)
@@ -68,14 +74,14 @@ class TestMauLimit(unittest.HomeserverTestCase):
 
         # We've created and activated two users, we shouldn't be able to
         # register new users
-        with self.assertRaises(SynapseError) as cm:
+        with self.assertRaises(RelapseError) as cm:
             self.create_user("kermit3")
 
         e = cm.exception
         self.assertEqual(e.code, 403)
         self.assertEqual(e.errcode, Codes.RESOURCE_LIMIT_EXCEEDED)
 
-    def test_as_ignores_mau(self):
+    def test_as_ignores_mau(self) -> None:
         """Test that application services can still create users when the MAU
         limit has been reached. This only works when application service
         user ip tracking is disabled.
@@ -92,7 +98,7 @@ class TestMauLimit(unittest.HomeserverTestCase):
 
         # We've created and activated two users, we shouldn't be able to
         # register new users
-        with self.assertRaises(SynapseError) as cm:
+        with self.assertRaises(RelapseError) as cm:
             self.create_user("kermit3")
 
         e = cm.exception
@@ -105,7 +111,6 @@ class TestMauLimit(unittest.HomeserverTestCase):
         self.store.services_cache.append(
             ApplicationService(
                 token=as_token,
-                hostname=self.hs.hostname,
                 id="SomeASID",
                 sender="@as_sender:test",
                 namespaces={"users": [{"regex": "@as_*", "exclusive": True}]},
@@ -114,7 +119,7 @@ class TestMauLimit(unittest.HomeserverTestCase):
 
         self.create_user("as_kermit4", token=as_token, appservice=True)
 
-    def test_allowed_after_a_month_mau(self):
+    def test_allowed_after_a_month_mau(self) -> None:
         # Create and sync so that the MAU counts get updated
         token1 = self.create_user("kermit1")
         self.do_sync_for_user(token1)
@@ -133,7 +138,7 @@ class TestMauLimit(unittest.HomeserverTestCase):
         self.do_sync_for_user(token3)
 
     @override_config({"mau_trial_days": 1})
-    def test_trial_delay(self):
+    def test_trial_delay(self) -> None:
         # We should be able to register more than the limit initially
         token1 = self.create_user("kermit1")
         self.do_sync_for_user(token1)
@@ -150,7 +155,7 @@ class TestMauLimit(unittest.HomeserverTestCase):
         self.do_sync_for_user(token2)
 
         # But the third should fail
-        with self.assertRaises(SynapseError) as cm:
+        with self.assertRaises(RelapseError) as cm:
             self.do_sync_for_user(token3)
 
         e = cm.exception
@@ -158,7 +163,7 @@ class TestMauLimit(unittest.HomeserverTestCase):
         self.assertEqual(e.errcode, Codes.RESOURCE_LIMIT_EXCEEDED)
 
         # And new registrations are now denied too
-        with self.assertRaises(SynapseError) as cm:
+        with self.assertRaises(RelapseError) as cm:
             self.create_user("kermit4")
 
         e = cm.exception
@@ -166,7 +171,7 @@ class TestMauLimit(unittest.HomeserverTestCase):
         self.assertEqual(e.errcode, Codes.RESOURCE_LIMIT_EXCEEDED)
 
     @override_config({"mau_trial_days": 1})
-    def test_trial_users_cant_come_back(self):
+    def test_trial_users_cant_come_back(self) -> None:
         self.hs.config.server.mau_trial_days = 1
 
         # We should be able to register more than the limit initially
@@ -206,7 +211,7 @@ class TestMauLimit(unittest.HomeserverTestCase):
         self.do_sync_for_user(token6)
 
         # But old user can't
-        with self.assertRaises(SynapseError) as cm:
+        with self.assertRaises(RelapseError) as cm:
             self.do_sync_for_user(token1)
 
         e = cm.exception
@@ -217,7 +222,7 @@ class TestMauLimit(unittest.HomeserverTestCase):
         # max_mau_value should not matter
         {"max_mau_value": 1, "limit_usage_by_mau": False, "mau_stats_only": True}
     )
-    def test_tracked_but_not_limited(self):
+    def test_tracked_but_not_limited(self) -> None:
         # Simply being able to create 2 users indicates that the
         # limit was not reached.
         token1 = self.create_user("kermit1")
@@ -237,10 +242,10 @@ class TestMauLimit(unittest.HomeserverTestCase):
             "mau_appservice_trial_days": {"SomeASID": 1, "AnotherASID": 2},
         }
     )
-    def test_as_trial_days(self):
-        user_tokens: List[str] = []
+    def test_as_trial_days(self) -> None:
+        user_tokens: list[str] = []
 
-        def advance_time_and_sync():
+        def advance_time_and_sync() -> None:
             self.reactor.advance(24 * 60 * 61)
             for token in user_tokens:
                 self.do_sync_for_user(token)
@@ -251,7 +256,6 @@ class TestMauLimit(unittest.HomeserverTestCase):
         self.store.services_cache.append(
             ApplicationService(
                 token=as_token_1,
-                hostname=self.hs.hostname,
                 id="SomeASID",
                 sender="@as_sender_1:test",
                 namespaces={"users": [{"regex": "@as_1.*", "exclusive": True}]},
@@ -262,7 +266,6 @@ class TestMauLimit(unittest.HomeserverTestCase):
         self.store.services_cache.append(
             ApplicationService(
                 token=as_token_2,
-                hostname=self.hs.hostname,
                 id="AnotherASID",
                 sender="@as_sender_2:test",
                 namespaces={"users": [{"regex": "@as_2.*", "exclusive": True}]},
@@ -303,7 +306,9 @@ class TestMauLimit(unittest.HomeserverTestCase):
             },
         )
 
-    def create_user(self, localpart, token=None, appservice=False):
+    def create_user(
+        self, localpart: str, token: Optional[str] = None, appservice: bool = False
+    ) -> str:
         request_data = {
             "username": localpart,
             "password": "monkey",
@@ -323,16 +328,16 @@ class TestMauLimit(unittest.HomeserverTestCase):
         if channel.code != 200:
             raise HttpResponseException(
                 channel.code, channel.result["reason"], channel.result["body"]
-            ).to_synapse_error()
+            ).to_relapse_error()
 
         access_token = channel.json_body["access_token"]
 
         return access_token
 
-    def do_sync_for_user(self, token):
+    def do_sync_for_user(self, token: str) -> None:
         channel = self.make_request("GET", "/sync", access_token=token)
 
         if channel.code != 200:
             raise HttpResponseException(
                 channel.code, channel.result["reason"], channel.result["body"]
-            ).to_synapse_error()
+            ).to_relapse_error()

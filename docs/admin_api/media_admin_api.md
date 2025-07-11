@@ -6,7 +6,7 @@ Details about the format of the `media_id` and storage of the media in the file 
 are documented under [media repository](../media_repository.md).
 
 To use it, you will need to authenticate by providing an `access_token`
-for a server admin: see [Admin API](../usage/administration/admin_api).
+for a server admin: see [Admin API](../usage/administration/admin_api/).
 
 ## List all media in a room
 
@@ -15,7 +15,7 @@ However, it only shows media from unencrypted events or rooms.
 
 The API is:
 ```
-GET /_synapse/admin/v1/room/<room_id>/media
+GET /_relapse/admin/v1/room/<room_id>/media
 ```
 
 The API returns a JSON body like the following:
@@ -53,7 +53,7 @@ This API quarantines a single piece of local or remote media.
 Request:
 
 ```
-POST /_synapse/admin/v1/media/quarantine/<server_name>/<media_id>
+POST /_relapse/admin/v1/media/quarantine/<server_name>/<media_id>
 
 {}
 ```
@@ -74,7 +74,7 @@ This API removes a single piece of local or remote media from quarantine.
 Request:
 
 ```
-POST /_synapse/admin/v1/media/unquarantine/<server_name>/<media_id>
+POST /_relapse/admin/v1/media/unquarantine/<server_name>/<media_id>
 
 {}
 ```
@@ -95,7 +95,7 @@ This API quarantines all local and remote media in a room.
 Request:
 
 ```
-POST /_synapse/admin/v1/room/<room_id>/media/quarantine
+POST /_relapse/admin/v1/room/<room_id>/media/quarantine
 
 {}
 ```
@@ -115,7 +115,7 @@ The following fields are returned in the JSON response body:
 * `num_quarantined`: integer - The number of media items successfully quarantined
 
 Note that there is a legacy endpoint, `POST
-/_synapse/admin/v1/quarantine_media/<room_id>`, that operates the same.
+/_relapse/admin/v1/quarantine_media/<room_id>`, that operates the same.
 However, it is deprecated and may be removed in a future release.
 
 ## Quarantining all media of a user
@@ -127,7 +127,7 @@ instead use one of the other APIs.
 Request:
 
 ```
-POST /_synapse/admin/v1/user/<user_id>/media/quarantine
+POST /_relapse/admin/v1/user/<user_id>/media/quarantine
 
 {}
 ```
@@ -158,7 +158,7 @@ not want to get quarantined, especially when
 Request:
 
 ```
-POST /_synapse/admin/v1/media/protect/<media_id>
+POST /_relapse/admin/v1/media/protect/<media_id>
 
 {}
 ```
@@ -178,7 +178,7 @@ This API reverts the protection of a media.
 Request:
 
 ```
-POST /_synapse/admin/v1/media/unprotect/<media_id>
+POST /_relapse/admin/v1/media/unprotect/<media_id>
 
 {}
 ```
@@ -205,7 +205,7 @@ Delete a specific `media_id`.
 Request:
 
 ```
-DELETE /_synapse/admin/v1/media/<server_name>/<media_id>
+DELETE /_relapse/admin/v1/media/<server_name>/<media_id>
 
 {}
 ```
@@ -236,14 +236,22 @@ The following fields are returned in the JSON response body:
 Request:
 
 ```
-POST /_synapse/admin/v1/media/<server_name>/delete?before_ts=<before_ts>
+POST /_relapse/admin/v1/media/delete?before_ts=<before_ts>
+
+{}
+```
+
+*Deprecated in Relapse v1.78.0:* This API is available at the deprecated endpoint:
+
+```
+POST /_relapse/admin/v1/media/<server_name>/delete?before_ts=<before_ts>
 
 {}
 ```
 
 URL Parameters
 
-* `server_name`: string - The name of your local server (e.g `matrix.org`).
+* `server_name`: string - The name of your local server (e.g `matrix.org`). *Deprecated in Relapse v1.78.0.*
 * `before_ts`: string representing a positive integer - Unix timestamp in milliseconds.
 Files that were last used before this timestamp will be deleted. It is the timestamp of
 last access, not the timestamp when the file was created.
@@ -282,7 +290,7 @@ The purge remote media API allows server admins to purge old cached remote media
 The API is:
 
 ```
-POST /_synapse/admin/v1/purge_media_cache?before_ts=<unix_timestamp_in_ms>
+POST /_relapse/admin/v1/purge_media_cache?before_ts=<unix_timestamp_in_ms>
 
 {}
 ```
@@ -304,5 +312,5 @@ The following fields are returned in the JSON response body:
 
 * `deleted`: integer - The number of media items successfully deleted
 
-If the user re-requests purged remote media, synapse will re-request the media
+If the user re-requests purged remote media, relapse will re-request the media
 from the originating server.

@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from synapse.federation.send_queue import EduRow
-from synapse.replication.tcp.streams.federation import FederationStream
+from relapse.federation.send_queue import EduRow
+from relapse.replication.tcp.streams.federation import FederationStream
 
 from tests.replication._base import BaseStreamTestCase
 
@@ -22,12 +22,11 @@ class FederationStreamTestCase(BaseStreamTestCase):
     def _get_worker_hs_config(self) -> dict:
         # enable federation sending on the worker
         config = super()._get_worker_hs_config()
-        # TODO: make it so we don't need both of these
-        config["send_federation"] = False
-        config["worker_app"] = "synapse.app.federation_sender"
+        config["worker_name"] = "federation_sender1"
+        config["federation_sender_instances"] = ["federation_sender1"]
         return config
 
-    def test_catchup(self):
+    def test_catchup(self) -> None:
         """Basic test of catchup on reconnect
 
         Makes sure that updates sent while we are offline are received later.

@@ -13,20 +13,25 @@
 # limitations under the License.
 import logging
 import os
-from typing import Optional, Tuple
+from typing import Any, Optional
 
 from twisted.internet.protocol import Factory
-from twisted.protocols.tls import TLSMemoryBIOFactory
+from twisted.test.proto_helpers import MemoryReactor
 from twisted.web.http import HTTPChannel
 from twisted.web.server import Request
 
-from synapse.rest import admin
-from synapse.rest.client import login
-from synapse.server import HomeServer
+from relapse.rest import admin
+from relapse.rest.client import login
+from relapse.server import HomeServer
+from relapse.util import Clock
 
-from tests.http import TestServerTLSConnectionFactory, get_test_ca_cert_file
+from tests.http import (
+    TestServerTLSConnectionFactory,
+    get_test_ca_cert_file,
+    wrap_server_factory_for_tls,
+)
 from tests.replication._base import BaseMultiWorkerStreamTestCase
-from tests.server import FakeChannel, FakeSite, FakeTransport, make_request
+from tests.server import FakeChannel, FakeTransport, make_request
 from tests.test_utils import SMALL_PNG
 
 logger = logging.getLogger(__name__)
@@ -38,24 +43,34 @@ class MediaRepoShardTestCase(BaseMultiWorkerStreamTestCase):
     """Checks running multiple media repos work correctly."""
 
     servlets = [
-        admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         login.register_servlets,
     ]
 
-    def prepare(self, reactor, clock, hs):
+    def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.user_id = self.register_user("user", "pass")
         self.access_token = self.login("user", "pass")
 
         self.reactor.lookups["example.com"] = "1.2.3.4"
 
-    def default_config(self):
+    def default_config(self) -> dict:
         conf = super().default_config()
         conf["federation_custom_ca_list"] = [get_test_ca_cert_file()]
         return conf
 
+    def make_worker_hs(
+        self, worker_app: str, extra_config: Optional[dict] = None, **kwargs: Any
+    ) -> HomeServer:
+        worker_hs = super().make_worker_hs(worker_app, extra_config, **kwargs)
+        # Force the media paths onto the replication resource.
+        worker_hs.get_media_repository_resource().register_servlets(
+            self._hs_to_site[worker_hs].resource, worker_hs
+        )
+        return worker_hs
+
     def _get_media_req(
         self, hs: HomeServer, target: str, media_id: str
-    ) -> Tuple[FakeChannel, Request]:
+    ) -> tuple[FakeChannel, Request]:
         """Request some remote media from the given HS by calling the download
         API.
 
@@ -65,12 +80,11 @@ class MediaRepoShardTestCase(BaseMultiWorkerStreamTestCase):
             The channel for the *client* request and the *outbound* request for
             the media which the caller should respond to.
         """
-        resource = hs.get_media_repository_resource().children[b"download"]
         channel = make_request(
             self.reactor,
-            FakeSite(resource, self.reactor),
+            self._hs_to_site[hs],
             "GET",
-            f"/{target}/{media_id}",
+            f"/_matrix/media/r0/download/{target}/{media_id}",
             shorthand=False,
             access_token=self.access_token,
             await_result=False,
@@ -82,7 +96,13 @@ class MediaRepoShardTestCase(BaseMultiWorkerStreamTestCase):
         (host, port, client_factory, _timeout, _bindAddress) = clients.pop()
 
         # build the test server
-        server_tls_protocol = _build_test_server(get_connection_factory())
+        server_factory = Factory.forProtocol(HTTPChannel)
+        # Request.finish expects the factory to have a 'log' method.
+        server_factory.log = _log_request
+
+        server_tls_protocol = wrap_server_factory_for_tls(
+            server_factory, self.reactor, sanlist=[b"DNS:example.com"]
+        ).buildProtocol(None)
 
         # now, tell the client protocol factory to build the client protocol (it will be a
         # _WrappingProtocol, around a TLSMemoryBIOProtocol, around an
@@ -102,7 +122,7 @@ class MediaRepoShardTestCase(BaseMultiWorkerStreamTestCase):
         )
 
         # fish the test server back out of the server-side TLS protocol.
-        http_server = server_tls_protocol.wrappedProtocol
+        http_server: HTTPChannel = server_tls_protocol.wrappedProtocol
 
         # give the reactor a pump to get the TLS juices flowing.
         self.reactor.pump((0.1,))
@@ -113,7 +133,7 @@ class MediaRepoShardTestCase(BaseMultiWorkerStreamTestCase):
         self.assertEqual(request.method, b"GET")
         self.assertEqual(
             request.path,
-            f"/_matrix/media/r0/download/{target}/{media_id}".encode("utf-8"),
+            f"/_matrix/media/v3/download/{target}/{media_id}".encode(),
         )
         self.assertEqual(
             request.requestHeaders.getRawHeaders(b"host"), [target.encode("utf-8")]
@@ -121,9 +141,9 @@ class MediaRepoShardTestCase(BaseMultiWorkerStreamTestCase):
 
         return channel, request
 
-    def test_basic(self):
+    def test_basic(self) -> None:
         """Test basic fetching of remote media from a single worker."""
-        hs1 = self.make_worker_hs("synapse.app.generic_worker")
+        hs1 = self.make_worker_hs("relapse.app.generic_worker")
 
         channel, request = self._get_media_req(hs1, "example.com:443", "ABC123")
 
@@ -137,12 +157,12 @@ class MediaRepoShardTestCase(BaseMultiWorkerStreamTestCase):
         self.assertEqual(channel.code, 200)
         self.assertEqual(channel.result["body"], b"Hello!")
 
-    def test_download_simple_file_race(self):
+    def test_download_simple_file_race(self) -> None:
         """Test that fetching remote media from two different processes at the
         same time works.
         """
-        hs1 = self.make_worker_hs("synapse.app.generic_worker")
-        hs2 = self.make_worker_hs("synapse.app.generic_worker")
+        hs1 = self.make_worker_hs("relapse.app.generic_worker")
+        hs2 = self.make_worker_hs("relapse.app.generic_worker")
 
         start_count = self._count_remote_media()
 
@@ -176,14 +196,14 @@ class MediaRepoShardTestCase(BaseMultiWorkerStreamTestCase):
         # We expect only one new file to have been persisted.
         self.assertEqual(start_count + 1, self._count_remote_media())
 
-    def test_download_image_race(self):
+    def test_download_image_race(self) -> None:
         """Test that fetching remote *images* from two different processes at
         the same time works.
 
         This checks that races generating thumbnails are handled correctly.
         """
-        hs1 = self.make_worker_hs("synapse.app.generic_worker")
-        hs2 = self.make_worker_hs("synapse.app.generic_worker")
+        hs1 = self.make_worker_hs("relapse.app.generic_worker")
+        hs2 = self.make_worker_hs("relapse.app.generic_worker")
 
         start_count = self._count_remote_thumbnails()
 
@@ -228,41 +248,6 @@ class MediaRepoShardTestCase(BaseMultiWorkerStreamTestCase):
         return sum(len(files) for _, _, files in os.walk(path))
 
 
-def get_connection_factory():
-    # this needs to happen once, but not until we are ready to run the first test
-    global test_server_connection_factory
-    if test_server_connection_factory is None:
-        test_server_connection_factory = TestServerTLSConnectionFactory(
-            sanlist=[b"DNS:example.com"]
-        )
-    return test_server_connection_factory
-
-
-def _build_test_server(connection_creator):
-    """Construct a test server
-
-    This builds an HTTP channel, wrapped with a TLSMemoryBIOProtocol
-
-    Args:
-        connection_creator (IOpenSSLServerConnectionCreator): thing to build
-            SSL connections
-        sanlist (list[bytes]): list of the SAN entries for the cert returned
-            by the server
-
-    Returns:
-        TLSMemoryBIOProtocol
-    """
-    server_factory = Factory.forProtocol(HTTPChannel)
-    # Request.finish expects the factory to have a 'log' method.
-    server_factory.log = _log_request
-
-    server_tls_factory = TLSMemoryBIOFactory(
-        connection_creator, isClient=False, wrappedFactory=server_factory
-    )
-
-    return server_tls_factory.buildProtocol(None)
-
-
-def _log_request(request):
+def _log_request(request: Request) -> None:
     """Implements Factory.log, which is expected by Request.finish"""
     logger.info("Completed request %s", request)

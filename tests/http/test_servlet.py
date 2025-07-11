@@ -14,38 +14,43 @@
 import json
 from http import HTTPStatus
 from io import BytesIO
-from typing import Tuple
+from typing import Union
 from unittest.mock import Mock
 
-from synapse.api.errors import Codes, SynapseError
-from synapse.http.server import cancellable
-from synapse.http.servlet import (
+from pydantic import BaseModel
+
+from relapse.api.errors import Codes, RelapseError
+from relapse.http.servlet import (
     RestServlet,
     parse_json_object_from_request,
     parse_json_value_from_request,
+    validate_json_object,
 )
-from synapse.http.site import SynapseRequest
-from synapse.rest.client._base import client_patterns
-from synapse.server import HomeServer
-from synapse.types import JsonDict
+from relapse.http.site import RelapseRequest
+from relapse.rest.client._base import client_patterns
+from relapse.server import HomeServer
+from relapse.types import JsonDict
+from relapse.util.cancellation import cancellable
 
 from tests import unittest
-from tests.http.server._base import EndpointCancellationTestHelperMixin
+from tests.http.server._base import test_disconnect
 
 
-def make_request(content):
+def make_request(content: Union[bytes, JsonDict]) -> Mock:
     """Make an object that acts enough like a request."""
-    request = Mock(spec=["content"])
+    request = Mock(spec=["method", "uri", "content"])
 
     if isinstance(content, dict):
         content = json.dumps(content).encode("utf8")
 
+    request.method = bytes("STUB_METHOD", "ascii")
+    request.uri = bytes("/test_stub_uri", "ascii")
     request.content = BytesIO(content)
     return request
 
 
 class TestServletUtils(unittest.TestCase):
-    def test_parse_json_value(self):
+    def test_parse_json_value(self) -> None:
         """Basic tests for parse_json_value_from_request."""
         # Test round-tripping.
         obj = {"foo": 1}
@@ -57,7 +62,7 @@ class TestServletUtils(unittest.TestCase):
         self.assertEqual(result2, ["foo"])
 
         # Test empty.
-        with self.assertRaises(SynapseError):
+        with self.assertRaises(RelapseError):
             parse_json_value_from_request(make_request(b""))
 
         result3 = parse_json_value_from_request(
@@ -66,17 +71,34 @@ class TestServletUtils(unittest.TestCase):
         self.assertIsNone(result3)
 
         # Invalid UTF-8.
-        with self.assertRaises(SynapseError):
-            parse_json_value_from_request(make_request(b"\xFF\x00"))
+        with self.assertRaises(RelapseError):
+            parse_json_value_from_request(make_request(b"\xff\x00"))
 
         # Invalid JSON.
-        with self.assertRaises(SynapseError):
+        with self.assertRaises(RelapseError):
             parse_json_value_from_request(make_request(b"foo"))
 
-        with self.assertRaises(SynapseError):
+        with self.assertRaises(RelapseError):
             parse_json_value_from_request(make_request(b'{"foo": Infinity}'))
 
-    def test_parse_json_object(self):
+    def test_validate_json_object(self) -> None:
+        """Basic tests for validate_json_object."""
+
+        class Model(BaseModel):
+            test_field: str
+
+        with self.assertRaises(RelapseError) as err:
+            validate_json_object({}, Model)
+        self.assertEqual(err.exception.errcode, Codes.MISSING_PARAM)
+
+        with self.assertRaises(RelapseError) as err:
+            validate_json_object({"test_field": 1}, Model)
+        self.assertEqual(err.exception.errcode, Codes.INVALID_PARAM)
+
+        result = validate_json_object({"test_field": "string"}, Model)
+        self.assertEqual(Model(test_field="string"), result)
+
+    def test_parse_json_object(self) -> None:
         """Basic tests for parse_json_object_from_request."""
         # Test empty.
         result = parse_json_object_from_request(
@@ -85,7 +107,7 @@ class TestServletUtils(unittest.TestCase):
         self.assertEqual(result, {})
 
         # Test not an object
-        with self.assertRaises(SynapseError):
+        with self.assertRaises(RelapseError):
             parse_json_object_from_request(make_request(b'["foo"]'))
 
 
@@ -99,18 +121,16 @@ class CancellableRestServlet(RestServlet):
         self.clock = hs.get_clock()
 
     @cancellable
-    async def on_GET(self, request: SynapseRequest) -> Tuple[int, JsonDict]:
+    async def on_GET(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         await self.clock.sleep(1.0)
         return HTTPStatus.OK, {"result": True}
 
-    async def on_POST(self, request: SynapseRequest) -> Tuple[int, JsonDict]:
+    async def on_POST(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         await self.clock.sleep(1.0)
         return HTTPStatus.OK, {"result": True}
 
 
-class TestRestServletCancellation(
-    unittest.HomeserverTestCase, EndpointCancellationTestHelperMixin
-):
+class TestRestServletCancellation(unittest.HomeserverTestCase):
     """Tests for `RestServlet` cancellation."""
 
     servlets = [
@@ -120,7 +140,7 @@ class TestRestServletCancellation(
     def test_cancellable_disconnect(self) -> None:
         """Test that handlers with the `@cancellable` flag can be cancelled."""
         channel = self.make_request("GET", "/sleep", await_result=False)
-        self._test_disconnect(
+        test_disconnect(
             self.reactor,
             channel,
             expect_cancellation=True,
@@ -130,7 +150,7 @@ class TestRestServletCancellation(
     def test_uncancellable_disconnect(self) -> None:
         """Test that handlers without the `@cancellable` flag cannot be cancelled."""
         channel = self.make_request("POST", "/sleep", await_result=False)
-        self._test_disconnect(
+        test_disconnect(
             self.reactor,
             channel,
             expect_cancellation=False,

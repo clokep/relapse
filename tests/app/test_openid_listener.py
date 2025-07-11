@@ -15,27 +15,31 @@ from unittest.mock import Mock, patch
 
 from parameterized import parameterized
 
-from synapse.app.generic_worker import GenericWorkerServer
-from synapse.app.homeserver import SynapseHomeServer
-from synapse.config.server import parse_listener_def
+from twisted.test.proto_helpers import MemoryReactor
+
+from relapse.app.generic_worker import GenericWorkerServer
+from relapse.app.homeserver import RelapseHomeServer
+from relapse.config.server import parse_listener_def
+from relapse.server import HomeServer
+from relapse.types import JsonDict
+from relapse.util import Clock
 
 from tests.server import make_request
 from tests.unittest import HomeserverTestCase
 
 
 class FederationReaderOpenIDListenerTests(HomeserverTestCase):
-    def make_homeserver(self, reactor, clock):
-        hs = self.setup_test_homeserver(
-            federation_http_client=None, homeserver_to_use=GenericWorkerServer
-        )
+    def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
+        hs = self.setup_test_homeserver(homeserver_to_use=GenericWorkerServer)
         return hs
 
-    def default_config(self):
+    def default_config(self) -> JsonDict:
         conf = super().default_config()
-        # we're using FederationReaderServer, which uses a SlavedStore, so we
+        # we're using GenericWorkerServer, which uses a GenericWorkerStore, so we
         # have to tell the FederationHandler not to try to access stuff that is only
         # in the primary store.
         conf["worker_app"] = "yes"
+        conf["instance_map"] = {"main": {"host": "127.0.0.1", "port": 0}}
 
         return conf
 
@@ -47,7 +51,7 @@ class FederationReaderOpenIDListenerTests(HomeserverTestCase):
             (["openid"], "auth_fail"),
         ]
     )
-    def test_openid_listener(self, names, expectation):
+    def test_openid_listener(self, names: list[str], expectation: str) -> None:
         """
         Test different openid listener configurations.
 
@@ -61,7 +65,9 @@ class FederationReaderOpenIDListenerTests(HomeserverTestCase):
         }
 
         # Listen with the config
-        self.hs._listen_http(parse_listener_def(config))
+        hs = self.hs
+        assert isinstance(hs, GenericWorkerServer)
+        hs._listen_http(parse_listener_def(0, config))
 
         # Grab the resource from the site that was told to listen
         site = self.reactor.tcpServers[0][1]
@@ -79,12 +85,10 @@ class FederationReaderOpenIDListenerTests(HomeserverTestCase):
         self.assertEqual(channel.code, 401)
 
 
-@patch("synapse.app.homeserver.KeyApiV2Resource", new=Mock())
-class SynapseHomeserverOpenIDListenerTests(HomeserverTestCase):
-    def make_homeserver(self, reactor, clock):
-        hs = self.setup_test_homeserver(
-            federation_http_client=None, homeserver_to_use=SynapseHomeServer
-        )
+@patch("relapse.app.homeserver.KeyResource", new=Mock())
+class RelapseHomeserverOpenIDListenerTests(HomeserverTestCase):
+    def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
+        hs = self.setup_test_homeserver(homeserver_to_use=RelapseHomeServer)
         return hs
 
     @parameterized.expand(
@@ -95,7 +99,7 @@ class SynapseHomeserverOpenIDListenerTests(HomeserverTestCase):
             (["openid"], "auth_fail"),
         ]
     )
-    def test_openid_listener(self, names, expectation):
+    def test_openid_listener(self, names: list[str], expectation: str) -> None:
         """
         Test different openid listener configurations.
 
@@ -109,7 +113,9 @@ class SynapseHomeserverOpenIDListenerTests(HomeserverTestCase):
         }
 
         # Listen with the config
-        self.hs._listener_http(self.hs.config, parse_listener_def(config))
+        hs = self.hs
+        assert isinstance(hs, RelapseHomeServer)
+        hs._listener_http(self.hs.config, parse_listener_def(0, config))
 
         # Grab the resource from the site that was told to listen
         site = self.reactor.tcpServers[0][1]

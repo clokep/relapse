@@ -12,29 +12,125 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Tuple
+from typing import Callable
 from unittest.mock import Mock, call
 
 from twisted.internet import defer
 from twisted.internet.defer import CancelledError, Deferred
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.server import HomeServer
-from synapse.storage.database import (
+from relapse.server import HomeServer
+from relapse.storage.database import (
     DatabasePool,
+    LoggingDatabaseConnection,
     LoggingTransaction,
     make_tuple_comparison_clause,
 )
-from synapse.util import Clock
+from relapse.util import Clock
 
 from tests import unittest
 
 
 class TupleComparisonClauseTestCase(unittest.TestCase):
-    def test_native_tuple_comparison(self):
+    def test_native_tuple_comparison(self) -> None:
         clause, args = make_tuple_comparison_clause([("a", 1), ("b", 2)])
         self.assertEqual(clause, "(a,b) > (?,?)")
         self.assertEqual(args, [1, 2])
+
+
+class ExecuteScriptTestCase(unittest.HomeserverTestCase):
+    """Tests for `BaseDatabaseEngine.executescript` implementations."""
+
+    def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
+        self.store = hs.get_datastores().main
+        self.db_pool: DatabasePool = self.store.db_pool
+        self.get_success(
+            self.db_pool.runInteraction(
+                "create",
+                lambda txn: txn.execute("CREATE TABLE foo (name TEXT PRIMARY KEY)"),
+            )
+        )
+
+    def test_transaction(self) -> None:
+        """Test that all statements are run in a single transaction."""
+
+        def run(conn: LoggingDatabaseConnection) -> None:
+            cur = conn.cursor(txn_name="test_transaction")
+            self.db_pool.engine.executescript(
+                cur,
+                ";".join(
+                    [
+                        "INSERT INTO foo (name) VALUES ('transaction test')",
+                        # This next statement will fail. When `executescript` is not
+                        # transactional, the previous row will be observed later.
+                        "INSERT INTO foo (name) VALUES ('transaction test')",
+                    ]
+                ),
+            )
+
+        self.get_failure(
+            self.db_pool.runWithConnection(run),
+            self.db_pool.engine.module.IntegrityError,
+        )
+
+        self.assertIsNone(
+            self.get_success(
+                self.db_pool.simple_select_one_onecol(
+                    "foo",
+                    keyvalues={"name": "transaction test"},
+                    retcol="name",
+                    allow_none=True,
+                )
+            ),
+            "executescript is not running statements inside a transaction",
+        )
+
+    def test_commit(self) -> None:
+        """Test that the script transaction remains open and can be committed."""
+
+        def run(conn: LoggingDatabaseConnection) -> None:
+            cur = conn.cursor(txn_name="test_commit")
+            self.db_pool.engine.executescript(
+                cur, "INSERT INTO foo (name) VALUES ('commit test')"
+            )
+            cur.execute("COMMIT")
+
+        self.get_success(self.db_pool.runWithConnection(run))
+
+        self.assertIsNotNone(
+            self.get_success(
+                self.db_pool.simple_select_one_onecol(
+                    "foo",
+                    keyvalues={"name": "commit test"},
+                    retcol="name",
+                    allow_none=True,
+                )
+            ),
+        )
+
+    def test_rollback(self) -> None:
+        """Test that the script transaction remains open and can be rolled back."""
+
+        def run(conn: LoggingDatabaseConnection) -> None:
+            cur = conn.cursor(txn_name="test_rollback")
+            self.db_pool.engine.executescript(
+                cur, "INSERT INTO foo (name) VALUES ('rollback test')"
+            )
+            cur.execute("ROLLBACK")
+
+        self.get_success(self.db_pool.runWithConnection(run))
+
+        self.assertIsNone(
+            self.get_success(
+                self.db_pool.simple_select_one_onecol(
+                    "foo",
+                    keyvalues={"name": "rollback test"},
+                    retcol="name",
+                    allow_none=True,
+                )
+            ),
+            "executescript is not leaving the script transaction open",
+        )
 
 
 class CallbacksTestCase(unittest.HomeserverTestCase):
@@ -46,7 +142,7 @@ class CallbacksTestCase(unittest.HomeserverTestCase):
 
     def _run_interaction(
         self, func: Callable[[LoggingTransaction], object]
-    ) -> Tuple[Mock, Mock]:
+    ) -> tuple[Mock, Mock]:
         """Run the given function in a database transaction, with callbacks registered.
 
         Args:
@@ -117,7 +213,8 @@ class CallbacksTestCase(unittest.HomeserverTestCase):
         after_callback, exception_callback = self._run_interaction(_test_txn)
 
         # Calling both `after_callback`s when the first attempt failed is rather
-        # surprising (#12184). Let's document the behaviour in a test.
+        # surprising (https://github.com/matrix-org/synapse/issues/12184).
+        # Let's document the behaviour in a test.
         after_callback.assert_has_calls(
             [
                 call(123, 456, extra=789),

@@ -5,38 +5,75 @@ on:
     - cron: 0 8 * * *
 
   workflow_dispatch:
+    # NB: inputs are only present when this workflow is dispatched manually.
+    # (The default below is the default field value in the form to trigger
+    # a manual dispatch). Otherwise the inputs will evaluate to null.
+    inputs:
+      twisted_ref:
+        description: Commit, branch or tag to checkout from upstream Twisted.
+        required: false
+        default: 'trunk'
+        type: string
+
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  check_repo:
+    # Prevent this workflow from running on any fork of Relapse other than clokep/relapse, as it is
+    # only useful to the Relapse core team.
+    # All other workflow steps depend on this one, thus if 'should_run_workflow' is not 'true', the rest
+    # of the workflow will be skipped as well.
+    if: github.repository == 'clokep/relapse'
+    runs-on: ubuntu-latest
+    outputs:
+      should_run_workflow: ${{ steps.check_condition.outputs.should_run_workflow }}
+    steps:
+      - id: check_condition
+        run: echo "should_run_workflow=${{ github.repository == 'clokep/relapse' }}" >> "$GITHUB_OUTPUT"
+
   mypy:
+    needs: check_repo
+    if: needs.check_repo.outputs.should_run_workflow == 'true'
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: matrix-org/setup-python-poetry@v1
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      - uses: matrix-org/setup-python-poetry@v2
         with:
-          python-version: "3.x"
+          python-version: "3.12.x"
           extras: "all"
       - run: |
           poetry remove twisted
-          poetry add --extras tls git+https://github.com/twisted/twisted.git#trunk
+          poetry add --extras tls git+https://github.com/twisted/twisted.git#${{ inputs.twisted_ref || 'trunk' }}
           poetry install --no-interaction --extras "all test"
-      - name: Remove warn_unused_ignores from mypy config
-        run: sed '/warn_unused_ignores = True/d' -i mypy.ini
+      - name: Remove unhelpful options from mypy config
+        run: sed -e '/warn_unused_ignores = True/d' -e '/warn_redundant_casts = True/d' -i mypy.ini
       - run: poetry run mypy
 
   trial:
+    needs: check_repo
+    if: needs.check_repo.outputs.should_run_workflow == 'true'
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - run: sudo apt-get -qq install xmlsec1
-      - uses: matrix-org/setup-python-poetry@v1
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      - uses: matrix-org/setup-python-poetry@v2
         with:
-          python-version: "3.x"
+          python-version: "3.12.x"
           extras: "all test"
       - run: |
           poetry remove twisted
@@ -58,17 +95,28 @@ jobs:
           || true
 
   sytest:
+    needs: check_repo
+    if: needs.check_repo.outputs.should_run_workflow == 'true'
     runs-on: ubuntu-latest
     container:
-      image: matrixdotorg/sytest-synapse:buster
+      # We're using ubuntu:bullseye because it uses Python 3.9 which is our minimum supported Python version.
+      # This job is a canary to warn us about unreleased twisted changes that would cause problems for us if
+      # they were to be released immediately. For simplicity's sake (and to save CI runners) we use the oldest
+      # version, assuming that any incompatibilities on newer versions would also be present on the oldest.
+      image: matrixdotorg/sytest-relapse:bullseye
       volumes:
         - ${{ github.workspace }}:/src
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
       - name: Patch dependencies
         # Note: The poetry commands want to create a virtualenv in /src/.venv/,
-        #       but the sytest-synapse container expects it to be in /venv/.
+        #       but the sytest-relapse container expects it to be in /venv/.
         #       We symlink it before running poetry so that poetry actually
         #       ends up installing to `/venv`.
         run: |
@@ -78,7 +126,7 @@ jobs:
           poetry install --no-interaction --extras "all test"
         working-directory: /src
       - name: Run SyTest
-        run: /bootstrap.sh synapse
+        run: /bootstrap.sh relapse
         working-directory: /src
         env:
           # Use offline mode to avoid reinstalling the pinned version of
@@ -88,7 +136,7 @@ jobs:
         if: ${{ always() }}
         run: /sytest/scripts/tap_to_gha.pl /logs/results.tap
       - name: Upload SyTest logs
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         if: ${{ always() }}
         with:
           name: Sytest Logs - ${{ job.status }} - (${{ join(matrix.*, ', ') }})
@@ -96,19 +144,70 @@ jobs:
             /logs/results.tap
             /logs/**/*.log*
 
+  complement:
+    needs: check_repo
+    if: "!failure() && !cancelled() && needs.check_repo.outputs.should_run_workflow == 'true'"
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arrangement: monolith
+            database: SQLite
+
+          - arrangement: monolith
+            database: Postgres
+
+          - arrangement: workers
+            database: Postgres
+
+    steps:
+      - name: Run actions/checkout@v4 for relapse
+        uses: actions/checkout@v4
+        with:
+          path: relapse
+
+      - name: Prepare Complement's Prerequisites
+        run: relapse/.ci/scripts/setup_complement_prerequisites.sh
+
+      - uses: actions/setup-go@v5
+        with:
+          cache-dependency-path: complement/go.sum
+          go-version-file: complement/go.mod
+
+      # This step is specific to the 'Twisted trunk' test run:
+      - name: Patch dependencies
+        run: |
+          set -x
+          DEBIAN_FRONTEND=noninteractive sudo apt-get install -yqq python3 pipx
+          pipx install poetry==1.3.2
+
+          poetry remove -n twisted
+          poetry add -n --extras tls git+https://github.com/twisted/twisted.git#trunk
+          poetry lock --no-update
+        working-directory: relapse
+
+      - run: |
+          set -o pipefail
+          TEST_ONLY_SKIP_DEP_HASH_VERIFICATION=1 POSTGRES=${{ (matrix.database == 'Postgres') && 1 || '' }} WORKERS=${{ (matrix.arrangement == 'workers') && 1 || '' }} COMPLEMENT_DIR=`pwd`/complement relapse/scripts-dev/complement.sh -json 2>&1 | relapse/.ci/scripts/gotestfmt
+        shell: bash
+        name: Run Complement Tests
+
   # open an issue if the build fails, so we know about it.
   open-issue:
-    if: failure()
+    if: failure() && needs.check_repo.outputs.should_run_workflow == 'true'
     needs:
       - mypy
       - trial
       - sytest
+      - complement
 
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: JasonEtco/create-an-issue@5d9504915f79f9cc6d791934b8ef34f2353dd74d # v2.5.0, 2020-12-06
+      - uses: actions/checkout@v4
+      - uses: JasonEtco/create-an-issue@1b14a70e4d8dc185e5cc76d3bec9eab20257b2c5 # v2.9.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:

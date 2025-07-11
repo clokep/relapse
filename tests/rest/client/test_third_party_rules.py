@@ -11,78 +11,27 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import threading
-from typing import TYPE_CHECKING, Any, Dict, Optional, Tuple, Union
-from unittest.mock import Mock
+from typing import TYPE_CHECKING, Any, Optional
+from unittest.mock import AsyncMock, Mock
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.constants import EventTypes, LoginType, Membership
-from synapse.api.errors import SynapseError
-from synapse.api.room_versions import RoomVersion
-from synapse.events import EventBase
-from synapse.events.snapshot import EventContext
-from synapse.events.third_party_rules import load_legacy_third_party_event_rules
-from synapse.rest import admin
-from synapse.rest.client import account, login, profile, room
-from synapse.server import HomeServer
-from synapse.types import JsonDict, Requester, StateMap
-from synapse.util import Clock
-from synapse.util.frozenutils import unfreeze
+from relapse.api.constants import EventTypes, LoginType, Membership
+from relapse.api.errors import RelapseError
+from relapse.api.room_versions import RoomVersion
+from relapse.config.homeserver import HomeServerConfig
+from relapse.events import EventBase
+from relapse.rest import admin
+from relapse.rest.client import account, login, profile, room
+from relapse.server import HomeServer
+from relapse.types import JsonDict, Requester, StateMap
+from relapse.util import Clock
+from relapse.util.frozenutils import unfreeze
 
 from tests import unittest
-from tests.test_utils import make_awaitable
 
 if TYPE_CHECKING:
-    from synapse.module_api import ModuleApi
-
-thread_local = threading.local()
-
-
-class LegacyThirdPartyRulesTestModule:
-    def __init__(self, config: Dict, module_api: "ModuleApi") -> None:
-        # keep a record of the "current" rules module, so that the test can patch
-        # it if desired.
-        thread_local.rules_module = self
-        self.module_api = module_api
-
-    async def on_create_room(
-        self, requester: Requester, config: dict, is_requester_admin: bool
-    ) -> bool:
-        return True
-
-    async def check_event_allowed(
-        self, event: EventBase, state: StateMap[EventBase]
-    ) -> Union[bool, dict]:
-        return True
-
-    @staticmethod
-    def parse_config(config: Dict[str, Any]) -> Dict[str, Any]:
-        return config
-
-
-class LegacyDenyNewRooms(LegacyThirdPartyRulesTestModule):
-    def __init__(self, config: Dict, module_api: "ModuleApi") -> None:
-        super().__init__(config, module_api)
-
-    async def on_create_room(
-        self, requester: Requester, config: dict, is_requester_admin: bool
-    ) -> bool:
-        return False
-
-
-class LegacyChangeEvents(LegacyThirdPartyRulesTestModule):
-    def __init__(self, config: Dict, module_api: "ModuleApi") -> None:
-        super().__init__(config, module_api)
-
-    async def check_event_allowed(
-        self, event: EventBase, state: StateMap[EventBase]
-    ) -> JsonDict:
-        d = event.get_dict()
-        content = unfreeze(event.content)
-        content["foo"] = "bar"
-        d["content"] = content
-        return d
+    pass
 
 
 class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
@@ -96,8 +45,6 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         hs = self.setup_test_homeserver()
-
-        load_legacy_third_party_event_rules(hs)
 
         # We're not going to be properly signing events as our remote homeserver is fake,
         # therefore disable event signature checks.
@@ -113,16 +60,10 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
 
         # Have this homeserver skip event auth checks. This is necessary due to
         # event auth checks ensuring that events were signed by the sender's homeserver.
-        async def _check_event_auth(
-            origin: str,
-            event: EventBase,
-            context: EventContext,
-            *args: Any,
-            **kwargs: Any,
-        ) -> EventContext:
-            return context
+        async def _check_event_auth(origin: Any, event: Any, context: Any) -> None:
+            pass
 
-        hs.get_federation_event_handler()._check_event_auth = _check_event_auth  # type: ignore[assignment]
+        hs.get_federation_event_handler()._check_event_auth = _check_event_auth  # type: ignore[method-assign]
 
         return hs
 
@@ -143,15 +84,16 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         """Tests that a forbidden event is forbidden from being sent, but an allowed one
         can be sent.
         """
+
         # patch the rules module with a Mock which will return False for some event
         # types
         async def check(
             ev: EventBase, state: StateMap[EventBase]
-        ) -> Tuple[bool, Optional[JsonDict]]:
+        ) -> tuple[bool, Optional[JsonDict]]:
             return ev.type != "foo.bar.forbidden", None
 
         callback = Mock(spec=[], side_effect=check)
-        self.hs.get_third_party_event_rules()._check_event_allowed_callbacks = [
+        self.hs.get_module_api_callbacks().third_party_event_rules._check_event_allowed_callbacks = [
             callback
         ]
 
@@ -161,7 +103,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
             {},
             access_token=self.tok,
         )
-        self.assertEqual(channel.result["code"], b"200", channel.result)
+        self.assertEqual(channel.code, 200, channel.result)
 
         callback.assert_called_once()
 
@@ -179,35 +121,37 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
             {},
             access_token=self.tok,
         )
-        self.assertEqual(channel.result["code"], b"403", channel.result)
+        self.assertEqual(channel.code, 403, channel.result)
 
-    def test_third_party_rules_workaround_synapse_errors_pass_through(self) -> None:
+    def test_third_party_rules_workaround_relapse_errors_pass_through(self) -> None:
         """
         Tests that the workaround introduced by https://github.com/matrix-org/synapse/pull/11042
-        is functional: that SynapseErrors are passed through from check_event_allowed
+        is functional: that RelapseErrors are passed through from check_event_allowed
         and bubble up to the web resource.
 
         NEW MODULES SHOULD NOT MAKE USE OF THIS WORKAROUND!
         This is a temporary workaround!
         """
 
-        class NastyHackException(SynapseError):
-            def error_dict(self) -> JsonDict:
+        class NastyHackException(RelapseError):
+            def error_dict(self, config: Optional[HomeServerConfig]) -> JsonDict:
                 """
-                This overrides SynapseError's `error_dict` to nastily inject
+                This overrides RelapseError's `error_dict` to nastily inject
                 JSON into the error response.
                 """
-                result = super().error_dict()
+                result = super().error_dict(config)
                 result["nasty"] = "very"
                 return result
 
         # add a callback that will raise our hacky exception
         async def check(
             ev: EventBase, state: StateMap[EventBase]
-        ) -> Tuple[bool, Optional[JsonDict]]:
+        ) -> tuple[bool, Optional[JsonDict]]:
             raise NastyHackException(429, "message")
 
-        self.hs.get_third_party_event_rules()._check_event_allowed_callbacks = [check]
+        self.hs.get_module_api_callbacks().third_party_event_rules._check_event_allowed_callbacks = [
+            check
+        ]
 
         # Make a request
         channel = self.make_request(
@@ -217,7 +161,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
             access_token=self.tok,
         )
         # Check the error code
-        self.assertEqual(channel.result["code"], b"429", channel.result)
+        self.assertEqual(channel.code, 429, channel.result)
         # Check the JSON body has had the `nasty` key injected
         self.assertEqual(
             channel.json_body,
@@ -230,11 +174,13 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         # first patch the event checker so that it will try to modify the event
         async def check(
             ev: EventBase, state: StateMap[EventBase]
-        ) -> Tuple[bool, Optional[JsonDict]]:
+        ) -> tuple[bool, Optional[JsonDict]]:
             ev.content = {"x": "y"}
             return True, None
 
-        self.hs.get_third_party_event_rules()._check_event_allowed_callbacks = [check]
+        self.hs.get_module_api_callbacks().third_party_event_rules._check_event_allowed_callbacks = [
+            check
+        ]
 
         # now send the event
         channel = self.make_request(
@@ -249,15 +195,18 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
 
     def test_modify_event(self) -> None:
         """The module can return a modified version of the event"""
+
         # first patch the event checker so that it will modify the event
         async def check(
             ev: EventBase, state: StateMap[EventBase]
-        ) -> Tuple[bool, Optional[JsonDict]]:
+        ) -> tuple[bool, Optional[JsonDict]]:
             d = ev.get_dict()
             d["content"] = {"x": "y"}
             return True, d
 
-        self.hs.get_third_party_event_rules()._check_event_allowed_callbacks = [check]
+        self.hs.get_module_api_callbacks().third_party_event_rules._check_event_allowed_callbacks = [
+            check
+        ]
 
         # now send the event
         channel = self.make_request(
@@ -266,7 +215,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
             {"x": "x"},
             access_token=self.tok,
         )
-        self.assertEqual(channel.result["code"], b"200", channel.result)
+        self.assertEqual(channel.code, 200, channel.result)
         event_id = channel.json_body["event_id"]
 
         # ... and check that it got modified
@@ -275,16 +224,17 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
             "/_matrix/client/r0/rooms/%s/event/%s" % (self.room_id, event_id),
             access_token=self.tok,
         )
-        self.assertEqual(channel.result["code"], b"200", channel.result)
+        self.assertEqual(channel.code, 200, channel.result)
         ev = channel.json_body
         self.assertEqual(ev["content"]["x"], "y")
 
     def test_message_edit(self) -> None:
         """Ensure that the module doesn't cause issues with edited messages."""
+
         # first patch the event checker so that it will modify the event
         async def check(
             ev: EventBase, state: StateMap[EventBase]
-        ) -> Tuple[bool, Optional[JsonDict]]:
+        ) -> tuple[bool, Optional[JsonDict]]:
             d = ev.get_dict()
             d["content"] = {
                 "msgtype": "m.text",
@@ -292,7 +242,9 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
             }
             return True, d
 
-        self.hs.get_third_party_event_rules()._check_event_allowed_callbacks = [check]
+        self.hs.get_module_api_callbacks().third_party_event_rules._check_event_allowed_callbacks = [
+            check
+        ]
 
         # Send an event, then edit it.
         channel = self.make_request(
@@ -304,7 +256,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
             },
             access_token=self.tok,
         )
-        self.assertEqual(channel.result["code"], b"200", channel.result)
+        self.assertEqual(channel.code, 200, channel.result)
         orig_event_id = channel.json_body["event_id"]
 
         channel = self.make_request(
@@ -321,7 +273,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
             },
             access_token=self.tok,
         )
-        self.assertEqual(channel.result["code"], b"200", channel.result)
+        self.assertEqual(channel.code, 200, channel.result)
         edited_event_id = channel.json_body["event_id"]
 
         # ... and check that they both got modified
@@ -330,7 +282,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
             "/_matrix/client/r0/rooms/%s/event/%s" % (self.room_id, orig_event_id),
             access_token=self.tok,
         )
-        self.assertEqual(channel.result["code"], b"200", channel.result)
+        self.assertEqual(channel.code, 200, channel.result)
         ev = channel.json_body
         self.assertEqual(ev["content"]["body"], "ORIGINAL BODY")
 
@@ -339,7 +291,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
             "/_matrix/client/r0/rooms/%s/event/%s" % (self.room_id, edited_event_id),
             access_token=self.tok,
         )
-        self.assertEqual(channel.result["code"], b"200", channel.result)
+        self.assertEqual(channel.code, 200, channel.result)
         ev = channel.json_body
         self.assertEqual(ev["content"]["body"], "EDITED BODY")
 
@@ -364,18 +316,24 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         self.assertEqual(event.type, "m.room.message")
         self.assertEqual(event.content, content)
 
-    @unittest.override_config(
-        {
-            "third_party_event_rules": {
-                "module": __name__ + ".LegacyChangeEvents",
-                "config": {},
-            }
-        }
-    )
     def test_legacy_check_event_allowed(self) -> None:
         """Tests that the wrapper for legacy check_event_allowed callbacks works
         correctly.
         """
+
+        async def check_event_allowed(
+            event: EventBase, state: StateMap[EventBase]
+        ) -> tuple[bool, JsonDict]:
+            d = event.get_dict()
+            content = unfreeze(event.content)
+            content["foo"] = "bar"
+            d["content"] = content
+            return True, d
+
+        self.hs.get_module_api().register_third_party_rules_callbacks(
+            check_event_allowed=check_event_allowed
+        )
+
         channel = self.make_request(
             "PUT",
             "/_matrix/client/r0/rooms/%s/send/m.room.message/1" % self.room_id,
@@ -385,7 +343,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
             },
             access_token=self.tok,
         )
-        self.assertEqual(channel.result["code"], b"200", channel.result)
+        self.assertEqual(channel.code, 200, channel.result)
 
         event_id = channel.json_body["event_id"]
 
@@ -394,29 +352,31 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
             "/_matrix/client/r0/rooms/%s/event/%s" % (self.room_id, event_id),
             access_token=self.tok,
         )
-        self.assertEqual(channel.result["code"], b"200", channel.result)
+        self.assertEqual(channel.code, 200, channel.result)
 
         self.assertIn("foo", channel.json_body["content"].keys())
         self.assertEqual(channel.json_body["content"]["foo"], "bar")
 
-    @unittest.override_config(
-        {
-            "third_party_event_rules": {
-                "module": __name__ + ".LegacyDenyNewRooms",
-                "config": {},
-            }
-        }
-    )
     def test_legacy_on_create_room(self) -> None:
         """Tests that the wrapper for legacy on_create_room callbacks works
         correctly.
         """
+
+        async def on_create_room(
+            requester: Requester, config: dict, is_requester_admin: bool
+        ) -> bool:
+            raise RelapseError(403, "Denied")
+
+        self.hs.get_module_api().register_third_party_rules_callbacks(
+            on_create_room=on_create_room
+        )
+
         self.helper.create_room_as(self.user_id, tok=self.tok, expect_code=403)
 
     def test_sent_event_end_up_in_room_state(self) -> None:
         """Tests that a state event sent by a module while processing another state event
         doesn't get dropped from the state of the room. This is to guard against a bug
-        where Synapse has been observed doing so, see https://github.com/matrix-org/synapse/issues/10830
+        where Relapse has been observed doing so, see https://github.com/matrix-org/synapse/issues/10830
         """
         event_type = "org.matrix.test_state"
 
@@ -430,8 +390,8 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         # Define a callback that sends a custom event on power levels update.
         async def test_fn(
             event: EventBase, state_events: StateMap[EventBase]
-        ) -> Tuple[bool, Optional[JsonDict]]:
-            if event.is_state and event.type == EventTypes.PowerLevels:
+        ) -> tuple[bool, Optional[JsonDict]]:
+            if event.is_state() and event.type == EventTypes.PowerLevels:
                 await api.create_and_send_event_into_room(
                     {
                         "room_id": event.room_id,
@@ -443,7 +403,9 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
                 )
             return True, None
 
-        self.hs.get_third_party_event_rules()._check_event_allowed_callbacks = [test_fn]
+        self.hs.get_module_api_callbacks().third_party_event_rules._check_event_allowed_callbacks = [
+            test_fn
+        ]
 
         # Sometimes the bug might not happen the first time the event type is added
         # to the state but might happen when an event updates the state of the room for
@@ -452,7 +414,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
             # Update the content of the custom state event to be sent by the callback.
             event_content["i"] = i
 
-            # Update the room's power levels with a different value each time so Synapse
+            # Update the room's power levels with a different value each time so Relapse
             # doesn't consider an update redundant.
             self._update_power_levels(event_default=i)
 
@@ -468,8 +430,8 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
 
     def test_on_new_event(self) -> None:
         """Test that the on_new_event callback is called on new events"""
-        on_new_event = Mock(make_awaitable(None))
-        self.hs.get_third_party_event_rules()._on_new_event_callbacks.append(
+        on_new_event = AsyncMock(return_value=None)
+        self.hs.get_module_api_callbacks().third_party_event_rules._on_new_event_callbacks.append(
             on_new_event
         )
 
@@ -571,8 +533,10 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         avatar_url = "mxc://matrix.org/oWQDvfewxmlRaRCkVbfetyEo"
 
         # Register a mock callback.
-        m = Mock(return_value=make_awaitable(None))
-        self.hs.get_third_party_event_rules()._on_profile_update_callbacks.append(m)
+        m = AsyncMock(return_value=None)
+        self.hs.get_module_api_callbacks().third_party_event_rules._on_profile_update_callbacks.append(
+            m
+        )
 
         # Change the display name.
         channel = self.make_request(
@@ -630,8 +594,10 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         avatar_url = "mxc://matrix.org/oWQDvfewxmlRaRCkVbfetyEo"
 
         # Register a mock callback.
-        m = Mock(return_value=make_awaitable(None))
-        self.hs.get_third_party_event_rules()._on_profile_update_callbacks.append(m)
+        m = AsyncMock(return_value=None)
+        self.hs.get_module_api_callbacks().third_party_event_rules._on_profile_update_callbacks.append(
+            m
+        )
 
         # Register an admin user.
         self.register_user("admin", "password", admin=True)
@@ -640,7 +606,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         # Change a user's profile.
         channel = self.make_request(
             "PUT",
-            "/_synapse/admin/v2/users/%s" % self.user_id,
+            "/_relapse/admin/v2/users/%s" % self.user_id,
             {"displayname": displayname, "avatar_url": avatar_url},
             access_token=admin_tok,
         )
@@ -669,16 +635,16 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         correctly when processing a user's deactivation.
         """
         # Register a mocked callback.
-        deactivation_mock = Mock(return_value=make_awaitable(None))
-        third_party_rules = self.hs.get_third_party_event_rules()
+        deactivation_mock = AsyncMock(return_value=None)
+        third_party_rules = self.hs.get_module_api_callbacks().third_party_event_rules
         third_party_rules._on_user_deactivation_status_changed_callbacks.append(
             deactivation_mock,
         )
         # Also register a mocked callback for profile updates, to check that the
         # deactivation code calls it in a way that let modules know the user is being
         # deactivated.
-        profile_mock = Mock(return_value=make_awaitable(None))
-        self.hs.get_third_party_event_rules()._on_profile_update_callbacks.append(
+        profile_mock = AsyncMock(return_value=None)
+        self.hs.get_module_api_callbacks().third_party_event_rules._on_profile_update_callbacks.append(
             profile_mock,
         )
 
@@ -727,8 +693,8 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         well as a reactivation.
         """
         # Register a mock callback.
-        m = Mock(return_value=make_awaitable(None))
-        third_party_rules = self.hs.get_third_party_event_rules()
+        m = AsyncMock(return_value=None)
+        third_party_rules = self.hs.get_module_api_callbacks().third_party_event_rules
         third_party_rules._on_user_deactivation_status_changed_callbacks.append(m)
 
         # Register an admin user.
@@ -741,7 +707,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         # Deactivate the user.
         channel = self.make_request(
             "PUT",
-            "/_synapse/admin/v2/users/%s" % user_id,
+            "/_relapse/admin/v2/users/%s" % user_id,
             {"deactivated": True},
             access_token=admin_tok,
         )
@@ -760,7 +726,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         # Reactivate the user.
         channel = self.make_request(
             "PUT",
-            "/_synapse/admin/v2/users/%s" % user_id,
+            "/_relapse/admin/v2/users/%s" % user_id,
             {"deactivated": False, "password": "hackme"},
             access_token=admin_tok,
         )
@@ -781,8 +747,8 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         correctly when processing a user's deactivation.
         """
         # Register a mocked callback.
-        deactivation_mock = Mock(return_value=make_awaitable(False))
-        third_party_rules = self.hs.get_third_party_event_rules()
+        deactivation_mock = AsyncMock(return_value=False)
+        third_party_rules = self.hs.get_module_api_callbacks().third_party_event_rules
         third_party_rules._check_can_deactivate_user_callbacks.append(
             deactivation_mock,
         )
@@ -827,8 +793,8 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         correctly when processing a user's deactivation triggered by a server admin.
         """
         # Register a mocked callback.
-        deactivation_mock = Mock(return_value=make_awaitable(False))
-        third_party_rules = self.hs.get_third_party_event_rules()
+        deactivation_mock = AsyncMock(return_value=False)
+        third_party_rules = self.hs.get_module_api_callbacks().third_party_event_rules
         third_party_rules._check_can_deactivate_user_callbacks.append(
             deactivation_mock,
         )
@@ -843,7 +809,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         # Deactivate the user.
         channel = self.make_request(
             "PUT",
-            "/_synapse/admin/v2/users/%s" % user_id,
+            "/_relapse/admin/v2/users/%s" % user_id,
             {"deactivated": True},
             access_token=admin_tok,
         )
@@ -866,8 +832,8 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         correctly when processing an admin's shutdown room request.
         """
         # Register a mocked callback.
-        shutdown_mock = Mock(return_value=make_awaitable(False))
-        third_party_rules = self.hs.get_third_party_event_rules()
+        shutdown_mock = AsyncMock(return_value=False)
+        third_party_rules = self.hs.get_module_api_callbacks().third_party_event_rules
         third_party_rules._check_can_shutdown_room_callbacks.append(
             shutdown_mock,
         )
@@ -879,7 +845,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         # Shutdown the room.
         channel = self.make_request(
             "DELETE",
-            "/_synapse/admin/v2/rooms/%s" % self.room_id,
+            "/_relapse/admin/v2/rooms/%s" % self.room_id,
             {},
             access_token=admin_tok,
         )
@@ -902,8 +868,8 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         associating a 3PID to an account.
         """
         # Register a mocked callback.
-        threepid_bind_mock = Mock(return_value=make_awaitable(None))
-        third_party_rules = self.hs.get_third_party_event_rules()
+        threepid_bind_mock = AsyncMock(return_value=None)
+        third_party_rules = self.hs.get_module_api_callbacks().third_party_event_rules
         third_party_rules._on_threepid_bind_callbacks.append(threepid_bind_mock)
 
         # Register an admin user.
@@ -916,7 +882,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         # Add a 3PID to the user.
         channel = self.make_request(
             "PUT",
-            "/_synapse/admin/v2/users/%s" % user_id,
+            "/_relapse/admin/v2/users/%s" % user_id,
             {
                 "threepids": [
                     {
@@ -936,4 +902,122 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         args = threepid_bind_mock.call_args[0]
 
         # Check that the mock was called with the right parameters
+        self.assertEqual(args, (user_id, "email", "foo@example.com"))
+
+    def test_on_add_and_remove_user_third_party_identifier(self) -> None:
+        """Tests that the on_add_user_third_party_identifier and
+        on_remove_user_third_party_identifier module callbacks are called
+        just before associating and removing a 3PID to/from an account.
+        """
+        # Pretend to be a Relapse module and register both callbacks as mocks.
+        on_add_user_third_party_identifier_callback_mock = AsyncMock(return_value=None)
+        on_remove_user_third_party_identifier_callback_mock = AsyncMock(
+            return_value=None
+        )
+        self.hs.get_module_api().register_third_party_rules_callbacks(
+            on_add_user_third_party_identifier=on_add_user_third_party_identifier_callback_mock,
+            on_remove_user_third_party_identifier=on_remove_user_third_party_identifier_callback_mock,
+        )
+
+        # Register an admin user.
+        self.register_user("admin", "password", admin=True)
+        admin_tok = self.login("admin", "password")
+
+        # Also register a normal user we can modify.
+        user_id = self.register_user("user", "password")
+
+        # Add a 3PID to the user.
+        channel = self.make_request(
+            "PUT",
+            "/_relapse/admin/v2/users/%s" % user_id,
+            {
+                "threepids": [
+                    {
+                        "medium": "email",
+                        "address": "foo@example.com",
+                    },
+                ],
+            },
+            access_token=admin_tok,
+        )
+
+        # Check that the mocked add callback was called with the appropriate
+        # 3PID details.
+        self.assertEqual(channel.code, 200, channel.json_body)
+        on_add_user_third_party_identifier_callback_mock.assert_called_once()
+        args = on_add_user_third_party_identifier_callback_mock.call_args[0]
+        self.assertEqual(args, (user_id, "email", "foo@example.com"))
+
+        # Now remove the 3PID from the user
+        channel = self.make_request(
+            "PUT",
+            "/_relapse/admin/v2/users/%s" % user_id,
+            {
+                "threepids": [],
+            },
+            access_token=admin_tok,
+        )
+
+        # Check that the mocked remove callback was called with the appropriate
+        # 3PID details.
+        self.assertEqual(channel.code, 200, channel.json_body)
+        on_remove_user_third_party_identifier_callback_mock.assert_called_once()
+        args = on_remove_user_third_party_identifier_callback_mock.call_args[0]
+        self.assertEqual(args, (user_id, "email", "foo@example.com"))
+
+    def test_on_remove_user_third_party_identifier_is_called_on_deactivate(
+        self,
+    ) -> None:
+        """Tests that the on_remove_user_third_party_identifier module callback is called
+        when a user is deactivated and their third-party ID associations are deleted.
+        """
+        # Pretend to be a Relapse module and register both callbacks as mocks.
+        on_remove_user_third_party_identifier_callback_mock = AsyncMock(
+            return_value=None
+        )
+        self.hs.get_module_api().register_third_party_rules_callbacks(
+            on_remove_user_third_party_identifier=on_remove_user_third_party_identifier_callback_mock,
+        )
+
+        # Register an admin user.
+        self.register_user("admin", "password", admin=True)
+        admin_tok = self.login("admin", "password")
+
+        # Also register a normal user we can modify.
+        user_id = self.register_user("user", "password")
+
+        # Add a 3PID to the user.
+        channel = self.make_request(
+            "PUT",
+            "/_relapse/admin/v2/users/%s" % user_id,
+            {
+                "threepids": [
+                    {
+                        "medium": "email",
+                        "address": "foo@example.com",
+                    },
+                ],
+            },
+            access_token=admin_tok,
+        )
+        self.assertEqual(channel.code, 200, channel.json_body)
+
+        # Check that the mock was not called on the act of adding a third-party ID.
+        on_remove_user_third_party_identifier_callback_mock.assert_not_called()
+
+        # Now deactivate the user.
+        channel = self.make_request(
+            "PUT",
+            "/_relapse/admin/v2/users/%s" % user_id,
+            {
+                "deactivated": True,
+            },
+            access_token=admin_tok,
+        )
+
+        # Check that the mocked remove callback was called with the appropriate
+        # 3PID details.
+        self.assertEqual(channel.code, 200, channel.json_body)
+        on_remove_user_third_party_identifier_callback_mock.assert_called_once()
+        args = on_remove_user_third_party_identifier_callback_mock.call_args[0]
         self.assertEqual(args, (user_id, "email", "foo@example.com"))

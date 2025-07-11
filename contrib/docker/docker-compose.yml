@@ -5,18 +5,18 @@ version: '3'
 
 services:
 
-  synapse:
+  relapse:
     build:
         context: ../..
         dockerfile: docker/Dockerfile
-    image: docker.io/matrixdotorg/synapse:latest
-    # Since synapse does not retry to connect to the database, restart upon
+    image: gchr.io/clokep/relapse:latest
+    # Since relapse does not retry to connect to the database, restart upon
     # failure
     restart: unless-stopped
     # See the readme for a full documentation of the environment settings
     # NOTE: You must edit homeserver.yaml to use postgres, it defaults to sqlite
     environment:
-      - SYNAPSE_CONFIG_PATH=/data/homeserver.yaml
+      - RELAPSE_CONFIG_PATH=/data/homeserver.yaml
     volumes:
       # You may either store all the files in a local folder
       - ./files:/data
@@ -26,7 +26,7 @@ services:
       # - /path/to/large_hdd:/data/media
     depends_on:
       - db
-    # In order to expose Synapse, remove one of the following, you might for
+    # In order to expose Relapse, remove one of the following, you might for
     # instance expose the TLS port directly:
     ports:
       - 8448:8448/tcp
@@ -38,26 +38,26 @@ services:
       - traefik.port=8008
       # Alternatively, for Traefik version 2.0:
       - traefik.enable=true
-      - traefik.http.routers.http-synapse.entryPoints=http
-      - traefik.http.routers.http-synapse.rule=Host(`my.matrix.host`)
+      - traefik.http.routers.http-relapse.entryPoints=http
+      - traefik.http.routers.http-relapse.rule=Host(`my.matrix.host`)
       - traefik.http.middlewares.https_redirect.redirectscheme.scheme=https
       - traefik.http.middlewares.https_redirect.redirectscheme.permanent=true
-      - traefik.http.routers.http-synapse.middlewares=https_redirect
-      - traefik.http.routers.https-synapse.entryPoints=https
-      - traefik.http.routers.https-synapse.rule=Host(`my.matrix.host`)
-      - traefik.http.routers.https-synapse.service=synapse
-      - traefik.http.routers.https-synapse.tls=true
-      - traefik.http.services.synapse.loadbalancer.server.port=8008
-      - traefik.http.routers.https-synapse.tls.certResolver=le-ssl
+      - traefik.http.routers.http-relapse.middlewares=https_redirect
+      - traefik.http.routers.https-relapse.entryPoints=https
+      - traefik.http.routers.https-relapse.rule=Host(`my.matrix.host`)
+      - traefik.http.routers.https-relapse.service=relapse
+      - traefik.http.routers.https-relapse.tls=true
+      - traefik.http.services.relapse.loadbalancer.server.port=8008
+      - traefik.http.routers.https-relapse.tls.certResolver=le-ssl
 
   db:
     image: docker.io/postgres:12-alpine
     # Change that password, of course!
     environment:
-      - POSTGRES_USER=synapse
+      - POSTGRES_USER=relapse
       - POSTGRES_PASSWORD=changeme
       # ensure the database gets created correctly
-      # https://matrix-org.github.io/synapse/latest/postgres.html#set-up-database
+      # https://clokep.github.io/relapse/latest/postgres.html#set-up-database
       - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
     volumes:
       # You may store the database tables in a local folder..

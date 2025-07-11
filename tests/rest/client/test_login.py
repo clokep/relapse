@@ -11,51 +11,55 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import json
 import time
 import urllib.parse
-from typing import Any, Dict, List, Optional, Union
+from collections.abc import Collection
+from typing import Any, Optional, Union
 from unittest.mock import Mock
 from urllib.parse import urlencode
 
 import pymacaroons
+from typing_extensions import Literal
 
 from twisted.test.proto_helpers import MemoryReactor
 from twisted.web.resource import Resource
 
-import synapse.rest.admin
-from synapse.appservice import ApplicationService
-from synapse.rest.client import devices, login, logout, register
-from synapse.rest.client.account import WhoamiRestServlet
-from synapse.rest.synapse.client import build_synapse_client_resource_tree
-from synapse.server import HomeServer
-from synapse.types import create_requester
-from synapse.util import Clock
+from relapse.api.constants import ApprovalNoticeMedium, LoginType
+from relapse.api.errors import Codes
+from relapse.appservice import ApplicationService
+from relapse.module_api import ModuleApi
+from relapse.rest import admin
+from relapse.rest.client import devices, login, logout, register
+from relapse.rest.client.account import WhoamiRestServlet
+from relapse.rest.relapse.client import build_relapse_client_resource_tree
+from relapse.server import HomeServer
+from relapse.types import JsonDict, create_requester
+from relapse.util import Clock
 
 from tests import unittest
 from tests.handlers.test_oidc import HAS_OIDC
 from tests.handlers.test_saml import has_saml2
-from tests.rest.client.utils import TEST_OIDC_AUTH_ENDPOINT, TEST_OIDC_CONFIG
+from tests.rest.client.utils import TEST_OIDC_CONFIG
 from tests.server import FakeChannel
 from tests.test_utils.html_parsers import TestHtmlParser
 from tests.unittest import HomeserverTestCase, override_config, skip_unless
 
 try:
-    import jwt
+    from authlib.jose import JsonWebKey, jwt
 
     HAS_JWT = True
 except ImportError:
     HAS_JWT = False
 
 
-# synapse server name: used to populate public_baseurl in some tests
-SYNAPSE_SERVER_PUBLIC_HOSTNAME = "synapse"
+# relapse server name: used to populate public_baseurl in some tests
+RELAPSE_SERVER_PUBLIC_HOSTNAME = "relapse"
 
 # public_baseurl for some tests. It uses an http:// scheme because
-# FakeChannel.isSecure() returns False, so synapse will see the requested uri as
-# http://..., so using http in the public_baseurl stops Synapse trying to redirect to
+# FakeChannel.isSecure() returns False, so relapse will see the requested uri as
+# http://..., so using http in the public_baseurl stops Relapse trying to redirect to
 # https://....
-BASE_URL = "http://%s/" % (SYNAPSE_SERVER_PUBLIC_HOSTNAME,)
+BASE_URL = "http://%s/" % (RELAPSE_SERVER_PUBLIC_HOSTNAME,)
 
 # CAS server used in some tests
 CAS_SERVER = "https://fake.test"
@@ -87,14 +91,58 @@ ADDITIONAL_LOGIN_FLOWS = [
 ]
 
 
-class LoginRestServletTestCase(unittest.HomeserverTestCase):
+class TestSpamChecker:
+    def __init__(self, config: None, api: ModuleApi):
+        api.register_spam_checker_callbacks(
+            check_login_for_spam=self.check_login_for_spam,
+        )
 
+    @staticmethod
+    def parse_config(config: JsonDict) -> None:
+        return None
+
+    async def check_login_for_spam(
+        self,
+        user_id: str,
+        device_id: Optional[str],
+        initial_display_name: Optional[str],
+        request_info: Collection[tuple[Optional[str], str]],
+        auth_provider_id: Optional[str] = None,
+    ) -> Union[Literal["NOT_SPAM"], tuple[Codes, JsonDict]]:
+        return "NOT_SPAM"
+
+
+class DenyAllSpamChecker:
+    def __init__(self, config: None, api: ModuleApi):
+        api.register_spam_checker_callbacks(
+            check_login_for_spam=self.check_login_for_spam,
+        )
+
+    @staticmethod
+    def parse_config(config: JsonDict) -> None:
+        return None
+
+    async def check_login_for_spam(
+        self,
+        user_id: str,
+        device_id: Optional[str],
+        initial_display_name: Optional[str],
+        request_info: Collection[tuple[Optional[str], str]],
+        auth_provider_id: Optional[str] = None,
+    ) -> Union[Literal["NOT_SPAM"], tuple[Codes, JsonDict]]:
+        # Return an odd set of values to ensure that they get correctly passed
+        # to the client.
+        return Codes.LIMIT_EXCEEDED, {"extra": "value"}
+
+
+class LoginRestServletTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         login.register_servlets,
         logout.register_servlets,
         devices.register_servlets,
         lambda hs, http_server: WhoamiRestServlet(hs).register(http_server),
+        register.register_servlets,
     ]
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
@@ -116,16 +164,17 @@ class LoginRestServletTestCase(unittest.HomeserverTestCase):
                 # which sets these values to 10000, but as we're overriding the entire
                 # rc_login dict here, we need to set this manually as well
                 "account": {"per_second": 10000, "burst_count": 10000},
-            }
+            },
+            "experimental_features": {"msc4041_enabled": True},
         }
     )
     def test_POST_ratelimiting_per_address(self) -> None:
         # Create different users so we're sure not to be bothered by the per-user
         # ratelimiter.
-        for i in range(0, 6):
+        for i in range(6):
             self.register_user("kermit" + str(i), "monkey")
 
-        for i in range(0, 6):
+        for i in range(6):
             params = {
                 "type": "m.login.password",
                 "identifier": {"type": "m.id.user", "user": "kermit" + str(i)},
@@ -134,14 +183,17 @@ class LoginRestServletTestCase(unittest.HomeserverTestCase):
             channel = self.make_request(b"POST", LOGIN_URL, params)
 
             if i == 5:
-                self.assertEqual(channel.result["code"], b"429", channel.result)
+                self.assertEqual(channel.code, 429, msg=channel.result)
                 retry_after_ms = int(channel.json_body["retry_after_ms"])
+                retry_header = channel.headers.getRawHeaders("Retry-After")
             else:
-                self.assertEqual(channel.result["code"], b"200", channel.result)
+                self.assertEqual(channel.code, 200, msg=channel.result)
 
         # Since we're ratelimiting at 1 request/min, retry_after_ms should be lower
         # than 1min.
-        self.assertTrue(retry_after_ms < 6000)
+        self.assertLess(retry_after_ms, 6000)
+        assert retry_header
+        self.assertLessEqual(int(retry_header[0]), 6)
 
         self.reactor.advance(retry_after_ms / 1000.0 + 1.0)
 
@@ -152,7 +204,7 @@ class LoginRestServletTestCase(unittest.HomeserverTestCase):
         }
         channel = self.make_request(b"POST", LOGIN_URL, params)
 
-        self.assertEqual(channel.result["code"], b"200", channel.result)
+        self.assertEqual(channel.code, 200, msg=channel.result)
 
     @override_config(
         {
@@ -164,13 +216,14 @@ class LoginRestServletTestCase(unittest.HomeserverTestCase):
                 # which sets these values to 10000, but as we're overriding the entire
                 # rc_login dict here, we need to set this manually as well
                 "address": {"per_second": 10000, "burst_count": 10000},
-            }
+            },
+            "experimental_features": {"msc4041_enabled": True},
         }
     )
     def test_POST_ratelimiting_per_account(self) -> None:
         self.register_user("kermit", "monkey")
 
-        for i in range(0, 6):
+        for i in range(6):
             params = {
                 "type": "m.login.password",
                 "identifier": {"type": "m.id.user", "user": "kermit"},
@@ -179,14 +232,17 @@ class LoginRestServletTestCase(unittest.HomeserverTestCase):
             channel = self.make_request(b"POST", LOGIN_URL, params)
 
             if i == 5:
-                self.assertEqual(channel.result["code"], b"429", channel.result)
+                self.assertEqual(channel.code, 429, msg=channel.result)
                 retry_after_ms = int(channel.json_body["retry_after_ms"])
+                retry_header = channel.headers.getRawHeaders("Retry-After")
             else:
-                self.assertEqual(channel.result["code"], b"200", channel.result)
+                self.assertEqual(channel.code, 200, msg=channel.result)
 
         # Since we're ratelimiting at 1 request/min, retry_after_ms should be lower
         # than 1min.
-        self.assertTrue(retry_after_ms < 6000)
+        self.assertLess(retry_after_ms, 6000)
+        assert retry_header
+        self.assertLessEqual(int(retry_header[0]), 6)
 
         self.reactor.advance(retry_after_ms / 1000.0)
 
@@ -197,7 +253,7 @@ class LoginRestServletTestCase(unittest.HomeserverTestCase):
         }
         channel = self.make_request(b"POST", LOGIN_URL, params)
 
-        self.assertEqual(channel.result["code"], b"200", channel.result)
+        self.assertEqual(channel.code, 200, msg=channel.result)
 
     @override_config(
         {
@@ -209,13 +265,14 @@ class LoginRestServletTestCase(unittest.HomeserverTestCase):
                 # rc_login dict here, we need to set this manually as well
                 "address": {"per_second": 10000, "burst_count": 10000},
                 "failed_attempts": {"per_second": 0.17, "burst_count": 5},
-            }
+            },
+            "experimental_features": {"msc4041_enabled": True},
         }
     )
     def test_POST_ratelimiting_per_account_failed_attempts(self) -> None:
         self.register_user("kermit", "monkey")
 
-        for i in range(0, 6):
+        for i in range(6):
             params = {
                 "type": "m.login.password",
                 "identifier": {"type": "m.id.user", "user": "kermit"},
@@ -224,14 +281,17 @@ class LoginRestServletTestCase(unittest.HomeserverTestCase):
             channel = self.make_request(b"POST", LOGIN_URL, params)
 
             if i == 5:
-                self.assertEqual(channel.result["code"], b"429", channel.result)
+                self.assertEqual(channel.code, 429, msg=channel.result)
                 retry_after_ms = int(channel.json_body["retry_after_ms"])
+                retry_header = channel.headers.getRawHeaders("Retry-After")
             else:
-                self.assertEqual(channel.result["code"], b"403", channel.result)
+                self.assertEqual(channel.code, 403, msg=channel.result)
 
         # Since we're ratelimiting at 1 request/min, retry_after_ms should be lower
         # than 1min.
-        self.assertTrue(retry_after_ms < 6000)
+        self.assertLess(retry_after_ms, 6000)
+        assert retry_header
+        self.assertLessEqual(int(retry_header[0]), 6)
 
         self.reactor.advance(retry_after_ms / 1000.0 + 1.0)
 
@@ -242,7 +302,7 @@ class LoginRestServletTestCase(unittest.HomeserverTestCase):
         }
         channel = self.make_request(b"POST", LOGIN_URL, params)
 
-        self.assertEqual(channel.result["code"], b"403", channel.result)
+        self.assertEqual(channel.code, 403, msg=channel.result)
 
     @override_config({"session_lifetime": "24h"})
     def test_soft_logout(self) -> None:
@@ -250,7 +310,7 @@ class LoginRestServletTestCase(unittest.HomeserverTestCase):
 
         # we shouldn't be able to make requests without an access token
         channel = self.make_request(b"GET", TEST_URL)
-        self.assertEqual(channel.result["code"], b"401", channel.result)
+        self.assertEqual(channel.code, 401, msg=channel.result)
         self.assertEqual(channel.json_body["errcode"], "M_MISSING_TOKEN")
 
         # log in as normal
@@ -354,7 +414,7 @@ class LoginRestServletTestCase(unittest.HomeserverTestCase):
 
         # Now try to hard logout this session
         channel = self.make_request(b"POST", "/logout", access_token=access_token)
-        self.assertEqual(channel.result["code"], b"200", channel.result)
+        self.assertEqual(channel.code, 200, msg=channel.result)
 
     @override_config({"session_lifetime": "24h"})
     def test_session_can_hard_logout_all_sessions_after_being_soft_logged_out(
@@ -380,7 +440,7 @@ class LoginRestServletTestCase(unittest.HomeserverTestCase):
 
         # Now try to hard log out all of the user's sessions
         channel = self.make_request(b"POST", "/logout/all", access_token=access_token)
-        self.assertEqual(channel.result["code"], b"200", channel.result)
+        self.assertEqual(channel.code, 200, msg=channel.result)
 
     def test_login_with_overly_long_device_id_fails(self) -> None:
         self.register_user("mickey", "cheese")
@@ -399,13 +459,127 @@ class LoginRestServletTestCase(unittest.HomeserverTestCase):
         channel = self.make_request(
             "POST",
             "/_matrix/client/v3/login",
-            json.dumps(body).encode("utf8"),
+            body,
             custom_headers=None,
         )
 
         # test that the login fails with the correct error code
         self.assertEqual(channel.code, 400)
         self.assertEqual(channel.json_body["errcode"], "M_INVALID_PARAM")
+
+    @override_config(
+        {
+            "experimental_features": {
+                "msc3866": {
+                    "enabled": True,
+                    "require_approval_for_new_accounts": True,
+                }
+            }
+        }
+    )
+    def test_require_approval(self) -> None:
+        channel = self.make_request(
+            "POST",
+            "register",
+            {
+                "username": "kermit",
+                "password": "monkey",
+                "auth": {"type": LoginType.DUMMY},
+            },
+        )
+        self.assertEqual(403, channel.code, channel.result)
+        self.assertEqual(Codes.USER_AWAITING_APPROVAL, channel.json_body["errcode"])
+        self.assertEqual(
+            ApprovalNoticeMedium.NONE, channel.json_body["approval_notice_medium"]
+        )
+
+        params = {
+            "type": LoginType.PASSWORD,
+            "identifier": {"type": "m.id.user", "user": "kermit"},
+            "password": "monkey",
+        }
+        channel = self.make_request("POST", LOGIN_URL, params)
+        self.assertEqual(403, channel.code, channel.result)
+        self.assertEqual(Codes.USER_AWAITING_APPROVAL, channel.json_body["errcode"])
+        self.assertEqual(
+            ApprovalNoticeMedium.NONE, channel.json_body["approval_notice_medium"]
+        )
+
+    def test_get_login_flows_with_login_via_existing_disabled(self) -> None:
+        """GET /login should return m.login.token without get_login_token"""
+        channel = self.make_request("GET", "/_matrix/client/r0/login")
+        self.assertEqual(channel.code, 200, channel.result)
+
+        flows = {flow["type"]: flow for flow in channel.json_body["flows"]}
+        self.assertNotIn("m.login.token", flows)
+
+    @override_config({"login_via_existing_session": {"enabled": True}})
+    def test_get_login_flows_with_login_via_existing_enabled(self) -> None:
+        """GET /login should return m.login.token with get_login_token true"""
+        channel = self.make_request("GET", "/_matrix/client/r0/login")
+        self.assertEqual(channel.code, 200, channel.result)
+
+        self.assertCountEqual(
+            channel.json_body["flows"],
+            [
+                {"type": "m.login.token", "get_login_token": True},
+                {"type": "m.login.password"},
+                {"type": "m.login.application_service"},
+            ],
+        )
+
+    @override_config(
+        {
+            "modules": [
+                {
+                    "module": TestSpamChecker.__module__
+                    + "."
+                    + TestSpamChecker.__qualname__
+                }
+            ]
+        }
+    )
+    def test_spam_checker_allow(self) -> None:
+        """Check that that adding a spam checker doesn't break login."""
+        self.register_user("kermit", "monkey")
+
+        body = {"type": "m.login.password", "user": "kermit", "password": "monkey"}
+
+        channel = self.make_request(
+            "POST",
+            "/_matrix/client/r0/login",
+            body,
+        )
+        self.assertEqual(channel.code, 200, channel.result)
+
+    @override_config(
+        {
+            "modules": [
+                {
+                    "module": DenyAllSpamChecker.__module__
+                    + "."
+                    + DenyAllSpamChecker.__qualname__
+                }
+            ]
+        }
+    )
+    def test_spam_checker_deny(self) -> None:
+        """Check that login"""
+
+        self.register_user("kermit", "monkey")
+
+        body = {"type": "m.login.password", "user": "kermit", "password": "monkey"}
+
+        channel = self.make_request(
+            "POST",
+            "/_matrix/client/r0/login",
+            body,
+        )
+        self.assertEqual(channel.code, 403, channel.result)
+        self.assertLessEqual(
+            {"errcode": Codes.LIMIT_EXCEEDED, "extra": "value"}.items(),
+            channel.json_body.items(),
+        )
 
 
 @skip_unless(has_saml2 and HAS_OIDC, "Requires SAML2 and OIDC")
@@ -416,7 +590,7 @@ class MultiSSOTestCase(unittest.HomeserverTestCase):
         login.register_servlets,
     ]
 
-    def default_config(self) -> Dict[str, Any]:
+    def default_config(self) -> dict[str, Any]:
         config = super().default_config()
 
         config["public_baseurl"] = BASE_URL
@@ -435,11 +609,9 @@ class MultiSSOTestCase(unittest.HomeserverTestCase):
             },
         }
 
-        # default OIDC provider
-        config["oidc_config"] = TEST_OIDC_CONFIG
-
-        # additional OIDC providers
+        # OIDC providers
         config["oidc_providers"] = [
+            TEST_OIDC_CONFIG,
             {
                 "idp_id": "idp1",
                 "idp_name": "IDP1",
@@ -454,13 +626,13 @@ class MultiSSOTestCase(unittest.HomeserverTestCase):
                 "user_mapping_provider": {
                     "config": {"localpart_template": "{{ user.sub }}"}
                 },
-            }
+            },
         ]
         return config
 
-    def create_resource_dict(self) -> Dict[str, Resource]:
+    def create_resource_dict(self) -> dict[str, Resource]:
         d = super().create_resource_dict()
-        d.update(build_synapse_client_resource_tree(self.hs))
+        d.update(build_relapse_client_resource_tree(self.hs))
         return d
 
     def test_get_login_flows(self) -> None:
@@ -485,8 +657,8 @@ class MultiSSOTestCase(unittest.HomeserverTestCase):
             [
                 {"id": "cas", "name": "CAS"},
                 {"id": "saml", "name": "SAML"},
-                {"id": "oidc-idp1", "name": "IDP1"},
                 {"id": "oidc", "name": "OIDC"},
+                {"id": "oidc-idp1", "name": "IDP1"},
             ],
         )
 
@@ -510,7 +682,7 @@ class MultiSSOTestCase(unittest.HomeserverTestCase):
         p.close()
 
         # there should be a link for each href
-        returned_idps: List[str] = []
+        returned_idps: list[str] = []
         for link in p.links:
             path, query = link.split("?", 1)
             self.assertEqual(path, "pick_idp")
@@ -525,7 +697,7 @@ class MultiSSOTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "GET",
-            "/_synapse/client/pick_idp?redirectUrl="
+            "/_relapse/client/pick_idp?redirectUrl="
             + urllib.parse.quote_plus(TEST_CLIENT_REDIRECT_URL)
             + "&idp=cas",
             shorthand=False,
@@ -551,7 +723,7 @@ class MultiSSOTestCase(unittest.HomeserverTestCase):
         """If SAML is chosen, should redirect to the SAML server"""
         channel = self.make_request(
             "GET",
-            "/_synapse/client/pick_idp?redirectUrl="
+            "/_relapse/client/pick_idp?redirectUrl="
             + urllib.parse.quote_plus(TEST_CLIENT_REDIRECT_URL)
             + "&idp=saml",
         )
@@ -572,13 +744,16 @@ class MultiSSOTestCase(unittest.HomeserverTestCase):
     def test_login_via_oidc(self) -> None:
         """If OIDC is chosen, should redirect to the OIDC auth endpoint"""
 
-        # pick the default OIDC provider
-        channel = self.make_request(
-            "GET",
-            "/_synapse/client/pick_idp?redirectUrl="
-            + urllib.parse.quote_plus(TEST_CLIENT_REDIRECT_URL)
-            + "&idp=oidc",
-        )
+        fake_oidc_server = self.helper.fake_oidc_server()
+
+        with fake_oidc_server.patch_homeserver(hs=self.hs):
+            # pick the default OIDC provider
+            channel = self.make_request(
+                "GET",
+                "/_relapse/client/pick_idp?redirectUrl="
+                + urllib.parse.quote_plus(TEST_CLIENT_REDIRECT_URL)
+                + "&idp=oidc",
+            )
         self.assertEqual(channel.code, 302, channel.result)
         location_headers = channel.headers.getRawHeaders("Location")
         assert location_headers
@@ -586,12 +761,12 @@ class MultiSSOTestCase(unittest.HomeserverTestCase):
         oidc_uri_path, oidc_uri_query = oidc_uri.split("?", 1)
 
         # it should redirect us to the auth page of the OIDC server
-        self.assertEqual(oidc_uri_path, TEST_OIDC_AUTH_ENDPOINT)
+        self.assertEqual(oidc_uri_path, fake_oidc_server.authorization_endpoint)
 
         # ... and should have set a cookie including the redirect url
         cookie_headers = channel.headers.getRawHeaders("Set-Cookie")
         assert cookie_headers
-        cookies: Dict[str, str] = {}
+        cookies: dict[str, str] = {}
         for h in cookie_headers:
             key, value = h.split(";")[0].split("=", maxsplit=1)
             cookies[key] = value
@@ -603,7 +778,9 @@ class MultiSSOTestCase(unittest.HomeserverTestCase):
             TEST_CLIENT_REDIRECT_URL,
         )
 
-        channel = self.helper.complete_oidc_auth(oidc_uri, cookies, {"sub": "user1"})
+        channel, _ = self.helper.complete_oidc_auth(
+            fake_oidc_server, oidc_uri, cookies, {"sub": "user1"}
+        )
 
         # that should serve a confirmation page
         self.assertEqual(channel.code, 200, channel.result)
@@ -641,7 +818,7 @@ class MultiSSOTestCase(unittest.HomeserverTestCase):
         """An unknown IdP should cause a 400"""
         channel = self.make_request(
             "GET",
-            "/_synapse/client/pick_idp?redirectUrl=http://x&idp=xyz",
+            "/_relapse/client/pick_idp?redirectUrl=http://x&idp=xyz",
         )
         self.assertEqual(channel.code, 400, channel.result)
 
@@ -653,7 +830,10 @@ class MultiSSOTestCase(unittest.HomeserverTestCase):
 
     def test_client_idp_redirect_to_oidc(self) -> None:
         """If the client pick a known IdP, redirect to it"""
-        channel = self._make_sso_redirect_request("oidc")
+        fake_oidc_server = self.helper.fake_oidc_server()
+
+        with fake_oidc_server.patch_homeserver(hs=self.hs):
+            channel = self._make_sso_redirect_request("oidc")
         self.assertEqual(channel.code, 302, channel.result)
         location_headers = channel.headers.getRawHeaders("Location")
         assert location_headers
@@ -661,7 +841,7 @@ class MultiSSOTestCase(unittest.HomeserverTestCase):
         oidc_uri_path, oidc_uri_query = oidc_uri.split("?", 1)
 
         # it should redirect us to the auth page of the OIDC server
-        self.assertEqual(oidc_uri_path, TEST_OIDC_AUTH_ENDPOINT)
+        self.assertEqual(oidc_uri_path, fake_oidc_server.authorization_endpoint)
 
     def _make_sso_redirect_request(self, idp_prov: Optional[str] = None) -> FakeChannel:
         """Send a request to /_matrix/client/r0/login/sso/redirect
@@ -676,7 +856,7 @@ class MultiSSOTestCase(unittest.HomeserverTestCase):
         return self.make_request(
             "GET",
             endpoint,
-            custom_headers=[("Host", SYNAPSE_SERVER_PUBLIC_HOSTNAME)],
+            custom_headers=[("Host", RELAPSE_SERVER_PUBLIC_HOSTNAME)],
         )
 
     @staticmethod
@@ -689,14 +869,13 @@ class MultiSSOTestCase(unittest.HomeserverTestCase):
 
 
 class CASTestCase(unittest.HomeserverTestCase):
-
     servlets = [
         login.register_servlets,
     ]
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         self.base_url = "https://matrix.goodserver.com/"
-        self.redirect_path = "_synapse/client/login/sso/redirect/confirm"
+        self.redirect_path = "_relapse/client/login/sso/redirect/confirm"
 
         config = self.default_config()
         config["public_baseurl"] = (
@@ -716,7 +895,7 @@ class CASTestCase(unittest.HomeserverTestCase):
             https://apereo.github.io/cas/5.0.x/protocol/CAS-Protocol-V2-Specification.html#26-proxyvalidate-cas-20
 
             This needs to be returned by an async function (as opposed to set as the
-            mock's return value) because the corresponding Synapse code awaits on it.
+            mock's return value) because the corresponding Relapse code awaits on it.
             """
             return (
                 """
@@ -761,17 +940,15 @@ class CASTestCase(unittest.HomeserverTestCase):
         url_parts[4] = urllib.parse.urlencode(query)
         cas_ticket_url = urllib.parse.urlunparse(url_parts)
 
-        # Get Synapse to call the fake CAS and serve the template.
+        # Get Relapse to call the fake CAS and serve the template.
         channel = self.make_request("GET", cas_ticket_url)
 
         # Test that the response is HTML.
         self.assertEqual(channel.code, 200, channel.result)
-        content_type_header_value = ""
-        for header in channel.result.get("headers", []):
-            if header[0] == b"Content-Type":
-                content_type_header_value = header[1].decode("utf8")
+        content_type_header_values = channel.headers.getRawHeaders("Content-Type", [])
+        assert len(content_type_header_values) == 1
 
-        self.assertTrue(content_type_header_value.startswith("text/html"))
+        self.assertTrue(content_type_header_values[0].startswith("text/html"))
 
         # Test that the body isn't empty.
         self.assertTrue(len(channel.result["body"]) > 0)
@@ -804,7 +981,7 @@ class CASTestCase(unittest.HomeserverTestCase):
             % (urllib.parse.quote(redirect_url))
         )
 
-        # Get Synapse to call the fake CAS and serve the template.
+        # Get Relapse to call the fake CAS and serve the template.
         channel = self.make_request("GET", cas_ticket_url)
 
         self.assertEqual(channel.code, 302)
@@ -833,7 +1010,7 @@ class CASTestCase(unittest.HomeserverTestCase):
             % (urllib.parse.quote(redirect_url))
         )
 
-        # Get Synapse to call the fake CAS and serve the template.
+        # Get Relapse to call the fake CAS and serve the template.
         channel = self.make_request("GET", cas_ticket_url)
 
         # Because the user is deactivated they are served an error template.
@@ -841,10 +1018,10 @@ class CASTestCase(unittest.HomeserverTestCase):
         self.assertIn(b"SSO account deactivated", channel.result["body"])
 
 
-@skip_unless(HAS_JWT, "requires jwt")
+@skip_unless(HAS_JWT, "requires authlib")
 class JWTTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         login.register_servlets,
     ]
 
@@ -856,7 +1033,7 @@ class JWTTestCase(unittest.HomeserverTestCase):
         "algorithm": jwt_algorithm,
     }
 
-    def default_config(self) -> Dict[str, Any]:
+    def default_config(self) -> dict[str, Any]:
         config = super().default_config()
 
         # If jwt_config has been defined (eg via @override_config), don't replace it.
@@ -865,12 +1042,10 @@ class JWTTestCase(unittest.HomeserverTestCase):
 
         return config
 
-    def jwt_encode(self, payload: Dict[str, Any], secret: str = jwt_secret) -> str:
-        # PyJWT 2.0.0 changed the return type of jwt.encode from bytes to str.
-        result: Union[str, bytes] = jwt.encode(payload, secret, self.jwt_algorithm)
-        if isinstance(result, bytes):
-            return result.decode("ascii")
-        return result
+    def jwt_encode(self, payload: dict[str, Any], secret: str = jwt_secret) -> str:
+        header = {"alg": self.jwt_algorithm}
+        result: bytes = jwt.encode(header, payload, secret)
+        return result.decode("ascii")
 
     def jwt_login(self, *args: Any) -> FakeChannel:
         params = {"type": "org.matrix.login.jwt", "token": self.jwt_encode(*args)}
@@ -880,17 +1055,17 @@ class JWTTestCase(unittest.HomeserverTestCase):
     def test_login_jwt_valid_registered(self) -> None:
         self.register_user("kermit", "monkey")
         channel = self.jwt_login({"sub": "kermit"})
-        self.assertEqual(channel.result["code"], b"200", channel.result)
+        self.assertEqual(channel.code, 200, msg=channel.result)
         self.assertEqual(channel.json_body["user_id"], "@kermit:test")
 
     def test_login_jwt_valid_unregistered(self) -> None:
         channel = self.jwt_login({"sub": "frog"})
-        self.assertEqual(channel.result["code"], b"200", channel.result)
+        self.assertEqual(channel.code, 200, msg=channel.result)
         self.assertEqual(channel.json_body["user_id"], "@frog:test")
 
     def test_login_jwt_invalid_signature(self) -> None:
         channel = self.jwt_login({"sub": "frog"}, "notsecret")
-        self.assertEqual(channel.result["code"], b"403", channel.result)
+        self.assertEqual(channel.code, 403, msg=channel.result)
         self.assertEqual(channel.json_body["errcode"], "M_FORBIDDEN")
         self.assertEqual(
             channel.json_body["error"],
@@ -899,25 +1074,26 @@ class JWTTestCase(unittest.HomeserverTestCase):
 
     def test_login_jwt_expired(self) -> None:
         channel = self.jwt_login({"sub": "frog", "exp": 864000})
-        self.assertEqual(channel.result["code"], b"403", channel.result)
+        self.assertEqual(channel.code, 403, msg=channel.result)
         self.assertEqual(channel.json_body["errcode"], "M_FORBIDDEN")
         self.assertEqual(
-            channel.json_body["error"], "JWT validation failed: Signature has expired"
+            channel.json_body["error"],
+            "JWT validation failed: expired_token: The token is expired",
         )
 
     def test_login_jwt_not_before(self) -> None:
         now = int(time.time())
         channel = self.jwt_login({"sub": "frog", "nbf": now + 3600})
-        self.assertEqual(channel.result["code"], b"403", channel.result)
+        self.assertEqual(channel.code, 403, msg=channel.result)
         self.assertEqual(channel.json_body["errcode"], "M_FORBIDDEN")
         self.assertEqual(
             channel.json_body["error"],
-            "JWT validation failed: The token is not yet valid (nbf)",
+            "JWT validation failed: invalid_token: The token is not valid yet",
         )
 
     def test_login_no_sub(self) -> None:
         channel = self.jwt_login({"username": "root"})
-        self.assertEqual(channel.result["code"], b"403", channel.result)
+        self.assertEqual(channel.code, 403, msg=channel.result)
         self.assertEqual(channel.json_body["errcode"], "M_FORBIDDEN")
         self.assertEqual(channel.json_body["error"], "Invalid JWT")
 
@@ -926,30 +1102,33 @@ class JWTTestCase(unittest.HomeserverTestCase):
         """Test validating the issuer claim."""
         # A valid issuer.
         channel = self.jwt_login({"sub": "kermit", "iss": "test-issuer"})
-        self.assertEqual(channel.result["code"], b"200", channel.result)
+        self.assertEqual(channel.code, 200, msg=channel.result)
         self.assertEqual(channel.json_body["user_id"], "@kermit:test")
 
         # An invalid issuer.
         channel = self.jwt_login({"sub": "kermit", "iss": "invalid"})
-        self.assertEqual(channel.result["code"], b"403", channel.result)
+        self.assertEqual(channel.code, 403, msg=channel.result)
         self.assertEqual(channel.json_body["errcode"], "M_FORBIDDEN")
         self.assertEqual(
-            channel.json_body["error"], "JWT validation failed: Invalid issuer"
+            # authlib < 1.5.2 had a bug that used double quotes in error messages.
+            channel.json_body["error"].replace('"', "'"),
+            "JWT validation failed: invalid_claim: Invalid claim 'iss'",
         )
 
         # Not providing an issuer.
         channel = self.jwt_login({"sub": "kermit"})
-        self.assertEqual(channel.result["code"], b"403", channel.result)
+        self.assertEqual(channel.code, 403, msg=channel.result)
         self.assertEqual(channel.json_body["errcode"], "M_FORBIDDEN")
         self.assertEqual(
-            channel.json_body["error"],
-            'JWT validation failed: Token is missing the "iss" claim',
+            # authlib < 1.5.2 had a bug that used double quotes in error messages.
+            channel.json_body["error"].replace('"', "'"),
+            "JWT validation failed: missing_claim: Missing 'iss' claim",
         )
 
     def test_login_iss_no_config(self) -> None:
         """Test providing an issuer claim without requiring it in the configuration."""
         channel = self.jwt_login({"sub": "kermit", "iss": "invalid"})
-        self.assertEqual(channel.result["code"], b"200", channel.result)
+        self.assertEqual(channel.code, 200, msg=channel.result)
         self.assertEqual(channel.json_body["user_id"], "@kermit:test")
 
     @override_config({"jwt_config": {**base_config, "audiences": ["test-audience"]}})
@@ -957,66 +1136,87 @@ class JWTTestCase(unittest.HomeserverTestCase):
         """Test validating the audience claim."""
         # A valid audience.
         channel = self.jwt_login({"sub": "kermit", "aud": "test-audience"})
-        self.assertEqual(channel.result["code"], b"200", channel.result)
+        self.assertEqual(channel.code, 200, msg=channel.result)
         self.assertEqual(channel.json_body["user_id"], "@kermit:test")
 
         # An invalid audience.
         channel = self.jwt_login({"sub": "kermit", "aud": "invalid"})
-        self.assertEqual(channel.result["code"], b"403", channel.result)
+        self.assertEqual(channel.code, 403, msg=channel.result)
         self.assertEqual(channel.json_body["errcode"], "M_FORBIDDEN")
         self.assertEqual(
-            channel.json_body["error"], "JWT validation failed: Invalid audience"
+            # authlib < 1.5.2 had a bug that used double quotes in error messages.
+            channel.json_body["error"].replace('"', "'"),
+            "JWT validation failed: invalid_claim: Invalid claim 'aud'",
         )
 
         # Not providing an audience.
         channel = self.jwt_login({"sub": "kermit"})
-        self.assertEqual(channel.result["code"], b"403", channel.result)
+        self.assertEqual(channel.code, 403, msg=channel.result)
         self.assertEqual(channel.json_body["errcode"], "M_FORBIDDEN")
         self.assertEqual(
-            channel.json_body["error"],
-            'JWT validation failed: Token is missing the "aud" claim',
+            # authlib < 1.5.2 had a bug that used double quotes in error messages.
+            channel.json_body["error"].replace('"', "'"),
+            "JWT validation failed: missing_claim: Missing 'aud' claim",
         )
 
     def test_login_aud_no_config(self) -> None:
         """Test providing an audience without requiring it in the configuration."""
         channel = self.jwt_login({"sub": "kermit", "aud": "invalid"})
-        self.assertEqual(channel.result["code"], b"403", channel.result)
+        self.assertEqual(channel.code, 403, msg=channel.result)
         self.assertEqual(channel.json_body["errcode"], "M_FORBIDDEN")
         self.assertEqual(
-            channel.json_body["error"], "JWT validation failed: Invalid audience"
+            # authlib < 1.5.2 had a bug that used double quotes in error messages.
+            channel.json_body["error"].replace('"', "'"),
+            "JWT validation failed: invalid_claim: Invalid claim 'aud'",
         )
 
     def test_login_default_sub(self) -> None:
         """Test reading user ID from the default subject claim."""
         channel = self.jwt_login({"sub": "kermit"})
-        self.assertEqual(channel.result["code"], b"200", channel.result)
+        self.assertEqual(channel.code, 200, msg=channel.result)
         self.assertEqual(channel.json_body["user_id"], "@kermit:test")
 
     @override_config({"jwt_config": {**base_config, "subject_claim": "username"}})
     def test_login_custom_sub(self) -> None:
         """Test reading user ID from a custom subject claim."""
         channel = self.jwt_login({"username": "frog"})
-        self.assertEqual(channel.result["code"], b"200", channel.result)
+        self.assertEqual(channel.code, 200, msg=channel.result)
         self.assertEqual(channel.json_body["user_id"], "@frog:test")
 
     def test_login_no_token(self) -> None:
         params = {"type": "org.matrix.login.jwt"}
         channel = self.make_request(b"POST", LOGIN_URL, params)
-        self.assertEqual(channel.result["code"], b"403", channel.result)
+        self.assertEqual(channel.code, 403, msg=channel.result)
         self.assertEqual(channel.json_body["errcode"], "M_FORBIDDEN")
         self.assertEqual(channel.json_body["error"], "Token field for JWT is missing")
 
+    def test_deactivated_user(self) -> None:
+        """Logging in as a deactivated account should error."""
+        user_id = self.register_user("kermit", "monkey")
+        self.get_success(
+            self.hs.get_deactivate_account_handler().deactivate_account(
+                user_id, erase_data=False, requester=create_requester(user_id)
+            )
+        )
+
+        channel = self.jwt_login({"sub": "kermit"})
+        self.assertEqual(channel.code, 403, msg=channel.result)
+        self.assertEqual(channel.json_body["errcode"], "M_USER_DEACTIVATED")
+        self.assertEqual(
+            channel.json_body["error"], "This account has been deactivated"
+        )
+
 
 # The JWTPubKeyTestCase is a complement to JWTTestCase where we instead use
-# RSS256, with a public key configured in synapse as "jwt_secret", and tokens
+# RSS256, with a public key configured in relapse as "jwt_secret", and tokens
 # signed by the private key.
-@skip_unless(HAS_JWT, "requires jwt")
+@skip_unless(HAS_JWT, "requires authlib")
 class JWTPubKeyTestCase(unittest.HomeserverTestCase):
     servlets = [
         login.register_servlets,
     ]
 
-    # This key's pubkey is used as the jwt_secret setting of synapse. Valid
+    # This key's pubkey is used as the jwt_secret setting of relapse. Valid
     # tokens are signed by this and validated using the pubkey. It is generated
     # with `openssl genrsa 512` (not a secure way to generate real keys, but
     # good enough for tests!)
@@ -1045,7 +1245,7 @@ class JWTPubKeyTestCase(unittest.HomeserverTestCase):
         ]
     )
 
-    # This key is used to sign tokens that shouldn't be accepted by synapse.
+    # This key is used to sign tokens that shouldn't be accepted by relapse.
     # Generated just like jwt_privatekey.
     bad_privatekey = "\n".join(
         [
@@ -1061,7 +1261,7 @@ class JWTPubKeyTestCase(unittest.HomeserverTestCase):
         ]
     )
 
-    def default_config(self) -> Dict[str, Any]:
+    def default_config(self) -> dict[str, Any]:
         config = super().default_config()
         config["jwt_config"] = {
             "enabled": True,
@@ -1070,12 +1270,12 @@ class JWTPubKeyTestCase(unittest.HomeserverTestCase):
         }
         return config
 
-    def jwt_encode(self, payload: Dict[str, Any], secret: str = jwt_privatekey) -> str:
-        # PyJWT 2.0.0 changed the return type of jwt.encode from bytes to str.
-        result: Union[bytes, str] = jwt.encode(payload, secret, "RS256")
-        if isinstance(result, bytes):
-            return result.decode("ascii")
-        return result
+    def jwt_encode(self, payload: dict[str, Any], secret: str = jwt_privatekey) -> str:
+        header = {"alg": "RS256"}
+        if secret.startswith("-----BEGIN RSA PRIVATE KEY-----"):
+            secret = JsonWebKey.import_key(secret, {"kty": "RSA"})
+        result: bytes = jwt.encode(header, payload, secret)
+        return result.decode("ascii")
 
     def jwt_login(self, *args: Any) -> FakeChannel:
         params = {"type": "org.matrix.login.jwt", "token": self.jwt_encode(*args)}
@@ -1084,12 +1284,12 @@ class JWTPubKeyTestCase(unittest.HomeserverTestCase):
 
     def test_login_jwt_valid(self) -> None:
         channel = self.jwt_login({"sub": "kermit"})
-        self.assertEqual(channel.result["code"], b"200", channel.result)
+        self.assertEqual(channel.code, 200, msg=channel.result)
         self.assertEqual(channel.json_body["user_id"], "@kermit:test")
 
     def test_login_jwt_invalid_signature(self) -> None:
         channel = self.jwt_login({"sub": "frog"}, self.bad_privatekey)
-        self.assertEqual(channel.result["code"], b"403", channel.result)
+        self.assertEqual(channel.code, 403, msg=channel.result)
         self.assertEqual(channel.json_body["errcode"], "M_FORBIDDEN")
         self.assertEqual(
             channel.json_body["error"],
@@ -1112,7 +1312,6 @@ class AppserviceLoginRestServletTestCase(unittest.HomeserverTestCase):
         self.service = ApplicationService(
             id="unique_identifier",
             token="some_token",
-            hostname="example.com",
             sender="@asbot:example.com",
             namespaces={
                 ApplicationService.NS_USERS: [
@@ -1125,7 +1324,6 @@ class AppserviceLoginRestServletTestCase(unittest.HomeserverTestCase):
         self.another_service = ApplicationService(
             id="another__identifier",
             token="another_token",
-            hostname="example.com",
             sender="@as2bot:example.com",
             namespaces={
                 ApplicationService.NS_USERS: [
@@ -1152,7 +1350,7 @@ class AppserviceLoginRestServletTestCase(unittest.HomeserverTestCase):
             b"POST", LOGIN_URL, params, access_token=self.service.token
         )
 
-        self.assertEqual(channel.result["code"], b"200", channel.result)
+        self.assertEqual(channel.code, 200, msg=channel.result)
 
     def test_login_appservice_user_bot(self) -> None:
         """Test that the appservice bot can use /login"""
@@ -1166,7 +1364,7 @@ class AppserviceLoginRestServletTestCase(unittest.HomeserverTestCase):
             b"POST", LOGIN_URL, params, access_token=self.service.token
         )
 
-        self.assertEqual(channel.result["code"], b"200", channel.result)
+        self.assertEqual(channel.code, 200, msg=channel.result)
 
     def test_login_appservice_wrong_user(self) -> None:
         """Test that non-as users cannot login with the as token"""
@@ -1180,7 +1378,7 @@ class AppserviceLoginRestServletTestCase(unittest.HomeserverTestCase):
             b"POST", LOGIN_URL, params, access_token=self.service.token
         )
 
-        self.assertEqual(channel.result["code"], b"403", channel.result)
+        self.assertEqual(channel.code, 403, msg=channel.result)
 
     def test_login_appservice_wrong_as(self) -> None:
         """Test that as users cannot login with wrong as token"""
@@ -1194,7 +1392,7 @@ class AppserviceLoginRestServletTestCase(unittest.HomeserverTestCase):
             b"POST", LOGIN_URL, params, access_token=self.another_service.token
         )
 
-        self.assertEqual(channel.result["code"], b"403", channel.result)
+        self.assertEqual(channel.code, 403, msg=channel.result)
 
     def test_login_appservice_no_token(self) -> None:
         """Test that users must provide a token when using the appservice
@@ -1208,7 +1406,7 @@ class AppserviceLoginRestServletTestCase(unittest.HomeserverTestCase):
         }
         channel = self.make_request(b"POST", LOGIN_URL, params)
 
-        self.assertEqual(channel.result["code"], b"401", channel.result)
+        self.assertEqual(channel.code, 401, msg=channel.result)
 
 
 @skip_unless(HAS_OIDC, "requires OIDC")
@@ -1217,32 +1415,39 @@ class UsernamePickerTestCase(HomeserverTestCase):
 
     servlets = [login.register_servlets]
 
-    def default_config(self) -> Dict[str, Any]:
+    def default_config(self) -> dict[str, Any]:
         config = super().default_config()
         config["public_baseurl"] = BASE_URL
 
-        config["oidc_config"] = {}
-        config["oidc_config"].update(TEST_OIDC_CONFIG)
-        config["oidc_config"]["user_mapping_provider"] = {
-            "config": {"display_name_template": "{{ user.displayname }}"}
-        }
+        config["oidc_providers"] = [
+            {
+                **TEST_OIDC_CONFIG,
+                "user_mapping_provider": {
+                    "config": {"display_name_template": "{{ user.displayname }}"}
+                },
+            }
+        ]
 
         # whitelist this client URI so we redirect straight to it rather than
         # serving a confirmation page
         config["sso"] = {"client_whitelist": ["https://x"]}
         return config
 
-    def create_resource_dict(self) -> Dict[str, Resource]:
+    def create_resource_dict(self) -> dict[str, Resource]:
         d = super().create_resource_dict()
-        d.update(build_synapse_client_resource_tree(self.hs))
+        d.update(build_relapse_client_resource_tree(self.hs))
         return d
 
     def test_username_picker(self) -> None:
         """Test the happy path of a username picker flow."""
 
+        fake_oidc_server = self.helper.fake_oidc_server()
+
         # do the start of the login flow
-        channel = self.helper.auth_via_oidc(
-            {"sub": "tester", "displayname": "Jonny"}, TEST_CLIENT_REDIRECT_URL
+        channel, _ = self.helper.auth_via_oidc(
+            fake_oidc_server,
+            {"sub": "tester", "displayname": "Jonny"},
+            TEST_CLIENT_REDIRECT_URL,
         )
 
         # that should redirect to the username picker
@@ -1250,10 +1455,10 @@ class UsernamePickerTestCase(HomeserverTestCase):
         location_headers = channel.headers.getRawHeaders("Location")
         assert location_headers
         picker_url = location_headers[0]
-        self.assertEqual(picker_url, "/_synapse/client/pick_username/account_details")
+        self.assertEqual(picker_url, "/_relapse/client/pick_username/account_details")
 
         # ... with a username_mapping_session cookie
-        cookies: Dict[str, str] = {}
+        cookies: dict[str, str] = {}
         channel.extract_cookies(cookies)
         self.assertIn("username_mapping_session", cookies)
         session_id = cookies["username_mapping_session"]

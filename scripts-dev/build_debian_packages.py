@@ -16,22 +16,30 @@ import signal
 import subprocess
 import sys
 import threading
+from collections.abc import Collection, Sequence
 from concurrent.futures import ThreadPoolExecutor
 from types import FrameType
-from typing import Collection, Optional, Sequence, Set
+from typing import Optional
 
+# These are expanded inside the dockerfile to be a fully qualified image name.
+# e.g. docker.io/library/debian:bullseye
+#
+# If an EOL is forced by a Python version and we're dropping support for it, make sure
+# to remove references to the distibution across Relapse (search for "bullseye" for
+# example)
 DISTS = (
-    "debian:buster",  # oldstable: EOL 2022-08
-    "debian:bullseye",
-    "debian:bookworm",
-    "debian:sid",
-    "ubuntu:focal",  # 20.04 LTS (our EOL forced by Py38 on 2024-10-14)
-    "ubuntu:impish",  # 21.10  (EOL 2022-07)
-    "ubuntu:jammy",  # 22.04 LTS (EOL 2027-04)
+    "debian:bullseye",  # (EOL ~2024-07) (our EOL forced by Python 3.9 is 2025-10-05)
+    "debian:bookworm",  # (EOL not specified yet) (our EOL forced by Python 3.11 is 2027-10-24)
+    "debian:sid",  # (EOL not specified yet) (our EOL forced by Python 3.11 is 2027-10-24)
+    "ubuntu:focal",  # 20.04 LTS (EOL 2025-04) (our EOL forced by Python 3.8 is 2024-10-14)
+    "ubuntu:jammy",  # 22.04 LTS (EOL 2027-04) (our EOL forced by Python 3.10 is 2026-10-04)
+    "ubuntu:lunar",  # 23.04 (EOL 2024-01) (our EOL forced by Python 3.11 is 2027-10-24)
+    "ubuntu:mantic",  # 23.10 (EOL 2024-07) (our EOL forced by Python 3.11 is 2027-10-24)
+    "debian:trixie",  # (EOL not specified yet)
 )
 
 DESC = """\
-Builds .debs for synapse, using a Docker image for the build environment.
+Builds .debs for relapse, using a Docker image for the build environment.
 
 By default, builds for all known distributions, but a list of distributions
 can be passed on the commandline for debugging.
@@ -40,7 +48,7 @@ can be passed on the commandline for debugging.
 projdir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
 
-class Builder(object):
+class Builder:
     def __init__(
         self,
         redirect_stdout: bool = False,
@@ -48,7 +56,7 @@ class Builder(object):
     ):
         self.redirect_stdout = redirect_stdout
         self._docker_build_args = tuple(docker_build_args or ())
-        self.active_containers: Set[str] = set()
+        self.active_containers: set[str] = set()
         self._lock = threading.Lock()
         self._failed = False
 
@@ -108,7 +116,7 @@ class Builder(object):
             cwd=projdir,
         )
 
-        container_name = "synapse_build_" + tag
+        container_name = "relapse_build_" + tag
         with self._lock:
             self.active_containers.add(container_name)
 
@@ -120,7 +128,7 @@ class Builder(object):
                 "--rm",
                 "--name",
                 container_name,
-                "--volume=" + projdir + ":/synapse/source:ro",
+                "--volume=" + projdir + ":/relapse/source:ro",
                 "--volume=" + debsdir + ":/debs",
                 "-e",
                 "TARGET_USERID=%i" % (os.getuid(),),

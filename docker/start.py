@@ -6,19 +6,25 @@ import os
 import platform
 import subprocess
 import sys
-from typing import Any, Dict, List, Mapping, MutableMapping, NoReturn, Optional
+from collections.abc import Mapping, MutableMapping
+from typing import Any, NoReturn, Optional
 
 import jinja2
 
 
 # Utility functions
 def log(txt: str) -> None:
-    print(txt, file=sys.stderr)
+    print(txt)
 
 
 def error(txt: str) -> NoReturn:
-    log(txt)
+    print(txt, file=sys.stderr)
     sys.exit(2)
+
+
+def flush_buffers() -> None:
+    sys.stdout.flush()
+    sys.stderr.flush()
 
 
 def convert(src: str, dst: str, environ: Mapping[str, object]) -> None:
@@ -51,7 +57,7 @@ def generate_config_from_template(
         ownership: "<user>:<group>" string which will be used to set
             ownership of the generated configs. If None, ownership will not change.
     """
-    for v in ("SYNAPSE_SERVER_NAME", "SYNAPSE_REPORT_STATS"):
+    for v in ("RELAPSE_SERVER_NAME", "RELAPSE_REPORT_STATS"):
         if v not in os_environ:
             error(
                 "Environment variable '%s' is mandatory when generating a config file."
@@ -59,15 +65,15 @@ def generate_config_from_template(
             )
 
     # populate some params from data files (if they exist, else create new ones)
-    environ: Dict[str, Any] = dict(os_environ)
+    environ: dict[str, Any] = dict(os_environ)
     secrets = {
-        "registration": "SYNAPSE_REGISTRATION_SHARED_SECRET",
-        "macaroon": "SYNAPSE_MACAROON_SECRET_KEY",
+        "registration": "RELAPSE_REGISTRATION_SHARED_SECRET",
+        "macaroon": "RELAPSE_MACAROON_SECRET_KEY",
     }
 
     for name, secret in secrets.items():
         if secret not in environ:
-            filename = "/data/%s.%s.key" % (environ["SYNAPSE_SERVER_NAME"], name)
+            filename = "/data/%s.%s.key" % (environ["RELAPSE_SERVER_NAME"], name)
 
             # if the file already exists, load in the existing value; otherwise,
             # generate a new secret and write it to a file
@@ -77,49 +83,53 @@ def generate_config_from_template(
                 with open(filename) as handle:
                     value = handle.read()
             else:
-                log("Generating a random secret for {}".format(secret))
+                log(f"Generating a random secret for {secret}")
                 value = codecs.encode(os.urandom(32), "hex").decode()
                 with open(filename, "w") as handle:
                     handle.write(value)
             environ[secret] = value
 
-    environ["SYNAPSE_APPSERVICES"] = glob.glob("/data/appservices/*.yaml")
+    environ["RELAPSE_APPSERVICES"] = glob.glob("/data/appservices/*.yaml")
     if not os.path.exists(config_dir):
         os.mkdir(config_dir)
 
-    # Convert SYNAPSE_NO_TLS to boolean if exists
-    if "SYNAPSE_NO_TLS" in environ:
-        tlsanswerstring = str.lower(environ["SYNAPSE_NO_TLS"])
+    # Convert RELAPSE_NO_TLS to boolean if exists
+    if "RELAPSE_NO_TLS" in environ:
+        tlsanswerstring = str.lower(environ["RELAPSE_NO_TLS"])
         if tlsanswerstring in ("true", "on", "1", "yes"):
-            environ["SYNAPSE_NO_TLS"] = True
+            environ["RELAPSE_NO_TLS"] = True
         else:
             if tlsanswerstring in ("false", "off", "0", "no"):
-                environ["SYNAPSE_NO_TLS"] = False
+                environ["RELAPSE_NO_TLS"] = False
             else:
                 error(
-                    'Environment variable "SYNAPSE_NO_TLS" found but value "'
+                    'Environment variable "RELAPSE_NO_TLS" found but value "'
                     + tlsanswerstring
                     + '" unrecognized; exiting.'
                 )
 
-    if "SYNAPSE_LOG_CONFIG" not in environ:
-        environ["SYNAPSE_LOG_CONFIG"] = config_dir + "/log.config"
+    if "RELAPSE_LOG_CONFIG" not in environ:
+        environ["RELAPSE_LOG_CONFIG"] = config_dir + "/log.config"
 
-    log("Generating synapse config file " + config_path)
+    log("Generating relapse config file " + config_path)
     convert("/conf/homeserver.yaml", config_path, environ)
 
-    log_config_file = environ["SYNAPSE_LOG_CONFIG"]
+    log_config_file = environ["RELAPSE_LOG_CONFIG"]
     log("Generating log config file " + log_config_file)
-    convert("/conf/log.config", log_config_file, environ)
+    convert(
+        "/conf/log.config",
+        log_config_file,
+        {**environ, "include_worker_name_in_log_line": False},
+    )
 
     # Hopefully we already have a signing key, but generate one if not.
     args = [
         sys.executable,
         "-m",
-        "synapse.app.homeserver",
+        "relapse.app.homeserver",
         "--config-path",
         config_path,
-        # tell synapse to put generated keys in /data rather than /compiled
+        # tell relapse to put generated keys in /data rather than /compiled
         "--keys-directory",
         config_dir,
         "--generate-keys",
@@ -127,14 +137,14 @@ def generate_config_from_template(
 
     if ownership is not None:
         log(f"Setting ownership on /data to {ownership}")
-        subprocess.check_output(["chown", "-R", ownership, "/data"])
+        subprocess.run(["chown", "-R", ownership, "/data"], check=True)
         args = ["gosu", ownership] + args
 
-    subprocess.check_output(args)
+    subprocess.run(args, check=True)
 
 
 def run_generate_config(environ: Mapping[str, str], ownership: Optional[str]) -> None:
-    """Run synapse with a --generate-config param to generate a template config file
+    """Run relapse with a --generate-config param to generate a template config file
 
     Args:
         environ: env vars from `os.enrivon`.
@@ -142,19 +152,19 @@ def run_generate_config(environ: Mapping[str, str], ownership: Optional[str]) ->
 
     Never returns.
     """
-    for v in ("SYNAPSE_SERVER_NAME", "SYNAPSE_REPORT_STATS"):
+    for v in ("RELAPSE_SERVER_NAME", "RELAPSE_REPORT_STATS"):
         if v not in environ:
             error("Environment variable '%s' is mandatory in `generate` mode." % (v,))
 
-    server_name = environ["SYNAPSE_SERVER_NAME"]
-    config_dir = environ.get("SYNAPSE_CONFIG_DIR", "/data")
-    config_path = environ.get("SYNAPSE_CONFIG_PATH", config_dir + "/homeserver.yaml")
-    data_dir = environ.get("SYNAPSE_DATA_DIR", "/data")
+    server_name = environ["RELAPSE_SERVER_NAME"]
+    config_dir = environ.get("RELAPSE_CONFIG_DIR", "/data")
+    config_path = environ.get("RELAPSE_CONFIG_PATH", config_dir + "/homeserver.yaml")
+    data_dir = environ.get("RELAPSE_DATA_DIR", "/data")
 
     if ownership is not None:
-        # make sure that synapse has perms to write to the data dir.
+        # make sure that relapse has perms to write to the data dir.
         log(f"Setting ownership on {data_dir} to {ownership}")
-        subprocess.check_output(["chown", ownership, data_dir])
+        subprocess.run(["chown", ownership, data_dir], check=True)
 
     # create a suitable log config from our template
     log_config_file = "%s/%s.log.config" % (config_dir, server_name)
@@ -166,11 +176,11 @@ def run_generate_config(environ: Mapping[str, str], ownership: Optional[str]) ->
     args = [
         sys.executable,
         "-m",
-        "synapse.app.homeserver",
+        "relapse.app.homeserver",
         "--server-name",
         server_name,
         "--report-stats",
-        environ["SYNAPSE_REPORT_STATS"],
+        environ["RELAPSE_REPORT_STATS"],
         "--config-path",
         config_path,
         "--config-directory",
@@ -181,10 +191,11 @@ def run_generate_config(environ: Mapping[str, str], ownership: Optional[str]) ->
         "--open-private-ports",
     ]
     # log("running %s" % (args, ))
+    flush_buffers()
     os.execv(sys.executable, args)
 
 
-def main(args: List[str], environ: MutableMapping[str, str]) -> None:
+def main(args: list[str], environ: MutableMapping[str, str]) -> None:
     mode = args[1] if len(args) > 1 else "run"
 
     # if we were given an explicit user to switch to, do so
@@ -197,7 +208,7 @@ def main(args: List[str], environ: MutableMapping[str, str]) -> None:
         # otherwise, if we are running as root, use user 991
         ownership = "991:991"
 
-    synapse_worker = environ.get("SYNAPSE_WORKER", "synapse.app.homeserver")
+    relapse_worker = environ.get("RELAPSE_WORKER", "relapse.app.homeserver")
 
     # In generate mode, generate a configuration and missing keys, then exit
     if mode == "generate":
@@ -205,9 +216,9 @@ def main(args: List[str], environ: MutableMapping[str, str]) -> None:
 
     if mode == "migrate_config":
         # generate a config based on environment vars.
-        config_dir = environ.get("SYNAPSE_CONFIG_DIR", "/data")
+        config_dir = environ.get("RELAPSE_CONFIG_DIR", "/data")
         config_path = environ.get(
-            "SYNAPSE_CONFIG_PATH", config_dir + "/homeserver.yaml"
+            "RELAPSE_CONFIG_PATH", config_dir + "/homeserver.yaml"
         )
         return generate_config_from_template(
             config_dir, config_path, environ, ownership
@@ -219,7 +230,7 @@ def main(args: List[str], environ: MutableMapping[str, str]) -> None:
     args = args[2:]
 
     if "-m" not in args:
-        args = ["-m", synapse_worker] + args
+        args = ["-m", relapse_worker] + args
 
     jemallocpath = "/usr/lib/%s-linux-gnu/libjemalloc.so.2" % (platform.machine(),)
 
@@ -228,20 +239,20 @@ def main(args: List[str], environ: MutableMapping[str, str]) -> None:
     else:
         log("Could not find %s, will not use" % (jemallocpath,))
 
-    # if there are no config files passed to synapse, try adding the default file
-    if not any(p.startswith("--config-path") or p.startswith("-c") for p in args):
-        config_dir = environ.get("SYNAPSE_CONFIG_DIR", "/data")
+    # if there are no config files passed to relapse, try adding the default file
+    if not any(p.startswith(("--config-path", "-c")) for p in args):
+        config_dir = environ.get("RELAPSE_CONFIG_DIR", "/data")
         config_path = environ.get(
-            "SYNAPSE_CONFIG_PATH", config_dir + "/homeserver.yaml"
+            "RELAPSE_CONFIG_PATH", config_dir + "/homeserver.yaml"
         )
 
         if not os.path.exists(config_path):
-            if "SYNAPSE_SERVER_NAME" in environ:
+            if "RELAPSE_SERVER_NAME" in environ:
                 error(
                     """\
 Config file '%s' does not exist.
 
-The synapse docker image no longer supports generating a config file on-the-fly
+The relapse docker image no longer supports generating a config file on-the-fly
 based on environment variables. You can migrate to a static config file by
 running with 'migrate_config'. See the README for more details.
 """
@@ -252,19 +263,21 @@ running with 'migrate_config'. See the README for more details.
                 "Config file '%s' does not exist. You should either create a new "
                 "config file by running with the `generate` argument (and then edit "
                 "the resulting file before restarting) or specify the path to an "
-                "existing config file with the SYNAPSE_CONFIG_PATH variable."
+                "existing config file with the RELAPSE_CONFIG_PATH variable."
                 % (config_path,)
             )
 
         args += ["--config-path", config_path]
 
-    log("Starting synapse with args " + " ".join(args))
+    log("Starting relapse with args " + " ".join(args))
 
     args = [sys.executable] + args
     if ownership is not None:
         args = ["gosu", ownership] + args
+        flush_buffers()
         os.execve("/usr/sbin/gosu", args, environ)
     else:
+        flush_buffers()
         os.execve(sys.executable, args, environ)
 
 

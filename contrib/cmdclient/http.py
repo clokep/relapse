@@ -37,7 +37,6 @@ class HttpClient:
             Deferred: Succeeds when we get a 2xx HTTP response. The result
             will be the decoded JSON body.
         """
-        pass
 
     def get_json(self, url, args=None):
         """Gets some json from the given host homeserver and path
@@ -53,7 +52,6 @@ class HttpClient:
             Deferred: Succeeds when we get a 2xx HTTP response. The result
             will be the decoded JSON body.
         """
-        pass
 
 
 class TwistedHttpClient(HttpClient):
@@ -138,7 +136,7 @@ class TwistedHttpClient(HttpClient):
         """Creates and sends a request to the given url"""
         headers_dict = headers_dict or {}
 
-        headers_dict["User-Agent"] = ["Synapse Cmd Client"]
+        headers_dict["User-Agent"] = ["Relapse Cmd Client"]
 
         retries_left = 5
         print("%s to %s with headers %s" % (method, url, headers_dict))

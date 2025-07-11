@@ -11,9 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import urllib.parse
 from io import BytesIO, StringIO
-from typing import Any, Dict, Optional, Union
+from typing import Any, Optional, Union
 from unittest.mock import Mock
 
 import signedjson.key
@@ -24,15 +23,15 @@ from signedjson.types import SigningKey
 from twisted.test.proto_helpers import MemoryReactor
 from twisted.web.resource import NoResource, Resource
 
-from synapse.crypto.keyring import PerspectivesKeyFetcher
-from synapse.http.site import SynapseRequest
-from synapse.rest.key.v2 import KeyApiV2Resource
-from synapse.server import HomeServer
-from synapse.storage.keys import FetchKeyResult
-from synapse.types import JsonDict
-from synapse.util import Clock
-from synapse.util.httpresourcetree import create_resource_tree
-from synapse.util.stringutils import random_string
+from relapse.crypto.keyring import PerspectivesKeyFetcher
+from relapse.http.site import RelapseRequest
+from relapse.rest.key.v2 import KeyResource
+from relapse.server import HomeServer
+from relapse.storage.keys import FetchKeyResult
+from relapse.types import JsonDict
+from relapse.util import Clock
+from relapse.util.httpresourcetree import create_resource_tree
+from relapse.util.stringutils import random_string
 
 from tests import unittest
 from tests.server import FakeChannel
@@ -46,7 +45,7 @@ class BaseRemoteKeyResourceTestCase(unittest.HomeserverTestCase):
 
     def create_test_resource(self) -> Resource:
         return create_resource_tree(
-            {"/_matrix/key/v2": KeyApiV2Resource(self.hs)}, root_resource=NoResource()
+            {"/_matrix/key/v2": KeyResource(self.hs)}, root_resource=NoResource()
         )
 
     def expect_outgoing_key_request(
@@ -65,9 +64,7 @@ class BaseRemoteKeyResourceTestCase(unittest.HomeserverTestCase):
             self.assertTrue(ignore_backoff)
             self.assertEqual(destination, server_name)
             key_id = "%s:%s" % (signing_key.alg, signing_key.version)
-            self.assertEqual(
-                path, "/_matrix/key/v2/server/%s" % (urllib.parse.quote(key_id),)
-            )
+            self.assertEqual(path, "/_matrix/key/v2/server")
 
             response = {
                 "server_name": server_name,
@@ -95,7 +92,7 @@ class RemoteKeyResourceTestCase(BaseRemoteKeyResourceTestCase):
         """
         channel = FakeChannel(self.site, self.reactor)
         # channel is a `FakeChannel` but `HTTPChannel` is expected
-        req = SynapseRequest(channel, self.site)  # type: ignore[arg-type]
+        req = RelapseRequest(channel, self.site)  # type: ignore[arg-type]
         req.content = BytesIO(b"")
         req.requestReceived(
             b"GET",
@@ -152,7 +149,7 @@ class EndToEndPerspectivesTests(BaseRemoteKeyResourceTestCase):
     endpoint, to check that the two implementations are compatible.
     """
 
-    def default_config(self) -> Dict[str, Any]:
+    def default_config(self) -> dict[str, Any]:
         config = super().default_config()
 
         # replace the signing key with our own
@@ -197,7 +194,7 @@ class EndToEndPerspectivesTests(BaseRemoteKeyResourceTestCase):
 
             channel = FakeChannel(self.site, self.reactor)
             # channel is a `FakeChannel` but `HTTPChannel` is expected
-            req = SynapseRequest(channel, self.site)  # type: ignore[arg-type]
+            req = RelapseRequest(channel, self.site)  # type: ignore[arg-type]
             req.content = BytesIO(encode_canonical_json(data))
 
             req.requestReceived(

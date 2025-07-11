@@ -15,20 +15,19 @@ from http import HTTPStatus
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import synapse.rest.admin
-from synapse.api.room_versions import KNOWN_ROOM_VERSIONS
-from synapse.rest.client import capabilities, login
-from synapse.server import HomeServer
-from synapse.util import Clock
+from relapse.api.room_versions import KNOWN_ROOM_VERSIONS
+from relapse.rest import admin
+from relapse.rest.client import capabilities, login
+from relapse.server import HomeServer
+from relapse.util import Clock
 
 from tests import unittest
 from tests.unittest import override_config
 
 
 class CapabilitiesTestCase(unittest.HomeserverTestCase):
-
     servlets = [
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         capabilities.register_servlets,
         login.register_servlets,
     ]
@@ -187,3 +186,31 @@ class CapabilitiesTestCase(unittest.HomeserverTestCase):
             self.assertGreater(len(details["support"]), 0)
             for room_version in details["support"]:
                 self.assertTrue(room_version in KNOWN_ROOM_VERSIONS, str(room_version))
+
+    def test_get_get_token_login_fields_when_disabled(self) -> None:
+        """By default login via an existing session is disabled."""
+        access_token = self.get_success(
+            self.auth_handler.create_access_token_for_user_id(
+                self.user, device_id=None, valid_until_ms=None
+            )
+        )
+
+        channel = self.make_request("GET", self.url, access_token=access_token)
+        capabilities = channel.json_body["capabilities"]
+
+        self.assertEqual(channel.code, HTTPStatus.OK)
+        self.assertFalse(capabilities["m.get_login_token"]["enabled"])
+
+    @override_config({"login_via_existing_session": {"enabled": True}})
+    def test_get_get_token_login_fields_when_enabled(self) -> None:
+        access_token = self.get_success(
+            self.auth_handler.create_access_token_for_user_id(
+                self.user, device_id=None, valid_until_ms=None
+            )
+        )
+
+        channel = self.make_request("GET", self.url, access_token=access_token)
+        capabilities = channel.json_body["capabilities"]
+
+        self.assertEqual(channel.code, HTTPStatus.OK)
+        self.assertTrue(capabilities["m.get_login_token"]["enabled"])

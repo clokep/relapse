@@ -14,20 +14,23 @@
 
 """Tests for the password_auth_provider interface"""
 
-from typing import Any, Type, Union
-from unittest.mock import Mock
+from http import HTTPStatus
+from typing import Any, Optional, Union
+from unittest.mock import AsyncMock, Mock
 
-import synapse
-from synapse.api.constants import LoginType
-from synapse.api.errors import Codes
-from synapse.handlers.auth import load_legacy_password_auth_providers
-from synapse.module_api import ModuleApi
-from synapse.rest.client import account, devices, login, logout, register
-from synapse.types import JsonDict, UserID
+from twisted.test.proto_helpers import MemoryReactor
+
+from relapse.api.constants import LoginType
+from relapse.api.errors import Codes
+from relapse.module_api import ModuleApi
+from relapse.rest import admin
+from relapse.rest.client import account, devices, login, logout, register
+from relapse.server import HomeServer
+from relapse.types import JsonDict, UserID
+from relapse.util import Clock
 
 from tests import unittest
 from tests.server import FakeChannel
-from tests.test_utils import make_awaitable
 from tests.unittest import override_config
 
 # Login flows we expect to appear in the list after the normal ones.
@@ -40,34 +43,19 @@ ADDITIONAL_LOGIN_FLOWS = [
 mock_password_provider = Mock()
 
 
-class LegacyPasswordOnlyAuthProvider:
-    """A legacy password_provider which only implements `check_password`."""
+class CustomPasswordOnlyAuthProvider:
+    """A legacy password_provider which only implements `check_auth`."""
 
     @staticmethod
-    def parse_config(self):
+    def parse_config(config: JsonDict) -> None:
         pass
 
-    def __init__(self, config, account_handler):
-        pass
+    def __init__(self, config: None, api: ModuleApi):
+        api.register_password_auth_provider_callbacks(
+            auth_checkers={("m.login.password", ("password",)): self.check_auth}
+        )
 
-    def check_password(self, *args):
-        return mock_password_provider.check_password(*args)
-
-
-class LegacyCustomAuthProvider:
-    """A legacy password_provider which implements a custom login type."""
-
-    @staticmethod
-    def parse_config(self):
-        pass
-
-    def __init__(self, config, account_handler):
-        pass
-
-    def get_supported_login_types(self):
-        return {"test.login_type": ["test_field"]}
-
-    def check_auth(self, *args):
+    def check_auth(self, *args: Any) -> Mock:
         return mock_password_provider.check_auth(*args)
 
 
@@ -75,33 +63,15 @@ class CustomAuthProvider:
     """A module which registers password_auth_provider callbacks for a custom login type."""
 
     @staticmethod
-    def parse_config(self):
+    def parse_config(config: JsonDict) -> None:
         pass
 
-    def __init__(self, config, api: ModuleApi):
+    def __init__(self, config: None, api: ModuleApi):
         api.register_password_auth_provider_callbacks(
             auth_checkers={("test.login_type", ("test_field",)): self.check_auth}
         )
 
-    def check_auth(self, *args):
-        return mock_password_provider.check_auth(*args)
-
-
-class LegacyPasswordCustomAuthProvider:
-    """A password_provider which implements password login via `check_auth`, as well
-    as a custom type."""
-
-    @staticmethod
-    def parse_config(self):
-        pass
-
-    def __init__(self, config, account_handler):
-        pass
-
-    def get_supported_login_types(self):
-        return {"m.login.password": ["password"], "test.login_type": ["test_field"]}
-
-    def check_auth(self, *args):
+    def check_auth(self, *args: Any) -> Mock:
         return mock_password_provider.check_auth(*args)
 
 
@@ -110,10 +80,10 @@ class PasswordCustomAuthProvider:
     as well as a password login"""
 
     @staticmethod
-    def parse_config(self):
+    def parse_config(config: JsonDict) -> None:
         pass
 
-    def __init__(self, config, api: ModuleApi):
+    def __init__(self, config: None, api: ModuleApi):
         api.register_password_auth_provider_callbacks(
             auth_checkers={
                 ("test.login_type", ("test_field",)): self.check_auth,
@@ -121,24 +91,11 @@ class PasswordCustomAuthProvider:
             }
         )
 
-    def check_auth(self, *args):
+    def check_auth(self, *args: Any) -> Mock:
         return mock_password_provider.check_auth(*args)
 
-    def check_pass(self, *args):
-        return mock_password_provider.check_password(*args)
 
-
-def legacy_providers_config(*providers: Type[Any]) -> dict:
-    """Returns a config dict that will enable the given legacy password auth providers"""
-    return {
-        "password_providers": [
-            {"module": "%s.%s" % (__name__, provider.__qualname__), "config": {}}
-            for provider in providers
-        ]
-    }
-
-
-def providers_config(*providers: Type[Any]) -> dict:
+def providers_config(*providers: type[Any]) -> dict:
     """Returns a config dict that will enable the given modules"""
     return {
         "modules": [
@@ -150,7 +107,7 @@ def providers_config(*providers: Type[Any]) -> dict:
 
 class PasswordAuthProviderTests(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        admin.register_servlets,
         login.register_servlets,
         devices.register_servlets,
         logout.register_servlets,
@@ -161,134 +118,112 @@ class PasswordAuthProviderTests(unittest.HomeserverTestCase):
     CALLBACK_USERNAME = "get_username_for_registration"
     CALLBACK_DISPLAYNAME = "get_displayname_for_registration"
 
-    def setUp(self):
+    def prepare(
+        self, reactor: MemoryReactor, clock: Clock, homeserver: HomeServer
+    ) -> None:
         # we use a global mock device, so make sure we are starting with a clean slate
         mock_password_provider.reset_mock()
-        super().setUp()
 
-    def make_homeserver(self, reactor, clock):
-        hs = self.setup_test_homeserver()
-        # Load the modules into the homeserver
-        module_api = hs.get_module_api()
-        for module, config in hs.config.modules.loaded_modules:
-            module(config=config, api=module_api)
-        load_legacy_password_auth_providers(hs)
+        # The mock password provider doesn't register the users, so ensure they
+        # are registered first.
+        self.register_user("u", "not-the-tested-password")
+        self.register_user("user", "not-the-tested-password")
 
-        return hs
-
-    @override_config(legacy_providers_config(LegacyPasswordOnlyAuthProvider))
-    def test_password_only_auth_progiver_login_legacy(self):
-        self.password_only_auth_provider_login_test_body()
-
-    def password_only_auth_provider_login_test_body(self):
+    @override_config(providers_config(CustomPasswordOnlyAuthProvider))
+    def test_password_only_auth_progiver_login(self) -> None:
         # login flows should only have m.login.password
         flows = self._get_login_flows()
         self.assertEqual(flows, [{"type": "m.login.password"}] + ADDITIONAL_LOGIN_FLOWS)
 
-        # check_password must return an awaitable
-        mock_password_provider.check_password.return_value = make_awaitable(True)
+        # check_auth must return an awaitable
+        mock_password_provider.check_auth = AsyncMock(return_value=("@u:test", None))
         channel = self._send_password_login("u", "p")
-        self.assertEqual(channel.code, 200, channel.result)
+        self.assertEqual(channel.code, HTTPStatus.OK, channel.result)
         self.assertEqual("@u:test", channel.json_body["user_id"])
-        mock_password_provider.check_password.assert_called_once_with("@u:test", "p")
+        mock_password_provider.check_auth.assert_called_once_with(
+            "u", "m.login.password", {"password": "p"}
+        )
         mock_password_provider.reset_mock()
 
         # login with mxid should work too
-        channel = self._send_password_login("@u:bz", "p")
-        self.assertEqual(channel.code, 200, channel.result)
-        self.assertEqual("@u:bz", channel.json_body["user_id"])
-        mock_password_provider.check_password.assert_called_once_with("@u:bz", "p")
+        channel = self._send_password_login("@u:test", "p")
+        self.assertEqual(channel.code, HTTPStatus.OK, channel.result)
+        self.assertEqual("@u:test", channel.json_body["user_id"])
+        mock_password_provider.check_auth.assert_called_once_with(
+            "@u:test", "m.login.password", {"password": "p"}
+        )
         mock_password_provider.reset_mock()
 
-        # try a weird username / pass. Honestly it's unclear what we *expect* to happen
-        # in these cases, but at least we can guard against the API changing
-        # unexpectedly
-        channel = self._send_password_login(" USER🙂NAME ", " pASS\U0001F622word ")
-        self.assertEqual(channel.code, 200, channel.result)
-        self.assertEqual("@ USER🙂NAME :test", channel.json_body["user_id"])
-        mock_password_provider.check_password.assert_called_once_with(
-            "@ USER🙂NAME :test", " pASS😢word "
-        )
-
-    @override_config(legacy_providers_config(LegacyPasswordOnlyAuthProvider))
-    def test_password_only_auth_provider_ui_auth_legacy(self):
-        self.password_only_auth_provider_ui_auth_test_body()
-
-    def password_only_auth_provider_ui_auth_test_body(self):
+    @override_config(providers_config(CustomPasswordOnlyAuthProvider))
+    def test_password_only_auth_provider_ui_auth(self) -> None:
         """UI Auth should delegate correctly to the password provider"""
 
-        # create the user, otherwise access doesn't work
-        module_api = self.hs.get_module_api()
-        self.get_success(module_api.register_user("u"))
-
         # log in twice, to get two devices
-        mock_password_provider.check_password.return_value = make_awaitable(True)
+        mock_password_provider.check_auth = AsyncMock(return_value=("@u:test", None))
         tok1 = self.login("u", "p")
         self.login("u", "p", device_id="dev2")
         mock_password_provider.reset_mock()
 
         # have the auth provider deny the request to start with
-        mock_password_provider.check_password.return_value = make_awaitable(False)
+        mock_password_provider.check_auth = AsyncMock(return_value=None)
 
         # make the initial request which returns a 401
         session = self._start_delete_device_session(tok1, "dev2")
-        mock_password_provider.check_password.assert_not_called()
+        mock_password_provider.check_auth.assert_not_called()
 
         # Make another request providing the UI auth flow.
         channel = self._authed_delete_device(tok1, "dev2", session, "u", "p")
         self.assertEqual(channel.code, 401)  # XXX why not a 403?
         self.assertEqual(channel.json_body["errcode"], "M_FORBIDDEN")
-        mock_password_provider.check_password.assert_called_once_with("@u:test", "p")
+        mock_password_provider.check_auth.assert_called_once_with(
+            "u", "m.login.password", {"password": "p"}
+        )
         mock_password_provider.reset_mock()
 
         # Finally, check the request goes through when we allow it
-        mock_password_provider.check_password.return_value = make_awaitable(True)
+        mock_password_provider.check_auth = AsyncMock(return_value=("@u:test", None))
         channel = self._authed_delete_device(tok1, "dev2", session, "u", "p")
         self.assertEqual(channel.code, 200)
-        mock_password_provider.check_password.assert_called_once_with("@u:test", "p")
+        mock_password_provider.check_auth.assert_called_once_with(
+            "u", "m.login.password", {"password": "p"}
+        )
 
-    @override_config(legacy_providers_config(LegacyPasswordOnlyAuthProvider))
-    def test_local_user_fallback_login_legacy(self):
-        self.local_user_fallback_login_test_body()
-
-    def local_user_fallback_login_test_body(self):
+    @override_config(providers_config(CustomPasswordOnlyAuthProvider))
+    def test_local_user_fallback_login(self) -> None:
         """rejected login should fall back to local db"""
         self.register_user("localuser", "localpass")
 
-        # check_password must return an awaitable
-        mock_password_provider.check_password.return_value = make_awaitable(False)
+        # check_auth must return an awaitable
+        mock_password_provider.check_auth = AsyncMock(return_value=None)
         channel = self._send_password_login("u", "p")
-        self.assertEqual(channel.code, 403, channel.result)
+        self.assertEqual(channel.code, HTTPStatus.FORBIDDEN, channel.result)
 
         channel = self._send_password_login("localuser", "localpass")
-        self.assertEqual(channel.code, 200, channel.result)
+        self.assertEqual(channel.code, HTTPStatus.OK, channel.result)
         self.assertEqual("@localuser:test", channel.json_body["user_id"])
 
-    @override_config(legacy_providers_config(LegacyPasswordOnlyAuthProvider))
-    def test_local_user_fallback_ui_auth_legacy(self):
-        self.local_user_fallback_ui_auth_test_body()
-
-    def local_user_fallback_ui_auth_test_body(self):
+    @override_config(providers_config(CustomPasswordOnlyAuthProvider))
+    def local_user_fallback_ui_auth_test(self) -> None:
         """rejected login should fall back to local db"""
         self.register_user("localuser", "localpass")
 
         # have the auth provider deny the request
-        mock_password_provider.check_password.return_value = make_awaitable(False)
+        mock_password_provider.check_auth = AsyncMock(return_value=None)
 
         # log in twice, to get two devices
         tok1 = self.login("localuser", "localpass")
         self.login("localuser", "localpass", device_id="dev2")
-        mock_password_provider.check_password.reset_mock()
+        mock_password_provider.check_auth.reset_mock()
 
         # first delete should give a 401
         session = self._start_delete_device_session(tok1, "dev2")
-        mock_password_provider.check_password.assert_not_called()
+        mock_password_provider.check_auth.assert_not_called()
 
         # Wrong password
         channel = self._authed_delete_device(tok1, "dev2", session, "localuser", "xxx")
         self.assertEqual(channel.code, 401)  # XXX why not a 403?
         self.assertEqual(channel.json_body["errcode"], "M_FORBIDDEN")
-        mock_password_provider.check_password.assert_called_once_with(
+        mock_password_provider.check_auth.assert_called_once_with(
             "@localuser:test", "xxx"
         )
         mock_password_provider.reset_mock()
@@ -298,52 +233,48 @@ class PasswordAuthProviderTests(unittest.HomeserverTestCase):
             tok1, "dev2", session, "localuser", "localpass"
         )
         self.assertEqual(channel.code, 200)
-        mock_password_provider.check_password.assert_called_once_with(
+        mock_password_provider.check_auth.assert_called_once_with(
             "@localuser:test", "localpass"
         )
 
     @override_config(
         {
-            **legacy_providers_config(LegacyPasswordOnlyAuthProvider),
+            **providers_config(CustomPasswordOnlyAuthProvider),
             "password_config": {"localdb_enabled": False},
         }
     )
-    def test_no_local_user_fallback_login_legacy(self):
-        self.no_local_user_fallback_login_test_body()
-
-    def no_local_user_fallback_login_test_body(self):
+    def test_no_local_user_fallback_login_legacy(self) -> None:
         """localdb_enabled can block login with the local password"""
         self.register_user("localuser", "localpass")
 
-        # check_password must return an awaitable
-        mock_password_provider.check_password.return_value = make_awaitable(False)
+        # check_auth must return an awaitable
+        mock_password_provider.check_auth = AsyncMock(return_value=None)
         channel = self._send_password_login("localuser", "localpass")
         self.assertEqual(channel.code, 403)
         self.assertEqual(channel.json_body["errcode"], "M_FORBIDDEN")
-        mock_password_provider.check_password.assert_called_once_with(
-            "@localuser:test", "localpass"
+        mock_password_provider.check_auth.assert_called_once_with(
+            "localuser", "m.login.password", {"password": "localpass"}
         )
 
     @override_config(
         {
-            **legacy_providers_config(LegacyPasswordOnlyAuthProvider),
+            **providers_config(CustomPasswordOnlyAuthProvider),
             "password_config": {"localdb_enabled": False},
         }
     )
-    def test_no_local_user_fallback_ui_auth_legacy(self):
-        self.no_local_user_fallback_ui_auth_test_body()
-
-    def no_local_user_fallback_ui_auth_test_body(self):
+    def test_no_local_user_fallback_ui_auth(self) -> None:
         """localdb_enabled can block ui auth with the local password"""
         self.register_user("localuser", "localpass")
 
         # allow login via the auth provider
-        mock_password_provider.check_password.return_value = make_awaitable(True)
+        mock_password_provider.check_auth = AsyncMock(
+            return_value=("@localuser:test", None)
+        )
 
         # log in twice, to get two devices
         tok1 = self.login("localuser", "p")
         self.login("localuser", "p", device_id="dev2")
-        mock_password_provider.check_password.reset_mock()
+        mock_password_provider.check_auth.reset_mock()
 
         # first delete should give a 401
         channel = self._delete_device(tok1, "dev2")
@@ -352,29 +283,26 @@ class PasswordAuthProviderTests(unittest.HomeserverTestCase):
         # even though the localdb does not.
         self.assertEqual(channel.json_body["flows"], [{"stages": ["m.login.password"]}])
         session = channel.json_body["session"]
-        mock_password_provider.check_password.assert_not_called()
+        mock_password_provider.check_auth.assert_not_called()
 
         # now try deleting with the local password
-        mock_password_provider.check_password.return_value = make_awaitable(False)
+        mock_password_provider.check_auth = AsyncMock(return_value=None)
         channel = self._authed_delete_device(
             tok1, "dev2", session, "localuser", "localpass"
         )
         self.assertEqual(channel.code, 401)  # XXX why not a 403?
         self.assertEqual(channel.json_body["errcode"], "M_FORBIDDEN")
-        mock_password_provider.check_password.assert_called_once_with(
-            "@localuser:test", "localpass"
+        mock_password_provider.check_auth.assert_called_once_with(
+            "localuser", "m.login.password", {"password": "localpass"}
         )
 
     @override_config(
         {
-            **legacy_providers_config(LegacyPasswordOnlyAuthProvider),
+            **providers_config(CustomPasswordOnlyAuthProvider),
             "password_config": {"enabled": False},
         }
     )
-    def test_password_auth_disabled_legacy(self):
-        self.password_auth_disabled_test_body()
-
-    def password_auth_disabled_test_body(self):
+    def test_password_auth_disabled(self) -> None:
         """password auth doesn't work if it's disabled across the board"""
         # login flows should be empty
         flows = self._get_login_flows()
@@ -382,18 +310,11 @@ class PasswordAuthProviderTests(unittest.HomeserverTestCase):
 
         # login shouldn't work and should be rejected with a 400 ("unknown login type")
         channel = self._send_password_login("u", "p")
-        self.assertEqual(channel.code, 400, channel.result)
-        mock_password_provider.check_password.assert_not_called()
-
-    @override_config(legacy_providers_config(LegacyCustomAuthProvider))
-    def test_custom_auth_provider_login_legacy(self):
-        self.custom_auth_provider_login_test_body()
+        self.assertEqual(channel.code, HTTPStatus.BAD_REQUEST, channel.result)
+        mock_password_provider.check_auth.assert_not_called()
 
     @override_config(providers_config(CustomAuthProvider))
-    def test_custom_auth_provider_login(self):
-        self.custom_auth_provider_login_test_body()
-
-    def custom_auth_provider_login_test_body(self):
+    def test_custom_auth_provider_login(self) -> None:
         # login flows should have the custom flow and m.login.password, since we
         # haven't disabled local password lookup.
         # (password must come first, because reasons)
@@ -406,42 +327,20 @@ class PasswordAuthProviderTests(unittest.HomeserverTestCase):
 
         # login with missing param should be rejected
         channel = self._send_login("test.login_type", "u")
-        self.assertEqual(channel.code, 400, channel.result)
+        self.assertEqual(channel.code, HTTPStatus.BAD_REQUEST, channel.result)
         mock_password_provider.check_auth.assert_not_called()
 
-        mock_password_provider.check_auth.return_value = make_awaitable(
-            ("@user:bz", None)
-        )
+        mock_password_provider.check_auth = AsyncMock(return_value=("@user:test", None))
         channel = self._send_login("test.login_type", "u", test_field="y")
-        self.assertEqual(channel.code, 200, channel.result)
-        self.assertEqual("@user:bz", channel.json_body["user_id"])
+        self.assertEqual(channel.code, HTTPStatus.OK, channel.result)
+        self.assertEqual("@user:test", channel.json_body["user_id"])
         mock_password_provider.check_auth.assert_called_once_with(
             "u", "test.login_type", {"test_field": "y"}
         )
         mock_password_provider.reset_mock()
 
-        # try a weird username. Again, it's unclear what we *expect* to happen
-        # in these cases, but at least we can guard against the API changing
-        # unexpectedly
-        mock_password_provider.check_auth.return_value = make_awaitable(
-            ("@ MALFORMED! :bz", None)
-        )
-        channel = self._send_login("test.login_type", " USER🙂NAME ", test_field=" abc ")
-        self.assertEqual(channel.code, 200, channel.result)
-        self.assertEqual("@ MALFORMED! :bz", channel.json_body["user_id"])
-        mock_password_provider.check_auth.assert_called_once_with(
-            " USER🙂NAME ", "test.login_type", {"test_field": " abc "}
-        )
-
-    @override_config(legacy_providers_config(LegacyCustomAuthProvider))
-    def test_custom_auth_provider_ui_auth_legacy(self):
-        self.custom_auth_provider_ui_auth_test_body()
-
     @override_config(providers_config(CustomAuthProvider))
-    def test_custom_auth_provider_ui_auth(self):
-        self.custom_auth_provider_ui_auth_test_body()
-
-    def custom_auth_provider_ui_auth_test_body(self):
+    def test_custom_auth_provider_ui_auth(self) -> None:
         # register the user and log in twice, to get two devices
         self.register_user("localuser", "localpass")
         tok1 = self.login("localuser", "localpass")
@@ -473,9 +372,7 @@ class PasswordAuthProviderTests(unittest.HomeserverTestCase):
         mock_password_provider.reset_mock()
 
         # right params, but authing as the wrong user
-        mock_password_provider.check_auth.return_value = make_awaitable(
-            ("@user:bz", None)
-        )
+        mock_password_provider.check_auth = AsyncMock(return_value=("@user:test", None))
         body["auth"]["test_field"] = "foo"
         channel = self._delete_device(tok1, "dev2", body)
         self.assertEqual(channel.code, 403)
@@ -486,8 +383,8 @@ class PasswordAuthProviderTests(unittest.HomeserverTestCase):
         mock_password_provider.reset_mock()
 
         # and finally, succeed
-        mock_password_provider.check_auth.return_value = make_awaitable(
-            ("@localuser:test", None)
+        mock_password_provider.check_auth = AsyncMock(
+            return_value=("@localuser:test", None)
         )
         channel = self._delete_device(tok1, "dev2", body)
         self.assertEqual(channel.code, 200)
@@ -495,23 +392,16 @@ class PasswordAuthProviderTests(unittest.HomeserverTestCase):
             "localuser", "test.login_type", {"test_field": "foo"}
         )
 
-    @override_config(legacy_providers_config(LegacyCustomAuthProvider))
-    def test_custom_auth_provider_callback_legacy(self):
-        self.custom_auth_provider_callback_test_body()
-
     @override_config(providers_config(CustomAuthProvider))
-    def test_custom_auth_provider_callback(self):
-        self.custom_auth_provider_callback_test_body()
+    def test_custom_auth_provider_callback(self) -> None:
+        callback = AsyncMock(return_value=None)
 
-    def custom_auth_provider_callback_test_body(self):
-        callback = Mock(return_value=make_awaitable(None))
-
-        mock_password_provider.check_auth.return_value = make_awaitable(
-            ("@user:bz", callback)
+        mock_password_provider.check_auth = AsyncMock(
+            return_value=("@user:test", callback)
         )
         channel = self._send_login("test.login_type", "u", test_field="y")
-        self.assertEqual(channel.code, 200, channel.result)
-        self.assertEqual("@user:bz", channel.json_body["user_id"])
+        self.assertEqual(channel.code, HTTPStatus.OK, channel.result)
+        self.assertEqual("@user:test", channel.json_body["user_id"])
         mock_password_provider.check_auth.assert_called_once_with(
             "u", "test.login_type", {"test_field": "y"}
         )
@@ -521,26 +411,14 @@ class PasswordAuthProviderTests(unittest.HomeserverTestCase):
         call_args, call_kwargs = callback.call_args
         # should be one positional arg
         self.assertEqual(len(call_args), 1)
-        self.assertEqual(call_args[0]["user_id"], "@user:bz")
+        self.assertEqual(call_args[0]["user_id"], "@user:test")
         for p in ["user_id", "access_token", "device_id", "home_server"]:
             self.assertIn(p, call_args[0])
 
     @override_config(
-        {
-            **legacy_providers_config(LegacyCustomAuthProvider),
-            "password_config": {"enabled": False},
-        }
-    )
-    def test_custom_auth_password_disabled_legacy(self):
-        self.custom_auth_password_disabled_test_body()
-
-    @override_config(
         {**providers_config(CustomAuthProvider), "password_config": {"enabled": False}}
     )
-    def test_custom_auth_password_disabled(self):
-        self.custom_auth_password_disabled_test_body()
-
-    def custom_auth_password_disabled_test_body(self):
+    def test_custom_auth_password_disabled(self) -> None:
         """Test login with a custom auth provider where password login is disabled"""
         self.register_user("localuser", "localpass")
 
@@ -549,17 +427,8 @@ class PasswordAuthProviderTests(unittest.HomeserverTestCase):
 
         # login shouldn't work and should be rejected with a 400 ("unknown login type")
         channel = self._send_password_login("localuser", "localpass")
-        self.assertEqual(channel.code, 400, channel.result)
+        self.assertEqual(channel.code, HTTPStatus.BAD_REQUEST, channel.result)
         mock_password_provider.check_auth.assert_not_called()
-
-    @override_config(
-        {
-            **legacy_providers_config(LegacyCustomAuthProvider),
-            "password_config": {"enabled": False, "localdb_enabled": False},
-        }
-    )
-    def test_custom_auth_password_disabled_localdb_enabled_legacy(self):
-        self.custom_auth_password_disabled_localdb_enabled_test_body()
 
     @override_config(
         {
@@ -567,10 +436,7 @@ class PasswordAuthProviderTests(unittest.HomeserverTestCase):
             "password_config": {"enabled": False, "localdb_enabled": False},
         }
     )
-    def test_custom_auth_password_disabled_localdb_enabled(self):
-        self.custom_auth_password_disabled_localdb_enabled_test_body()
-
-    def custom_auth_password_disabled_localdb_enabled_test_body(self):
+    def test_custom_auth_password_disabled_localdb_enabled(self) -> None:
         """Check the localdb_enabled == enabled == False
 
         Regression test for https://github.com/matrix-org/synapse/issues/8914: check
@@ -584,17 +450,8 @@ class PasswordAuthProviderTests(unittest.HomeserverTestCase):
 
         # login shouldn't work and should be rejected with a 400 ("unknown login type")
         channel = self._send_password_login("localuser", "localpass")
-        self.assertEqual(channel.code, 400, channel.result)
+        self.assertEqual(channel.code, HTTPStatus.BAD_REQUEST, channel.result)
         mock_password_provider.check_auth.assert_not_called()
-
-    @override_config(
-        {
-            **legacy_providers_config(LegacyPasswordCustomAuthProvider),
-            "password_config": {"enabled": False},
-        }
-    )
-    def test_password_custom_auth_password_disabled_login_legacy(self):
-        self.password_custom_auth_password_disabled_login_test_body()
 
     @override_config(
         {
@@ -602,10 +459,7 @@ class PasswordAuthProviderTests(unittest.HomeserverTestCase):
             "password_config": {"enabled": False},
         }
     )
-    def test_password_custom_auth_password_disabled_login(self):
-        self.password_custom_auth_password_disabled_login_test_body()
-
-    def password_custom_auth_password_disabled_login_test_body(self):
+    def test_password_custom_auth_password_disabled_login(self) -> None:
         """log in with a custom auth provider which implements password, but password
         login is disabled"""
         self.register_user("localuser", "localpass")
@@ -615,18 +469,9 @@ class PasswordAuthProviderTests(unittest.HomeserverTestCase):
 
         # login shouldn't work and should be rejected with a 400 ("unknown login type")
         channel = self._send_password_login("localuser", "localpass")
-        self.assertEqual(channel.code, 400, channel.result)
+        self.assertEqual(channel.code, HTTPStatus.BAD_REQUEST, channel.result)
         mock_password_provider.check_auth.assert_not_called()
-        mock_password_provider.check_password.assert_not_called()
-
-    @override_config(
-        {
-            **legacy_providers_config(LegacyPasswordCustomAuthProvider),
-            "password_config": {"enabled": False},
-        }
-    )
-    def test_password_custom_auth_password_disabled_ui_auth_legacy(self):
-        self.password_custom_auth_password_disabled_ui_auth_test_body()
+        mock_password_provider.check_auth.assert_not_called()
 
     @override_config(
         {
@@ -634,25 +479,22 @@ class PasswordAuthProviderTests(unittest.HomeserverTestCase):
             "password_config": {"enabled": False},
         }
     )
-    def test_password_custom_auth_password_disabled_ui_auth(self):
-        self.password_custom_auth_password_disabled_ui_auth_test_body()
-
-    def password_custom_auth_password_disabled_ui_auth_test_body(self):
+    def test_password_custom_auth_password_disabled_ui_auth(self) -> None:
         """UI Auth with a custom auth provider which implements password, but password
         login is disabled"""
         # register the user and log in twice via the test login type to get two devices,
         self.register_user("localuser", "localpass")
-        mock_password_provider.check_auth.return_value = make_awaitable(
-            ("@localuser:test", None)
+        mock_password_provider.check_auth = AsyncMock(
+            return_value=("@localuser:test", None)
         )
         channel = self._send_login("test.login_type", "localuser", test_field="")
-        self.assertEqual(channel.code, 200, channel.result)
+        self.assertEqual(channel.code, HTTPStatus.OK, channel.result)
         tok1 = channel.json_body["access_token"]
 
         channel = self._send_login(
             "test.login_type", "localuser", test_field="", device_id="dev2"
         )
-        self.assertEqual(channel.code, 200, channel.result)
+        self.assertEqual(channel.code, HTTPStatus.OK, channel.result)
 
         # make the initial request which returns a 401
         channel = self._delete_device(tok1, "dev2")
@@ -680,7 +522,6 @@ class PasswordAuthProviderTests(unittest.HomeserverTestCase):
             "Password login has been disabled.", channel.json_body["error"]
         )
         mock_password_provider.check_auth.assert_not_called()
-        mock_password_provider.check_password.assert_not_called()
         mock_password_provider.reset_mock()
 
         # successful auth
@@ -691,16 +532,6 @@ class PasswordAuthProviderTests(unittest.HomeserverTestCase):
         mock_password_provider.check_auth.assert_called_once_with(
             "localuser", "test.login_type", {"test_field": "x"}
         )
-        mock_password_provider.check_password.assert_not_called()
-
-    @override_config(
-        {
-            **legacy_providers_config(LegacyCustomAuthProvider),
-            "password_config": {"localdb_enabled": False},
-        }
-    )
-    def test_custom_auth_no_local_user_fallback_legacy(self):
-        self.custom_auth_no_local_user_fallback_test_body()
 
     @override_config(
         {
@@ -708,10 +539,7 @@ class PasswordAuthProviderTests(unittest.HomeserverTestCase):
             "password_config": {"localdb_enabled": False},
         }
     )
-    def test_custom_auth_no_local_user_fallback(self):
-        self.custom_auth_no_local_user_fallback_test_body()
-
-    def custom_auth_no_local_user_fallback_test_body(self):
+    def test_custom_auth_no_local_user_fallback(self) -> None:
         """Test login with a custom auth provider where the local db is disabled"""
         self.register_user("localuser", "localpass")
 
@@ -721,16 +549,18 @@ class PasswordAuthProviderTests(unittest.HomeserverTestCase):
         # password login shouldn't work and should be rejected with a 400
         # ("unknown login type")
         channel = self._send_password_login("localuser", "localpass")
-        self.assertEqual(channel.code, 400, channel.result)
+        self.assertEqual(channel.code, HTTPStatus.BAD_REQUEST, channel.result)
 
-    def test_on_logged_out(self):
+    def test_on_logged_out(self) -> None:
         """Tests that the on_logged_out callback is called when the user logs out."""
         self.register_user("rin", "password")
         tok = self.login("rin", "password")
 
         self.called = False
 
-        async def on_logged_out(user_id, device_id, access_token):
+        async def on_logged_out(
+            user_id: str, device_id: Optional[str], access_token: str
+        ) -> None:
             self.called = True
 
         on_logged_out = Mock(side_effect=on_logged_out)
@@ -748,7 +578,7 @@ class PasswordAuthProviderTests(unittest.HomeserverTestCase):
         on_logged_out.assert_called_once()
         self.assertTrue(self.called)
 
-    def test_username(self):
+    def test_username(self) -> None:
         """Tests that the get_username_for_registration callback can define the username
         of a user when registering.
         """
@@ -773,7 +603,7 @@ class PasswordAuthProviderTests(unittest.HomeserverTestCase):
         mxid = channel.json_body["user_id"]
         self.assertEqual(UserID.from_string(mxid).localpart, username + "-foo")
 
-    def test_username_uia(self):
+    def test_username_uia(self) -> None:
         """Tests that the get_username_for_registration callback is only called at the
         end of the UIA flow.
         """
@@ -792,16 +622,16 @@ class PasswordAuthProviderTests(unittest.HomeserverTestCase):
 
     # Set some email configuration so the test doesn't fail because of its absence.
     @override_config({"email": {"notif_from": "noreply@test"}})
-    def test_3pid_allowed(self):
-        """Tests that an is_3pid_allowed_callbacks forbidding a 3PID makes Synapse refuse
-        to bind the new 3PID, and that one allowing a 3PID makes Synapse accept to bind
+    def test_3pid_allowed(self) -> None:
+        """Tests that an is_3pid_allowed_callbacks forbidding a 3PID makes Relapse refuse
+        to bind the new 3PID, and that one allowing a 3PID makes Relapse accept to bind
         the 3PID. Also checks that the module is passed a boolean indicating whether the
         user to bind this 3PID to is currently registering.
         """
         self._test_3pid_allowed("rin", False)
         self._test_3pid_allowed("kitay", True)
 
-    def test_displayname(self):
+    def test_displayname(self) -> None:
         """Tests that the get_displayname_for_registration callback can define the
         display name of a user when registering.
         """
@@ -830,7 +660,7 @@ class PasswordAuthProviderTests(unittest.HomeserverTestCase):
 
         self.assertEqual(display_name, username + "-foo")
 
-    def test_displayname_uia(self):
+    def test_displayname_uia(self) -> None:
         """Tests that the get_displayname_for_registration callback is only called at the
         end of the UIA flow.
         """
@@ -851,7 +681,7 @@ class PasswordAuthProviderTests(unittest.HomeserverTestCase):
         # Check that the callback has been called.
         m.assert_called_once()
 
-    def _test_3pid_allowed(self, username: str, registration: bool):
+    def _test_3pid_allowed(self, username: str, registration: bool) -> None:
         """Tests that the "is_3pid_allowed" module callback is called correctly, using
         either /register or /account URLs depending on the arguments.
 
@@ -859,11 +689,11 @@ class PasswordAuthProviderTests(unittest.HomeserverTestCase):
             username: The username to use for the test.
             registration: Whether to test with registration URLs.
         """
-        self.hs.get_identity_handler().send_threepid_validation = Mock(
-            return_value=make_awaitable(0),
+        self.hs.get_identity_handler().send_threepid_validation = AsyncMock(  # type: ignore[method-assign]
+            return_value=0
         )
 
-        m = Mock(return_value=make_awaitable(False))
+        m = AsyncMock(return_value=False)
         self.hs.get_password_auth_provider().is_3pid_allowed_callbacks = [m]
 
         self.register_user(username, "password")
@@ -884,7 +714,7 @@ class PasswordAuthProviderTests(unittest.HomeserverTestCase):
             },
             access_token=tok,
         )
-        self.assertEqual(channel.code, 403, channel.result)
+        self.assertEqual(channel.code, HTTPStatus.FORBIDDEN, channel.result)
         self.assertEqual(
             channel.json_body["errcode"],
             Codes.THREEPID_DENIED,
@@ -893,7 +723,7 @@ class PasswordAuthProviderTests(unittest.HomeserverTestCase):
 
         m.assert_called_once_with("email", "foo@test.com", registration)
 
-        m = Mock(return_value=make_awaitable(True))
+        m = AsyncMock(return_value=True)
         self.hs.get_password_auth_provider().is_3pid_allowed_callbacks = [m]
 
         channel = self.make_request(
@@ -906,7 +736,7 @@ class PasswordAuthProviderTests(unittest.HomeserverTestCase):
             },
             access_token=tok,
         )
-        self.assertEqual(channel.code, 200, channel.result)
+        self.assertEqual(channel.code, HTTPStatus.OK, channel.result)
         self.assertIn("sid", channel.json_body)
 
         m.assert_called_once_with("email", "bar@test.com", registration)
@@ -917,7 +747,7 @@ class PasswordAuthProviderTests(unittest.HomeserverTestCase):
         client is trying to register.
         """
 
-        async def callback(uia_results, params):
+        async def callback(uia_results: JsonDict, params: JsonDict) -> str:
             self.assertIn(LoginType.DUMMY, uia_results)
             username = params["username"]
             return username + "-foo"
@@ -949,23 +779,24 @@ class PasswordAuthProviderTests(unittest.HomeserverTestCase):
             "register",
             {"auth": {"session": session, "type": LoginType.DUMMY}},
         )
-        self.assertEqual(channel.code, 200, channel.json_body)
+        self.assertEqual(channel.code, HTTPStatus.OK, channel.json_body)
         return channel.json_body
 
     def _get_login_flows(self) -> JsonDict:
         channel = self.make_request("GET", "/_matrix/client/r0/login")
-        self.assertEqual(channel.code, 200, channel.result)
+        self.assertEqual(channel.code, HTTPStatus.OK, channel.result)
         return channel.json_body["flows"]
 
     def _send_password_login(self, user: str, password: str) -> FakeChannel:
         return self._send_login(type="m.login.password", user=user, password=password)
 
-    def _send_login(self, type, user, **params) -> FakeChannel:
-        params.update({"identifier": {"type": "m.id.user", "user": user}, "type": type})
+    def _send_login(self, type: str, user: str, **extra_params: str) -> FakeChannel:
+        params = {"identifier": {"type": "m.id.user", "user": user}, "type": type}
+        params.update(extra_params)
         channel = self.make_request("POST", "/_matrix/client/r0/login", params)
         return channel
 
-    def _start_delete_device_session(self, access_token, device_id) -> str:
+    def _start_delete_device_session(self, access_token: str, device_id: str) -> str:
         """Make an initial delete device request, and return the UI Auth session ID"""
         channel = self._delete_device(access_token, device_id)
         self.assertEqual(channel.code, 401)

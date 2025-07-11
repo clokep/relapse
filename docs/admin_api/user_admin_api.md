@@ -1,7 +1,7 @@
 # User Admin API
 
 To use it, you will need to authenticate by providing an `access_token`
-for a server admin: see [Admin API](../usage/administration/admin_api).
+for a server admin: see [Admin API](../usage/administration/admin_api/).
 
 ## Query User Account
 
@@ -10,7 +10,7 @@ This API returns information about a specific user account.
 The api is:
 
 ```
-GET /_synapse/admin/v2/users/<user_id>
+GET /_relapse/admin/v2/users/<user_id>
 ```
 
 It returns a JSON body like the following:
@@ -37,11 +37,13 @@ It returns a JSON body like the following:
     "is_guest": 0,
     "admin": 0,
     "deactivated": 0,
+    "erased": false,
     "shadow_banned": 0,
     "creation_ts": 1560432506,
     "appservice_id": null,
     "consent_server_notice_sent": null,
     "consent_version": null,
+    "consent_ts": null,
     "external_ids": [
         {
             "auth_provider": "<provider1>",
@@ -52,7 +54,8 @@ It returns a JSON body like the following:
             "external_id": "<user_id_provider_2>"
         }
     ],
-    "user_type": null
+    "user_type": null,
+    "locked": false
 }
 ```
 
@@ -60,7 +63,7 @@ URL parameters:
 
 - `user_id`: fully-qualified user id: for example, `@user:server.com`.
 
-## Create or modify Account
+## Create or modify account
 
 This API allows an administrator to create or modify a user account with a
 specific `user_id`.
@@ -68,7 +71,7 @@ specific `user_id`.
 This api is:
 
 ```
-PUT /_synapse/admin/v2/users/<user_id>
+PUT /_relapse/admin/v2/users/<user_id>
 ```
 
 with a body of:
@@ -76,31 +79,33 @@ with a body of:
 ```json
 {
     "password": "user_password",
-    "displayname": "User",
+    "logout_devices": false,
+    "displayname": "Alice Marigold",
+    "avatar_url": "mxc://example.com/abcde12345",
     "threepids": [
         {
             "medium": "email",
-            "address": "<user_mail_1>"
+            "address": "alice@example.com"
         },
         {
             "medium": "email",
-            "address": "<user_mail_2>"
+            "address": "alice@domain.org"
         }
     ],
     "external_ids": [
         {
-            "auth_provider": "<provider1>",
-            "external_id": "<user_id_provider_1>"
+            "auth_provider": "example",
+            "external_id": "12345"
         },
         {
-            "auth_provider": "<provider2>",
-            "external_id": "<user_id_provider_2>"
+            "auth_provider": "example2",
+            "external_id": "abc54321"
         }
     ],
-    "avatar_url": "<avatar_url>",
     "admin": false,
     "deactivated": false,
-    "user_type": null
+    "user_type": null,
+    "locked": false
 }
 ```
 
@@ -110,40 +115,52 @@ Returns HTTP status code:
 
 URL parameters:
 
-- `user_id`: fully-qualified user id: for example, `@user:server.com`.
+- `user_id` - A fully-qualified user id. For example, `@user:server.com`.
 
 Body parameters:
 
-- `password` - string, optional. If provided, the user's password is updated and all
-  devices are logged out.
-- `displayname` - string, optional, defaults to the value of `user_id`.
-- `threepids` - array, optional, allows setting the third-party IDs (email, msisdn)
-  - `medium` - string. Kind of third-party ID, either `email` or `msisdn`.
-  - `address` - string. Value of third-party ID.
-  belonging to a user.
-- `external_ids` - array, optional. Allow setting the identifier of the external identity
-  provider for SSO (Single sign-on). Details in
-  [Sample Configuration File](../usage/configuration/homeserver_sample_config.html)
-  section `sso` and `oidc_providers`.
-  - `auth_provider` - string. ID of the external identity provider. Value of `idp_id`
-    in the homeserver configuration. Note that no error is raised if the provided
-    value is not in the homeserver configuration.
-  - `external_id` - string, user ID in the external identity provider.
-- `avatar_url` - string, optional, must be a
+- `password` - **string**, optional. If provided, the user's password is updated and all
+  devices are logged out, unless `logout_devices` is set to `false`.
+- `logout_devices` - **bool**, optional, defaults to `true`. If set to `false`, devices aren't
+  logged out even when `password` is provided.
+- `displayname` - **string**, optional. If set to an empty string (`""`), the user's display name
+  will be removed.
+- `avatar_url` - **string**, optional. Must be a
   [MXC URI](https://matrix.org/docs/spec/client_server/r0.6.0#matrix-content-mxc-uris).
-- `admin` - bool, optional, defaults to `false`.
-- `deactivated` - bool, optional. If unspecified, deactivation state will be left
-  unchanged on existing accounts and set to `false` for new accounts.
-  A user cannot be erased by deactivating with this API. For details on
-  deactivating users see [Deactivate Account](#deactivate-account).
-- `user_type` - string or null, optional. If provided, the user type will be
-  adjusted. If `null` given, the user type will be cleared. Other 
-  allowed options are: `bot` and `support`.
+  If set to an empty string (`""`), the user's avatar is removed.
+- `threepids` - **array**, optional. If provided, the user's third-party IDs (email, msisdn) are
+  entirely replaced with the given list. Each item in the array is an object with the following
+  fields:
+  - `medium` - **string**, required. The type of third-party ID, either `email` or `msisdn` (phone number).
+  - `address` - **string**, required. The third-party ID itself, e.g. `alice@example.com` for `email` or
+    `447470274584` (for a phone number with country code "44") and `19254857364` (for a phone number
+    with country code "1") for `msisdn`.
+  Note: If a threepid is removed from a user via this option, Relapse will also attempt to remove
+  that threepid from any identity servers it is aware has a binding for it.
+- `external_ids` - **array**, optional. Allow setting the identifier of the external identity
+  provider for SSO (Single sign-on). More details are in the configuration manual under the
+  sections [sso](../usage/configuration/config_documentation.md#sso) and [oidc_providers](../usage/configuration/config_documentation.md#oidc_providers).
+  - `auth_provider` - **string**, required. The unique, internal ID of the external identity provider.
+    The same as `idp_id` from the homeserver configuration. Note that no error is raised if the
+    provided value is not in the homeserver configuration.
+  - `external_id` - **string**, required. An identifier for the user in the external identity provider.
+    When the user logs in to the identity provider, this must be the unique ID that they map to.
+- `admin` - **bool**, optional, defaults to `false`. Whether the user is a homeserver administrator,
+  granting them access to the Admin API, among other things.
+- `deactivated` - **bool**, optional. If unspecified, deactivation state will be left unchanged.
 
-If the user already exists then optional parameters default to the current value.
+  Note: the `password` field must also be set if both of the following are true:
+  - `deactivated` is set to `false` and the user was previously deactivated (you are reactivating this user)
+  - Users are allowed to set their password on this homeserver (both `password_config.enabled` and
+    `password_config.localdb_enabled` config options are set to `true`).
+  Users' passwords are wiped upon account deactivation, hence the need to set a new one here.
 
-In order to re-activate an account `deactivated` must be set to `false`. If
-users do not login via single-sign-on, a new `password` must be provided.
+  Note: a user cannot be erased with this API. For more details on
+  deactivating and erasing users see [Deactivate Account](#deactivate-account).
+- `locked` - **bool**, optional. If unspecified, locked state will be left unchanged.
+- `user_type` - **string** or null, optional. If not provided, the user type will be
+  not be changed. If `null` is given, the user type will be cleared.
+  Other allowed options are: `bot` and `support`.
 
 ## List Accounts
 
@@ -151,7 +168,7 @@ This API returns all local user accounts.
 By default, the response is ordered by ascending user ID.
 
 ```
-GET /_synapse/admin/v2/users?from=0&limit=10&guests=false
+GET /_relapse/admin/v2/users?from=0&limit=10&guests=false
 ```
 
 A response body like the following is returned:
@@ -165,20 +182,24 @@ A response body like the following is returned:
             "admin": 0,
             "user_type": null,
             "deactivated": 0,
+            "erased": false,
             "shadow_banned": 0,
             "displayname": "<User One>",
             "avatar_url": null,
-            "creation_ts": 1560432668000
+            "creation_ts": 1560432668000,
+            "locked": false
         }, {
             "name": "<user_id2>",
             "is_guest": 0,
             "admin": 1,
             "user_type": null,
             "deactivated": 0,
+            "erased": false,
             "shadow_banned": 0,
             "displayname": "<User Two>",
             "avatar_url": "<avatar_url>",
-            "creation_ts": 1561550621000
+            "creation_ts": 1561550621000,
+            "locked": false
         }
     ],
     "next_token": "100",
@@ -201,7 +222,9 @@ The following parameters should be set in the URL:
 - `name` - Is optional and filters to only return users with user ID localparts
   **or** displaynames that contain this value.
 - `guests` - string representing a bool - Is optional and if `false` will **exclude** guest users.
-  Defaults to `true` to include guest users.
+  Defaults to `true` to include guest users. This parameter is not supported when MSC3861 is enabled. [See #15582](https://github.com/clokep/relapse/pull/15582)
+- `admins` - Optional flag to filter admins. If `true`, only admins are queried. If `false`, admins are excluded from 
+  the query. When the flag is absent (the default), **both** admins and non-admins are included in the search results.
 - `deactivated` - string representing a bool - Is optional and if `true` will **include** deactivated users.
   Defaults to `false` to exclude deactivated users.
 - `limit` - string representing a positive integer - Is optional but is used for pagination,
@@ -223,9 +246,15 @@ The following parameters should be set in the URL:
   - `displayname` - Users are ordered alphabetically by `displayname`.
   - `avatar_url` - Users are ordered alphabetically by avatar URL.
   - `creation_ts` - Users are ordered by when the users was created in ms.
+  - `last_seen_ts` - Users are ordered by when the user was lastly seen in ms.
 
 - `dir` - Direction of media order. Either `f` for forwards or `b` for backwards.
   Setting this value to `b` will reverse the above sort order. Defaults to `f`.
+- `not_user_type` - Exclude certain user types, such as bot users, from the request.
+   Can be provided multiple times. Possible values are `bot`, `support` or "empty string".
+   "empty string" here means to exclude users without a type.
+- `locked` - string representing a bool - Is optional and if `true` will **include** locked users.
+  Defaults to `false` to exclude locked users. Note: Introduced in v1.93.
 
 Caution. The database only has indexes on the columns `name` and `creation_ts`.
 This means that if a different sort order is used (`is_guest`, `admin`,
@@ -245,14 +274,17 @@ The following fields are returned in the JSON response body:
   - `user_type` - string - Type of the user. Normal users are type `None`.
     This allows user type specific behaviour. There are also types `support` and `bot`. 
   - `deactivated` - bool - Status if that user has been marked as deactivated.
+  - `erased` - bool - Status if that user has been marked as erased.
   - `shadow_banned` - bool - Status if that user has been marked as shadow banned.
   - `displayname` - string - The user's display name if they have set one.
   - `avatar_url` - string -  The user's avatar URL if they have set one.
   - `creation_ts` - integer - The user's creation timestamp in ms.
-
+  - `last_seen_ts` - integer - The user's last activity timestamp in ms.
+  - `locked` - bool - Status if that user has been marked as locked. Note: Introduced in v1.93.
 - `next_token`: string representing a positive integer - Indication for pagination. See above.
 - `total` - integer - Total number of media.
 
+*Added in Relapse 1.93:* the `locked` query parameter and response field.
 
 ## Query current sessions for a user
 
@@ -261,7 +293,7 @@ This API returns information about the active sessions for a specific user.
 The endpoints are:
 
 ```
-GET /_synapse/admin/v1/whois/<user_id>
+GET /_relapse/admin/v1/whois/<user_id>
 ```
 
 and:
@@ -316,7 +348,7 @@ were sent, but hidden from users joining the room afterwards.
 The api is:
 
 ```
-POST /_synapse/admin/v1/deactivate/<user_id>
+POST /_relapse/admin/v1/deactivate/<user_id>
 ```
 
 with a body of:
@@ -363,15 +395,18 @@ The following actions are **NOT** performed. The list may be incomplete.
 - Remove the user's creation (registration) timestamp
 - [Remove rate limit overrides](#override-ratelimiting-for-users)
 - Remove from monthly active users
+- Remove user's consent information (consent version and timestamp)
 
 ## Reset password
+
+**Note:** This API is disabled when MSC3861 is enabled. [See #15582](https://github.com/clokep/relapse/pull/15582)
 
 Changes the password of another user. This will automatically log the user out of all their devices.
 
 The api is:
 
 ```
-POST /_synapse/admin/v1/reset_password/<user_id>
+POST /_relapse/admin/v1/reset_password/<user_id>
 ```
 
 with a body of:
@@ -389,10 +424,12 @@ The parameter `logout_devices` is optional and defaults to `true`.
 
 ## Get whether a user is a server administrator or not
 
+**Note:** This API is disabled when MSC3861 is enabled. [See #15582](https://github.com/clokep/relapse/pull/15582)
+
 The api is:
 
 ```
-GET /_synapse/admin/v1/users/<user_id>/admin
+GET /_relapse/admin/v1/users/<user_id>/admin
 ```
 
 A response body like the following is returned:
@@ -406,12 +443,14 @@ A response body like the following is returned:
 
 ## Change whether a user is a server administrator or not
 
+**Note:** This API is disabled when MSC3861 is enabled. [See #15582](https://github.com/clokep/relapse/pull/15582)
+
 Note that you cannot demote yourself.
 
 The api is:
 
 ```
-PUT /_synapse/admin/v1/users/<user_id>/admin
+PUT /_relapse/admin/v1/users/<user_id>/admin
 ```
 
 with a body of:
@@ -429,7 +468,7 @@ Gets a list of all `room_id` that a specific `user_id` is member.
 The API is:
 
 ```
-GET /_synapse/admin/v1/users/<user_id>/joined_rooms
+GET /_relapse/admin/v1/users/<user_id>/joined_rooms
 ```
 
 A response body like the following is returned:
@@ -467,7 +506,7 @@ Gets information about account data for a specific `user_id`.
 The API is:
 
 ```
-GET /_synapse/admin/v1/users/<user_id>/accountdata
+GET /_relapse/admin/v1/users/<user_id>/accountdata
 ```
 
 A response body like the following is returned:
@@ -543,7 +582,7 @@ Gets a list of all local media that a specific `user_id` has created.
 These are media that the user has uploaded themselves
 ([local media](../media_repository.md#local-media)), as well as
 [URL preview images](../media_repository.md#url-previews) requested by the user if the
-[feature is enabled](../development/url_previews.md).
+[feature is enabled](../usage/configuration/config_documentation.md#url_preview_enabled).
 
 By default, the response is ordered by descending creation date and ascending media ID.
 The newest media is on top. You can change the order with parameters
@@ -552,7 +591,7 @@ The newest media is on top. You can change the order with parameters
 The API is:
 
 ```
-GET /_synapse/admin/v1/users/<user_id>/media
+GET /_relapse/admin/v1/users/<user_id>/media
 ```
 
 A response body like the following is returned:
@@ -579,6 +618,16 @@ A response body like the following is returned:
       "quarantined_by": null,
       "safe_from_quarantine": false,
       "upload_name": "test2.png"
+    },
+    {
+      "created_ts": 300400,
+      "last_access_ts": 300700,
+      "media_id": "BzYNLRUgGHphBkdKGbzXwbjX",
+      "media_length": 1337,
+      "media_type": "application/octet-stream",
+      "quarantined_by": null,
+      "safe_from_quarantine": false,
+      "upload_name": null
     }
   ],
   "next_token": 3,
@@ -640,16 +689,17 @@ The following fields are returned in the JSON response body:
 - `media` - An array of objects, each containing information about a media.
   Media objects contain the following fields:
   - `created_ts` - integer - Timestamp when the content was uploaded in ms.
-  - `last_access_ts` - integer - Timestamp when the content was last accessed in ms.
+  - `last_access_ts` - integer or null - Timestamp when the content was last accessed in ms.
+     Null if there was no access, yet.
   - `media_id` - string - The id used to refer to the media. Details about the format
     are documented under
     [media repository](../media_repository.md).
   - `media_length` - integer - Length of the media in bytes.
   - `media_type` - string - The MIME-type of the media.
-  - `quarantined_by` - string - The user ID that initiated the quarantine request
-    for this media.
+  - `quarantined_by` - string or null - The user ID that initiated the quarantine request
+    for this media. Null if not quarantined.
   - `safe_from_quarantine` - bool - Status if this media is safe from quarantining.
-  - `upload_name` - string - The name the media was uploaded with.
+  - `upload_name` - string or null - The name the media was uploaded with. Null if not provided during upload.
 - `next_token`: integer - Indication for pagination. See above.
 - `total` - integer - Total number of media.
 
@@ -668,7 +718,7 @@ The newest media is deleted first. You can change the order with parameters
 The API is:
 
 ```
-DELETE /_synapse/admin/v1/users/<user_id>/media
+DELETE /_relapse/admin/v1/users/<user_id>/media
 ```
 
 A response body like the following is returned:
@@ -699,19 +749,22 @@ delete largest/smallest or newest/oldest files first.
 
 ## Login as a user
 
+**Note:** This API is disabled when MSC3861 is enabled. [See #15582](https://github.com/clokep/relapse/pull/15582)
+
 Get an access token that can be used to authenticate as that user. Useful for
 when admins wish to do actions on behalf of a user.
 
 The API is:
 
 ```
-POST /_synapse/admin/v1/users/<user_id>/login
+POST /_relapse/admin/v1/users/<user_id>/login
 {}
 ```
 
 An optional `valid_until_ms` field can be specified in the request body as an
 integer timestamp that specifies when the token should expire. By default tokens
-do not expire.
+do not expire. Note that this API does not allow a user to login as themselves
+(to create more tokens).
 
 A response body like the following is returned:
 
@@ -731,6 +784,43 @@ Note: The token will expire if the *admin* user calls `/logout/all` from any
 of their devices, but the token will *not* expire if the target user does the
 same.
 
+## Allow replacing master cross-signing key without User-Interactive Auth
+
+This endpoint is not intended for server administrator usage;
+we describe it here for completeness.
+
+This API temporarily permits a user to replace their master cross-signing key
+without going through
+[user-interactive authentication](https://spec.matrix.org/v1.8/client-server-api/#user-interactive-authentication-api) (UIA).
+This is useful when Relapse has delegated its authentication to the
+[Matrix Authentication Service](https://github.com/matrix-org/matrix-authentication-service/);
+as Relapse cannot perform UIA is not possible in these circumstances.
+
+The API is
+
+```http request
+POST /_relapse/admin/v1/users/<user_id>/_allow_cross_signing_replacement_without_uia
+{}
+```
+
+If the user does not exist, or does exist but has no master cross-signing key,
+this will return with status code `404 Not Found`.
+
+Otherwise, a response body like the following is returned, with status `200 OK`:
+
+```json
+{
+    "updatable_without_uia_before_ms": 1234567890
+}
+```
+
+The response body is a JSON object with a single field:
+
+- `updatable_without_uia_before_ms`: integer. The timestamp in milliseconds
+  before which the user is permitted to replace their cross-signing key without
+  going through UIA.
+
+_Added in Relapse 1.97.0._
 
 ## User devices
 
@@ -740,7 +830,7 @@ Gets information about all devices for a specific `user_id`.
 The API is:
 
 ```
-GET /_synapse/admin/v2/users/<user_id>/devices
+GET /_relapse/admin/v2/users/<user_id>/devices
 ```
 
 A response body like the following is returned:
@@ -752,6 +842,7 @@ A response body like the following is returned:
       "device_id": "QBUAZIFURK",
       "display_name": "android",
       "last_seen_ip": "1.2.3.4",
+      "last_seen_user_agent": "Mozilla/5.0 (X11; Linux x86_64; rv:103.0) Gecko/20100101 Firefox/103.0",
       "last_seen_ts": 1474491775024,
       "user_id": "<user_id>"
     },
@@ -759,6 +850,7 @@ A response body like the following is returned:
       "device_id": "AUIECTSRND",
       "display_name": "ios",
       "last_seen_ip": "1.2.3.5",
+      "last_seen_user_agent": "Mozilla/5.0 (X11; Linux x86_64; rv:103.0) Gecko/20100101 Firefox/103.0",
       "last_seen_ts": 1474491775025,
       "user_id": "<user_id>"
     }
@@ -785,11 +877,40 @@ The following fields are returned in the JSON response body:
     Absent if no name has been set.
   - `last_seen_ip` - The IP address where this device was last seen.
     (May be a few minutes out of date, for efficiency reasons).
+  - `last_seen_user_agent` - The user agent of the device when it was last seen.
+    (May be a few minutes out of date, for efficiency reasons).
   - `last_seen_ts` - The timestamp (in milliseconds since the unix epoch) when this
     devices was last seen. (May be a few minutes out of date, for efficiency reasons).
   - `user_id` - Owner of  device.
 
 - `total` - Total number of user's devices.
+
+### Create a device
+
+Creates a new device for a specific `user_id` and `device_id`. Does nothing if the `device_id` 
+exists already.
+
+The API is:
+
+```
+POST /_relapse/admin/v2/users/<user_id>/devices
+
+{
+  "device_id": "QBUAZIFURK"
+}
+```
+
+An empty JSON dict is returned.
+
+**Parameters**
+
+The following parameters should be set in the URL:
+
+- `user_id` - fully qualified: for example, `@user:server.com`.
+
+The following fields are required in the JSON request body:
+
+- `device_id` - The device ID to create.
 
 ### Delete multiple devices
 Deletes the given devices for a specific `user_id`, and invalidates
@@ -798,7 +919,7 @@ any access token associated with them.
 The API is:
 
 ```
-POST /_synapse/admin/v2/users/<user_id>/delete_devices
+POST /_relapse/admin/v2/users/<user_id>/delete_devices
 
 {
   "devices": [
@@ -826,7 +947,7 @@ Gets information on a single device, by `device_id` for a specific `user_id`.
 The API is:
 
 ```
-GET /_synapse/admin/v2/users/<user_id>/devices/<device_id>
+GET /_relapse/admin/v2/users/<user_id>/devices/<device_id>
 ```
 
 A response body like the following is returned:
@@ -836,6 +957,7 @@ A response body like the following is returned:
   "device_id": "<device_id>",
   "display_name": "android",
   "last_seen_ip": "1.2.3.4",
+  "last_seen_user_agent": "Mozilla/5.0 (X11; Linux x86_64; rv:103.0) Gecko/20100101 Firefox/103.0",
   "last_seen_ts": 1474491775024,
   "user_id": "<user_id>"
 }
@@ -857,6 +979,8 @@ The following fields are returned in the JSON response body:
   Absent if no name has been set.
 - `last_seen_ip` - The IP address where this device was last seen.
   (May be a few minutes out of date, for efficiency reasons).
+  - `last_seen_user_agent` - The user agent of the device when it was last seen.
+  (May be a few minutes out of date, for efficiency reasons).
 - `last_seen_ts` - The timestamp (in milliseconds since the unix epoch) when this
   devices was last seen. (May be a few minutes out of date, for efficiency reasons).
 - `user_id` - Owner of  device.
@@ -867,7 +991,7 @@ Updates the metadata on the given `device_id` for a specific `user_id`.
 The API is:
 
 ```
-PUT /_synapse/admin/v2/users/<user_id>/devices/<device_id>
+PUT /_relapse/admin/v2/users/<user_id>/devices/<device_id>
 
 {
   "display_name": "My other phone"
@@ -895,7 +1019,7 @@ and invalidates any access token associated with it.
 The API is:
 
 ```
-DELETE /_synapse/admin/v2/users/<user_id>/devices/<device_id>
+DELETE /_relapse/admin/v2/users/<user_id>/devices/<device_id>
 
 {}
 ```
@@ -915,7 +1039,7 @@ Gets information about all pushers for a specific `user_id`.
 The API is:
 
 ```
-GET /_synapse/admin/v1/users/<user_id>/pushers
+GET /_relapse/admin/v1/users/<user_id>/pushers
 ```
 
 A response body like the following is returned:
@@ -1003,13 +1127,13 @@ A shadow-banned user will be unable to contact anyone on the server.
 To shadow-ban a user the API is:
 
 ```
-POST /_synapse/admin/v1/users/<user_id>/shadow_ban
+POST /_relapse/admin/v1/users/<user_id>/shadow_ban
 ```
 
 To un-shadow-ban a user the API is:
 
 ```
-DELETE /_synapse/admin/v1/users/<user_id>/shadow_ban
+DELETE /_relapse/admin/v1/users/<user_id>/shadow_ban
 ```
 
 An empty JSON dict is returned in both cases.
@@ -1031,7 +1155,7 @@ There are specific APIs to set, get and delete a ratelimit.
 The API is:
 
 ```
-GET /_synapse/admin/v1/users/<user_id>/override_ratelimit
+GET /_relapse/admin/v1/users/<user_id>/override_ratelimit
 ```
 
 A response body like the following is returned:
@@ -1070,7 +1194,7 @@ If **no** custom ratelimit is set, an empty JSON dict is returned.
 The API is:
 
 ```
-POST /_synapse/admin/v1/users/<user_id>/override_ratelimit
+POST /_relapse/admin/v1/users/<user_id>/override_ratelimit
 ```
 
 A response body like the following is returned:
@@ -1112,7 +1236,7 @@ The following fields are returned in the JSON response body:
 The API is:
 
 ```
-DELETE /_synapse/admin/v1/users/<user_id>/override_ratelimit
+DELETE /_relapse/admin/v1/users/<user_id>/override_ratelimit
 ```
 
 An empty JSON dict is returned.
@@ -1128,7 +1252,7 @@ The following parameters should be set in the URL:
 - `user_id` - The fully qualified MXID: for example, `@user:server.com`. The user must
   be local.
 
-### Check username availability
+## Check username availability
 
 Checks to see if a username is available, and valid, for the server. See [the client-server 
 API](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-register-available)
@@ -1140,8 +1264,85 @@ This endpoint will work even if registration is disabled on the server, unlike
 The API is:
 
 ```
-GET /_synapse/admin/v1/username_available?username=$localpart
+GET /_relapse/admin/v1/username_available?username=$localpart
 ```
 
 The request and response format is the same as the
 [/_matrix/client/r0/register/available](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-register-available) API.
+
+## Find a user based on their ID in an auth provider
+
+The API is:
+
+```
+GET /_relapse/admin/v1/auth_providers/$provider/users/$external_id
+```
+
+When a user matched the given ID for the given provider, an HTTP code `200` with a response body like the following is returned:
+
+```json
+{
+    "user_id": "@hello:example.org"
+}
+```
+
+**Parameters**
+
+The following parameters should be set in the URL:
+
+- `provider` - The ID of the authentication provider, as advertised by the [`GET /_matrix/client/v3/login`](https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3login) API in the `m.login.sso` authentication method.
+- `external_id` - The user ID from the authentication provider. Usually corresponds to the `sub` claim for OIDC providers, or to the `uid` attestation for SAML2 providers.
+
+The `external_id` may have characters that are not URL-safe (typically `/`, `:` or `@`), so it is advised to URL-encode those parameters.
+
+**Errors**
+
+Returns a `404` HTTP status code if no user was found, with a response body like this:
+
+```json
+{
+    "errcode":"M_NOT_FOUND",
+    "error":"User not found"
+}
+```
+
+_Added in Relapse 1.68.0._
+
+
+## Find a user based on their Third Party ID (ThreePID or 3PID)
+
+The API is:
+
+```
+GET /_relapse/admin/v1/threepid/$medium/users/$address
+```
+
+When a user matched the given address for the given medium, an HTTP code `200` with a response body like the following is returned:
+
+```json
+{
+    "user_id": "@hello:example.org"
+}
+```
+
+**Parameters**
+
+The following parameters should be set in the URL:
+
+- `medium` - Kind of third-party ID, either `email` or `msisdn`.
+- `address` - Value of the third-party ID.
+
+The `address` may have characters that are not URL-safe, so it is advised to URL-encode those parameters.
+
+**Errors**
+
+Returns a `404` HTTP status code if no user was found, with a response body like this:
+
+```json
+{
+    "errcode":"M_NOT_FOUND",
+    "error":"User not found"
+}
+```
+
+_Added in Relapse 1.72.0._

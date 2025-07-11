@@ -1,6 +1,6 @@
 # Overview
 A captcha can be enabled on your homeserver to help prevent bots from registering
-accounts. Synapse currently uses Google's reCAPTCHA service which requires API keys
+accounts. Relapse currently uses Google's reCAPTCHA service which requires API keys
 from Google.
 
 ## Getting API keys
@@ -8,7 +8,7 @@ from Google.
 1. Create a new site at <https://www.google.com/recaptcha/admin/create>
 1. Set the label to anything you want
 1. Set the type to reCAPTCHA v2 using the "I'm not a robot" Checkbox option.
-This is the only type of captcha that works with Synapse.
+This is the only type of captcha that works with Relapse.
 1. Add the public hostname for your server, as set in `public_baseurl`
 in `homeserver.yaml`, to the list of authorized domains. If you have not set
 `public_baseurl`, use `server_name`.

@@ -1,19 +1,19 @@
 # Templates
 
-Synapse uses parametrised templates to generate the content of emails it sends and
+Relapse uses parametrised templates to generate the content of emails it sends and
 webpages it shows to users.
 
-By default, Synapse will use the templates listed [here](https://github.com/matrix-org/synapse/tree/master/synapse/res/templates).
-Server admins can configure an additional directory for Synapse to look for templates
+By default, Relapse will use the templates listed [here](https://github.com/clokep/relapse/tree/master/relapse/res/templates).
+Server admins can configure an additional directory for Relapse to look for templates
 in, allowing them to specify custom templates:
 
 ```yaml
 templates:
-  custom_templates_directory: /path/to/custom/templates/
+  custom_template_directory: /path/to/custom/templates/
 ```
 
 If this setting is not set, or the files named below are not found within the directory,
-default templates from within the Synapse package will be used.
+default templates from within the Relapse package will be used.
 
 Templates that are given variables when being rendered are rendered using [Jinja 2](https://jinja.palletsprojects.com/en/2.11.x/).
 Templates rendered by Jinja 2 can also access two functions on top of the functions
@@ -46,7 +46,7 @@ Example: `user.email_address|localpart_from_email`
 
 ## Email templates
 
-Below are the templates Synapse will look for when generating the content of an email:
+Below are the templates Relapse will look for when generating the content of an email:
 
 * `notif_mail.html` and `notif_mail.txt`: The contents of email notifications of missed
   events.
@@ -90,7 +90,7 @@ Below are the templates Synapse will look for when generating the content of an 
         * `room_name`: a human-readable name for the room the event was sent in
         * `now`: the current time in milliseconds
         * `received_at`: the time in milliseconds at which the event was received
-        * `delay_before_mail_ms`: the amount of time in milliseconds Synapse always waits
+        * `delay_before_mail_ms`: the amount of time in milliseconds Relapse always waits
           before ever emailing about a notification (to give the user a chance to respond
           to other push or notice the window)
         * `last_sent_ts`: the time in milliseconds at which a notification was last sent
@@ -113,7 +113,7 @@ Below are the templates Synapse will look for when generating the content of an 
 
 ## HTML page templates for registration and password reset
 
-Below are the templates Synapse will look for when generating pages related to
+Below are the templates Relapse will look for when generating pages related to
 registration and password reset:
 
 * `password_reset_confirmation.html`: An HTML page that a user will see when they follow
@@ -145,7 +145,7 @@ registration and password reset:
 
 ## HTML page templates for Single Sign-On (SSO)
 
-Below are the templates Synapse will look for when generating pages related to SSO:
+Below are the templates Relapse will look for when generating pages related to SSO:
 
 * `sso_login_idp_picker.html`: HTML page to prompt the user to choose an
   Identity Provider during login.
@@ -245,7 +245,7 @@ Below are the templates Synapse will look for when generating pages related to S
     * `user_id_to_verify`: the MXID of the user that we are trying to
       validate.
 * `sso_account_deactivated.html`: HTML page shown during single sign-on if a deactivated
-  user (according to Synapse's database) attempts to login.
+  user (according to Relapse's database) attempts to login.
   This template has no additional variables.
 * `sso_error.html`: HTML page to display to users if something goes wrong during the
   OpenID Connect authentication process.

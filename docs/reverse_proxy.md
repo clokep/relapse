@@ -1,17 +1,17 @@
-# Using a reverse proxy with Synapse
+# Using a reverse proxy with Relapse
 
 It is recommended to put a reverse proxy such as
 [nginx](https://nginx.org/en/docs/http/ngx_http_proxy_module.html),
 [Apache](https://httpd.apache.org/docs/current/mod/mod_proxy_http.html),
 [Caddy](https://caddyserver.com/docs/quick-starts/reverse-proxy),
 [HAProxy](https://www.haproxy.org/) or
-[relayd](https://man.openbsd.org/relayd.8) in front of Synapse. One advantage
+[relayd](https://man.openbsd.org/relayd.8) in front of Relapse. One advantage
 of doing so is that it means that you can expose the default https port
-(443) to Matrix clients without needing to run Synapse with root
+(443) to Matrix clients without needing to run Relapse with root
 privileges.
 
 You should configure your reverse proxy to forward requests to `/_matrix` or
-`/_synapse/client` to Synapse, and have it set the `X-Forwarded-For` and
+`/_relapse/client` to Relapse, and have it set the `X-Forwarded-For` and
 `X-Forwarded-Proto` request headers.
 
 You should remember that Matrix clients and other Matrix servers do not
@@ -36,15 +36,19 @@ the reverse proxy and the homeserver.
 
 ## Homeserver Configuration
 
-The HTTP configuration will need to be updated for Synapse to correctly record 
+The HTTP configuration will need to be updated for Relapse to correctly record 
 client IP addresses and generate redirect URLs while behind a reverse proxy. 
 
 In `homeserver.yaml` set `x_forwarded: true` in the port 8008 section and 
 consider setting `bind_addresses: ['127.0.0.1']` so that the server only
 listens to traffic on localhost. (Do not change `bind_addresses` to `127.0.0.1` 
-when using a containerized Synapse, as that will prevent it from responding
+when using a containerized Relapse, as that will prevent it from responding
 to proxied traffic.)
 
+Optionally, you can also set
+[`request_id_header`](./usage/configuration/config_documentation.md#listeners)
+so that the server extracts and re-uses the same request ID format that the
+reverse proxy is using.
 
 ## Reverse-proxy configuration examples
 
@@ -63,7 +67,7 @@ server {
 
     server_name matrix.example.com;
 
-    location ~ ^(/_matrix|/_synapse/client) {
+    location ~ ^(/_matrix|/_relapse/client) {
         # note: do not add a path (even a single /) after the port in `proxy_pass`,
         # otherwise nginx will canonicalise the URI and cause signature verification
         # errors.
@@ -75,27 +79,10 @@ server {
         # Nginx by default only allows file uploads up to 1M in size
         # Increase client_max_body_size to match max_upload_size defined in homeserver.yaml
         client_max_body_size 50M;
+	
+	# Relapse responses may be chunked, which is an HTTP/1.1 feature.
+	proxy_http_version 1.1;
     }
-}
-```
-
-### Caddy v1
-
-```
-matrix.example.com {
-  proxy /_matrix http://localhost:8008 {
-    transparent
-  }
-
-  proxy /_synapse/client http://localhost:8008 {
-    transparent
-  }
-}
-
-example.com:8448 {
-  proxy / http://localhost:8008 {
-    transparent
-  }
 }
 ```
 
@@ -103,39 +90,28 @@ example.com:8448 {
 
 ```
 matrix.example.com {
-  reverse_proxy /_matrix/* http://localhost:8008
-  reverse_proxy /_synapse/client/* http://localhost:8008
+  reverse_proxy /_matrix/* localhost:8008
+  reverse_proxy /_relapse/client/* localhost:8008
 }
 
 example.com:8448 {
-  reverse_proxy http://localhost:8008
+  reverse_proxy /_matrix/* localhost:8008
 }
 ```
+
 [Delegation](delegate.md) example:
+
 ```
-(matrix-well-known-header) {
-    # Headers
-    header Access-Control-Allow-Origin "*"
-    header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
-    header Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept, Authorization"
-    header Content-Type "application/json"
-}
-
 example.com {
-    handle /.well-known/matrix/server {
-        import matrix-well-known-header
-        respond `{"m.server":"matrix.example.com:443"}`
-    }
-
-    handle /.well-known/matrix/client {
-        import matrix-well-known-header
-        respond `{"m.homeserver":{"base_url":"https://matrix.example.com"},"m.identity_server":{"base_url":"https://identity.example.com"}}`
-    }
+	header /.well-known/matrix/* Content-Type application/json
+	header /.well-known/matrix/* Access-Control-Allow-Origin *
+	respond /.well-known/matrix/server `{"m.server": "matrix.example.com:443"}`
+	respond /.well-known/matrix/client `{"m.homeserver":{"base_url":"https://matrix.example.com"},"m.identity_server":{"base_url":"https://identity.example.com"}}`
 }
 
 matrix.example.com {
-    reverse_proxy /_matrix/* http://localhost:8008
-    reverse_proxy /_synapse/client/* http://localhost:8008
+    reverse_proxy /_matrix/* localhost:8008
+    reverse_proxy /_relapse/client/* localhost:8008
 }
 ```
 
@@ -151,8 +127,8 @@ matrix.example.com {
     ProxyPreserveHost on
     ProxyPass /_matrix http://127.0.0.1:8008/_matrix nocanon
     ProxyPassReverse /_matrix http://127.0.0.1:8008/_matrix
-    ProxyPass /_synapse/client http://127.0.0.1:8008/_synapse/client nocanon
-    ProxyPassReverse /_synapse/client http://127.0.0.1:8008/_synapse/client
+    ProxyPass /_relapse/client http://127.0.0.1:8008/_relapse/client nocanon
+    ProxyPassReverse /_relapse/client http://127.0.0.1:8008/_relapse/client
 </VirtualHost>
 
 <VirtualHost *:8448>
@@ -168,7 +144,7 @@ matrix.example.com {
 
 **NOTE**: ensure the  `nocanon` options are included.
 
-**NOTE 2**: It appears that Synapse is currently incompatible with the ModSecurity module for Apache (`mod_security2`). If you need it enabled for other services on your web server, you can disable it for Synapse's two VirtualHosts by including the following lines before each of the two `</VirtualHost>` above:
+**NOTE 2**: It appears that Relapse is currently incompatible with the ModSecurity module for Apache (`mod_security2`). If you need it enabled for other services on your web server, you can disable it for Relapse's two VirtualHosts by including the following lines before each of the two `</VirtualHost>` above:
 
 ```apache
 <IfModule security2_module>
@@ -190,12 +166,12 @@ frontend https
   # Matrix client traffic
   acl matrix-host hdr(host) -i matrix.example.com matrix.example.com:443
   acl matrix-path path_beg /_matrix
-  acl matrix-path path_beg /_synapse/client
+  acl matrix-path path_beg /_relapse/client
 
   use_backend matrix if matrix-host matrix-path
 
 frontend matrix-federation
-  bind *:8448,[::]:8448 ssl crt /etc/ssl/haproxy/synapse.pem alpn h2,http/1.1
+  bind *:8448,[::]:8448 ssl crt /etc/ssl/haproxy/relapse.pem alpn h2,http/1.1
   http-request set-header X-Forwarded-Proto https if { ssl_fc }
   http-request set-header X-Forwarded-Proto http if !{ ssl_fc }
   http-request set-header X-Forwarded-For %[src]
@@ -205,7 +181,11 @@ frontend matrix-federation
 backend matrix
   server matrix 127.0.0.1:8008
 ```
-
+Example configuration, if using a UNIX socket. The configuration lines regarding the frontends do not need to be modified.
+```
+backend matrix
+  server matrix unix@/run/relapse/main_public.sock
+```
 
 [Delegation](delegate.md) example:
 ```
@@ -246,7 +226,7 @@ http protocol "https" {
     match response tagged "matrix-cors" header set "Access-Control-Allow-Origin" value "*"
 
     pass quick path "/_matrix/*"         forward to <matrixserver>
-    pass quick path "/_synapse/client/*" forward to <matrixserver>
+    pass quick path "/_relapse/client/*" forward to <matrixserver>
 
     # pass on non-matrix traffic to webserver
     pass                                 forward to <webserver>
@@ -264,7 +244,7 @@ http protocol "matrix" {
     tls keypair "example.com"
     block
     pass quick path "/_matrix/*"         forward to <matrixserver>
-    pass quick path "/_synapse/client/*" forward to <matrixserver>
+    pass quick path "/_relapse/client/*" forward to <matrixserver>
 }
 
 relay "matrix_federation" {
@@ -277,13 +257,13 @@ relay "matrix_federation" {
 
 ## Health check endpoint
 
-Synapse exposes a health check endpoint for use by reverse proxies.
+Relapse exposes a health check endpoint for use by reverse proxies.
 Each configured HTTP listener has a `/health` endpoint which always returns
 200 OK (and doesn't get logged).
 
-## Synapse administration endpoints
+## Relapse administration endpoints
 
-Endpoints for administering your Synapse instance are placed under
-`/_synapse/admin`. These require authentication through an access token of an
+Endpoints for administering your Relapse instance are placed under
+`/_relapse/admin`. These require authentication through an access token of an
 admin user. However as access to these endpoints grants the caller a lot of power,
 we do not recommend exposing them to the public internet without good reason.

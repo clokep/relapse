@@ -6,11 +6,12 @@ CWD=$(pwd)
 
 cd "$DIR/.." || exit
 
-PYTHONPATH=$(readlink -f "$(pwd)")
-export PYTHONPATH
-
-
-echo "$PYTHONPATH"
+# Do not override PYTHONPATH if we are in a virtual env
+if [ "$VIRTUAL_ENV" = "" ]; then
+    PYTHONPATH=$(readlink -f "$(pwd)")
+    export PYTHONPATH
+	echo "$PYTHONPATH"
+fi
 
 # Create servers which listen on HTTP at 808x and HTTPS at 848x.
 for port in 8080 8081 8082; do
@@ -23,7 +24,7 @@ for port in 8080 8081 8082; do
     # Generate the configuration for the homeserver at localhost:848x, note that
     # the homeserver name needs to match the HTTPS listening port for federation
     # to properly work..
-    python3 -m synapse.app.homeserver \
+    python3 -m relapse.app.homeserver \
         --generate-config \
         --server-name "localhost:$https_port" \
         --config-path "$port.config" \
@@ -45,7 +46,7 @@ for port in 8080 8081 8082; do
             echo ''
 
 			# Warning, this heredoc depends on the interaction of tabs and spaces.
-			# Please don't accidentaly bork me with your fancy settings.
+			# Please don't accidentally bork me with your fancy settings.
 			listeners=$(cat <<-PORTLISTENERS
 			# Configure server to listen on both $https_port and $port
 			# This overides some of the default settings above
@@ -79,12 +80,8 @@ for port in 8080 8081 8082; do
             echo "tls_certificate_path: \"$DIR/$port/localhost:$port.tls.crt\""
             echo "tls_private_key_path: \"$DIR/$port/localhost:$port.tls.key\""
 
-            # Ignore keys from the trusted keys server
-            echo '# Ignore keys from the trusted keys server'
-            echo 'trusted_key_servers:'
-            echo '  - server_name: "matrix.org"'
-            echo '    accept_keys_insecurely: true'
-            echo ''
+            # Request keys directly from servers contacted over federation
+            echo 'trusted_key_servers: []'
 
 			# Allow the servers to communicate over localhost.
 			allow_list=$(cat <<-ALLOW_LIST
@@ -153,7 +150,7 @@ for port in 8080 8081 8082; do
     fi
 
     # Run the homeserver in the background.
-    python3 -m synapse.app.homeserver \
+    python3 -m relapse.app.homeserver \
         --config-path "$port.config" \
         -D \
 

@@ -12,13 +12,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List, Optional, Tuple
+from typing import Any, Optional
 
-import synapse.server
-from synapse.api.constants import EventTypes
-from synapse.api.room_versions import KNOWN_ROOM_VERSIONS
-from synapse.events import EventBase
-from synapse.events.snapshot import EventContext
+import relapse.server
+from relapse.api.constants import EventTypes
+from relapse.api.room_versions import KNOWN_ROOM_VERSIONS
+from relapse.events import EventBase
+from relapse.events.snapshot import EventContext
 
 """
 Utility functions for poking events into the storage of the server under test.
@@ -26,13 +26,13 @@ Utility functions for poking events into the storage of the server under test.
 
 
 async def inject_member_event(
-    hs: synapse.server.HomeServer,
+    hs: relapse.server.HomeServer,
     room_id: str,
     sender: str,
     membership: str,
     target: Optional[str] = None,
     extra_content: Optional[dict] = None,
-    **kwargs,
+    **kwargs: Any,
 ) -> EventBase:
     """Inject a membership event into a room."""
     if target is None:
@@ -54,10 +54,10 @@ async def inject_member_event(
 
 
 async def inject_event(
-    hs: synapse.server.HomeServer,
+    hs: relapse.server.HomeServer,
     room_version: Optional[str] = None,
-    prev_event_ids: Optional[List[str]] = None,
-    **kwargs,
+    prev_event_ids: Optional[list[str]] = None,
+    **kwargs: Any,
 ) -> EventBase:
     """Inject a generic event into a room
 
@@ -70,7 +70,7 @@ async def inject_event(
     """
     event, context = await create_event(hs, room_version, prev_event_ids, **kwargs)
 
-    persistence = hs.get_storage().persistence
+    persistence = hs.get_storage_controllers().persistence
     assert persistence is not None
 
     await persistence.persist_event(event, context)
@@ -79,11 +79,11 @@ async def inject_event(
 
 
 async def create_event(
-    hs: synapse.server.HomeServer,
+    hs: relapse.server.HomeServer,
     room_version: Optional[str] = None,
-    prev_event_ids: Optional[List[str]] = None,
-    **kwargs,
-) -> Tuple[EventBase, EventContext]:
+    prev_event_ids: Optional[list[str]] = None,
+    **kwargs: Any,
+) -> tuple[EventBase, EventContext]:
     if room_version is None:
         room_version = await hs.get_datastores().main.get_room_version_id(
             kwargs["room_id"]
@@ -92,8 +92,44 @@ async def create_event(
     builder = hs.get_event_builder_factory().for_room_version(
         KNOWN_ROOM_VERSIONS[room_version], kwargs
     )
-    event, context = await hs.get_event_creation_handler().create_new_client_event(
+    (
+        event,
+        unpersisted_context,
+    ) = await hs.get_event_creation_handler().create_new_client_event(
         builder, prev_event_ids=prev_event_ids
     )
 
+    context = await unpersisted_context.persist(event)
+
     return event, context
+
+
+async def mark_event_as_partial_state(
+    hs: relapse.server.HomeServer,
+    event_id: str,
+    room_id: str,
+) -> None:
+    """
+    (Falsely) mark an event as having partial state.
+
+    Naughty, but occasionally useful when checking that partial state doesn't
+    block something from happening.
+
+    If the event already has partial state, this insert will fail (event_id is unique
+    in this table).
+    """
+    store = hs.get_datastores().main
+    await store.db_pool.simple_upsert(
+        table="partial_state_rooms",
+        keyvalues={"room_id": room_id},
+        values={},
+        insertion_values={"room_id": room_id},
+    )
+
+    await store.db_pool.simple_insert(
+        table="partial_state_events",
+        values={
+            "room_id": room_id,
+            "event_id": event_id,
+        },
+    )

@@ -1,9 +1,9 @@
 # User Authentication
 
-Synapse supports multiple methods of authenticating users, either out-of-the-box or through custom pluggable
+Relapse supports multiple methods of authenticating users, either out-of-the-box or through custom pluggable
 authentication modules.
 
-Included in Synapse is support for authenticating users via:
+Included in Relapse is support for authenticating users via:
 
 * A username and password.
 * An email address and password.
@@ -11,5 +11,5 @@ Included in Synapse is support for authenticating users via:
 * JSON Web Tokens.
 * An administrator's shared secret.
 
-Synapse can additionally be extended to support custom authentication schemes through optional "password auth provider"
+Relapse can additionally be extended to support custom authentication schemes through optional "password auth provider"
 modules.

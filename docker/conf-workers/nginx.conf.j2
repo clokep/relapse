@@ -34,8 +34,12 @@ server {
 {{ worker_locations }}
 
     # Send all other traffic to the main process
-    location ~* ^(\\/_matrix|\\/_synapse) {
+    location ~* ^(\\/_matrix|\\/_relapse) {
+{% if using_unix_sockets %}
+        proxy_pass http://unix:/run/main_public.sock;
+{% else %}
         proxy_pass http://localhost:8080;
+{% endif %}
         proxy_set_header X-Forwarded-For $remote_addr;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_set_header Host $host;

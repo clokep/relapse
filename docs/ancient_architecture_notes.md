@@ -1,6 +1,6 @@
 > **Warning**
 >  These architecture notes are spectacularly old, and date back
-> to when Synapse was just federation code in isolation. This should be
+> to when Relapse was just federation code in isolation. This should be
 > merged into the main spec.
 
 # Server to Server
@@ -24,7 +24,7 @@ Server with a domain specific API.
 1. **Messaging Layer**
 
     This is what the rest of the homeserver hits to send messages, join rooms,
-    etc. It also allows you to register callbacks for when it get's notified by
+    etc. It also allows you to register callbacks for when it gets notified by
     lower levels that e.g. a new message has been received.
 
     It is responsible for serializing requests to send to the data
@@ -77,5 +77,5 @@ run on a separate, dedicated thread. This that we only ever have one
 query running at a time, making it a lot easier to do things in a safe
 manner.
 
-The queries are located in the `synapse.persistence.transactions` module,
-and the table information in the `synapse.persistence.tables` module.
+The queries are located in the `relapse.persistence.transactions` module,
+and the table information in the `relapse.persistence.tables` module.

@@ -13,18 +13,20 @@
 # limitations under the License.
 
 from http import HTTPStatus
-from typing import Dict, List, Tuple
 
-from synapse.api.errors import Codes
-from synapse.federation.transport.server import BaseFederationServlet
-from synapse.federation.transport.server._base import Authenticator, _parse_auth_header
-from synapse.http.server import JsonResource, cancellable
-from synapse.server import HomeServer
-from synapse.types import JsonDict
-from synapse.util.ratelimitutils import FederationRateLimiter
+from twisted.web.resource import Resource
+
+from relapse.api.errors import Codes
+from relapse.federation.transport.server import BaseFederationServlet
+from relapse.federation.transport.server._base import Authenticator, _parse_auth_header
+from relapse.http.server import JsonResource
+from relapse.server import HomeServer
+from relapse.types import JsonDict
+from relapse.util.cancellation import cancellable
+from relapse.util.ratelimitutils import FederationRateLimiter
 
 from tests import unittest
-from tests.http.server._base import EndpointCancellationTestHelperMixin
+from tests.http.server._base import test_disconnect
 
 
 class CancellableFederationServlet(BaseFederationServlet):
@@ -42,28 +44,26 @@ class CancellableFederationServlet(BaseFederationServlet):
 
     @cancellable
     async def on_GET(
-        self, origin: str, content: None, query: Dict[bytes, List[bytes]]
-    ) -> Tuple[int, JsonDict]:
+        self, origin: str, content: None, query: dict[bytes, list[bytes]]
+    ) -> tuple[int, JsonDict]:
         await self.clock.sleep(1.0)
         return HTTPStatus.OK, {"result": True}
 
     async def on_POST(
-        self, origin: str, content: JsonDict, query: Dict[bytes, List[bytes]]
-    ) -> Tuple[int, JsonDict]:
+        self, origin: str, content: JsonDict, query: dict[bytes, list[bytes]]
+    ) -> tuple[int, JsonDict]:
         await self.clock.sleep(1.0)
         return HTTPStatus.OK, {"result": True}
 
 
-class BaseFederationServletCancellationTests(
-    unittest.FederatingHomeserverTestCase, EndpointCancellationTestHelperMixin
-):
+class BaseFederationServletCancellationTests(unittest.FederatingHomeserverTestCase):
     """Tests for `BaseFederationServlet` cancellation."""
 
     skip = "`BaseFederationServlet` does not support cancellation yet."
 
     path = f"{CancellableFederationServlet.PREFIX}{CancellableFederationServlet.PATH}"
 
-    def create_test_resource(self):
+    def create_test_resource(self) -> Resource:
         """Overrides `HomeserverTestCase.create_test_resource`."""
         resource = JsonResource(self.hs)
 
@@ -86,7 +86,7 @@ class BaseFederationServletCancellationTests(
         # request won't be processed.
         self.pump()
 
-        self._test_disconnect(
+        test_disconnect(
             self.reactor,
             channel,
             expect_cancellation=True,
@@ -106,7 +106,7 @@ class BaseFederationServletCancellationTests(
         # request won't be processed.
         self.pump()
 
-        self._test_disconnect(
+        test_disconnect(
             self.reactor,
             channel,
             expect_cancellation=False,

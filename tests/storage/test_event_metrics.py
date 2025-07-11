@@ -11,15 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from prometheus_client import generate_latest
 
-from synapse.metrics import REGISTRY, generate_latest
-from synapse.types import UserID, create_requester
+from relapse.metrics import REGISTRY
+from relapse.types import UserID, create_requester
 
 from tests.unittest import HomeserverTestCase
 
 
 class ExtremStatisticsTestCase(HomeserverTestCase):
-    def test_exposed_to_prometheus(self):
+    def test_exposed_to_prometheus(self) -> None:
         """
         Forward extremity counts are exposed via Prometheus.
         """
@@ -32,8 +33,7 @@ class ExtremStatisticsTestCase(HomeserverTestCase):
         events = [(3, 2), (6, 2), (4, 6)]
 
         for event_count, extrems in events:
-            info, _ = self.get_success(room_creator.create_room(requester, {}))
-            room_id = info["room_id"]
+            room_id, _, _ = self.get_success(room_creator.create_room(requester, {}))
 
             last_event = None
 
@@ -53,30 +53,30 @@ class ExtremStatisticsTestCase(HomeserverTestCase):
 
         items = list(
             filter(
-                lambda x: b"synapse_forward_extremities_" in x,
-                generate_latest(REGISTRY, emit_help=False).split(b"\n"),
+                lambda x: b"relapse_forward_extremities_" in x and b"# HELP" not in x,
+                generate_latest(REGISTRY).split(b"\n"),
             )
         )
 
         expected = [
-            b'synapse_forward_extremities_bucket{le="1.0"} 0.0',
-            b'synapse_forward_extremities_bucket{le="2.0"} 2.0',
-            b'synapse_forward_extremities_bucket{le="3.0"} 2.0',
-            b'synapse_forward_extremities_bucket{le="5.0"} 2.0',
-            b'synapse_forward_extremities_bucket{le="7.0"} 3.0',
-            b'synapse_forward_extremities_bucket{le="10.0"} 3.0',
-            b'synapse_forward_extremities_bucket{le="15.0"} 3.0',
-            b'synapse_forward_extremities_bucket{le="20.0"} 3.0',
-            b'synapse_forward_extremities_bucket{le="50.0"} 3.0',
-            b'synapse_forward_extremities_bucket{le="100.0"} 3.0',
-            b'synapse_forward_extremities_bucket{le="200.0"} 3.0',
-            b'synapse_forward_extremities_bucket{le="500.0"} 3.0',
+            b'relapse_forward_extremities_bucket{le="1.0"} 0.0',
+            b'relapse_forward_extremities_bucket{le="2.0"} 2.0',
+            b'relapse_forward_extremities_bucket{le="3.0"} 2.0',
+            b'relapse_forward_extremities_bucket{le="5.0"} 2.0',
+            b'relapse_forward_extremities_bucket{le="7.0"} 3.0',
+            b'relapse_forward_extremities_bucket{le="10.0"} 3.0',
+            b'relapse_forward_extremities_bucket{le="15.0"} 3.0',
+            b'relapse_forward_extremities_bucket{le="20.0"} 3.0',
+            b'relapse_forward_extremities_bucket{le="50.0"} 3.0',
+            b'relapse_forward_extremities_bucket{le="100.0"} 3.0',
+            b'relapse_forward_extremities_bucket{le="200.0"} 3.0',
+            b'relapse_forward_extremities_bucket{le="500.0"} 3.0',
             # per https://docs.google.com/document/d/1KwV0mAXwwbvvifBvDKH_LU1YjyXE_wxCkHNoCGq1GX0/edit#heading=h.wghdjzzh72j9,
             # "inf" is valid: "this includes variants such as inf"
-            b'synapse_forward_extremities_bucket{le="inf"} 3.0',
-            b"# TYPE synapse_forward_extremities_gcount gauge",
-            b"synapse_forward_extremities_gcount 3.0",
-            b"# TYPE synapse_forward_extremities_gsum gauge",
-            b"synapse_forward_extremities_gsum 10.0",
+            b'relapse_forward_extremities_bucket{le="inf"} 3.0',
+            b"# TYPE relapse_forward_extremities_gcount gauge",
+            b"relapse_forward_extremities_gcount 3.0",
+            b"# TYPE relapse_forward_extremities_gsum gauge",
+            b"relapse_forward_extremities_gsum 10.0",
         ]
         self.assertEqual(items, expected)

@@ -12,13 +12,14 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from typing import Iterable, Optional, Tuple
+from collections.abc import Iterable
+from typing import Optional, cast
 
-from synapse.api.constants import EventTypes, Membership
-from synapse.api.room_versions import RoomVersions
-from synapse.events import FrozenEvent
-from synapse.push.presentable_names import calculate_room_name
-from synapse.types import StateKey, StateMap
+from relapse.api.constants import EventTypes, Membership
+from relapse.api.room_versions import RoomVersions
+from relapse.events import EventBase, FrozenEvent
+from relapse.push.presentable_names import calculate_room_name
+from relapse.types import StateKey, StateMap
 
 from tests import unittest
 
@@ -29,7 +30,7 @@ class MockDataStore:
     (I.e. the state key is used as the event ID.)
     """
 
-    def __init__(self, events: Iterable[Tuple[StateKey, dict]]):
+    def __init__(self, events: Iterable[tuple[StateKey, dict]]):
         """
         Args:
             events: A state map to event contents.
@@ -51,13 +52,15 @@ class MockDataStore:
             )
 
     async def get_event(
-        self, event_id: StateKey, allow_none: bool = False
+        self, event_id: str, allow_none: bool = False
     ) -> Optional[FrozenEvent]:
         assert allow_none, "Mock not configured for allow_none = False"
 
-        return self._events.get(event_id)
+        # Decode the state key from the event ID.
+        state_key = cast(tuple[str, str], tuple(event_id.split("|", 1)))
+        return self._events.get(state_key)
 
-    async def get_events(self, event_ids: Iterable[StateKey]):
+    async def get_events(self, event_ids: Iterable[StateKey]) -> StateMap[EventBase]:
         # This is cheating since it just returns all events.
         return self._events
 
@@ -68,17 +71,17 @@ class PresentableNamesTestCase(unittest.HomeserverTestCase):
 
     def _calculate_room_name(
         self,
-        events: StateMap[dict],
+        events: Iterable[tuple[tuple[str, str], dict]],
         user_id: str = "",
         fallback_to_members: bool = True,
         fallback_to_single_member: bool = True,
-    ):
-        # This isn't 100% accurate, but works with MockDataStore.
-        room_state_ids = {k[0]: k[0] for k in events}
+    ) -> Optional[str]:
+        # Encode the state key into the event ID.
+        room_state_ids = {k[0]: "|".join(k[0]) for k in events}
 
         return self.get_success(
             calculate_room_name(
-                MockDataStore(events),
+                MockDataStore(events),  # type: ignore[arg-type]
                 room_state_ids,
                 user_id or self.USER_ID,
                 fallback_to_members,
@@ -86,9 +89,9 @@ class PresentableNamesTestCase(unittest.HomeserverTestCase):
             )
         )
 
-    def test_name(self):
+    def test_name(self) -> None:
         """A room name event should be used."""
-        events = [
+        events: list[tuple[tuple[str, str], dict]] = [
             ((EventTypes.Name, ""), {"name": "test-name"}),
         ]
         self.assertEqual("test-name", self._calculate_room_name(events))
@@ -100,9 +103,9 @@ class PresentableNamesTestCase(unittest.HomeserverTestCase):
         events = [((EventTypes.Name, ""), {"name": 1})]
         self.assertEqual(1, self._calculate_room_name(events))
 
-    def test_canonical_alias(self):
+    def test_canonical_alias(self) -> None:
         """An canonical alias should be used."""
-        events = [
+        events: list[tuple[tuple[str, str], dict]] = [
             ((EventTypes.CanonicalAlias, ""), {"alias": "#test-name:test"}),
         ]
         self.assertEqual("#test-name:test", self._calculate_room_name(events))
@@ -114,9 +117,9 @@ class PresentableNamesTestCase(unittest.HomeserverTestCase):
         events = [((EventTypes.CanonicalAlias, ""), {"alias": "test-name"})]
         self.assertEqual("Empty Room", self._calculate_room_name(events))
 
-    def test_invite(self):
+    def test_invite(self) -> None:
         """An invite has special behaviour."""
-        events = [
+        events: list[tuple[tuple[str, str], dict]] = [
             ((EventTypes.Member, self.USER_ID), {"membership": Membership.INVITE}),
             ((EventTypes.Member, self.OTHER_USER_ID), {"displayname": "Other User"}),
         ]
@@ -140,9 +143,9 @@ class PresentableNamesTestCase(unittest.HomeserverTestCase):
         ]
         self.assertEqual("Room Invite", self._calculate_room_name(events))
 
-    def test_no_members(self):
+    def test_no_members(self) -> None:
         """Behaviour of an empty room."""
-        events = []
+        events: list[tuple[tuple[str, str], dict]] = []
         self.assertEqual("Empty Room", self._calculate_room_name(events))
 
         # Note that events with invalid (or missing) membership are ignored.
@@ -152,7 +155,7 @@ class PresentableNamesTestCase(unittest.HomeserverTestCase):
         ]
         self.assertEqual("Empty Room", self._calculate_room_name(events))
 
-    def test_no_other_members(self):
+    def test_no_other_members(self) -> None:
         """Behaviour of a room with no other members in it."""
         events = [
             (
@@ -185,7 +188,7 @@ class PresentableNamesTestCase(unittest.HomeserverTestCase):
             self._calculate_room_name(events, user_id=self.OTHER_USER_ID),
         )
 
-    def test_one_other_member(self):
+    def test_one_other_member(self) -> None:
         """Behaviour of a room with a single other member."""
         events = [
             ((EventTypes.Member, self.USER_ID), {"membership": Membership.JOIN}),
@@ -209,7 +212,7 @@ class PresentableNamesTestCase(unittest.HomeserverTestCase):
         ]
         self.assertEqual("@user:test", self._calculate_room_name(events))
 
-    def test_other_members(self):
+    def test_other_members(self) -> None:
         """Behaviour of a room with multiple other members."""
         # Two other members.
         events = [

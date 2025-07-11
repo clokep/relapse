@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import AsyncContextManager, Callable, Sequence, Tuple
+from collections.abc import Sequence
+from typing import AsyncContextManager, Callable
 
 from twisted.internet import defer
 from twisted.internet.defer import CancelledError, Deferred
 
-from synapse.util.async_helpers import ReadWriteLock
+from relapse.util.async_helpers import ReadWriteLock
 
 from tests import unittest
 
@@ -28,7 +29,7 @@ class ReadWriteLockTestCase(unittest.TestCase):
         read_or_write: Callable[[str], AsyncContextManager],
         key: str,
         return_value: str,
-    ) -> Tuple["Deferred[str]", "Deferred[None]", "Deferred[None]"]:
+    ) -> tuple["Deferred[str]", "Deferred[None]", "Deferred[None]"]:
         """Starts a reader or writer which acquires the lock, blocks, then completes.
 
         Args:
@@ -49,7 +50,7 @@ class ReadWriteLockTestCase(unittest.TestCase):
         acquired_d: "Deferred[None]" = Deferred()
         unblock_d: "Deferred[None]" = Deferred()
 
-        async def reader_or_writer():
+        async def reader_or_writer() -> str:
             async with read_or_write(key):
                 acquired_d.callback(None)
                 await unblock_d
@@ -60,7 +61,7 @@ class ReadWriteLockTestCase(unittest.TestCase):
 
     def _start_blocking_reader(
         self, rwlock: ReadWriteLock, key: str, return_value: str
-    ) -> Tuple["Deferred[str]", "Deferred[None]", "Deferred[None]"]:
+    ) -> tuple["Deferred[str]", "Deferred[None]", "Deferred[None]"]:
         """Starts a reader which acquires the lock, blocks, then releases the lock.
 
         See the docstring for `_start_reader_or_writer` for details about the arguments
@@ -70,7 +71,7 @@ class ReadWriteLockTestCase(unittest.TestCase):
 
     def _start_blocking_writer(
         self, rwlock: ReadWriteLock, key: str, return_value: str
-    ) -> Tuple["Deferred[str]", "Deferred[None]", "Deferred[None]"]:
+    ) -> tuple["Deferred[str]", "Deferred[None]", "Deferred[None]"]:
         """Starts a writer which acquires the lock, blocks, then releases the lock.
 
         See the docstring for `_start_reader_or_writer` for details about the arguments
@@ -80,7 +81,7 @@ class ReadWriteLockTestCase(unittest.TestCase):
 
     def _start_nonblocking_reader(
         self, rwlock: ReadWriteLock, key: str, return_value: str
-    ) -> Tuple["Deferred[str]", "Deferred[None]"]:
+    ) -> tuple["Deferred[str]", "Deferred[None]"]:
         """Starts a reader which acquires the lock, then releases it immediately.
 
         See the docstring for `_start_reader_or_writer` for details about the arguments.
@@ -99,7 +100,7 @@ class ReadWriteLockTestCase(unittest.TestCase):
 
     def _start_nonblocking_writer(
         self, rwlock: ReadWriteLock, key: str, return_value: str
-    ) -> Tuple["Deferred[str]", "Deferred[None]"]:
+    ) -> tuple["Deferred[str]", "Deferred[None]"]:
         """Starts a writer which acquires the lock, then releases it immediately.
 
         See the docstring for `_start_reader_or_writer` for details about the arguments.
@@ -134,7 +135,7 @@ class ReadWriteLockTestCase(unittest.TestCase):
                 d.called, msg="deferred %d was unexpectedly resolved" % (i + n)
             )
 
-    def test_rwlock(self):
+    def test_rwlock(self) -> None:
         rwlock = ReadWriteLock()
         key = "key"
 
@@ -197,7 +198,7 @@ class ReadWriteLockTestCase(unittest.TestCase):
         _, acquired_d = self._start_nonblocking_reader(rwlock, key, "last reader")
         self.assertTrue(acquired_d.called)
 
-    def test_lock_handoff_to_nonblocking_writer(self):
+    def test_lock_handoff_to_nonblocking_writer(self) -> None:
         """Test a writer handing the lock to another writer that completes instantly."""
         rwlock = ReadWriteLock()
         key = "key"
@@ -216,7 +217,7 @@ class ReadWriteLockTestCase(unittest.TestCase):
         d3, _ = self._start_nonblocking_writer(rwlock, key, "write 3 completed")
         self.assertTrue(d3.called)
 
-    def test_cancellation_while_holding_read_lock(self):
+    def test_cancellation_while_holding_read_lock(self) -> None:
         """Test cancellation while holding a read lock.
 
         A waiting writer should be given the lock when the reader holding the lock is
@@ -242,7 +243,7 @@ class ReadWriteLockTestCase(unittest.TestCase):
         )
         self.assertEqual("write completed", self.successResultOf(writer_d))
 
-    def test_cancellation_while_holding_write_lock(self):
+    def test_cancellation_while_holding_write_lock(self) -> None:
         """Test cancellation while holding a write lock.
 
         A waiting reader should be given the lock when the writer holding the lock is
@@ -268,7 +269,7 @@ class ReadWriteLockTestCase(unittest.TestCase):
         )
         self.assertEqual("read completed", self.successResultOf(reader_d))
 
-    def test_cancellation_while_waiting_for_read_lock(self):
+    def test_cancellation_while_waiting_for_read_lock(self) -> None:
         """Test cancellation while waiting for a read lock.
 
         Tests that cancelling a waiting reader:
@@ -319,7 +320,7 @@ class ReadWriteLockTestCase(unittest.TestCase):
         )
         self.assertEqual("write 2 completed", self.successResultOf(writer2_d))
 
-    def test_cancellation_while_waiting_for_write_lock(self):
+    def test_cancellation_while_waiting_for_write_lock(self) -> None:
         """Test cancellation while waiting for a write lock.
 
         Tests that cancelling a waiting writer:

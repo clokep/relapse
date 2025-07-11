@@ -1,0 +1,52 @@
+{% if use_forking_launcher %}
+[program:relapse_fork]
+command=/usr/local/bin/python -m relapse.app.complement_fork_starter
+  {{ main_config_path }}
+  relapse.app.homeserver
+  --config-path="{{ main_config_path }}"
+  --config-path=/conf/workers/shared.yaml
+  {%- for worker in workers %}
+    -- {{ worker.app }}
+    --config-path="{{ main_config_path }}"
+    --config-path=/conf/workers/shared.yaml
+    --config-path=/conf/workers/{{ worker.name }}.yaml
+  {%- endfor %}
+stdout_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/stderr
+stderr_logfile_maxbytes=0
+autorestart=unexpected
+exitcodes=0
+
+{% else %}
+[program:relapse_main]
+command=/usr/local/bin/prefix-log /usr/local/bin/python -m relapse.app.homeserver
+  --config-path="{{ main_config_path }}"
+  --config-path=/conf/workers/shared.yaml
+priority=10
+# Log startup failures to supervisord's stdout/err
+# Regular relapse logs will still go in the configured data directory
+stdout_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/stderr
+stderr_logfile_maxbytes=0
+autorestart=unexpected
+exitcodes=0
+
+
+  {% for worker in workers %}
+[program:relapse_{{ worker.name }}]
+command=/usr/local/bin/prefix-log /usr/local/bin/python -m {{ worker.app }}
+  --config-path="{{ main_config_path }}"
+  --config-path=/conf/workers/shared.yaml
+  --config-path=/conf/workers/{{ worker.name }}.yaml
+autorestart=unexpected
+priority=500
+exitcodes=0
+stdout_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/stderr
+stderr_logfile_maxbytes=0
+
+  {% endfor %}
+{% endif %}

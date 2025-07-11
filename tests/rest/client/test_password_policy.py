@@ -12,17 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
 from http import HTTPStatus
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.constants import LoginType
-from synapse.api.errors import Codes
-from synapse.rest import admin
-from synapse.rest.client import account, login, password_policy, register
-from synapse.server import HomeServer
-from synapse.util import Clock
+from relapse.api.constants import LoginType
+from relapse.api.errors import Codes
+from relapse.rest import admin
+from relapse.rest.client import account, login, password_policy, register
+from relapse.server import HomeServer
+from relapse.util import Clock
 
 from tests import unittest
 
@@ -30,7 +29,7 @@ from tests import unittest
 class PasswordPolicyTestCase(unittest.HomeserverTestCase):
     """Tests the password policy feature and its compliance with MSC2000.
 
-    When validating a password, Synapse does the necessary checks in this order:
+    When validating a password, Relapse does the necessary checks in this order:
 
         1. Password is long enough
         2. Password contains digit(s)
@@ -44,7 +43,7 @@ class PasswordPolicyTestCase(unittest.HomeserverTestCase):
     """
 
     servlets = [
-        admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         login.register_servlets,
         register.register_servlets,
         password_policy.register_servlets,
@@ -89,7 +88,7 @@ class PasswordPolicyTestCase(unittest.HomeserverTestCase):
         )
 
     def test_password_too_short(self) -> None:
-        request_data = json.dumps({"username": "kermit", "password": "shorty"})
+        request_data = {"username": "kermit", "password": "shorty"}
         channel = self.make_request("POST", self.register_url, request_data)
 
         self.assertEqual(channel.code, HTTPStatus.BAD_REQUEST, channel.result)
@@ -100,7 +99,7 @@ class PasswordPolicyTestCase(unittest.HomeserverTestCase):
         )
 
     def test_password_no_digit(self) -> None:
-        request_data = json.dumps({"username": "kermit", "password": "longerpassword"})
+        request_data = {"username": "kermit", "password": "longerpassword"}
         channel = self.make_request("POST", self.register_url, request_data)
 
         self.assertEqual(channel.code, HTTPStatus.BAD_REQUEST, channel.result)
@@ -111,7 +110,7 @@ class PasswordPolicyTestCase(unittest.HomeserverTestCase):
         )
 
     def test_password_no_symbol(self) -> None:
-        request_data = json.dumps({"username": "kermit", "password": "l0ngerpassword"})
+        request_data = {"username": "kermit", "password": "l0ngerpassword"}
         channel = self.make_request("POST", self.register_url, request_data)
 
         self.assertEqual(channel.code, HTTPStatus.BAD_REQUEST, channel.result)
@@ -122,7 +121,7 @@ class PasswordPolicyTestCase(unittest.HomeserverTestCase):
         )
 
     def test_password_no_uppercase(self) -> None:
-        request_data = json.dumps({"username": "kermit", "password": "l0ngerpassword!"})
+        request_data = {"username": "kermit", "password": "l0ngerpassword!"}
         channel = self.make_request("POST", self.register_url, request_data)
 
         self.assertEqual(channel.code, HTTPStatus.BAD_REQUEST, channel.result)
@@ -133,7 +132,7 @@ class PasswordPolicyTestCase(unittest.HomeserverTestCase):
         )
 
     def test_password_no_lowercase(self) -> None:
-        request_data = json.dumps({"username": "kermit", "password": "L0NGERPASSWORD!"})
+        request_data = {"username": "kermit", "password": "L0NGERPASSWORD!"}
         channel = self.make_request("POST", self.register_url, request_data)
 
         self.assertEqual(channel.code, HTTPStatus.BAD_REQUEST, channel.result)
@@ -144,7 +143,7 @@ class PasswordPolicyTestCase(unittest.HomeserverTestCase):
         )
 
     def test_password_compliant(self) -> None:
-        request_data = json.dumps({"username": "kermit", "password": "L0ngerpassword!"})
+        request_data = {"username": "kermit", "password": "L0ngerpassword!"}
         channel = self.make_request("POST", self.register_url, request_data)
 
         # Getting a 401 here means the password has passed validation and the server has
@@ -161,16 +160,14 @@ class PasswordPolicyTestCase(unittest.HomeserverTestCase):
         user_id = self.register_user("kermit", compliant_password)
         tok = self.login("kermit", compliant_password)
 
-        request_data = json.dumps(
-            {
-                "new_password": not_compliant_password,
-                "auth": {
-                    "password": compliant_password,
-                    "type": LoginType.PASSWORD,
-                    "user": user_id,
-                },
-            }
-        )
+        request_data = {
+            "new_password": not_compliant_password,
+            "auth": {
+                "password": compliant_password,
+                "type": LoginType.PASSWORD,
+                "user": user_id,
+            },
+        }
         channel = self.make_request(
             "POST",
             "/_matrix/client/r0/account/password",

@@ -2,25 +2,25 @@
 
 ## TLS ##
 
-{% if not SYNAPSE_NO_TLS %}
+{% if not RELAPSE_NO_TLS %}
 
-tls_certificate_path: "/data/{{ SYNAPSE_SERVER_NAME }}.tls.crt"
-tls_private_key_path: "/data/{{ SYNAPSE_SERVER_NAME }}.tls.key"
+tls_certificate_path: "/data/{{ RELAPSE_SERVER_NAME }}.tls.crt"
+tls_private_key_path: "/data/{{ RELAPSE_SERVER_NAME }}.tls.key"
 
 {% endif %}
 
 ## Server ##
 
-server_name: "{{ SYNAPSE_SERVER_NAME }}"
+server_name: "{{ RELAPSE_SERVER_NAME }}"
 pid_file: /homeserver.pid
 web_client: False
 soft_file_limit: 0
-log_config: "{{ SYNAPSE_LOG_CONFIG }}"
+log_config: "{{ RELAPSE_LOG_CONFIG }}"
 
 ## Ports ##
 
 listeners:
-  {% if not SYNAPSE_NO_TLS %}
+  {% if not RELAPSE_NO_TLS %}
   -
     port: 8448
     bind_addresses: ['::']
@@ -36,12 +36,17 @@ listeners:
 
   # Allow configuring in case we want to reverse proxy 8008
   # using another process in the same container
-  - port: {{ SYNAPSE_HTTP_PORT or 8008 }}
+{% if RELAPSE_USE_UNIX_SOCKET %}
+  # Unix sockets don't care about TLS or IP addresses or ports
+  - path: '/run/main_public.sock'
+    type: http
+{% else %}
+  - port: {{ RELAPSE_HTTP_PORT or 8008 }}
     tls: false
     bind_addresses: ['::']
     type: http
     x_forwarded: false
-
+{% endif %}
     resources:
       - names: [client]
         compress: true
@@ -54,13 +59,16 @@ listeners:
 database:
   name: "psycopg2"
   args:
-    user: "{{ POSTGRES_USER or "synapse" }}"
+    user: "{{ POSTGRES_USER or "relapse" }}"
     password: "{{ POSTGRES_PASSWORD }}"
-    database: "{{ POSTGRES_DB or "synapse" }}"
+    database: "{{ POSTGRES_DB or "relapse" }}"
+{% if not RELAPSE_USE_UNIX_SOCKET %}
+{# Relapse will use a default unix socket for Postgres when host/port is not specified (behavior from `psycopg2`). #}
     host: "{{ POSTGRES_HOST or "db" }}"
     port: "{{ POSTGRES_PORT or "5432" }}"
-    cp_min: 5
-    cp_max: 10
+{% endif %}
+    cp_min: {{ POSTGRES_CP_MIN or 5 }}
+    cp_max: {{ POSTGRES_CP_MAX or 10 }}
 {% else %}
 database:
   name: "sqlite3"
@@ -70,7 +78,7 @@ database:
 
 ## Performance ##
 
-event_cache_size: "{{ SYNAPSE_EVENT_CACHE_SIZE or "10K" }}"
+event_cache_size: "{{ RELAPSE_EVENT_CACHE_SIZE or "10K" }}"
 
 ## Ratelimiting ##
 
@@ -85,7 +93,7 @@ federation_rc_concurrent: 3
 ## Files ##
 
 media_store_path: "/data/media"
-max_upload_size: "{{ SYNAPSE_MAX_UPLOAD_SIZE or "50M" }}"
+max_upload_size: "{{ RELAPSE_MAX_UPLOAD_SIZE or "50M" }}"
 max_image_pixels: "32M"
 dynamic_thumbnails: false
 
@@ -112,9 +120,9 @@ max_spider_size: "10M"
 
 ## Captcha ##
 
-{% if SYNAPSE_RECAPTCHA_PUBLIC_KEY %}
-recaptcha_public_key: "{{ SYNAPSE_RECAPTCHA_PUBLIC_KEY }}"
-recaptcha_private_key: "{{ SYNAPSE_RECAPTCHA_PRIVATE_KEY }}"
+{% if RELAPSE_RECAPTCHA_PUBLIC_KEY %}
+recaptcha_public_key: "{{ RELAPSE_RECAPTCHA_PUBLIC_KEY }}"
+recaptcha_private_key: "{{ RELAPSE_RECAPTCHA_PRIVATE_KEY }}"
 enable_registration_captcha: True
 recaptcha_siteverify_api: "https://www.google.com/recaptcha/api/siteverify"
 {% else %}
@@ -126,11 +134,11 @@ recaptcha_siteverify_api: "https://www.google.com/recaptcha/api/siteverify"
 
 ## Turn ##
 
-{% if SYNAPSE_TURN_URIS %}
+{% if RELAPSE_TURN_URIS %}
 turn_uris:
-{% for uri in SYNAPSE_TURN_URIS.split(',') %}    - "{{ uri }}"
+{% for uri in RELAPSE_TURN_URIS.split(',') %}    - "{{ uri }}"
 {% endfor %}
-turn_shared_secret: "{{ SYNAPSE_TURN_SECRET }}"
+turn_shared_secret: "{{ RELAPSE_TURN_SECRET }}"
 turn_user_lifetime: "1h"
 turn_allow_guests: True
 {% else %}
@@ -142,16 +150,16 @@ turn_allow_guests: True
 
 ## Registration ##
 
-enable_registration: {{ "True" if SYNAPSE_ENABLE_REGISTRATION else "False" }}
-registration_shared_secret: "{{ SYNAPSE_REGISTRATION_SHARED_SECRET }}"
+enable_registration: {{ "True" if RELAPSE_ENABLE_REGISTRATION else "False" }}
+registration_shared_secret: "{{ RELAPSE_REGISTRATION_SHARED_SECRET }}"
 bcrypt_rounds: 12
-allow_guest_access: {{ "True" if SYNAPSE_ALLOW_GUEST else "False" }}
+allow_guest_access: {{ "True" if RELAPSE_ALLOW_GUEST else "False" }}
 enable_group_creation: true
 
 
 ## Metrics ###
 
-{% if SYNAPSE_REPORT_STATS.lower() == "yes" %}
+{% if RELAPSE_REPORT_STATS.lower() == "yes" %}
 enable_metrics: True
 report_stats: True
 {% else %}
@@ -161,18 +169,18 @@ report_stats: False
 
 ## API Configuration ##
 
-{% if SYNAPSE_APPSERVICES %}
+{% if RELAPSE_APPSERVICES %}
 app_service_config_files:
-{% for appservice in SYNAPSE_APPSERVICES %}    - "{{ appservice }}"
+{% for appservice in RELAPSE_APPSERVICES %}    - "{{ appservice }}"
 {% endfor %}
 {% endif %}
 
-macaroon_secret_key: "{{ SYNAPSE_MACAROON_SECRET_KEY }}"
+macaroon_secret_key: "{{ RELAPSE_MACAROON_SECRET_KEY }}"
 expire_access_token: False
 
 ## Signing Keys ##
 
-signing_key_path: "/data/{{ SYNAPSE_SERVER_NAME }}.signing.key"
+signing_key_path: "/data/{{ RELAPSE_SERVER_NAME }}.signing.key"
 old_signing_keys: {}
 key_refresh_interval: "1d" # 1 Day.
 

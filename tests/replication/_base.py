@@ -13,23 +13,27 @@
 # limitations under the License.
 import logging
 from collections import defaultdict
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Optional
 
 from twisted.internet.address import IPv4Address
-from twisted.internet.protocol import Protocol
+from twisted.internet.protocol import Protocol, connectionDone
+from twisted.python.failure import Failure
+from twisted.test.proto_helpers import MemoryReactor
 from twisted.web.resource import Resource
 
-from synapse.app.generic_worker import GenericWorkerServer
-from synapse.http.site import SynapseRequest, SynapseSite
-from synapse.replication.http import ReplicationRestResource
-from synapse.replication.tcp.client import ReplicationDataHandler
-from synapse.replication.tcp.handler import ReplicationCommandHandler
-from synapse.replication.tcp.protocol import ClientReplicationStreamProtocol
-from synapse.replication.tcp.resource import (
-    ReplicationStreamProtocolFactory,
+from relapse.app.generic_worker import GenericWorkerServer
+from relapse.config.workers import InstanceTcpLocationConfig, InstanceUnixLocationConfig
+from relapse.http.site import RelapseRequest, RelapseSite
+from relapse.replication.http import ReplicationRestResource
+from relapse.replication.tcp.client import ReplicationDataHandler
+from relapse.replication.tcp.handler import ReplicationCommandHandler
+from relapse.replication.tcp.protocol import (
+    ClientReplicationStreamProtocol,
     ServerReplicationStreamProtocol,
 )
-from synapse.server import HomeServer
+from relapse.replication.tcp.resource import ReplicationStreamProtocolFactory
+from relapse.server import HomeServer
+from relapse.util import Clock
 
 from tests import unittest
 from tests.server import FakeTransport
@@ -51,7 +55,11 @@ class BaseStreamTestCase(unittest.HomeserverTestCase):
     if not hiredis:
         skip = "Requires hiredis"
 
-    def prepare(self, reactor, clock, hs):
+    if not USE_POSTGRES_FOR_TESTS:
+        # Redis replication only takes place on Postgres
+        skip = "Requires Postgres"
+
+    def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         # build a replication server
         server_factory = ReplicationStreamProtocolFactory(hs)
         self.streamer = hs.get_replication_streamer()
@@ -62,10 +70,10 @@ class BaseStreamTestCase(unittest.HomeserverTestCase):
         # Make a new HomeServer object for the worker
         self.reactor.lookups["testserv"] = "1.2.3.4"
         self.worker_hs = self.setup_test_homeserver(
-            federation_http_client=None,
             homeserver_to_use=GenericWorkerServer,
             config=self._get_worker_hs_config(),
             reactor=self.reactor,
+            federation_http_client=None,
         )
 
         # Since we use sqlite in memory databases we need to make sure the
@@ -92,25 +100,24 @@ class BaseStreamTestCase(unittest.HomeserverTestCase):
             repl_handler,
         )
 
-        self._client_transport = None
-        self._server_transport = None
+        self._client_transport: Optional[FakeTransport] = None
+        self._server_transport: Optional[FakeTransport] = None
 
-    def create_resource_dict(self) -> Dict[str, Resource]:
+    def create_resource_dict(self) -> dict[str, Resource]:
         d = super().create_resource_dict()
-        d["/_synapse/replication"] = ReplicationRestResource(self.hs)
+        d["/_relapse/replication"] = ReplicationRestResource(self.hs)
         return d
 
     def _get_worker_hs_config(self) -> dict:
         config = self.default_config()
-        config["worker_app"] = "synapse.app.generic_worker"
-        config["worker_replication_host"] = "testserv"
-        config["worker_replication_http_port"] = "8765"
+        config["worker_app"] = "relapse.app.generic_worker"
+        config["instance_map"] = {"main": {"host": "testserv", "port": 8765}}
         return config
 
-    def _build_replication_data_handler(self):
+    def _build_replication_data_handler(self) -> "TestReplicationDataHandler":
         return TestReplicationDataHandler(self.worker_hs)
 
-    def reconnect(self):
+    def reconnect(self) -> None:
         if self._client_transport:
             self.client.close()
 
@@ -123,7 +130,7 @@ class BaseStreamTestCase(unittest.HomeserverTestCase):
         self._server_transport = FakeTransport(self.client, self.reactor)
         self.server.makeConnection(self._server_transport)
 
-    def disconnect(self):
+    def disconnect(self) -> None:
         if self._client_transport:
             self._client_transport = None
             self.client.close()
@@ -132,14 +139,14 @@ class BaseStreamTestCase(unittest.HomeserverTestCase):
             self._server_transport = None
             self.server.close()
 
-    def replicate(self):
+    def replicate(self) -> None:
         """Tell the master side of replication that something has happened, and then
         wait for the replication to occur.
         """
         self.streamer.on_notifier_poke()
         self.pump(0.1)
 
-    def handle_http_replication_attempt(self) -> SynapseRequest:
+    def handle_http_replication_attempt(self) -> RelapseRequest:
         """Asserts that a connection attempt was made to the master HS on the
         HTTP replication port, then proxies it to the master HS object to be
         handled.
@@ -165,10 +172,10 @@ class BaseStreamTestCase(unittest.HomeserverTestCase):
 
         # hook into the channel's request factory so that we can keep a record
         # of the requests
-        requests: List[SynapseRequest] = []
+        requests: list[RelapseRequest] = []
         real_request_factory = channel.requestFactory
 
-        def request_factory(*args, **kwargs):
+        def request_factory(*args: Any, **kwargs: Any) -> RelapseRequest:
             request = real_request_factory(*args, **kwargs)
             requests.append(request)
             return request
@@ -201,8 +208,8 @@ class BaseStreamTestCase(unittest.HomeserverTestCase):
         return requests[0]
 
     def assert_request_is_get_repl_stream_updates(
-        self, request: SynapseRequest, stream_name: str
-    ):
+        self, request: RelapseRequest, stream_name: str
+    ) -> None:
         """Asserts that the given request is a HTTP replication request for
         fetching updates for given stream.
         """
@@ -210,7 +217,7 @@ class BaseStreamTestCase(unittest.HomeserverTestCase):
         path: bytes = request.path  # type: ignore
         self.assertRegex(
             path,
-            rb"^/_synapse/replication/get_repl_stream_updates/%s/[^/]+$"
+            rb"^/_relapse/replication/get_repl_stream_updates/%s/[^/]+$"
             % (stream_name.encode("ascii"),),
         )
 
@@ -220,15 +227,35 @@ class BaseStreamTestCase(unittest.HomeserverTestCase):
 class BaseMultiWorkerStreamTestCase(unittest.HomeserverTestCase):
     """Base class for tests running multiple workers.
 
+    Enables Redis, providing a fake Redis server.
+
     Automatically handle HTTP replication requests from workers to master,
     unlike `BaseStreamTestCase`.
     """
 
-    def setUp(self):
+    if not hiredis:
+        skip = "Requires hiredis"
+
+    if not USE_POSTGRES_FOR_TESTS:
+        # Redis replication only takes place on Postgres
+        skip = "Requires Postgres"
+
+    def default_config(self) -> dict[str, Any]:
+        """
+        Overrides the default config to enable Redis.
+        Even if the test only uses make_worker_hs, the main process needs Redis
+        enabled otherwise it won't create a Fake Redis server to listen on the
+        Redis port and accept fake TCP connections.
+        """
+        base = super().default_config()
+        base["redis"] = {"enabled": True}
+        base["instance_map"] = {"main": {"host": "testserv", "port": 8765}}
+        return base
+
+    def setUp(self) -> None:
         super().setUp()
 
         # build a replication server
-        self.server_factory = ReplicationStreamProtocolFactory(self.hs)
         self.streamer = self.hs.get_replication_streamer()
 
         # Fake in memory Redis server that servers can connect to.
@@ -247,15 +274,14 @@ class BaseMultiWorkerStreamTestCase(unittest.HomeserverTestCase):
         # handling inbound HTTP requests to that instance.
         self._hs_to_site = {self.hs: self.site}
 
-        if self.hs.config.redis.redis_enabled:
-            # Handle attempts to connect to fake redis server.
-            self.reactor.add_tcp_client_callback(
-                "localhost",
-                6379,
-                self.connect_any_redis_attempts,
-            )
+        # Handle attempts to connect to fake redis server.
+        self.reactor.add_tcp_client_callback(
+            "localhost",
+            6379,
+            self.connect_any_redis_attempts,
+        )
 
-            self.hs.get_replication_command_handler().start_replication(self.hs)
+        self.hs.get_replication_command_handler().start_replication(self.hs)
 
         # When we see a connection attempt to the master replication listener we
         # automatically set up the connection. This is so that tests don't
@@ -269,7 +295,7 @@ class BaseMultiWorkerStreamTestCase(unittest.HomeserverTestCase):
             lambda: self._handle_http_replication_attempt(self.hs, 8765),
         )
 
-    def create_test_resource(self):
+    def create_test_resource(self) -> ReplicationRestResource:
         """Overrides `HomeserverTestCase.create_test_resource`."""
         # We override this so that it automatically registers all the HTTP
         # replication servlets, without having to explicitly do that in all
@@ -283,13 +309,13 @@ class BaseMultiWorkerStreamTestCase(unittest.HomeserverTestCase):
         return resource
 
     def make_worker_hs(
-        self, worker_app: str, extra_config: Optional[dict] = None, **kwargs
+        self, worker_app: str, extra_config: Optional[dict] = None, **kwargs: Any
     ) -> HomeServer:
-        """Make a new worker HS instance, correctly connecting replcation
+        """Make a new worker HS instance, correctly connecting replication
         stream to the master HS.
 
         Args:
-            worker_app: Type of worker, e.g. `synapse.app.federation_sender`.
+            worker_app: Type of worker, e.g. `relapse.app.generic_worker`.
             extra_config: Any extra config to use for this instances.
             **kwargs: Options that get passed to `self.setup_test_homeserver`,
                 useful to e.g. pass some mocks for things like `federation_http_client`
@@ -314,7 +340,7 @@ class BaseMultiWorkerStreamTestCase(unittest.HomeserverTestCase):
         # `_handle_http_replication_attempt` like we do with the master HS.
         instance_name = worker_hs.get_instance_name()
         instance_loc = worker_hs.config.worker.instance_map.get(instance_name)
-        if instance_loc:
+        if instance_loc and isinstance(instance_loc, InstanceTcpLocationConfig):
             # Ensure the host is one that has a fake DNS entry.
             if instance_loc.host not in self.reactor.lookups:
                 raise Exception(
@@ -335,30 +361,13 @@ class BaseMultiWorkerStreamTestCase(unittest.HomeserverTestCase):
                 instance_loc.port,
                 lambda: self._handle_http_replication_attempt(worker_hs, port),
             )
+        elif instance_loc and isinstance(instance_loc, InstanceUnixLocationConfig):
+            raise Exception(
+                "Unix sockets are not supported for unit tests at this time."
+            )
 
         store = worker_hs.get_datastores().main
         store.db_pool._db_pool = self.database_pool._db_pool
-
-        # Set up TCP replication between master and the new worker if we don't
-        # have Redis support enabled.
-        if not worker_hs.config.redis.redis_enabled:
-            repl_handler = ReplicationCommandHandler(worker_hs)
-            client = ClientReplicationStreamProtocol(
-                worker_hs,
-                "client",
-                "test",
-                self.clock,
-                repl_handler,
-            )
-            server = self.server_factory.buildProtocol(
-                IPv4Address("TCP", "127.0.0.1", 0)
-            )
-
-            client_transport = FakeTransport(server, self.reactor)
-            client.makeConnection(client_transport)
-
-            server_transport = FakeTransport(client, self.reactor)
-            server.makeConnection(server_transport)
 
         # Set up a resource for the worker
         resource = ReplicationRestResource(worker_hs)
@@ -366,37 +375,35 @@ class BaseMultiWorkerStreamTestCase(unittest.HomeserverTestCase):
         for servlet in self.servlets:
             servlet(worker_hs, resource)
 
-        self._hs_to_site[worker_hs] = SynapseSite(
-            logger_name="synapse.access.http.fake",
+        self._hs_to_site[worker_hs] = RelapseSite(
+            logger_name="relapse.access.http.fake",
             site_tag="{}-{}".format(
                 worker_hs.config.server.server_name, worker_hs.get_instance_name()
             ),
             config=worker_hs.config.server.listeners[0],
             resource=resource,
             server_version_string="1",
-            max_request_body_size=4096,
+            max_request_body_size=8192,
             reactor=self.reactor,
+            hs=worker_hs,
         )
 
-        if worker_hs.config.redis.redis_enabled:
-            worker_hs.get_replication_command_handler().start_replication(worker_hs)
+        worker_hs.get_replication_command_handler().start_replication(worker_hs)
 
         return worker_hs
 
     def _get_worker_hs_config(self) -> dict:
         config = self.default_config()
-        config["worker_replication_host"] = "testserv"
-        config["worker_replication_http_port"] = "8765"
         return config
 
-    def replicate(self):
+    def replicate(self) -> None:
         """Tell the master side of replication that something has happened, and then
         wait for the replication to occur.
         """
         self.streamer.on_notifier_poke()
         self.pump()
 
-    def _handle_http_replication_attempt(self, hs, repl_port):
+    def _handle_http_replication_attempt(self, hs: HomeServer, repl_port: int) -> None:
         """Handles a connection attempt to the given HS replication HTTP
         listener on the given port.
         """
@@ -433,7 +440,7 @@ class BaseMultiWorkerStreamTestCase(unittest.HomeserverTestCase):
         # inside `connecTCP` before the connection has been passed back to the
         # code that requested the TCP connection.
 
-    def connect_any_redis_attempts(self):
+    def connect_any_redis_attempts(self) -> None:
         """If redis is enabled we need to deal with workers connecting to a
         redis server. We don't want to use a real Redis server so we use a
         fake one.
@@ -444,8 +451,11 @@ class BaseMultiWorkerStreamTestCase(unittest.HomeserverTestCase):
             self.assertEqual(host, "localhost")
             self.assertEqual(port, 6379)
 
-            client_protocol = client_factory.buildProtocol(None)
-            server_protocol = self._redis_server.buildProtocol(None)
+            client_address = IPv4Address("TCP", "127.0.0.1", 6379)
+            client_protocol = client_factory.buildProtocol(client_address)
+
+            server_address = IPv4Address("TCP", host, port)
+            server_protocol = self._redis_server.buildProtocol(server_address)
 
             client_to_server_transport = FakeTransport(
                 server_protocol, self.reactor, client_protocol
@@ -465,9 +475,11 @@ class TestReplicationDataHandler(ReplicationDataHandler):
         super().__init__(hs)
 
         # list of received (stream_name, token, row) tuples
-        self.received_rdata_rows: List[Tuple[str, int, Any]] = []
+        self.received_rdata_rows: list[tuple[str, int, Any]] = []
 
-    async def on_rdata(self, stream_name, instance_name, token, rows):
+    async def on_rdata(
+        self, stream_name: str, instance_name: str, token: int, rows: list
+    ) -> None:
         await super().on_rdata(stream_name, instance_name, token, rows)
         for r in rows:
             self.received_rdata_rows.append((stream_name, token, r))
@@ -476,28 +488,30 @@ class TestReplicationDataHandler(ReplicationDataHandler):
 class FakeRedisPubSubServer:
     """A fake Redis server for pub/sub."""
 
-    def __init__(self):
-        self._subscribers_by_channel: Dict[
-            bytes, Set["FakeRedisPubSubProtocol"]
-        ] = defaultdict(set)
+    def __init__(self) -> None:
+        self._subscribers_by_channel: dict[bytes, set["FakeRedisPubSubProtocol"]] = (
+            defaultdict(set)
+        )
 
-    def add_subscriber(self, conn, channel: bytes):
+    def add_subscriber(self, conn: "FakeRedisPubSubProtocol", channel: bytes) -> None:
         """A connection has called SUBSCRIBE"""
         self._subscribers_by_channel[channel].add(conn)
 
-    def remove_subscriber(self, conn):
+    def remove_subscriber(self, conn: "FakeRedisPubSubProtocol") -> None:
         """A connection has lost connection"""
         for subscribers in self._subscribers_by_channel.values():
             subscribers.discard(conn)
 
-    def publish(self, conn, channel: bytes, msg) -> int:
+    def publish(
+        self, conn: "FakeRedisPubSubProtocol", channel: bytes, msg: object
+    ) -> int:
         """A connection want to publish a message to subscribers."""
         for sub in self._subscribers_by_channel[channel]:
             sub.send(["message", channel, msg])
 
         return len(self._subscribers_by_channel)
 
-    def buildProtocol(self, addr):
+    def buildProtocol(self, addr: IPv4Address) -> "FakeRedisPubSubProtocol":
         return FakeRedisPubSubProtocol(self)
 
 
@@ -510,7 +524,7 @@ class FakeRedisPubSubProtocol(Protocol):
         self._server = server
         self._reader = hiredis.Reader()
 
-    def dataReceived(self, data):
+    def dataReceived(self, data: bytes) -> None:
         self._reader.feed(data)
 
         # We might get multiple messages in one packet.
@@ -527,7 +541,7 @@ class FakeRedisPubSubProtocol(Protocol):
 
             self.handle_command(msg[0], *msg[1:])
 
-    def handle_command(self, command, *args):
+    def handle_command(self, command: bytes, *args: bytes) -> None:
         """Received a Redis command from the client."""
 
         # We currently only support pub/sub.
@@ -546,10 +560,15 @@ class FakeRedisPubSubProtocol(Protocol):
             self.send("OK")
         elif command == b"GET":
             self.send(None)
-        else:
-            raise Exception("Unknown command")
 
-    def send(self, msg):
+        # Connection keep-alives.
+        elif command == b"PING":
+            self.send("PONG")
+
+        else:
+            raise Exception(f"Unknown command: {command!r}")
+
+    def send(self, msg: object) -> None:
         """Send a message back to the client."""
         assert self.transport is not None
 
@@ -558,7 +577,7 @@ class FakeRedisPubSubProtocol(Protocol):
         self.transport.write(raw)
         self.transport.flush()
 
-    def encode(self, obj):
+    def encode(self, obj: object) -> str:
         """Encode an object to its Redis format.
 
         Supports: strings/bytes, integers and list/tuples.
@@ -580,29 +599,5 @@ class FakeRedisPubSubProtocol(Protocol):
 
         raise Exception("Unrecognized type for encoding redis: %r: %r", type(obj), obj)
 
-    def connectionLost(self, reason):
+    def connectionLost(self, reason: Failure = connectionDone) -> None:
         self._server.remove_subscriber(self)
-
-
-class RedisMultiWorkerStreamTestCase(BaseMultiWorkerStreamTestCase):
-    """
-    A test case that enables Redis, providing a fake Redis server.
-    """
-
-    if not hiredis:
-        skip = "Requires hiredis"
-
-    if not USE_POSTGRES_FOR_TESTS:
-        # Redis replication only takes place on Postgres
-        skip = "Requires Postgres"
-
-    def default_config(self) -> Dict[str, Any]:
-        """
-        Overrides the default config to enable Redis.
-        Even if the test only uses make_worker_hs, the main process needs Redis
-        enabled otherwise it won't create a Fake Redis server to listen on the
-        Redis port and accept fake TCP connections.
-        """
-        base = super().default_config()
-        base["redis"] = {"enabled": True}
-        return base

@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Contains *incomplete* type hints for txredisapi.
-"""
+"""Contains *incomplete* type hints for txredisapi."""
+
 from typing import Any, List, Optional, Type, Union
 
 from twisted.internet import protocol
@@ -61,6 +61,9 @@ def lazyConnection(
 # most methods to it via ConnectionHandler.__getattr__.
 class ConnectionHandler(RedisProtocol):
     def disconnect(self) -> "Deferred[None]": ...
+    def __repr__(self) -> str: ...
+
+class UnixConnectionHandler(ConnectionHandler): ...
 
 class RedisFactory(protocol.ReconnectingClientFactory):
     continueTrying: bool

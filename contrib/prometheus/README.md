@@ -1,5 +1,5 @@
 This directory contains some sample monitoring config for using the
-'Prometheus' monitoring server against synapse.
+'Prometheus' monitoring server against relapse.
 
 To use it, first install prometheus by following the instructions at
 
@@ -11,10 +11,10 @@ Add a new job to the main prometheus.conf file:
 
 ```yaml
   job: {
-    name: "synapse"
+    name: "relapse"
 
     target_group: {
-      target: "http://SERVER.LOCATION.HERE:PORT/_synapse/metrics"
+      target: "http://SERVER.LOCATION.HERE:PORT/_relapse/metrics"
     }
   }
 ```
@@ -24,8 +24,8 @@ Add a new job to the main prometheus.conf file:
 Add a new job to the main prometheus.yml file:
 
 ```yaml
-  - job_name: "synapse"
-    metrics_path: "/_synapse/metrics"
+  - job_name: "relapse"
+    metrics_path: "/_relapse/metrics"
     # when endpoint uses https:
     scheme: "https"
 
@@ -34,15 +34,15 @@ Add a new job to the main prometheus.yml file:
 ```
 
 An example of a Prometheus configuration with workers can be found in
-[metrics-howto.md](https://matrix-org.github.io/synapse/latest/metrics-howto.html).
+[metrics-howto.md](https://clokep.github.io/relapse/latest/metrics-howto.html).
 
-To use `synapse.rules` add
+To use `relapse.rules` add
 
 ```yaml
   rule_files:
-    - "/PATH/TO/synapse-v2.rules"
+    - "/PATH/TO/relapse-v2.rules"
 ```
 
-Metrics are disabled by default when running synapse; they must be enabled
-with the 'enable-metrics' option, either in the synapse config file or as a
+Metrics are disabled by default when running relapse; they must be enabled
+with the 'enable-metrics' option, either in the relapse config file or as a
 command-line option.

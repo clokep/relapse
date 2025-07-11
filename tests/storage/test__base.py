@@ -14,12 +14,13 @@
 # limitations under the License.
 
 import secrets
-from typing import Generator, Tuple
+from collections.abc import Generator
+from typing import cast
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.server import HomeServer
-from synapse.util import Clock
+from relapse.server import HomeServer
+from relapse.util import Clock
 
 from tests import unittest
 
@@ -46,15 +47,15 @@ class UpdateUpsertManyTests(unittest.HomeserverTestCase):
             )
         )
 
-    def _dump_table_to_tuple(self) -> Generator[Tuple[int, str, str], None, None]:
-        res = self.get_success(
-            self.storage.db_pool.simple_select_list(
-                self.table_name, None, ["id, username, value"]
-            )
+    def _dump_table_to_tuple(self) -> Generator[tuple[int, str, str], None, None]:
+        yield from cast(
+            list[tuple[int, str, str]],
+            self.get_success(
+                self.storage.db_pool.simple_select_list(
+                    self.table_name, None, ["id, username, value"]
+                )
+            ),
         )
-
-        for i in res:
-            yield (i["id"], i["username"], i["value"])
 
     def test_upsert_many(self) -> None:
         """
@@ -106,7 +107,7 @@ class UpdateUpsertManyTests(unittest.HomeserverTestCase):
             {(1, "user1", "hello"), (2, "user2", "bleb")},
         )
 
-    def test_simple_update_many(self):
+    def test_simple_update_many(self) -> None:
         """
         simple_update_many performs many updates at once.
         """

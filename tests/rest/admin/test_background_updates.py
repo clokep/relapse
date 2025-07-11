@@ -11,27 +11,26 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from http import HTTPStatus
-from typing import Collection
+from collections.abc import Collection
 
 from parameterized import parameterized
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import synapse.rest.admin
-from synapse.api.errors import Codes
-from synapse.rest.client import login
-from synapse.server import HomeServer
-from synapse.storage.background_updates import BackgroundUpdater
-from synapse.types import JsonDict
-from synapse.util import Clock
+from relapse.api.errors import Codes
+from relapse.rest import admin
+from relapse.rest.client import login
+from relapse.server import HomeServer
+from relapse.storage.background_updates import BackgroundUpdater
+from relapse.types import JsonDict
+from relapse.util import Clock
 
 from tests import unittest
 
 
 class BackgroundUpdatesTestCase(unittest.HomeserverTestCase):
     servlets = [
-        synapse.rest.admin.register_servlets,
+        admin.register_servlets,
         login.register_servlets,
     ]
 
@@ -43,15 +42,15 @@ class BackgroundUpdatesTestCase(unittest.HomeserverTestCase):
 
     @parameterized.expand(
         [
-            ("GET", "/_synapse/admin/v1/background_updates/enabled"),
-            ("POST", "/_synapse/admin/v1/background_updates/enabled"),
-            ("GET", "/_synapse/admin/v1/background_updates/status"),
-            ("POST", "/_synapse/admin/v1/background_updates/start_job"),
+            ("GET", "/_relapse/admin/v1/background_updates/enabled"),
+            ("POST", "/_relapse/admin/v1/background_updates/enabled"),
+            ("GET", "/_relapse/admin/v1/background_updates/status"),
+            ("POST", "/_relapse/admin/v1/background_updates/start_job"),
         ]
     )
     def test_requester_is_no_admin(self, method: str, url: str) -> None:
         """
-        If the user is not a server admin, an error HTTPStatus.FORBIDDEN is returned.
+        If the user is not a server admin, an error 403 is returned.
         """
 
         self.register_user("user", "pass", admin=False)
@@ -64,14 +63,14 @@ class BackgroundUpdatesTestCase(unittest.HomeserverTestCase):
             access_token=other_user_tok,
         )
 
-        self.assertEqual(HTTPStatus.FORBIDDEN, channel.code, msg=channel.json_body)
+        self.assertEqual(403, channel.code, msg=channel.json_body)
         self.assertEqual(Codes.FORBIDDEN, channel.json_body["errcode"])
 
     def test_invalid_parameter(self) -> None:
         """
         If parameters are invalid, an error is returned.
         """
-        url = "/_synapse/admin/v1/background_updates/start_job"
+        url = "/_relapse/admin/v1/background_updates/start_job"
 
         # empty content
         channel = self.make_request(
@@ -81,7 +80,7 @@ class BackgroundUpdatesTestCase(unittest.HomeserverTestCase):
             access_token=self.admin_user_tok,
         )
 
-        self.assertEqual(HTTPStatus.BAD_REQUEST, channel.code, msg=channel.json_body)
+        self.assertEqual(400, channel.code, msg=channel.json_body)
         self.assertEqual(Codes.MISSING_PARAM, channel.json_body["errcode"])
 
         # job_name invalid
@@ -92,7 +91,7 @@ class BackgroundUpdatesTestCase(unittest.HomeserverTestCase):
             access_token=self.admin_user_tok,
         )
 
-        self.assertEqual(HTTPStatus.BAD_REQUEST, channel.code, msg=channel.json_body)
+        self.assertEqual(400, channel.code, msg=channel.json_body)
         self.assertEqual(Codes.UNKNOWN, channel.json_body["errcode"])
 
     def _register_bg_update(self) -> None:
@@ -122,10 +121,10 @@ class BackgroundUpdatesTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "GET",
-            "/_synapse/admin/v1/background_updates/status",
+            "/_relapse/admin/v1/background_updates/status",
             access_token=self.admin_user_tok,
         )
-        self.assertEqual(HTTPStatus.OK, channel.code, msg=channel.json_body)
+        self.assertEqual(200, channel.code, msg=channel.json_body)
 
         # Background updates should be enabled, but none should be running.
         self.assertDictEqual(
@@ -144,10 +143,10 @@ class BackgroundUpdatesTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "GET",
-            "/_synapse/admin/v1/background_updates/status",
+            "/_relapse/admin/v1/background_updates/status",
             access_token=self.admin_user_tok,
         )
-        self.assertEqual(HTTPStatus.OK, channel.code, msg=channel.json_body)
+        self.assertEqual(200, channel.code, msg=channel.json_body)
 
         # Background updates should be enabled, and one should be running.
         self.assertDictEqual(
@@ -178,20 +177,20 @@ class BackgroundUpdatesTestCase(unittest.HomeserverTestCase):
         # Test that GET works and returns enabled is True.
         channel = self.make_request(
             "GET",
-            "/_synapse/admin/v1/background_updates/enabled",
+            "/_relapse/admin/v1/background_updates/enabled",
             access_token=self.admin_user_tok,
         )
-        self.assertEqual(HTTPStatus.OK, channel.code, msg=channel.json_body)
+        self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertDictEqual(channel.json_body, {"enabled": True})
 
         # Disable the BG updates
         channel = self.make_request(
             "POST",
-            "/_synapse/admin/v1/background_updates/enabled",
+            "/_relapse/admin/v1/background_updates/enabled",
             content={"enabled": False},
             access_token=self.admin_user_tok,
         )
-        self.assertEqual(HTTPStatus.OK, channel.code, msg=channel.json_body)
+        self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertDictEqual(channel.json_body, {"enabled": False})
 
         # Advance a bit and get the current status, note this will finish the in
@@ -201,10 +200,10 @@ class BackgroundUpdatesTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "GET",
-            "/_synapse/admin/v1/background_updates/status",
+            "/_relapse/admin/v1/background_updates/status",
             access_token=self.admin_user_tok,
         )
-        self.assertEqual(HTTPStatus.OK, channel.code, msg=channel.json_body)
+        self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertDictEqual(
             channel.json_body,
             {
@@ -228,10 +227,10 @@ class BackgroundUpdatesTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "GET",
-            "/_synapse/admin/v1/background_updates/status",
+            "/_relapse/admin/v1/background_updates/status",
             access_token=self.admin_user_tok,
         )
-        self.assertEqual(HTTPStatus.OK, channel.code, msg=channel.json_body)
+        self.assertEqual(200, channel.code, msg=channel.json_body)
 
         # There should be no change from the previous /status response.
         self.assertDictEqual(
@@ -255,11 +254,11 @@ class BackgroundUpdatesTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "POST",
-            "/_synapse/admin/v1/background_updates/enabled",
+            "/_relapse/admin/v1/background_updates/enabled",
             content={"enabled": True},
             access_token=self.admin_user_tok,
         )
-        self.assertEqual(HTTPStatus.OK, channel.code, msg=channel.json_body)
+        self.assertEqual(200, channel.code, msg=channel.json_body)
 
         self.assertDictEqual(channel.json_body, {"enabled": True})
 
@@ -267,10 +266,10 @@ class BackgroundUpdatesTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "GET",
-            "/_synapse/admin/v1/background_updates/status",
+            "/_relapse/admin/v1/background_updates/status",
             access_token=self.admin_user_tok,
         )
-        self.assertEqual(HTTPStatus.OK, channel.code, msg=channel.json_body)
+        self.assertEqual(200, channel.code, msg=channel.json_body)
 
         # Background updates should be enabled and making progress.
         self.assertDictEqual(
@@ -320,12 +319,12 @@ class BackgroundUpdatesTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "POST",
-            "/_synapse/admin/v1/background_updates/start_job",
+            "/_relapse/admin/v1/background_updates/start_job",
             content={"job_name": job_name},
             access_token=self.admin_user_tok,
         )
 
-        self.assertEqual(HTTPStatus.OK, channel.code, msg=channel.json_body)
+        self.assertEqual(200, channel.code, msg=channel.json_body)
 
         # test that each background update is waiting now
         for update in updates:
@@ -360,9 +359,9 @@ class BackgroundUpdatesTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "POST",
-            "/_synapse/admin/v1/background_updates/start_job",
+            "/_relapse/admin/v1/background_updates/start_job",
             content={"job_name": "populate_stats_process_rooms"},
             access_token=self.admin_user_tok,
         )
 
-        self.assertEqual(HTTPStatus.BAD_REQUEST, channel.code, msg=channel.json_body)
+        self.assertEqual(400, channel.code, msg=channel.json_body)

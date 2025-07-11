@@ -11,18 +11,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Dict
+from typing import Any
 from unittest.mock import Mock
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.constants import EventTypes
-from synapse.rest import admin
-from synapse.rest.client import login, room
-from synapse.server import HomeServer
-from synapse.types import JsonDict
-from synapse.util import Clock
-from synapse.visibility import filter_events_for_client
+from relapse.api.constants import EventTypes
+from relapse.rest import admin
+from relapse.rest.client import login, room
+from relapse.server import HomeServer
+from relapse.types import JsonDict, create_requester
+from relapse.util import Clock
+from relapse.visibility import filter_events_for_client
 
 from tests import unittest
 from tests.unittest import override_config
@@ -124,18 +124,19 @@ class RetentionTestCase(unittest.HomeserverTestCase):
 
     @override_config({"retention": {"purge_jobs": [{"interval": "5d"}]}})
     def test_visibility(self) -> None:
-        """Tests that synapse.visibility.filter_events_for_client correctly filters out
+        """Tests that relapse.visibility.filter_events_for_client correctly filters out
         outdated events, even if the purge job hasn't got to them yet.
 
         We do this by setting a very long time between purge jobs.
         """
         store = self.hs.get_datastores().main
-        storage = self.hs.get_storage()
+        storage_controllers = self.hs.get_storage_controllers()
         room_id = self.helper.create_room_as(self.user_id, tok=self.token)
 
         # Send a first event, which should be filtered out at the end of the test.
         resp = self.helper.send(room_id=room_id, body="1", tok=self.token)
         first_event_id = resp.get("event_id")
+        assert isinstance(first_event_id, str)
 
         # Advance the time by 2 days. We're using the default retention policy, therefore
         # after this the first event will still be valid.
@@ -144,6 +145,7 @@ class RetentionTestCase(unittest.HomeserverTestCase):
         # Send another event, which shouldn't get filtered out.
         resp = self.helper.send(room_id=room_id, body="2", tok=self.token)
         valid_event_id = resp.get("event_id")
+        assert isinstance(valid_event_id, str)
 
         # Advance the time by another 2 days. After this, the first event should be
         # outdated but not the second one.
@@ -155,7 +157,7 @@ class RetentionTestCase(unittest.HomeserverTestCase):
         )
         self.assertEqual(2, len(events), "events retrieved from database")
         filtered_events = self.get_success(
-            filter_events_for_client(storage, self.user_id, events)
+            filter_events_for_client(storage_controllers, self.user_id, events)
         )
 
         # We should only get one event back.
@@ -173,7 +175,7 @@ class RetentionTestCase(unittest.HomeserverTestCase):
         5. Check that event 1 has been purged
         6. Check that event 2 has not been purged
         7. Check that state events that were sent before event 1 aren't purged.
-        The main reason for sending a second event is because currently Synapse won't
+        The main reason for sending a second event is because currently Relapse won't
         purge the latest message in a room because it would otherwise result in a lack of
         forward extremities for this room. It's also a good thing to ensure the purge jobs
         aren't too greedy and purge messages they shouldn't.
@@ -188,7 +190,7 @@ class RetentionTestCase(unittest.HomeserverTestCase):
         message_handler = self.hs.get_message_handler()
         create_event = self.get_success(
             message_handler.get_room_data(
-                self.user_id, room_id, EventTypes.Create, state_key=""
+                create_requester(self.user_id), room_id, EventTypes.Create, state_key=""
             )
         )
 
@@ -229,7 +231,7 @@ class RetentionTestCase(unittest.HomeserverTestCase):
 
         # Check that we can still access state events that were sent before the event that
         # has been purged.
-        self.get_event(room_id, create_event.event_id)
+        self.get_event(room_id, bool(create_event))
 
     def get_event(self, event_id: str, expect_none: bool = False) -> JsonDict:
         event = self.get_success(self.store.get_event(event_id, allow_none=True))
@@ -238,10 +240,10 @@ class RetentionTestCase(unittest.HomeserverTestCase):
             self.assertIsNone(event)
             return {}
 
-        self.assertIsNotNone(event)
+        assert event is not None
 
         time_now = self.clock.time_msec()
-        serialized = self.serializer.serialize_event(event, time_now)
+        serialized = self.get_success(self.serializer.serialize_event(event, time_now))
 
         return serialized
 
@@ -253,7 +255,7 @@ class RetentionNoDefaultPolicyTestCase(unittest.HomeserverTestCase):
         room.register_servlets,
     ]
 
-    def default_config(self) -> Dict[str, Any]:
+    def default_config(self) -> dict[str, Any]:
         config = super().default_config()
 
         retention_config = {

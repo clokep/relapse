@@ -17,14 +17,13 @@
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.rest.client import room
-from synapse.server import HomeServer
-from synapse.types import UserID
-from synapse.util import Clock
+from relapse.api.constants import EduTypes
+from relapse.rest.client import room
+from relapse.server import HomeServer
+from relapse.types import UserID
+from relapse.util import Clock
 
 from tests import unittest
-
-PATH_PREFIX = "/_matrix/client/api/v1"
 
 
 class RoomTypingTestCase(unittest.HomeserverTestCase):
@@ -58,7 +57,8 @@ class RoomTypingTestCase(unittest.HomeserverTestCase):
             self.event_source.get_new_events(
                 user=UserID.from_string(self.user_id),
                 from_key=0,
-                limit=None,
+                # Limit is unused.
+                limit=0,
                 room_ids=[self.room_id],
                 is_guest=False,
             )
@@ -67,7 +67,7 @@ class RoomTypingTestCase(unittest.HomeserverTestCase):
             events[0],
             [
                 {
-                    "type": "m.typing",
+                    "type": EduTypes.TYPING,
                     "room_id": self.room_id,
                     "content": {"user_ids": [self.user_id]},
                 }

@@ -1,13 +1,13 @@
-# Log configuration for Synapse.
+# Log configuration for Relapse.
 #
 # This is a YAML file containing a standard Python logging configuration
 # dictionary. See [1] for details on the valid settings.
 #
-# Synapse also supports structured logging for machine readable logs which can
+# Relapse also supports structured logging for machine readable logs which can
 # be ingested by ELK stacks. See [2] for details.
 #
-# [1]: https://docs.python.org/3.7/library/logging.config.html#configuration-dictionary-schema
-# [2]: https://matrix-org.github.io/synapse/latest/structured_logging.html
+# [1]: https://docs.python.org/3/library/logging.config.html#configuration-dictionary-schema
+# [2]: https://clokep.github.io/relapse/latest/structured_logging.html
 
 version: 1
 
@@ -19,7 +19,7 @@ handlers:
     file:
         class: logging.handlers.TimedRotatingFileHandler
         formatter: precise
-        filename: /var/log/matrix-synapse/homeserver.log
+        filename: /var/log/matrix-relapse/homeserver.log
         when: midnight
         backupCount: 3  # Does not include the current log file.
         encoding: utf8
@@ -29,7 +29,7 @@ handlers:
     # delay (of up to `period` seconds, or until the buffer is full with
     # `capacity` messages) before INFO/DEBUG logs get written.
     buffer:
-        class: synapse.logging.handlers.PeriodicallyFlushingMemoryHandler
+        class: relapse.logging.handlers.PeriodicallyFlushingMemoryHandler
         target: file
 
         # The capacity is the maximum number of log lines that are buffered
@@ -57,8 +57,8 @@ handlers:
         formatter: precise
 
 loggers:
-    synapse.storage.SQL:
-        # beware: increasing this to DEBUG will make synapse log sensitive
+    relapse.storage.SQL:
+        # beware: increasing this to DEBUG will make relapse log sensitive
         # information such as access tokens.
         level: INFO
 
@@ -68,9 +68,7 @@ root:
     # Write logs to the `buffer` handler, which will buffer them together in memory,
     # then write them to a file.
     #
-    # Replace "buffer" with "console" to log to stderr instead. (Note that you'll
-    # also need to update the configuration for the `twisted` logger above, in
-    # this case.)
+    # Replace "buffer" with "console" to log to stderr instead.
     #
     handlers: [buffer]
 

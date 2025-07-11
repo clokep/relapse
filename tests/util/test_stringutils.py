@@ -12,14 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from synapse.api.errors import SynapseError
-from synapse.util.stringutils import assert_valid_client_secret, base62_encode
+from relapse.api.errors import RelapseError
+from relapse.util.stringutils import assert_valid_client_secret, base62_encode
 
 from .. import unittest
 
 
 class StringUtilsTestCase(unittest.TestCase):
-    def test_client_secret_regex(self):
+    def test_client_secret_regex(self) -> None:
         """Ensure that client_secret does not contain illegal characters"""
         good = [
             "abcde12345",
@@ -43,10 +43,10 @@ class StringUtilsTestCase(unittest.TestCase):
             assert_valid_client_secret(client_secret)
 
         for client_secret in bad:
-            with self.assertRaises(SynapseError):
+            with self.assertRaises(RelapseError):
                 assert_valid_client_secret(client_secret)
 
-    def test_base62_encode(self):
+    def test_base62_encode(self) -> None:
         self.assertEqual("0", base62_encode(0))
         self.assertEqual("10", base62_encode(62))
         self.assertEqual("1c", base62_encode(100))

@@ -1,22 +1,22 @@
-Support in Synapse for tracking agreement to server terms and conditions
+Support in Relapse for tracking agreement to server terms and conditions
 ========================================================================
 
-Synapse 0.30 introduces support for tracking whether users have agreed to the
+Relapse 0.30 introduces support for tracking whether users have agreed to the
 terms and conditions set by the administrator of a server - and blocking access
 to the server until they have.
 
 There are several parts to this functionality; each requires some specific
 configuration in `homeserver.yaml` to be enabled.
 
-Note that various parts of the configuation and this document refer to the
+Note that various parts of the configuration and this document refer to the
 "privacy policy": agreement with a privacy policy is one particular use of this
-feature, but of course adminstrators can specify other terms and conditions
+feature, but of course administrators can specify other terms and conditions
 unrelated to "privacy" per se.
 
 Collecting policy agreement from a user
 ---------------------------------------
 
-Synapse can be configured to serve the user a simple policy form with an
+Relapse can be configured to serve the user a simple policy form with an
 "accept" button. Clicking "Accept" records the user's acceptance in the
 database and shows a success page.
 
@@ -24,7 +24,7 @@ To enable this, first create templates for the policy and success pages.
 These should be stored on the local filesystem.
 
 These templates use the [Jinja2](http://jinja.pocoo.org) templating language,
-and [docs/privacy_policy_templates](https://github.com/matrix-org/synapse/tree/develop/docs/privacy_policy_templates/)
+and [docs/privacy_policy_templates](https://github.com/clokep/relapse/tree/develop/docs/privacy_policy_templates/)
 gives examples of the sort of thing that can be done.
 
 Note that the templates must be stored under a name giving the language of the
@@ -47,7 +47,7 @@ Once the templates are in place, make the following changes to `homeserver.yaml`
 
     `template_dir` points to the directory containing the policy
     templates. `version` defines the version of the policy which will be served
-    to the user. In the example above, Synapse will serve
+    to the user. In the example above, Relapse will serve
     `privacy_policy_templates/en/1.0.html`.
 
 
@@ -111,7 +111,7 @@ construct URIs where users can give their consent.
    {% endif %}
    ```
 
-3. Restart Synapse to apply the changes.
+3. Restart Relapse to apply the changes.
 
 Visiting `https://<server>/_matrix/consent` should now give you a view of the privacy
 document. This is what users will be able to see when registering for accounts.
@@ -146,7 +146,7 @@ behaviour, set `require_at_registration` to `true` in your `user_consent` config
 Sending users a server notice asking them to agree to the policy
 ----------------------------------------------------------------
 
-It is possible to configure Synapse to send a [server
+It is possible to configure Relapse to send a [server
 notice](server_notices.md) to anybody who has not yet agreed to the current
 version of the policy. To do so:
 
@@ -165,7 +165,7 @@ version of the policy. To do so:
          Please give your consent to the privacy policy at %(consent_uri)s.
    ```
 
-   Synapse automatically replaces the placeholder `%(consent_uri)s` with the
+   Relapse automatically replaces the placeholder `%(consent_uri)s` with the
    consent uri for that user.
 
  * ensure that `public_baseurl` is set in `homeserver.yaml`, and gives the base
@@ -176,7 +176,7 @@ version of the policy. To do so:
 Blocking users from using the server until they agree to the policy
 -------------------------------------------------------------------
 
-Synapse can be configured to block any attempts to join rooms or send messages
+Relapse can be configured to block any attempts to join rooms or send messages
 until the user has given their agreement to the policy. (Joining the server
 notices room is exempted from this).
 
@@ -189,7 +189,7 @@ user_consent:
     %(consent_uri)s.
 ```
 
-Synapse automatically replaces the placeholder `%(consent_uri)s` with the
+Relapse automatically replaces the placeholder `%(consent_uri)s` with the
 consent uri for that user.
 
 ensure that `public_baseurl` is set in `homeserver.yaml`, and gives the base

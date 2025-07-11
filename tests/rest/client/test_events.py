@@ -12,16 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-""" Tests REST events for /events paths."""
+"""Tests REST events for /events paths."""
 
 from unittest.mock import Mock
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import synapse.rest.admin
-from synapse.rest.client import events, login, room
-from synapse.server import HomeServer
-from synapse.util import Clock
+from relapse.api.constants import EduTypes
+from relapse.rest import admin
+from relapse.rest.client import events, login, room
+from relapse.server import HomeServer
+from relapse.util import Clock
 
 from tests import unittest
 
@@ -32,12 +33,11 @@ class EventStreamPermissionsTestCase(unittest.HomeserverTestCase):
     servlets = [
         events.register_servlets,
         room.register_servlets,
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         login.register_servlets,
     ]
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
-
         config = self.default_config()
         config["enable_registration_captcha"] = False
         config["enable_registration"] = True
@@ -45,12 +45,11 @@ class EventStreamPermissionsTestCase(unittest.HomeserverTestCase):
 
         hs = self.setup_test_homeserver(config=config)
 
-        hs.get_federation_handler = Mock()  # type: ignore[assignment]
+        hs.get_federation_handler = Mock()  # type: ignore[method-assign]
 
         return hs
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
-
         # register an account
         self.user_id = self.register_user("sid1", "pass")
         self.token = self.login(self.user_id, "pass")
@@ -65,7 +64,7 @@ class EventStreamPermissionsTestCase(unittest.HomeserverTestCase):
         # 403. However, since the v1 spec no longer exists and the v1
         # implementation is now part of the r0 implementation, the newer
         # behaviour is used instead to be consistent with the r0 spec.
-        # see issue #2602
+        # see issue https://github.com/matrix-org/synapse/issues/2602
         channel = self.make_request(
             "GET", "/events?access_token=%s" % ("invalid" + self.token,)
         )
@@ -103,7 +102,7 @@ class EventStreamPermissionsTestCase(unittest.HomeserverTestCase):
                     c
                     for c in channel.json_body["chunk"]
                     if not (
-                        c.get("type") == "m.presence"
+                        c.get("type") == EduTypes.PRESENCE
                         and c["content"].get("user_id") == self.user_id
                     )
                 ]
@@ -136,12 +135,11 @@ class GetEventsTestCase(unittest.HomeserverTestCase):
     servlets = [
         events.register_servlets,
         room.register_servlets,
-        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         login.register_servlets,
     ]
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
-
         # register an account
         self.user_id = self.register_user("sid1", "pass")
         self.token = self.login(self.user_id, "pass")

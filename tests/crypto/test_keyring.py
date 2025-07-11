@@ -12,48 +12,52 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import time
-from typing import Dict, List
+from typing import Any, Optional, cast
 from unittest.mock import Mock
 
 import attr
 import canonicaljson
 import signedjson.key
 import signedjson.sign
-from nacl.signing import SigningKey
 from signedjson.key import encode_verify_key_base64, get_verify_key
+from signedjson.types import SigningKey, VerifyKey
 
 from twisted.internet import defer
 from twisted.internet.defer import Deferred, ensureDeferred
+from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.errors import SynapseError
-from synapse.crypto import keyring
-from synapse.crypto.keyring import (
+from relapse.api.errors import RelapseError
+from relapse.crypto import keyring
+from relapse.crypto.keyring import (
     PerspectivesKeyFetcher,
     ServerKeyFetcher,
     StoreKeyFetcher,
 )
-from synapse.logging.context import (
+from relapse.logging.context import (
+    ContextRequest,
     LoggingContext,
     current_context,
     make_deferred_yieldable,
 )
-from synapse.storage.keys import FetchKeyResult
+from relapse.server import HomeServer
+from relapse.storage.keys import FetchKeyResult
+from relapse.types import JsonDict
+from relapse.util import Clock
 
 from tests import unittest
-from tests.test_utils import make_awaitable
 from tests.unittest import logcontext_clean, override_config
 
 
 class MockPerspectiveServer:
-    def __init__(self):
+    def __init__(self) -> None:
         self.server_name = "mock_server"
-        self.key = signedjson.key.generate_signing_key(0)
+        self.key = signedjson.key.generate_signing_key("0")
 
-    def get_verify_keys(self):
+    def get_verify_keys(self) -> dict[str, str]:
         vk = signedjson.key.get_verify_key(self.key)
         return {"%s:%s" % (vk.alg, vk.version): encode_verify_key_base64(vk)}
 
-    def get_signed_key(self, server_name, verify_key):
+    def get_signed_key(self, server_name: str, verify_key: VerifyKey) -> JsonDict:
         key_id = "%s:%s" % (verify_key.alg, verify_key.version)
         res = {
             "server_name": server_name,
@@ -64,38 +68,40 @@ class MockPerspectiveServer:
         self.sign_response(res)
         return res
 
-    def sign_response(self, res):
+    def sign_response(self, res: JsonDict) -> None:
         signedjson.sign.sign_json(res, self.server_name, self.key)
 
 
-@attr.s(slots=True)
+@attr.s(slots=True, auto_attribs=True)
 class FakeRequest:
-    id = attr.ib()
+    id: str
 
 
 @logcontext_clean
 class KeyringTestCase(unittest.HomeserverTestCase):
-    def check_context(self, val, expected):
+    def check_context(
+        self, val: ContextRequest, expected: Optional[ContextRequest]
+    ) -> ContextRequest:
         self.assertEqual(getattr(current_context(), "request", None), expected)
         return val
 
-    def test_verify_json_objects_for_server_awaits_previous_requests(self):
+    def test_verify_json_objects_for_server_awaits_previous_requests(self) -> None:
         mock_fetcher = Mock()
         mock_fetcher.get_keys = Mock()
         kr = keyring.Keyring(self.hs, key_fetchers=(mock_fetcher,))
 
         # a signed object that we are going to try to validate
-        key1 = signedjson.key.generate_signing_key(1)
-        json1 = {}
+        key1 = signedjson.key.generate_signing_key("1")
+        json1: JsonDict = {}
         signedjson.sign.sign_json(json1, "server10", key1)
 
         # start off a first set of lookups. We make the mock fetcher block until this
         # deferred completes.
-        first_lookup_deferred = Deferred()
+        first_lookup_deferred: "Deferred[None]" = Deferred()
 
         async def first_lookup_fetch(
-            server_name: str, key_ids: List[str], minimum_valid_until_ts: int
-        ) -> Dict[str, FetchKeyResult]:
+            server_name: str, key_ids: list[str], minimum_valid_until_ts: int
+        ) -> dict[str, FetchKeyResult]:
             # self.assertEqual(current_context().request.id, "context_11")
             self.assertEqual(server_name, "server10")
             self.assertEqual(key_ids, [get_key_id(key1)])
@@ -106,8 +112,10 @@ class KeyringTestCase(unittest.HomeserverTestCase):
 
         mock_fetcher.get_keys.side_effect = first_lookup_fetch
 
-        async def first_lookup():
-            with LoggingContext("context_11", request=FakeRequest("context_11")):
+        async def first_lookup() -> None:
+            with LoggingContext(
+                "context_11", request=cast(ContextRequest, FakeRequest("context_11"))
+            ):
                 res_deferreds = kr.verify_json_objects_for_server(
                     [("server10", json1, 0), ("server11", {}, 0)]
                 )
@@ -117,7 +125,7 @@ class KeyringTestCase(unittest.HomeserverTestCase):
                 try:
                     await res_deferreds[1]
                     self.assertFalse("unsigned json didn't cause a failure")
-                except SynapseError:
+                except RelapseError:
                     pass
 
                 self.assertFalse(res_deferreds[0].called)
@@ -135,8 +143,8 @@ class KeyringTestCase(unittest.HomeserverTestCase):
         # should block rather than start a second call
 
         async def second_lookup_fetch(
-            server_name: str, key_ids: List[str], minimum_valid_until_ts: int
-        ) -> Dict[str, FetchKeyResult]:
+            server_name: str, key_ids: list[str], minimum_valid_until_ts: int
+        ) -> dict[str, FetchKeyResult]:
             # self.assertEqual(current_context().request.id, "context_12")
             return {get_key_id(key1): FetchKeyResult(get_verify_key(key1), 100)}
 
@@ -144,8 +152,10 @@ class KeyringTestCase(unittest.HomeserverTestCase):
         mock_fetcher.get_keys.side_effect = second_lookup_fetch
         second_lookup_state = [0]
 
-        async def second_lookup():
-            with LoggingContext("context_12", request=FakeRequest("context_12")):
+        async def second_lookup() -> None:
+            with LoggingContext(
+                "context_12", request=cast(ContextRequest, FakeRequest("context_12"))
+            ):
                 res_deferreds_2 = kr.verify_json_objects_for_server(
                     [
                         (
@@ -175,35 +185,49 @@ class KeyringTestCase(unittest.HomeserverTestCase):
         self.get_success(d0)
         self.get_success(d2)
 
-    def test_verify_json_for_server(self):
+    def test_verify_json_for_server(self) -> None:
         kr = keyring.Keyring(self.hs)
 
-        key1 = signedjson.key.generate_signing_key(1)
-        r = self.hs.get_datastores().main.store_server_verify_keys(
+        key1 = signedjson.key.generate_signing_key("1")
+        r = self.hs.get_datastores().main.store_server_keys_response(
             "server9",
-            time.time() * 1000,
-            [("server9", get_key_id(key1), FetchKeyResult(get_verify_key(key1), 1000))],
+            from_server="test",
+            ts_added_ms=int(time.time() * 1000),
+            verify_keys={
+                get_key_id(key1): FetchKeyResult(
+                    verify_key=get_verify_key(key1), valid_until_ts=1000
+                )
+            },
+            # The entire response gets signed & stored, just include the bits we
+            # care about.
+            response_json={
+                "verify_keys": {
+                    get_key_id(key1): {
+                        "key": encode_verify_key_base64(get_verify_key(key1))
+                    }
+                }
+            },
         )
         self.get_success(r)
 
-        json1 = {}
+        json1: JsonDict = {}
         signedjson.sign.sign_json(json1, "server9", key1)
 
         # should fail immediately on an unsigned object
         d = kr.verify_json_for_server("server9", {}, 0)
-        self.get_failure(d, SynapseError)
+        self.get_failure(d, RelapseError)
 
         # should succeed on a signed object
         d = kr.verify_json_for_server("server9", json1, 500)
         # self.assertFalse(d.called)
         self.get_success(d)
 
-    def test_verify_for_local_server(self):
+    def test_verify_for_local_server(self) -> None:
         """Ensure that locally signed JSON can be verified without fetching keys
         over federation
         """
         kr = keyring.Keyring(self.hs)
-        json1 = {}
+        json1: JsonDict = {}
         signedjson.sign.sign_json(json1, self.hs.hostname, self.hs.signing_key)
 
         # Test that verify_json_for_server succeeds on a object signed by ourselves
@@ -216,22 +240,24 @@ class KeyringTestCase(unittest.HomeserverTestCase):
         {
             "old_signing_keys": {
                 f"{OLD_KEY.alg}:{OLD_KEY.version}": {
-                    "key": encode_verify_key_base64(OLD_KEY.verify_key),
+                    "key": encode_verify_key_base64(
+                        signedjson.key.get_verify_key(OLD_KEY)
+                    ),
                     "expired_ts": 1000,
                 }
             }
         }
     )
-    def test_verify_for_local_server_old_key(self):
+    def test_verify_for_local_server_old_key(self) -> None:
         """Can also use keys in old_signing_keys for verification"""
-        json1 = {}
+        json1: JsonDict = {}
         signedjson.sign.sign_json(json1, self.hs.hostname, self.OLD_KEY)
 
         kr = keyring.Keyring(self.hs)
         d = kr.verify_json_for_server(self.hs.hostname, json1, 0)
         self.get_success(d)
 
-    def test_verify_for_local_server_unknown_key(self):
+    def test_verify_for_local_server_unknown_key(self) -> None:
         """Local keys that we no longer have should be fetched via the fetcher"""
 
         # the key we'll sign things with (nb, not known to the Keyring)
@@ -239,8 +265,8 @@ class KeyringTestCase(unittest.HomeserverTestCase):
 
         # set up a mock fetcher which will return the key
         async def get_keys(
-            server_name: str, key_ids: List[str], minimum_valid_until_ts: int
-        ) -> Dict[str, FetchKeyResult]:
+            server_name: str, key_ids: list[str], minimum_valid_until_ts: int
+        ) -> dict[str, FetchKeyResult]:
             self.assertEqual(server_name, self.hs.hostname)
             self.assertEqual(key_ids, [get_key_id(key2)])
 
@@ -253,64 +279,20 @@ class KeyringTestCase(unittest.HomeserverTestCase):
         )
 
         # sign the json
-        json1 = {}
+        json1: JsonDict = {}
         signedjson.sign.sign_json(json1, self.hs.hostname, key2)
 
         # ... and check we can verify it.
         d = kr.verify_json_for_server(self.hs.hostname, json1, 0)
         self.get_success(d)
 
-    def test_verify_json_for_server_with_null_valid_until_ms(self):
-        """Tests that we correctly handle key requests for keys we've stored
-        with a null `ts_valid_until_ms`
-        """
-        mock_fetcher = Mock()
-        mock_fetcher.get_keys = Mock(return_value=make_awaitable({}))
-
-        kr = keyring.Keyring(
-            self.hs, key_fetchers=(StoreKeyFetcher(self.hs), mock_fetcher)
-        )
-
-        key1 = signedjson.key.generate_signing_key(1)
-        r = self.hs.get_datastores().main.store_server_verify_keys(
-            "server9",
-            time.time() * 1000,
-            [("server9", get_key_id(key1), FetchKeyResult(get_verify_key(key1), None))],
-        )
-        self.get_success(r)
-
-        json1 = {}
-        signedjson.sign.sign_json(json1, "server9", key1)
-
-        # should fail immediately on an unsigned object
-        d = kr.verify_json_for_server("server9", {}, 0)
-        self.get_failure(d, SynapseError)
-
-        # should fail on a signed object with a non-zero minimum_valid_until_ms,
-        # as it tries to refetch the keys and fails.
-        d = kr.verify_json_for_server("server9", json1, 500)
-        self.get_failure(d, SynapseError)
-
-        # We expect the keyring tried to refetch the key once.
-        mock_fetcher.get_keys.assert_called_once_with(
-            "server9", [get_key_id(key1)], 500
-        )
-
-        # should succeed on a signed object with a 0 minimum_valid_until_ms
-        d = kr.verify_json_for_server(
-            "server9",
-            json1,
-            0,
-        )
-        self.get_success(d)
-
-    def test_verify_json_dedupes_key_requests(self):
+    def test_verify_json_dedupes_key_requests(self) -> None:
         """Two requests for the same key should be deduped."""
-        key1 = signedjson.key.generate_signing_key(1)
+        key1 = signedjson.key.generate_signing_key("1")
 
         async def get_keys(
-            server_name: str, key_ids: List[str], minimum_valid_until_ts: int
-        ) -> Dict[str, FetchKeyResult]:
+            server_name: str, key_ids: list[str], minimum_valid_until_ts: int
+        ) -> dict[str, FetchKeyResult]:
             # there should only be one request object (with the max validity)
             self.assertEqual(server_name, "server1")
             self.assertEqual(key_ids, [get_key_id(key1)])
@@ -322,7 +304,7 @@ class KeyringTestCase(unittest.HomeserverTestCase):
         mock_fetcher.get_keys = Mock(side_effect=get_keys)
         kr = keyring.Keyring(self.hs, key_fetchers=(mock_fetcher,))
 
-        json1 = {}
+        json1: JsonDict = {}
         signedjson.sign.sign_json(json1, "server1", key1)
 
         # the first request should succeed; the second should fail because the key
@@ -339,28 +321,28 @@ class KeyringTestCase(unittest.HomeserverTestCase):
         )
         self.assertEqual(len(results), 2)
         self.get_success(results[0])
-        e = self.get_failure(results[1], SynapseError).value
+        e = self.get_failure(results[1], RelapseError).value
         self.assertEqual(e.errcode, "M_UNAUTHORIZED")
         self.assertEqual(e.code, 401)
 
         # there should have been a single call to the fetcher
         mock_fetcher.get_keys.assert_called_once()
 
-    def test_verify_json_falls_back_to_other_fetchers(self):
+    def test_verify_json_falls_back_to_other_fetchers(self) -> None:
         """If the first fetcher cannot provide a recent enough key, we fall back"""
-        key1 = signedjson.key.generate_signing_key(1)
+        key1 = signedjson.key.generate_signing_key("1")
 
         async def get_keys1(
-            server_name: str, key_ids: List[str], minimum_valid_until_ts: int
-        ) -> Dict[str, FetchKeyResult]:
+            server_name: str, key_ids: list[str], minimum_valid_until_ts: int
+        ) -> dict[str, FetchKeyResult]:
             self.assertEqual(server_name, "server1")
             self.assertEqual(key_ids, [get_key_id(key1)])
             self.assertEqual(minimum_valid_until_ts, 1500)
             return {get_key_id(key1): FetchKeyResult(get_verify_key(key1), 800)}
 
         async def get_keys2(
-            server_name: str, key_ids: List[str], minimum_valid_until_ts: int
-        ) -> Dict[str, FetchKeyResult]:
+            server_name: str, key_ids: list[str], minimum_valid_until_ts: int
+        ) -> dict[str, FetchKeyResult]:
             self.assertEqual(server_name, "server1")
             self.assertEqual(key_ids, [get_key_id(key1)])
             self.assertEqual(minimum_valid_until_ts, 1500)
@@ -372,7 +354,7 @@ class KeyringTestCase(unittest.HomeserverTestCase):
         mock_fetcher2.get_keys = Mock(side_effect=get_keys2)
         kr = keyring.Keyring(self.hs, key_fetchers=(mock_fetcher1, mock_fetcher2))
 
-        json1 = {}
+        json1: JsonDict = {}
         signedjson.sign.sign_json(json1, "server1", key1)
 
         results = kr.verify_json_objects_for_server(
@@ -391,7 +373,7 @@ class KeyringTestCase(unittest.HomeserverTestCase):
         )
         self.assertEqual(len(results), 2)
         self.get_success(results[0])
-        e = self.get_failure(results[1], SynapseError).value
+        e = self.get_failure(results[1], RelapseError).value
         self.assertEqual(e.errcode, "M_UNAUTHORIZED")
         self.assertEqual(e.code, 401)
 
@@ -402,12 +384,12 @@ class KeyringTestCase(unittest.HomeserverTestCase):
 
 @logcontext_clean
 class ServerKeyFetcherTestCase(unittest.HomeserverTestCase):
-    def make_homeserver(self, reactor, clock):
+    def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         self.http_client = Mock()
         hs = self.setup_test_homeserver(federation_http_client=self.http_client)
         return hs
 
-    def test_get_keys_from_server(self):
+    def test_get_keys_from_server(self) -> None:
         # arbitrarily advance the clock a bit
         self.reactor.advance(100)
 
@@ -431,9 +413,9 @@ class ServerKeyFetcherTestCase(unittest.HomeserverTestCase):
         }
         signedjson.sign.sign_json(response, SERVER_NAME, testkey)
 
-        async def get_json(destination, path, **kwargs):
+        async def get_json(destination: str, path: str, **kwargs: Any) -> JsonDict:
             self.assertEqual(destination, SERVER_NAME)
-            self.assertEqual(path, "/_matrix/key/v2/server/key1")
+            self.assertEqual(path, "/_matrix/key/v2/server")
             return response
 
         self.http_client.get_json.side_effect = get_json
@@ -446,22 +428,19 @@ class ServerKeyFetcherTestCase(unittest.HomeserverTestCase):
         self.assertEqual(k.verify_key.version, "ver1")
 
         # check that the perspectives store is correctly updated
-        lookup_triplet = (SERVER_NAME, testverifykey_id, None)
         key_json = self.get_success(
-            self.hs.get_datastores().main.get_server_keys_json([lookup_triplet])
+            self.hs.get_datastores().main.get_server_keys_json_for_remote(
+                SERVER_NAME, [testverifykey_id]
+            )
         )
-        res = key_json[lookup_triplet]
-        self.assertEqual(len(res), 1)
-        res = res[0]
-        self.assertEqual(res["key_id"], testverifykey_id)
-        self.assertEqual(res["from_server"], SERVER_NAME)
-        self.assertEqual(res["ts_added_ms"], self.reactor.seconds() * 1000)
-        self.assertEqual(res["ts_valid_until_ms"], VALID_UNTIL_TS)
+        res = key_json[testverifykey_id]
+        self.assertIsNotNone(res)
+        assert res is not None
+        self.assertEqual(res.added_ts, self.reactor.seconds() * 1000)
+        self.assertEqual(res.valid_until_ts, VALID_UNTIL_TS)
 
         # we expect it to be encoded as canonical json *before* it hits the db
-        self.assertEqual(
-            bytes(res["key_json"]), canonicaljson.encode_canonical_json(response)
-        )
+        self.assertEqual(res.key_json, canonicaljson.encode_canonical_json(response))
 
         # change the server name: the result should be ignored
         response["server_name"] = "OTHER_SERVER"
@@ -471,7 +450,7 @@ class ServerKeyFetcherTestCase(unittest.HomeserverTestCase):
 
 
 class PerspectivesKeyFetcherTestCase(unittest.HomeserverTestCase):
-    def make_homeserver(self, reactor, clock):
+    def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         self.mock_perspective_server = MockPerspectiveServer()
         self.http_client = Mock()
 
@@ -522,7 +501,9 @@ class PerspectivesKeyFetcherTestCase(unittest.HomeserverTestCase):
         Tell the mock http client to expect a perspectives-server key query
         """
 
-        async def post_json(destination, path, data, **kwargs):
+        async def post_json(
+            destination: str, path: str, data: JsonDict, **kwargs: Any
+        ) -> JsonDict:
             self.assertEqual(destination, self.mock_perspective_server.server_name)
             self.assertEqual(path, "/_matrix/key/v2/query")
 
@@ -533,7 +514,7 @@ class PerspectivesKeyFetcherTestCase(unittest.HomeserverTestCase):
 
         self.http_client.post_json.side_effect = post_json
 
-    def test_get_keys_from_perspectives(self):
+    def test_get_keys_from_perspectives(self) -> None:
         # arbitrarily advance the clock a bit
         self.reactor.advance(100)
 
@@ -562,23 +543,20 @@ class PerspectivesKeyFetcherTestCase(unittest.HomeserverTestCase):
         self.assertEqual(k.verify_key.version, "ver1")
 
         # check that the perspectives store is correctly updated
-        lookup_triplet = (SERVER_NAME, testverifykey_id, None)
         key_json = self.get_success(
-            self.hs.get_datastores().main.get_server_keys_json([lookup_triplet])
+            self.hs.get_datastores().main.get_server_keys_json_for_remote(
+                SERVER_NAME, [testverifykey_id]
+            )
         )
-        res = key_json[lookup_triplet]
-        self.assertEqual(len(res), 1)
-        res = res[0]
-        self.assertEqual(res["key_id"], testverifykey_id)
-        self.assertEqual(res["from_server"], self.mock_perspective_server.server_name)
-        self.assertEqual(res["ts_added_ms"], self.reactor.seconds() * 1000)
-        self.assertEqual(res["ts_valid_until_ms"], VALID_UNTIL_TS)
+        res = key_json[testverifykey_id]
+        self.assertIsNotNone(res)
+        assert res is not None
+        self.assertEqual(res.added_ts, self.reactor.seconds() * 1000)
+        self.assertEqual(res.valid_until_ts, VALID_UNTIL_TS)
 
-        self.assertEqual(
-            bytes(res["key_json"]), canonicaljson.encode_canonical_json(response)
-        )
+        self.assertEqual(res.key_json, canonicaljson.encode_canonical_json(response))
 
-    def test_get_multiple_keys_from_perspectives(self):
+    def test_get_multiple_keys_from_perspectives(self) -> None:
         """Check that we can correctly request multiple keys for the same server"""
 
         fetcher = PerspectivesKeyFetcher(self.hs)
@@ -606,7 +584,9 @@ class PerspectivesKeyFetcherTestCase(unittest.HomeserverTestCase):
             VALID_UNTIL_TS,
         )
 
-        async def post_json(destination, path, data, **kwargs):
+        async def post_json(
+            destination: str, path: str, data: JsonDict, **kwargs: str
+        ) -> JsonDict:
             self.assertEqual(destination, self.mock_perspective_server.server_name)
             self.assertEqual(path, "/_matrix/key/v2/query")
 
@@ -648,7 +628,7 @@ class PerspectivesKeyFetcherTestCase(unittest.HomeserverTestCase):
         # finally, ensure that only one request was sent
         self.assertEqual(self.http_client.post_json.call_count, 1)
 
-    def test_get_perspectives_own_key(self):
+    def test_get_perspectives_own_key(self) -> None:
         """Check that we can get the perspectives server's own keys
 
         This is slightly complicated by the fact that the perspectives server may
@@ -681,23 +661,20 @@ class PerspectivesKeyFetcherTestCase(unittest.HomeserverTestCase):
         self.assertEqual(k.verify_key.version, "ver1")
 
         # check that the perspectives store is correctly updated
-        lookup_triplet = (SERVER_NAME, testverifykey_id, None)
         key_json = self.get_success(
-            self.hs.get_datastores().main.get_server_keys_json([lookup_triplet])
+            self.hs.get_datastores().main.get_server_keys_json_for_remote(
+                SERVER_NAME, [testverifykey_id]
+            )
         )
-        res = key_json[lookup_triplet]
-        self.assertEqual(len(res), 1)
-        res = res[0]
-        self.assertEqual(res["key_id"], testverifykey_id)
-        self.assertEqual(res["from_server"], self.mock_perspective_server.server_name)
-        self.assertEqual(res["ts_added_ms"], self.reactor.seconds() * 1000)
-        self.assertEqual(res["ts_valid_until_ms"], VALID_UNTIL_TS)
+        res = key_json[testverifykey_id]
+        self.assertIsNotNone(res)
+        assert res is not None
+        self.assertEqual(res.added_ts, self.reactor.seconds() * 1000)
+        self.assertEqual(res.valid_until_ts, VALID_UNTIL_TS)
 
-        self.assertEqual(
-            bytes(res["key_json"]), canonicaljson.encode_canonical_json(response)
-        )
+        self.assertEqual(res.key_json, canonicaljson.encode_canonical_json(response))
 
-    def test_invalid_perspectives_responses(self):
+    def test_invalid_perspectives_responses(self) -> None:
         """Check that invalid responses from the perspectives server are rejected"""
         # arbitrarily advance the clock a bit
         self.reactor.advance(100)
@@ -708,12 +685,12 @@ class PerspectivesKeyFetcherTestCase(unittest.HomeserverTestCase):
         testverifykey_id = "ed25519:ver1"
         VALID_UNTIL_TS = 200 * 1000
 
-        def build_response():
+        def build_response() -> dict:
             return self.build_perspectives_response(
                 SERVER_NAME, testkey, VALID_UNTIL_TS
             )
 
-        def get_key_from_perspectives(response):
+        def get_key_from_perspectives(response: JsonDict) -> dict[str, FetchKeyResult]:
             fetcher = PerspectivesKeyFetcher(self.hs)
             self.expect_outgoing_key_query(SERVER_NAME, "key1", response)
             return self.get_success(fetcher.get_keys(SERVER_NAME, ["key1"], 0))
@@ -737,6 +714,6 @@ class PerspectivesKeyFetcherTestCase(unittest.HomeserverTestCase):
         self.assertEqual(keys, {}, "Expected empty dict with missing origin server sig")
 
 
-def get_key_id(key):
+def get_key_id(key: SigningKey) -> str:
     """Get the matrix ID tag for a given SigningKey or VerifyKey"""
     return "%s:%s" % (key.alg, key.version)

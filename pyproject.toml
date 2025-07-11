@@ -1,8 +1,8 @@
 [tool.towncrier]
-    package = "synapse"
+    package = "relapse"
     filename = "CHANGES.md"
     directory = "changelog.d"
-    issue_format = "[\\#{issue}](https://github.com/matrix-org/synapse/issues/{issue})"
+    issue_format = "[\\#{issue}](https://github.com/clokep/relapse/issues/{issue})"
 
     [[tool.towncrier.type]]
         directory = "feature"
@@ -34,34 +34,71 @@
         name = "Internal Changes"
         showcontent = true
 
-[tool.black]
-target-version = ['py37', 'py38', 'py39', 'py310']
-# black ignores everything in .gitignore by default, see
-# https://black.readthedocs.io/en/stable/usage_and_configuration/file_collection_and_discovery.html#gitignore
-# Use `extend-exclude` if you want to exclude something in addition to this.
+[tool.ruff]
+line-length = 88
 
-[tool.isort]
-line_length = 88
-sections = ["FUTURE", "STDLIB", "THIRDPARTY", "TWISTED", "FIRSTPARTY", "TESTS", "LOCALFOLDER"]
-default_section = "THIRDPARTY"
-known_first_party = ["synapse"]
-known_tests = ["tests"]
-known_twisted = ["twisted", "OpenSSL"]
-multi_line_output = 3
-include_trailing_comma = true
-combine_as_imports = true
-skip_gitignore = true
+[tool.ruff.lint]
+# See https://beta.ruff.rs/docs/rules/#error-e
+# for error codes. The ones we ignore are:
+#  E501: Line too long (ruff format enforces this for us)
+#  E731: do not assign a lambda expression, use a def
+#
+# flake8-bugbear compatible checks. Its error codes are described at
+# https://beta.ruff.rs/docs/rules/#flake8-bugbear-b
+#  B023: Functions defined inside a loop must not use variables redefined in the loop
+ignore = [
+    "B023",
+    "E501",
+    "E731",
+]
+select = [
+    # pycodestyle
+    "E",
+    "W",
+    # pyflakes
+    "F",
+    # flake8-bugbear
+    "B0",
+    # flake8-comprehensions
+    "C4",
+    # flake8-2020
+    "YTT",
+    # flake8-slots
+    "SLOT",
+    # flake8-debugger
+    "T10",
+    # flake8-pie
+    "PIE",
+    # flake8-executable
+    "EXE",
+    # isort
+    "I",
+]
+
+[tool.ruff.lint.isort]
+section-order = ["future", "standard-library", "third-party", "twisted", "first-party", "tests", "local-folder"]
+default-section = "third-party"
+known-first-party = ["relapse"]
+combine-as-imports = true
+
+[tool.ruff.lint.isort.sections]
+tests = ["tests"]
+twisted = ["twisted", "OpenSSL", "incremental"]
+
+[tool.maturin]
+manifest-path = "rust/Cargo.toml"
+module-name = "relapse.relapse_rust"
 
 [tool.poetry]
-name = "matrix-synapse"
-version = "1.60.0rc1"
+name = "matrix-relapse"
+version = "2.0.0dev"
 description = "Homeserver for the Matrix decentralised comms protocol"
-authors = ["Matrix.org Team and Contributors <packages@matrix.org>"]
+authors = ["Patrick Cloke"]
 license = "Apache-2.0"
 readme = "README.rst"
-repository = "https://github.com/matrix-org/synapse"
+repository = "https://github.com/clokep/relapse"
 packages = [
-    { include = "synapse" },
+    { include = "relapse" },
 ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
@@ -78,85 +115,105 @@ include = [
     { path = "INSTALL.md", format = "sdist" },
     { path = "mypy.ini", format = "sdist" },
     { path = "scripts-dev", format = "sdist" },
-    { path = "synmark", format="sdist" },
+    { path = "remark", format="sdist" },
     { path = "sytest-blacklist", format = "sdist" },
     { path = "tests", format = "sdist" },
     { path = "UPGRADE.rst", format = "sdist" },
+    { path = "Cargo.toml", format = "sdist" },
+    { path = "Cargo.lock", format = "sdist" },
+    { path = "rust/Cargo.toml", format = "sdist" },
+    { path = "rust/build.rs", format = "sdist" },
+    { path = "rust/src/**", format = "sdist" },
+]
+exclude = [
+    { path = "relapse/*.so", format = "sdist"}
 ]
 
-[tool.poetry.scripts]
-synapse_homeserver = "synapse.app.homeserver:main"
-synapse_worker = "synapse.app.generic_worker:main"
-synctl = "synapse._scripts.synctl:main"
+[tool.poetry.build]
+script = "build_rust.py"
+generate-setup-file = true
 
-export_signing_key = "synapse._scripts.export_signing_key:main"
-generate_config = "synapse._scripts.generate_config:main"
-generate_log_config = "synapse._scripts.generate_log_config:main"
-generate_signing_key = "synapse._scripts.generate_signing_key:main"
-hash_password = "synapse._scripts.hash_password:main"
-register_new_matrix_user = "synapse._scripts.register_new_matrix_user:main"
-synapse_port_db = "synapse._scripts.synapse_port_db:main"
-synapse_review_recent_signups = "synapse._scripts.review_recent_signups:main"
-update_synapse_database = "synapse._scripts.update_synapse_database:main"
+[tool.poetry.scripts]
+relapse_homeserver = "relapse.app.homeserver:main"
+relapse_worker = "relapse.app.generic_worker:main"
+synctl = "relapse._scripts.synctl:main"
+
+export_signing_key = "relapse._scripts.export_signing_key:main"
+generate_config = "relapse._scripts.generate_config:main"
+generate_log_config = "relapse._scripts.generate_log_config:main"
+generate_signing_key = "relapse._scripts.generate_signing_key:main"
+hash_password = "relapse._scripts.hash_password:main"
+register_new_matrix_user = "relapse._scripts.register_new_matrix_user:main"
+relapse_port_db = "relapse._scripts.relapse_port_db:main"
+relapse_review_recent_signups = "relapse._scripts.review_recent_signups:main"
+update_relapse_database = "relapse._scripts.update_relapse_database:main"
 
 [tool.poetry.dependencies]
-python = "^3.7.1"
+python = "^3.9.2"
 
 # Mandatory Dependencies
 # ----------------------
 # we use the TYPE_CHECKER.redefine method added in jsonschema 3.0.0
 jsonschema = ">=3.0.0"
-# frozendict 2.1.2 is broken on Debian 10: https://github.com/Marco-Sulla/python-frozendict/issues/41
-frozendict = ">=1,!=2.1.2"
+# We choose 2.0 as a lower bound: the most recent backwards incompatible release.
+# It seems generally available, judging by https://pkgs.org/search/?q=immutabledict
+immutabledict = ">=2.0"
 # We require 2.1.0 or higher for type hints. Previous guard was >= 1.1.0
 unpaddedbase64 = ">=2.1.0"
-canonicaljson = ">=1.4.0"
+# We require 2.0.0 for immutabledict support.
+canonicaljson = "^2.0.0"
 # we use the type definitions added in signedjson 1.1.
-signedjson = ">=1.1.0"
-PyNaCl = ">=1.2.1"
+signedjson = "^1.1.0"
 # validating SSL certs for IP addresses requires service_identity 18.1.
 service-identity = ">=18.1.0"
-# Twisted 18.9 introduces some logger improvements that the structured
-# logger utilises
-Twisted = {extras = ["tls"], version = ">=18.9.0"}
-treq = ">=15.1"
-# Twisted has required pyopenssl 16.0 since about Twisted 16.6.
-pyOpenSSL = ">=16.0.0"
-PyYAML = ">=3.11"
+# Twisted 22.8.0 fixes compatibility with cryptography >= 37.
+Twisted = {extras = ["tls"], version = ">=22.8.0"}
+treq = ">=21.1.0"
+# A version that is compatible with cryptography 44.x.
+pyOpenSSL = ">=24.3.0"
+PyYAML = ">=6.0"
 pyasn1 = ">=0.1.9"
 pyasn1-modules = ">=0.0.7"
-bcrypt = ">=3.1.0"
-Pillow = ">=5.4.0"
-sortedcontainers = ">=1.4.4"
+bcrypt = ">=3.1.7"
+# 10.0.1 minimum is mandatory here because of libwebp CVE-2023-4863.
+# Packagers that already took care of libwebp can lower that down to 5.4.0.
+Pillow = ">=10.0.1"
+# We use SortedDict.peekitem(), which was added in sortedcontainers 1.5.2.
+sortedcontainers = ">=1.5.2"
 pymacaroons = ">=0.13.0"
 msgpack = ">=0.5.2"
 phonenumbers = ">=8.2.0"
 # we use GaugeHistogramMetric, which was added in prom-client 0.4.0.
 prometheus-client = ">=0.4.0"
-# we use `order`, which arrived in attrs 19.2.0.
-# Note: 21.1.0 broke `/sync`, see #9936
-attrs = ">=19.2.0,!=21.1.0"
+# Twisted uses attrs unsafe_hash parameter introduced in attrs 22.2.0.
+attrs = ">=22.2.0"
 netaddr = ">=0.7.18"
 # Jinja 2.x is incompatible with MarkupSafe>=2.1. To ensure that admins do not
 # end up with a broken installation, with recent MarkupSafe but old Jinja, we
 # add a lower bound to the Jinja2 dependency.
 Jinja2 = ">=3.0"
 bleach = ">=1.4.3"
-# We use `ParamSpec` and `Concatenate`, which were added in `typing-extensions` 3.10.0.0.
-# Additionally we need https://github.com/python/typing/pull/817 to allow types to be
-# generic over ParamSpecs.
-typing-extensions = ">=3.10.0.1"
+# Pydantic requires at least 4.6.1.
+typing-extensions = ">=4.6.1"
 # We enforce that we have a `cryptography` version that bundles an `openssl`
 # with the latest security patches.
-cryptography = ">=3.4.7"
+cryptography = ">=44.0.1"
 # ijson 3.1.4 fixes a bug with "." in property names
 ijson = ">=3.1.4"
-matrix-common = "~=1.1.0"
-# We need packaging.requirements.Requirement, added in 16.1.
-packaging = ">=16.1"
-# At the time of writing, we only use functions from the version `importlib.metadata`
-# which shipped in Python 3.8. This corresponds to version 1.4 of the backport.
-importlib_metadata = { version = ">=1.4", python = "<3.8" }
+matrix-common = "^1.3.0"
+# We need packaging.verison.Version(...).major added in 20.0.
+packaging = ">=20.0"
+pydantic = ">=2.1, <3"
+
+# This is for building the rust components during "poetry install", which
+# currently ignores the `build-system.requires` directive (c.f.
+# https://github.com/python-poetry/poetry/issues/6154). Both `pip install` and
+# `poetry build` do the right thing without this explicit dependency.
+#
+# This isn't really a dev-dependency, as `poetry install --no-dev` will fail,
+# but the alternative is to add it to the main list of deps where it isn't
+# needed.
+setuptools_rust = ">=1.3"
 
 
 # Optional Dependencies
@@ -166,7 +223,7 @@ psycopg2 = { version = ">=2.8", markers = "platform_python_implementation != 'Py
 psycopg2cffi = { version = ">=2.8", markers = "platform_python_implementation == 'PyPy'", optional = true }
 psycopg2cffi-compat = { version = "==1.1", markers = "platform_python_implementation == 'PyPy'", optional = true }
 pysaml2 = { version = ">=4.5.0", optional = true }
-authlib = { version = ">=0.14.0", optional = true }
+authlib = { version = ">=0.15.1", optional = true }
 # systemd-python is necessary for logging to the systemd journal via
 # `systemd.journal.JournalHandler`, as is documented in
 # `contrib/systemd/log_config.yaml`.
@@ -177,7 +234,6 @@ beautifulsoup4 = { version = ">=4.10.0", optional = true }
 sentry-sdk = { version = ">=0.7.2", optional = true }
 opentracing = { version = ">=2.2.0", optional = true }
 jaeger-client = { version = ">=4.0.0", optional = true }
-pyjwt = { version = ">=1.6.4", optional = true }
 txredisapi = { version = ">=1.4.7", optional = true }
 hiredis = { version = "*", optional = true }
 Pympler = { version = "*", optional = true }
@@ -185,7 +241,7 @@ parameterized = { version = ">=0.7.4", optional = true }
 idna = { version = ">=2.5", optional = true }
 
 [tool.poetry.extras]
-# NB: Packages that should be part of `pip install matrix-synapse[all]` need to be specified
+# NB: Packages that should be part of `pip install matrix-relapse[all]` need to be specified
 # twice: once here, and once in the `all` extra.
 matrix-synapse-ldap3 = ["matrix-synapse-ldap3"]
 postgres = ["psycopg2", "psycopg2cffi", "psycopg2cffi-compat"]
@@ -198,16 +254,16 @@ systemd = ["systemd-python"]
 url_preview = ["lxml", "beautifulsoup4"]
 sentry = ["sentry-sdk"]
 opentracing = ["jaeger-client", "opentracing"]
-jwt = ["pyjwt"]
+jwt = ["authlib"]
 # hiredis is not a *strict* dependency, but it makes things much faster.
 # (if it is not installed, we fall back to slow code.)
 redis = ["txredisapi", "hiredis"]
 # Required to use experimental `caches.track_memory_usage` config option.
-cache_memory = ["pympler"]
+cache-memory = ["pympler"]
 test = ["parameterized", "idna"]
 
 # The duplication here is awful. I hate hate hate hate hate it. However, for now I want
-# to ensure you can still `pip install matrix-synapse[all]` like today. Two motivations:
+# to ensure you can still `pip install matrix-relapse[all]` like today. Two motivations:
 # 1) for new installations, I want instructions in existing documentation and tutorials
 #    out there to still work.
 # 2) I don't want to hard-code a list of extras into CI if I can help it. The ideal
@@ -224,19 +280,17 @@ all = [
     "psycopg2", "psycopg2cffi", "psycopg2cffi-compat",
     # saml2
     "pysaml2",
-    # oidc
+    # oidc and jwt
     "authlib",
-    # url_preview
+    # url-preview
     "lxml",
     # sentry
     "sentry-sdk",
     # opentracing
     "jaeger-client", "opentracing",
-    # jwt
-    "pyjwt",
     # redis
     "txredisapi", "hiredis",
-    # cache_memory
+    # cache-memory
     "pympler",
     # omitted:
     #   - test: it's useful to have this separate from dev deps in the olddeps job
@@ -244,19 +298,20 @@ all = [
 ]
 
 [tool.poetry.dev-dependencies]
-## We pin black so that our tests don't start failing on new releases.
-isort = "==5.7.0"
-black = "==22.3.0"
-flake8-comprehensions = "*"
-flake8-bugbear = "==21.3.2"
-flake8 = "*"
+# We pin development dependencies in poetry.lock so that our tests don't start
+# failing on new releases. Keeping lower bounds loose here means that dependabot
+# can bump versions without having to update the content-hash in the lockfile.
+# This helps prevents merge conflicts when running a batch of dependabot updates.
+ruff = "0.11.13"
 
 # Typechecking
+lxml-stubs = ">=0.4.0"
 mypy = "*"
 mypy-zope = "*"
 types-bleach = ">=4.1.0"
 types-commonmark = ">=0.9.2"
 types-jsonschema = ">=3.2.0"
+types-netaddr = ">=0.8.0.6"
 types-opentracing = ">=2.4.2"
 types-Pillow = ">=8.3.4"
 types-psycopg2 = ">=2.9.9"
@@ -275,16 +330,70 @@ parameterized = ">=0.7.4"
 idna = ">=2.5"
 
 # The following are used by the release script
-click = "==8.1.0"
+click = ">=8.1.3"
 # GitPython was == 3.1.14; bumped to 3.1.20, the first release with type hints.
 GitPython = ">=3.1.20"
-commonmark = "==0.9.1"
-pygithub = "==1.55"
+commonmark = ">=0.9.1"
+pygithub = ">=1.55"
 # The following are executed as commands by the release script.
 twine = "*"
-# Towncrier min version comes from #3425. Rationale unclear.
+# Towncrier min version comes from https://github.com/matrix-org/synapse/pull/3425. Rationale unclear.
 towncrier = ">=18.6.0rc1"
 
+# Used for checking the Poetry lockfile
+tomli = ">=1.2.3"
+
+
+# Dependencies for building the development documentation
+[tool.poetry.group.dev-docs]
+optional = true
+
+[tool.poetry.group.dev-docs.dependencies]
+sphinx = {version = "^6.1", python = "^3.9"}
+sphinx-autodoc2 = {version = ">=0.4.2,<0.6.0", python = "^3.9"}
+myst-parser = {version = "^3.0.1", python = "^3.9"}
+furo = ">=2022.12.7,<2025.0.0"
+
+
 [build-system]
-requires = ["poetry-core>=1.0.0"]
+# The upper bounds here are defensive, intended to prevent situations like
+# https://github.com/matrix-org/synapse/issues/13849 and
+# https://github.com/matrix-org/synapse/issues/14079 where we see buildtime or
+# runtime errors caused by build system changes.
+# We are happy to raise these upper bounds upon request,
+# provided we check that it's safe to do so (i.e. that CI passes).
+requires = ["poetry-core>=1.1.0,<=1.8.1", "setuptools_rust>=1.3,<=1.8.1"]
 build-backend = "poetry.core.masonry.api"
+
+
+[tool.cibuildwheel]
+# Skip unsupported platforms (by us or by Rust).
+# See https://cibuildwheel.readthedocs.io/en/stable/options/#build-skip for the list of build targets.
+# We skip:
+#  - CPython 3.6 and 3.7: EOLed
+#  - PyPy 3.9: we only support Python 3.9+
+#  - musllinux i686: excluded to reduce number of wheels we build.
+#    c.f. https://github.com/matrix-org/synapse/pull/12595#discussion_r963107677
+#  - PyPy on Aarch64 and musllinux on aarch64: too slow to build.
+#    c.f. https://github.com/matrix-org/synapse/pull/14259
+skip = "cp36* cp37* cp38* pp37* pp38* *-musllinux_i686 pp*aarch64 *-musllinux_aarch64"
+
+# We need a rust compiler
+before-all =  "curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y --profile minimal"
+environment= { PATH = "$PATH:$HOME/.cargo/bin" }
+
+# For some reason if we don't manually clean the build directory we
+# can end up polluting the next build with a .so that is for the wrong
+# Python version.
+before-build = "rm -rf {project}/build"
+build-frontend = "build"
+test-command = "python -c 'from relapse.relapse_rust import sum_as_string; print(sum_as_string(1, 2))'"
+
+
+[tool.cibuildwheel.linux]
+# Wrap the repair command to correctly rename the built cpython wheels as ABI3.
+repair-wheel-command = "./.ci/scripts/auditwheel_wrapper.py -w {dest_dir} {wheel}"
+
+[tool.cibuildwheel.macos]
+# Wrap the repair command to correctly rename the built cpython wheels as ABI3.
+repair-wheel-command = "./.ci/scripts/auditwheel_wrapper.py --require-archs {delocate_archs} -w {dest_dir} {wheel}"

@@ -13,10 +13,10 @@
 # limitations under the License.
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.errors import SynapseError
-from synapse.rest import admin
-from synapse.server import HomeServer
-from synapse.util import Clock
+from relapse.api.errors import RelapseError
+from relapse.rest import admin
+from relapse.server import HomeServer
+from relapse.util import Clock
 
 from tests.unittest import HomeserverTestCase
 
@@ -69,7 +69,7 @@ class ModuleApiTestCase(HomeserverTestCase):
         This is a design choice to try and communicate potential bugs to modules
         earlier on.
         """
-        with self.assertRaises(SynapseError):
+        with self.assertRaises(RelapseError):
             self.get_success_or_raise(
                 self._account_data_mgr.get_global("this isn't a user id", "test.data")
             )
@@ -81,7 +81,7 @@ class ModuleApiTestCase(HomeserverTestCase):
 
     def test_get_global_no_mutability(self) -> None:
         """
-        Tests that modules can't introduce bugs into Synapse by mutating the result
+        Tests that modules can't introduce bugs into Relapse by mutating the result
         of `get_global`.
         """
         # First add some account data to set up the test.
@@ -127,7 +127,7 @@ class ModuleApiTestCase(HomeserverTestCase):
         Modules also must supply the correct types.
         """
 
-        with self.assertRaises(SynapseError):
+        with self.assertRaises(RelapseError):
             self.get_success_or_raise(
                 self._account_data_mgr.put_global(
                     "this isn't a user id", "test.data", {}
@@ -157,6 +157,8 @@ class ModuleApiTestCase(HomeserverTestCase):
             # noinspection PyTypeChecker
             self.get_success_or_raise(
                 self._module_api.account_data_manager.put_global(
-                    self.user_id, "test.data", 42  # type: ignore[arg-type]
+                    self.user_id,
+                    "test.data",
+                    42,  # type: ignore[arg-type]
                 )
             )

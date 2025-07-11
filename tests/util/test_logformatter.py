@@ -13,7 +13,7 @@
 # limitations under the License.
 import sys
 
-from synapse.logging.formatter import LogFormatter
+from relapse.logging.formatter import LogFormatter
 
 from tests import unittest
 
@@ -23,7 +23,7 @@ class TestException(Exception):
 
 
 class LogFormatterTestCase(unittest.TestCase):
-    def test_formatter(self):
+    def test_formatter(self) -> None:
         formatter = LogFormatter()
 
         try:

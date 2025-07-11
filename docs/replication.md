@@ -2,10 +2,10 @@
 
 ## Motivation
 
-We'd like to be able to split some of the work that synapse does into
-multiple python processes. In theory multiple synapse processes could
+We'd like to be able to split some of the work that relapse does into
+multiple python processes. In theory multiple relapse processes could
 share a single postgresql database and we\'d scale up by running more
-synapse processes. However much of synapse assumes that only one process
+relapse processes. However much of relapse assumes that only one process
 is interacting with the database, both for assigning unique identifiers
 when inserting into tables, notifying components about new updates, and
 for invalidating its caches.
@@ -19,7 +19,7 @@ the writer to present an append-only log of updates which the readers
 can consume to invalidate their caches and to push updates to listening
 clients or pushers.
 
-Synapse already stores much of its data as an append-only log so that it
+Relapse already stores much of its data as an append-only log so that it
 can correctly respond to `/sync` requests so the amount of code changes
 needed to expose the append-only log to the readers should be fairly
 minimal.
@@ -30,13 +30,7 @@ minimal.
 
 See [the TCP replication documentation](tcp_replication.md).
 
-### The Slaved DataStore
-
-There are read-only version of the synapse storage layer in
-`synapse/replication/slave/storage` that use the response of the
-replication API to invalidate their caches.
-
 ### The TCP Replication Module
 Information about how the tcp replication module is structured, including how
 the classes interact, can be found in
-`synapse/replication/tcp/__init__.py`
+`relapse/replication/tcp/__init__.py`

@@ -5,7 +5,7 @@
 #
 # As an overview this workflow:
 # - checks out develop,
-# - installs from source, pulling in the dependencies like a fresh `pip install` would, and 
+# - installs from source, pulling in the dependencies like a fresh `pip install` would, and
 # - runs mypy and test suites in that checkout.
 #
 # Based on the twisted trunk CI job.
@@ -22,27 +22,46 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  check_repo:
+    # Prevent this workflow from running on any fork of Relapse other than clokep/relapse, as it is
+    # only useful to the Relapse core team.
+    # All other workflow steps depend on this one, thus if 'should_run_workflow' is not 'true', the rest
+    # of the workflow will be skipped as well.
+    runs-on: ubuntu-latest
+    outputs:
+      should_run_workflow: ${{ steps.check_condition.outputs.should_run_workflow }}
+    steps:
+      - id: check_condition
+        run: echo "should_run_workflow=${{ github.repository == 'clokep/relapse' }}" >> "$GITHUB_OUTPUT"
+
   mypy:
+    needs: check_repo
+    if: needs.check_repo.outputs.should_run_workflow == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
       # The dev dependencies aren't exposed in the wheel metadata (at least with current
       # poetry-core versions), so we install with poetry.
-      - uses: matrix-org/setup-python-poetry@v1
+      - uses: matrix-org/setup-python-poetry@v2
         with:
-          python-version: "3.x"
-          poetry-version: "1.2.0b1"
+          python-version: "3.12.x"
           extras: "all"
       # Dump installed versions for debugging.
       - run: poetry run pip list > before.txt
       # Upgrade all runtime dependencies only. This is intended to mimic a fresh
-      # `pip install matrix-synapse[all]` as closely as possible.
+      # `pip install matrix-relapse[all]` as closely as possible.
       - run: poetry update --no-dev
       - run: poetry run pip list > after.txt && (diff -u before.txt after.txt || true)
-      - name: Remove warn_unused_ignores from mypy config
-        run: sed '/warn_unused_ignores = True/d' -i mypy.ini
+      - name: Remove unhelpful options from mypy config
+        run: sed -e '/warn_unused_ignores = True/d' -e '/warn_redundant_casts = True/d' -i mypy.ini
       - run: poetry run mypy
   trial:
+    needs: check_repo
+    if: needs.check_repo.outputs.should_run_workflow == 'true'
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -52,7 +71,12 @@ jobs:
             postgres-version: "14"
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
       - run: sudo apt-get -qq install xmlsec1
       - name: Set up PostgreSQL ${{ matrix.postgres-version }}
         if: ${{ matrix.postgres-version }}
@@ -61,20 +85,26 @@ jobs:
             -e POSTGRES_PASSWORD=postgres \
             -e POSTGRES_INITDB_ARGS="--lc-collate C --lc-ctype C --encoding UTF8" \
             postgres:${{ matrix.postgres-version }}
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v5
         with:
-          python-version: "3.x"
+          python-version: "3.12.x"
       - run: pip install .[all,test]
       - name: Await PostgreSQL
         if: ${{ matrix.postgres-version }}
         timeout-minutes: 2
         run: until pg_isready -h localhost; do sleep 1; done
+
+      # We nuke the local copy, as we've installed relapse into the virtualenv
+      # (rather than use an editable install, which we no longer support). If we
+      # don't do this then python can't find the native lib.
+      - run: rm -rf relapse/
+
       - run: python -m twisted.trial --jobs=2 tests
         env:
-          SYNAPSE_POSTGRES: ${{ matrix.database == 'postgres' || '' }}
-          SYNAPSE_POSTGRES_HOST: localhost
-          SYNAPSE_POSTGRES_USER: postgres
-          SYNAPSE_POSTGRES_PASSWORD: postgres
+          RELAPSE_POSTGRES: ${{ matrix.database == 'postgres' || '' }}
+          RELAPSE_POSTGRES_HOST: localhost
+          RELAPSE_POSTGRES_USER: postgres
+          RELAPSE_POSTGRES_PASSWORD: postgres
       - name: Dump logs
         # Logs are most useful when the command fails, always include them.
         if: ${{ always() }}
@@ -90,18 +120,20 @@ jobs:
 
 
   sytest:
+    needs: check_repo
+    if: needs.check_repo.outputs.should_run_workflow == 'true'
     runs-on: ubuntu-latest
     container:
-      image: matrixdotorg/sytest-synapse:testing
+      image: ghcr.io/clokep/sytest-relapse:testing
       volumes:
         - ${{ github.workspace }}:/src
     strategy:
       fail-fast: false
       matrix:
         include:
-          - sytest-tag: focal
+          - sytest-tag: bullseye
 
-          - sytest-tag: focal
+          - sytest-tag: bullseye
             postgres: postgres
             workers: workers
             redis: redis
@@ -109,24 +141,29 @@ jobs:
       POSTGRES: ${{ matrix.postgres && 1}}
       WORKERS: ${{ matrix.workers && 1 }}
       REDIS: ${{ matrix.redis && 1 }}
-      BLACKLIST: ${{ matrix.workers && 'synapse-blacklist-with-workers' }}
+      BLACKLIST: ${{ matrix.workers && 'relapse-blacklist-with-workers' }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
       - name: Ensure sytest runs `pip install`
         # Delete the lockfile so sytest will `pip install` rather than `poetry install`
         run: rm /src/poetry.lock
         working-directory: /src
       - name: Prepare test blacklist
-        run: cat sytest-blacklist .ci/worker-blacklist > synapse-blacklist-with-workers
+        run: cat sytest-blacklist .ci/worker-blacklist > relapse-blacklist-with-workers
       - name: Run SyTest
-        run: /bootstrap.sh synapse
+        run: /bootstrap.sh relapse
         working-directory: /src
       - name: Summarise results.tap
         if: ${{ always() }}
         run: /sytest/scripts/tap_to_gha.pl /logs/results.tap
       - name: Upload SyTest logs
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         if: ${{ always() }}
         with:
           name: Sytest Logs - ${{ job.status }} - (${{ join(matrix.*, ', ') }})
@@ -135,25 +172,62 @@ jobs:
             /logs/**/*.log*
 
 
-  # TODO: run complement (as with twisted trunk, see #12473).
+  complement:
+    needs: check_repo
+    if: "!failure() && !cancelled() && needs.check_repo.outputs.should_run_workflow == 'true'"
+    runs-on: ubuntu-latest
 
-  # open an issue if the build fails, so we know about it.
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arrangement: monolith
+            database: SQLite
+
+          - arrangement: monolith
+            database: Postgres
+
+          - arrangement: workers
+            database: Postgres
+
+    steps:
+      - name: Run actions/checkout@v4 for relapse
+        uses: actions/checkout@v4
+        with:
+          path: relapse
+
+      - name: Prepare Complement's Prerequisites
+        run: relapse/.ci/scripts/setup_complement_prerequisites.sh
+
+      - uses: actions/setup-go@v5
+        with:
+          cache-dependency-path: complement/go.sum
+          go-version-file: complement/go.mod
+
+      - run: |
+          set -o pipefail
+          TEST_ONLY_IGNORE_POETRY_LOCKFILE=1 POSTGRES=${{ (matrix.database == 'Postgres') && 1 || '' }} WORKERS=${{ (matrix.arrangement == 'workers') && 1 || '' }} COMPLEMENT_DIR=`pwd`/complement relapse/scripts-dev/complement.sh -json 2>&1 | relapse/.ci/scripts/gotestfmt
+        shell: bash
+        name: Run Complement Tests
+
+  # Open an issue if the build fails, so we know about it.
+  # Only do this if we're not experimenting with this action in a PR.
   open-issue:
-    if: failure()
+    if: "failure() && github.event_name != 'push' && github.event_name != 'pull_request' && needs.check_repo.outputs.should_run_workflow == 'true'"
     needs:
-      # TODO: should mypy be included here? It feels more brittle than the other two.
+      # TODO: should mypy be included here? It feels more brittle than the others.
       - mypy
       - trial
       - sytest
+      - complement
 
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: JasonEtco/create-an-issue@5d9504915f79f9cc6d791934b8ef34f2353dd74d # v2.5.0, 2020-12-06
+      - uses: actions/checkout@v4
+      - uses: JasonEtco/create-an-issue@1b14a70e4d8dc185e5cc76d3bec9eab20257b2c5 # v2.9.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           update_existing: true
           filename: .ci/latest_deps_build_failed_issue_template.md
-

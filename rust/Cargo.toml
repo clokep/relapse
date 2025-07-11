@@ -1,0 +1,46 @@
+[package]
+# We name the package `relapse` so that things like logging have the right
+# logging target.
+name = "relapse"
+
+# dummy version. See pyproject.toml for the relapse's version number.
+version = "0.1.0"
+
+edition = "2021"
+rust-version = "1.81.0"
+
+[lib]
+name = "relapse"
+# We generate a `cdylib` for Python and a standard `lib` for running
+# tests/benchmarks.
+crate-type = ["lib", "cdylib"]
+
+# This is deprecated, see tool.maturin in pyproject.toml.
+# It is left here for compatibilty with maturin < 0.15.
+[package.metadata.maturin]
+# This is where we tell maturin where to place the built library.
+name = "relapse.relapse_rust"
+
+[dependencies]
+anyhow = "1.0.63"
+lazy_static = "1.4.0"
+log = "0.4.17"
+pyo3 = { version = "0.24.2", features = [
+    "macros",
+    "anyhow",
+    "abi3",
+    "abi3-py38",
+] }
+pyo3-log = "0.12.3"
+pythonize = "0.24.0"
+regex = "1.6.0"
+serde = { version = "1.0.144", features = ["derive"] }
+serde_json = "1.0.85"
+
+[features]
+extension-module = ["pyo3/extension-module"]
+default = ["extension-module"]
+
+[build-dependencies]
+blake2 = "0.10.4"
+hex = "0.4.3"

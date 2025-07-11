@@ -11,7 +11,7 @@ This API gets the current status of the background updates.
 The API is:
 
 ```
-GET /_synapse/admin/v1/background_updates/status
+GET /_relapse/admin/v1/background_updates/status
 ```
 
 Returning:
@@ -32,7 +32,7 @@ Returning:
 
 `enabled` whether the background updates are enabled or disabled.
 
-`db_name` the database name (usually Synapse is configured with a single database named 'master').
+`db_name` the database name (usually Relapse is configured with a single database named 'master').
 
 For each update:
 
@@ -47,7 +47,7 @@ For each update:
 This API allow pausing background updates.
 
 Background updates should *not* be paused for significant periods of time, as
-this can affect the performance of Synapse.
+this can affect the performance of Relapse.
 
 *Note*: This won't persist over restarts.
 
@@ -59,7 +59,7 @@ background updates which won't be cancelled once started.
 The API is:
 
 ```
-POST /_synapse/admin/v1/background_updates/enabled
+POST /_relapse/admin/v1/background_updates/enabled
 ```
 
 with the following body:
@@ -91,7 +91,7 @@ This API schedules a specific background update to run. The job starts immediate
 The API is:
 
 ```
-POST /_synapse/admin/v1/background_updates/start_job
+POST /_relapse/admin/v1/background_updates/start_job
 ```
 
 with the following body:

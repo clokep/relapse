@@ -1,4 +1,4 @@
-**If you are looking for support** please ask in **#synapse:matrix.org**
+**If you are looking for support** please ask in **#relapse:matrix.org**
 (using a matrix.org account if necessary). We do not use GitHub issues for
 support.
 

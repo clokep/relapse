@@ -1,16 +1,16 @@
-name: matrix-synapse
+name: matrix-relapse
 base: core18
 version: git
 summary: Reference Matrix homeserver
 description: |
-  Synapse is the reference Matrix homeserver.
+  Relapse is the reference Matrix homeserver.
   Matrix is a federated and decentralised instant messaging and VoIP system.
 
 grade: stable
 confinement: strict
 
 apps:
-  matrix-synapse:
+  matrix-relapse:
     command: synctl --no-daemonize start $SNAP_COMMON/homeserver.yaml
     stop-command: synctl -c $SNAP_COMMON stop
     plugs: [network-bind, network]
@@ -27,7 +27,7 @@ apps:
   synctl:
     command: synctl
 parts:
-  matrix-synapse:
+  matrix-relapse:
     source: .
     plugin: python
     python-version: python3

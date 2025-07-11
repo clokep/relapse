@@ -13,19 +13,19 @@
 # limitations under the License.
 
 from http import HTTPStatus
-from typing import Tuple
 
 from twisted.web.server import Request
 
-from synapse.api.errors import Codes
-from synapse.http.server import JsonResource, cancellable
-from synapse.replication.http import REPLICATION_PREFIX
-from synapse.replication.http._base import ReplicationEndpoint
-from synapse.server import HomeServer
-from synapse.types import JsonDict
+from relapse.api.errors import Codes
+from relapse.http.server import JsonResource
+from relapse.replication.http import REPLICATION_PREFIX
+from relapse.replication.http._base import ReplicationEndpoint
+from relapse.server import HomeServer
+from relapse.types import JsonDict
+from relapse.util.cancellation import cancellable
 
 from tests import unittest
-from tests.http.server._base import EndpointCancellationTestHelperMixin
+from tests.http.server._base import test_disconnect
 
 
 class CancellableReplicationEndpoint(ReplicationEndpoint):
@@ -38,13 +38,13 @@ class CancellableReplicationEndpoint(ReplicationEndpoint):
         self.clock = hs.get_clock()
 
     @staticmethod
-    async def _serialize_payload() -> JsonDict:
+    async def _serialize_payload() -> JsonDict:  # type: ignore[override]
         return {}
 
     @cancellable
     async def _handle_request(  # type: ignore[override]
-        self, request: Request
-    ) -> Tuple[int, JsonDict]:
+        self, request: Request, content: JsonDict
+    ) -> tuple[int, JsonDict]:
         await self.clock.sleep(1.0)
         return HTTPStatus.OK, {"result": True}
 
@@ -53,28 +53,27 @@ class UncancellableReplicationEndpoint(ReplicationEndpoint):
     NAME = "uncancellable_sleep"
     PATH_ARGS = ()
     CACHE = False
+    WAIT_FOR_STREAMS = False
 
     def __init__(self, hs: HomeServer):
         super().__init__(hs)
         self.clock = hs.get_clock()
 
     @staticmethod
-    async def _serialize_payload() -> JsonDict:
+    async def _serialize_payload() -> JsonDict:  # type: ignore[override]
         return {}
 
     async def _handle_request(  # type: ignore[override]
-        self, request: Request
-    ) -> Tuple[int, JsonDict]:
+        self, request: Request, content: JsonDict
+    ) -> tuple[int, JsonDict]:
         await self.clock.sleep(1.0)
         return HTTPStatus.OK, {"result": True}
 
 
-class ReplicationEndpointCancellationTestCase(
-    unittest.HomeserverTestCase, EndpointCancellationTestHelperMixin
-):
+class ReplicationEndpointCancellationTestCase(unittest.HomeserverTestCase):
     """Tests for `ReplicationEndpoint` cancellation."""
 
-    def create_test_resource(self):
+    def create_test_resource(self) -> JsonResource:
         """Overrides `HomeserverTestCase.create_test_resource`."""
         resource = JsonResource(self.hs)
 
@@ -86,8 +85,8 @@ class ReplicationEndpointCancellationTestCase(
     def test_cancellable_disconnect(self) -> None:
         """Test that handlers with the `@cancellable` flag can be cancelled."""
         path = f"{REPLICATION_PREFIX}/{CancellableReplicationEndpoint.NAME}/"
-        channel = self.make_request("POST", path, await_result=False)
-        self._test_disconnect(
+        channel = self.make_request("POST", path, await_result=False, content={})
+        test_disconnect(
             self.reactor,
             channel,
             expect_cancellation=True,
@@ -97,8 +96,8 @@ class ReplicationEndpointCancellationTestCase(
     def test_uncancellable_disconnect(self) -> None:
         """Test that handlers without the `@cancellable` flag cannot be cancelled."""
         path = f"{REPLICATION_PREFIX}/{UncancellableReplicationEndpoint.NAME}/"
-        channel = self.make_request("POST", path, await_result=False)
-        self._test_disconnect(
+        channel = self.make_request("POST", path, await_result=False, content={})
+        test_disconnect(
             self.reactor,
             channel,
             expect_cancellation=False,

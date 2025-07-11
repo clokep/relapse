@@ -12,27 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from collections.abc import Iterable
 from html.parser import HTMLParser
-from typing import Dict, Iterable, List, Optional, Tuple
+from typing import NoReturn, Optional
 
 
 class TestHtmlParser(HTMLParser):
     """A generic HTML page parser which extracts useful things from the HTML"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
         # a list of links found in the doc
-        self.links: List[str] = []
+        self.links: list[str] = []
 
         # the values of any hidden <input>s: map from name to value
-        self.hiddens: Dict[str, Optional[str]] = {}
+        self.hiddens: dict[str, Optional[str]] = {}
 
         # the values of any radio buttons: map from name to list of values
-        self.radios: Dict[str, List[Optional[str]]] = {}
+        self.radios: dict[str, list[Optional[str]]] = {}
 
     def handle_starttag(
-        self, tag: str, attrs: Iterable[Tuple[str, Optional[str]]]
+        self, tag: str, attrs: Iterable[tuple[str, Optional[str]]]
     ) -> None:
         attr_dict = dict(attrs)
         if tag == "a":
@@ -48,5 +49,5 @@ class TestHtmlParser(HTMLParser):
                 assert input_name
                 self.hiddens[input_name] = attr_dict["value"]
 
-    def error(_, message):
+    def error(self, message: str) -> NoReturn:
         raise AssertionError(message)

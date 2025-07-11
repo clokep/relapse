@@ -1,14 +1,13 @@
 # Media Repository 
 
-*Synapse implementation-specific details for the media repository*
+*Relapse implementation-specific details for the media repository*
 
 The media repository
  * stores avatars, attachments and their thumbnails for media uploaded by local
    users.
  * caches avatars, attachments and their thumbnails for media uploaded by remote
    users.
- * caches resources and thumbnails used for
-   [URL previews](development/url_previews.md).
+ * caches resources and thumbnails used for URL previews.
 
 All media in Matrix can be identified by a unique
 [MXC URI](https://spec.matrix.org/latest/client-server-api/#matrix-content-mxc-uris),
@@ -18,7 +17,7 @@ mxc://<server-name>/<media-id>
 ```
 
 ## Local Media
-Synapse generates 24 character media IDs for content uploaded by local users.
+Relapse generates 24 character media IDs for content uploaded by local users.
 These media IDs consist of upper and lowercase letters and are case-sensitive.
 Other homeserver implementations may generate media IDs differently.
 
@@ -36,7 +35,7 @@ local_thumbnails/aa/bb/cccccccccccccccccccc/128-96-image-jpeg-scale
 ```
 
 ## Remote Media
-When media from a remote homeserver is requested from Synapse, it is assigned
+When media from a remote homeserver is requested from Relapse, it is assigned
 a local `filesystem_id`, with the same format as locally-generated media IDs,
 as described above.
 
@@ -59,10 +58,8 @@ remote_thumbnail/matrix.org/aa/bb/cccccccccccccccccccc/128-96-image-jpeg
 Note that `remote_thumbnail/` does not have an `s`.
 
 ## URL Previews
-See [URL Previews](development/url_previews.md) for documentation on the URL preview
-process.
 
-When generating previews for URLs, Synapse may download and cache various
+When generating previews for URLs, Relapse may download and cache various
 resources, including images. These resources are assigned temporary media IDs
 of the form `yyyy-mm-dd_aaaaaaaaaaaaaaaa`, where `yyyy-mm-dd` is the current
 date and `aaaaaaaaaaaaaaaa` is a random sequence of 16 case-sensitive letters.

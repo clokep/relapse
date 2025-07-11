@@ -12,22 +12,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import synapse.api.errors
+from collections.abc import Collection
+
+from twisted.test.proto_helpers import MemoryReactor
+
+import relapse.api.errors
+from relapse.api.constants import EduTypes
+from relapse.server import HomeServer
+from relapse.types import JsonDict
+from relapse.util import Clock
 
 from tests.unittest import HomeserverTestCase
 
 
 class DeviceStoreTestCase(HomeserverTestCase):
-    def prepare(self, reactor, clock, hs):
+    def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = hs.get_datastores().main
 
-    def add_device_change(self, user_id, device_ids, host):
+    def add_device_change(self, user_id: str, device_ids: list[str], host: str) -> None:
         """Add a device list change for the given device to
         `device_lists_outbound_pokes` table.
         """
 
         for device_id in device_ids:
-            stream_id = self.get_success(
+            self.get_success(
                 self.store.add_device_change_to_streams(
                     user_id, [device_id], ["!some:room"]
                 )
@@ -38,28 +46,28 @@ class DeviceStoreTestCase(HomeserverTestCase):
                     user_id=user_id,
                     device_id=device_id,
                     room_id="!some:room",
-                    stream_id=stream_id,
                     hosts=[host],
                     context={},
                 )
             )
 
-    def test_store_new_device(self):
+    def test_store_new_device(self) -> None:
         self.get_success(
             self.store.store_device("user_id", "device_id", "display_name")
         )
 
         res = self.get_success(self.store.get_device("user_id", "device_id"))
-        self.assertDictContainsSubset(
+        assert res is not None
+        self.assertLessEqual(
             {
                 "user_id": "user_id",
                 "device_id": "device_id",
                 "display_name": "display_name",
-            },
-            res,
+            }.items(),
+            res.items(),
         )
 
-    def test_get_devices_by_user(self):
+    def test_get_devices_by_user(self) -> None:
         self.get_success(
             self.store.store_device("user_id", "device1", "display_name 1")
         )
@@ -72,24 +80,24 @@ class DeviceStoreTestCase(HomeserverTestCase):
 
         res = self.get_success(self.store.get_devices_by_user("user_id"))
         self.assertEqual(2, len(res.keys()))
-        self.assertDictContainsSubset(
+        self.assertLessEqual(
             {
                 "user_id": "user_id",
                 "device_id": "device1",
                 "display_name": "display_name 1",
-            },
-            res["device1"],
+            }.items(),
+            res["device1"].items(),
         )
-        self.assertDictContainsSubset(
+        self.assertLessEqual(
             {
                 "user_id": "user_id",
                 "device_id": "device2",
                 "display_name": "display_name 2",
-            },
-            res["device2"],
+            }.items(),
+            res["device2"].items(),
         )
 
-    def test_count_devices_by_users(self):
+    def test_count_devices_by_users(self) -> None:
         self.get_success(
             self.store.store_device("user_id", "device1", "display_name 1")
         )
@@ -114,7 +122,7 @@ class DeviceStoreTestCase(HomeserverTestCase):
         )
         self.assertEqual(3, res)
 
-    def test_get_device_updates_by_remote(self):
+    def test_get_device_updates_by_remote(self) -> None:
         device_ids = ["device_id1", "device_id2"]
 
         # Add two device updates with sequential `stream_id`s
@@ -128,7 +136,7 @@ class DeviceStoreTestCase(HomeserverTestCase):
         # Check original device_ids are contained within these updates
         self._check_devices_in_updates(device_ids, device_updates)
 
-    def test_get_device_updates_by_remote_can_limit_properly(self):
+    def test_get_device_updates_by_remote_can_limit_properly(self) -> None:
         """
         Tests that `get_device_updates_by_remote` returns an appropriate
         stream_id to resume fetching from (without skipping any results).
@@ -188,9 +196,9 @@ class DeviceStoreTestCase(HomeserverTestCase):
         even if that means leaving an earlier batch one EDU short of the limit.
         """
 
-        assert self.hs.is_mine_id(
-            "@user_id:test"
-        ), "Test not valid: this MXID should be considered local"
+        assert self.hs.is_mine_id("@user_id:test"), (
+            "Test not valid: this MXID should be considered local"
+        )
 
         self.get_success(
             self.store.set_e2e_cross_signing_key(
@@ -266,10 +274,12 @@ class DeviceStoreTestCase(HomeserverTestCase):
         # (This is a temporary arrangement for backwards compatibility!)
         self.assertEqual(len(device_updates), 2, device_updates)
         self.assertEqual(
-            device_updates[0][0], "m.signing_key_update", device_updates[0]
+            device_updates[0][0], EduTypes.SIGNING_KEY_UPDATE, device_updates[0]
         )
         self.assertEqual(
-            device_updates[1][0], "org.matrix.signing_key_update", device_updates[1]
+            device_updates[1][0],
+            EduTypes.UNSTABLE_SIGNING_KEY_UPDATE,
+            device_updates[1],
         )
 
         # Check there are no more device updates left.
@@ -278,7 +288,11 @@ class DeviceStoreTestCase(HomeserverTestCase):
         )
         self.assertEqual(device_updates, [])
 
-    def _check_devices_in_updates(self, expected_device_ids, device_updates):
+    def _check_devices_in_updates(
+        self,
+        expected_device_ids: Collection[str],
+        device_updates: list[tuple[str, JsonDict]],
+    ) -> None:
         """Check that an specific device ids exist in a list of device update EDUs"""
         self.assertEqual(len(device_updates), len(expected_device_ids))
 
@@ -287,17 +301,19 @@ class DeviceStoreTestCase(HomeserverTestCase):
         }
         self.assertEqual(received_device_ids, set(expected_device_ids))
 
-    def test_update_device(self):
+    def test_update_device(self) -> None:
         self.get_success(
             self.store.store_device("user_id", "device_id", "display_name 1")
         )
 
         res = self.get_success(self.store.get_device("user_id", "device_id"))
+        assert res is not None
         self.assertEqual("display_name 1", res["display_name"])
 
         # do a no-op first
         self.get_success(self.store.update_device("user_id", "device_id"))
         res = self.get_success(self.store.get_device("user_id", "device_id"))
+        assert res is not None
         self.assertEqual("display_name 1", res["display_name"])
 
         # do the update
@@ -309,13 +325,14 @@ class DeviceStoreTestCase(HomeserverTestCase):
 
         # check it worked
         res = self.get_success(self.store.get_device("user_id", "device_id"))
+        assert res is not None
         self.assertEqual("display_name 2", res["display_name"])
 
-    def test_update_unknown_device(self):
+    def test_update_unknown_device(self) -> None:
         exc = self.get_failure(
             self.store.update_device(
                 "user_id", "unknown_device_id", new_display_name="display_name 2"
             ),
-            synapse.api.errors.StoreError,
+            relapse.api.errors.StoreError,
         )
         self.assertEqual(404, exc.value.code)

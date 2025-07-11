@@ -11,9 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from http import HTTPStatus
-
-from synapse.rest.health import HealthResource
+from relapse.rest.health import HealthResource
 
 from tests import unittest
 
@@ -26,5 +24,5 @@ class HealthCheckTests(unittest.HomeserverTestCase):
     def test_health(self) -> None:
         channel = self.make_request("GET", "/health", shorthand=False)
 
-        self.assertEqual(channel.code, HTTPStatus.OK)
+        self.assertEqual(channel.code, 200)
         self.assertEqual(channel.result["body"], b"OK")

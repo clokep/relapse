@@ -10,7 +10,7 @@ in the background. Our current selected implementation is Jaeger.
 
 OpenTracing is a tool which gives an insight into the causal
 relationship of work done in and between servers. The servers each track
-events and report them to a centralised server - in Synapse's case:
+events and report them to a centralised server - in Relapse's case:
 Jaeger. The basic unit used to represent events is the span. The span
 roughly represents a single piece of work that was done and the time at
 which it occurred. A span can have child spans, meaning that the work of
@@ -51,14 +51,20 @@ docker run -d --name jaeger \
   jaegertracing/all-in-one:1
 ```
 
+By default, Relapse will publish traces to Jaeger on localhost.
+If Jaeger is hosted elsewhere, point Relapse to the correct host by setting
+`opentracing.jaeger_config.local_agent.reporting_host` [in the Relapse configuration](usage/configuration/config_documentation.md#opentracing-1)
+or by setting the `JAEGER_AGENT_HOST` environment variable to the desired address.
+
 Latest documentation is probably at
 https://www.jaegertracing.io/docs/latest/getting-started.
 
-## Enable OpenTracing in Synapse
+## Enable OpenTracing in Relapse
 
 OpenTracing is not enabled by default. It must be enabled in the
-homeserver config by uncommenting the config options under `opentracing`
-as shown in the [sample config](./sample_config.yaml). For example:
+homeserver config by adding the `opentracing` option to your config file. You can find 
+documentation about how to do this in the [config manual under the header 'Opentracing'](usage/configuration/config_documentation.md#opentracing).
+See below for an example Opentracing configuration: 
 
 ```yaml
 opentracing:
@@ -83,7 +89,7 @@ to two problems, namely:
     different sampling policies could incur higher sampling counts than
     intended.
 -   Sending servers can attach arbitrary data to spans, known as
-    'baggage'. For safety this has been disabled in Synapse but that
+    'baggage'. For safety this has been disabled in Relapse but that
     doesn't prevent another server sending you baggage which will be
     logged to OpenTracing's logs.
 

@@ -14,35 +14,34 @@
 import json
 import os
 import tempfile
-from typing import List, cast
-from unittest.mock import Mock
+from typing import cast
+from unittest.mock import AsyncMock, Mock
 
 import yaml
 
 from twisted.internet import defer
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.appservice import ApplicationService, ApplicationServiceState
-from synapse.config._base import ConfigError
-from synapse.events import EventBase
-from synapse.server import HomeServer
-from synapse.storage.database import DatabasePool, make_conn
-from synapse.storage.databases.main.appservice import (
+from relapse.appservice import ApplicationService, ApplicationServiceState
+from relapse.config._base import ConfigError
+from relapse.events import EventBase
+from relapse.server import HomeServer
+from relapse.storage.database import DatabasePool, LoggingDatabaseConnection, make_conn
+from relapse.storage.databases.main.appservice import (
     ApplicationServiceStore,
     ApplicationServiceTransactionStore,
 )
-from synapse.types import DeviceListUpdates
-from synapse.util import Clock
+from relapse.types import DeviceListUpdates
+from relapse.util import Clock
 
 from tests import unittest
-from tests.test_utils import make_awaitable
 
 
 class ApplicationServiceStoreTestCase(unittest.HomeserverTestCase):
-    def setUp(self):
-        super(ApplicationServiceStoreTestCase, self).setUp()
+    def setUp(self) -> None:
+        super().setUp()
 
-        self.as_yaml_files: List[str] = []
+        self.as_yaml_files: list[str] = []
 
         self.hs.config.appservice.app_service_config_files = self.as_yaml_files
         self.hs.config.caches.event_cache_size = 1
@@ -71,9 +70,11 @@ class ApplicationServiceStoreTestCase(unittest.HomeserverTestCase):
             except Exception:
                 pass
 
-        super(ApplicationServiceStoreTestCase, self).tearDown()
+        super().tearDown()
 
-    def _add_appservice(self, as_token, id, url, hs_token, sender) -> None:
+    def _add_appservice(
+        self, as_token: str, id: str, url: str, hs_token: str, sender: str
+    ) -> None:
         as_yaml = {
             "url": url,
             "as_token": as_token,
@@ -108,8 +109,8 @@ class ApplicationServiceStoreTestCase(unittest.HomeserverTestCase):
 
 class ApplicationServiceTransactionStoreTestCase(unittest.HomeserverTestCase):
     def setUp(self) -> None:
-        super(ApplicationServiceTransactionStoreTestCase, self).setUp()
-        self.as_yaml_files: List[str] = []
+        super().setUp()
+        self.as_yaml_files: list[str] = []
 
         self.hs.config.appservice.app_service_config_files = self.as_yaml_files
         self.hs.config.caches.event_cache_size = 1
@@ -135,7 +136,7 @@ class ApplicationServiceTransactionStoreTestCase(unittest.HomeserverTestCase):
             database, make_conn(db_config, self.engine, "test"), self.hs
         )
 
-    def _add_service(self, url, as_token, id) -> None:
+    def _add_service(self, url: str, as_token: str, id: str) -> None:
         as_yaml = {
             "url": url,
             "as_token": as_token,
@@ -149,7 +150,7 @@ class ApplicationServiceTransactionStoreTestCase(unittest.HomeserverTestCase):
             outfile.write(yaml.dump(as_yaml))
             self.as_yaml_files.append(as_token)
 
-    def _set_state(self, id: str, state: ApplicationServiceState):
+    def _set_state(self, id: str, state: ApplicationServiceState) -> defer.Deferred:
         return self.db_pool.runOperation(
             self.engine.convert_param_style(
                 "INSERT INTO application_services_state(as_id, state) VALUES(?,?)"
@@ -157,7 +158,9 @@ class ApplicationServiceTransactionStoreTestCase(unittest.HomeserverTestCase):
             (id, state.value),
         )
 
-    def _insert_txn(self, as_id, txn_id, events):
+    def _insert_txn(
+        self, as_id: str, txn_id: int, events: list[Mock]
+    ) -> "defer.Deferred[None]":
         return self.db_pool.runOperation(
             self.engine.convert_param_style(
                 "INSERT INTO application_services_txns(as_id, txn_id, event_ids) "
@@ -253,7 +256,7 @@ class ApplicationServiceTransactionStoreTestCase(unittest.HomeserverTestCase):
         self,
     ) -> None:
         service = Mock(id=self.as_list[0]["id"])
-        events = cast(List[EventBase], [Mock(event_id="e1"), Mock(event_id="e2")])
+        events = cast(list[EventBase], [Mock(event_id="e1"), Mock(event_id="e2")])
         txn = self.get_success(
             defer.ensureDeferred(
                 self.store.create_appservice_txn(
@@ -335,7 +338,7 @@ class ApplicationServiceTransactionStoreTestCase(unittest.HomeserverTestCase):
 
         # we aren't testing store._base stuff here, so mock this out
         # (ignore needed because Mypy won't allow us to assign to a method otherwise)
-        self.store.get_events_as_list = Mock(return_value=make_awaitable(events))  # type: ignore[assignment]
+        self.store.get_events_as_list = AsyncMock(return_value=events)  # type: ignore[method-assign]
 
         self.get_success(self._insert_txn(self.as_list[1]["id"], 9, other_events))
         self.get_success(self._insert_txn(service.id, 10, events))
@@ -448,12 +451,14 @@ class ApplicationServiceStoreTypeStreamIds(unittest.HomeserverTestCase):
 
 # required for ApplicationServiceTransactionStoreTestCase tests
 class TestTransactionStore(ApplicationServiceTransactionStore, ApplicationServiceStore):
-    def __init__(self, database: DatabasePool, db_conn, hs) -> None:
+    def __init__(
+        self, database: DatabasePool, db_conn: LoggingDatabaseConnection, hs: HomeServer
+    ) -> None:
         super().__init__(database, db_conn, hs)
 
 
 class ApplicationServiceStoreConfigTestCase(unittest.HomeserverTestCase):
-    def _write_config(self, suffix, **kwargs) -> str:
+    def _write_config(self, suffix: str, **kwargs: str) -> str:
         vals = {
             "id": "id" + suffix,
             "url": "url" + suffix,

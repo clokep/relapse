@@ -10,14 +10,14 @@ The available account data callbacks are:
 
 ### `on_account_data_updated`
 
-_First introduced in Synapse v1.57.0_
+_First introduced in Relapse v1.57.0_
 
 ```python
 async def on_account_data_updated(
     user_id: str,
     room_id: Optional[str],
     account_data_type: str,
-    content: "synapse.module_api.JsonDict",
+    content: "relapse.module_api.JsonDict",
 ) -> None:
 ```
 
@@ -32,9 +32,9 @@ deleting account data consists of replacing the data associated with a given typ
 (and optionally room) with an empty dictionary (`{}`).
 
 Note that this doesn't trigger when changing the tags associated with a room, as these are
-processed separately by Synapse.
+processed separately by Relapse.
 
-If multiple modules implement this callback, Synapse runs them all in order.
+If multiple modules implement this callback, Relapse runs them all in order.
 
 ## Example
 
@@ -46,8 +46,8 @@ import json
 import attr
 from typing import Any, Dict, Optional
 
-from synapse.module_api import JsonDict, ModuleApi
-from synapse.module_api.errors import ConfigError
+from relapse.module_api import JsonDict, ModuleApi
+from relapse.module_api.errors import ConfigError
 
 
 @attr.s(auto_attribs=True)
