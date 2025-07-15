@@ -197,7 +197,7 @@ def parse_html_to_open_graph(soup: "BeautifulSoup") -> Dict[str, Optional[str]]:
 
     if "og:image" not in og:
         # Check microdata for an image.
-        meta_image = cast(Optional["Tag"], soup.find("meta", itemprop="image", content=True))
+        meta_image = cast(Optional["Tag"], soup.find("meta", itemprop=re.compile("image", re.I), content=True))
         # If a meta image is found, use it.
         if meta_image:
             og["og:image"] = cast(str, meta_image["content"])
@@ -205,20 +205,9 @@ def parse_html_to_open_graph(soup: "BeautifulSoup") -> Dict[str, Optional[str]]:
             # Try to find images which are larger than 10px by 10px.
             #
             # TODO: consider inlined CSS styles as well as width & height attribs
-            def greater_than(tag: "Tag") -> bool:
-                if "width" not in tag or "height" not in tag:
-                    return False
-                try:
-                    return (
-                        int(cast(str, tag["width"])) > 10
-                        and int(cast(str, tag["height"])) > 10
-                    )
-                except ValueError:
-                    return False
-
-            images = cast(list["Tag"], soup.find_all("img", src=True, width=greater_than))
+            images = cast(list["Tag"], soup.find_all("img", src=True, width=True, height=True))
             images = sorted(
-                images,
+                filter(lambda tag: int(tag["width"]) > 10 and int(tag["height"]) > 10, images),
                 key=lambda i: (-1 * float(cast(str, i["width"])) * float(cast(str, i["height"]))),
             )
             # If no images were found, try to find *any* images.
@@ -229,9 +218,9 @@ def parse_html_to_open_graph(soup: "BeautifulSoup") -> Dict[str, Optional[str]]:
 
             # Finally, fallback to the favicon if nothing else.
             else:
-                favicons = soup.find_all("link", href=True, rel="icon")
-                if favicons:
-                    og["og:image"] = favicons[0]
+                favicon = soup.find("link", href=True, rel="icon")
+                if favicon:
+                    og["og:image"] = favicon["href"]
 
     if "og:description" not in og:
         # Check the first meta description tag for content.
