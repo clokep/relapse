@@ -285,6 +285,7 @@ def parse_html_to_open_graph(tree: "etree._Element") -> dict[str, Optional[str]]
             og["og:title"] = None
 
     if "og:image" not in og:
+        # Check microdata for an image.
         # Cast: the type returned by xpath depends on the xpath expression: mypy can't deduce this.
         meta_image = cast(
             list["etree._ElementUnicodeResult"],
