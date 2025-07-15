@@ -368,6 +368,43 @@ class OpenGraphFromHtmlTestCase(unittest.TestCase):
         self.assertEqual(og, {"og:title": "ó", "og:description": "Some text."})
         self.assertEqual(og, {"og:title": "ó", "og:description": "Some text."})
 
+    def test_image(self) -> None:
+        """Test the spots an image can be pulled from ."""
+        # Ordered listed of tags, we'll pop off the top and keep testing.
+        tags = [
+            (b"""<meta property="og:image" content="https://example.com/meta-prop.png">""", "meta-prop"),
+            (b"""<meta itemprop="IMAGE" content="https://example.com/meta-IMAGE.png">""", "meta-IMAGE"),
+            (b"""<meta itemprop="image" content="https://example.com/meta-image.png">""",
+             "meta-image"),
+            (b"""<img src="https://example.com/img-no-width-no-height.png">""", "img"),
+            (b"""<img src="https://example.com/img-no-height.png" width="100">""", "img"),
+            (b"""<img src="https://example.com/img-no-width.png" height="100">""", "img"),
+            (b"""<img src="https://example.com/img-small.png" width="100" height="100">""", "img"),
+            (b"""<img src="https://example.com/img.png" width="200" height="100">""",
+             "img"),
+            # Put this image again since if it is the *only* image it will be used.
+            (b"""<img src="https://example.com/img-no-width-no-height.png">""",
+             "img-no-width-no-height"),
+            (b"""<link rel="icon" href="https://example.com/favicon.png">""", "favicon"),
+        ]
+
+        while tags:
+            html = b"<html>" + b"".join(t[0] for t in tags) + b"</html>"
+            tree = decode_body(html, "http://example.com/test.html")
+            assert tree is not None
+            og = parse_html_to_open_graph(tree)
+            self.assertEqual(
+                og,
+                {
+                    "og:title": None,
+                    "og:description": None,
+                    "og:image": f"https://example.com/{tags[0][1]}.png",
+                },
+            )
+
+            # Remove the highest remaining priority item.
+            tags.pop(0)
+
     def test_twitter_tag(self) -> None:
         """Twitter card tags should be used if nothing else is available."""
         html = b"""
@@ -375,6 +412,7 @@ class OpenGraphFromHtmlTestCase(unittest.TestCase):
         <meta name="twitter:card" content="summary">
         <meta name="twitter:description" content="Description">
         <meta name="twitter:site" content="@matrixdotorg">
+        <meta name="twitter:image" content="https://example.com/test.png">
         </html>
         """
         tree = decode_body(html, "http://example.com/test.html")
@@ -386,6 +424,7 @@ class OpenGraphFromHtmlTestCase(unittest.TestCase):
                 "og:title": None,
                 "og:description": "Description",
                 "og:site_name": "@matrixdotorg",
+                "og:image": "https://example.com/test.png",
             },
         )
 
@@ -397,6 +436,8 @@ class OpenGraphFromHtmlTestCase(unittest.TestCase):
         <meta property="og:description" content="Real Description">
         <meta name="twitter:site" content="@matrixdotorg">
         <meta property="og:site_name" content="matrix.org">
+        <meta name="twitter:image" content="https://example.com/bad.png">
+        <meta property="og:image" content="https://example.com/good.png">
         </html>
         """
         tree = decode_body(html, "http://example.com/test.html")
@@ -408,6 +449,7 @@ class OpenGraphFromHtmlTestCase(unittest.TestCase):
                 "og:title": None,
                 "og:description": "Real Description",
                 "og:site_name": "matrix.org",
+                "og:image": "https://example.com/good.png",
             },
         )
 

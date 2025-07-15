@@ -196,8 +196,8 @@ def parse_html_to_open_graph(soup: "BeautifulSoup") -> Dict[str, Optional[str]]:
             og["og:title"] = None
 
     if "og:image" not in og:
-        # TODO: extract a favicon failing all else
-        meta_image = cast(Optional["Tag"], soup.find("meta", image="image"))
+        # Check microdata for an image.
+        meta_image = cast(Optional["Tag"], soup.find("meta", itemprop="image", content=True))
         # If a meta image is found, use it.
         if meta_image:
             og["og:image"] = cast(str, meta_image["content"])
