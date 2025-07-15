@@ -287,7 +287,17 @@ class RoomStateEventRestServlet(RestServlet):
 
         try:
             if event_type == EventTypes.Member:
-                membership = content.get("membership", None)
+                try:
+                    membership = content["membership"]
+                except KeyError:
+                    raise RelapseError(
+                        400, "Membership missing", errcode=Codes.MISSING_PARAM
+                    )
+                if not isinstance(membership, str):
+                    # TODO Assert it is an expected value.
+                    raise RelapseError(
+                        400, "Membership must be a string", errcode=Codes.INVALID_PARAM
+                    )
                 event_id, _ = await self.room_member_handler.update_membership(
                     requester,
                     target=UserID.from_string(state_key),

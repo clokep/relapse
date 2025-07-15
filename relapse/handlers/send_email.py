@@ -163,7 +163,8 @@ class SendEmailHandler:
             additional_headers: A map of additional headers to include.
         """
         try:
-            from_string = self._from % {"app": app_name}
+            # mypy ignore: exception is caught below.
+            from_string = self._from % {"app": app_name}  # type: ignore[operator]
         except (KeyError, TypeError):
             from_string = self._from
 
