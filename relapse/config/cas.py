@@ -32,9 +32,14 @@ class CasConfig(Config):
 
     def read_config(self, config: JsonDict, **kwargs: Any) -> None:
         cas_config = config.get("cas_config", None)
+        if cas_config is not None and not isinstance(cas_config, dict):
+            raise ConfigError(
+                "Invalid CAS config, must be a dictionary", ("cas_config",)
+            )
+
         self.cas_enabled = cas_config and cas_config.get("enabled", True)
 
-        if self.cas_enabled:
+        if cas_config and self.cas_enabled:
             self.cas_server_url = cas_config["server_url"]
 
             # TODO Update this to a _relapse URL.

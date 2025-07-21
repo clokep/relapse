@@ -365,9 +365,12 @@ class CasHandler:
                 raise RuntimeError("CAS is not expected to de-duplicate Matrix IDs")
 
             # Arbitrarily use the first attribute found.
-            display_name = cas_response.attributes.get(
-                self._cas_displayname_attribute, [None]
-            )[0]
+            if self._cas_displayname_attribute:
+                display_name = cas_response.attributes.get(
+                    self._cas_displayname_attribute, [None]
+                )[0]
+            else:
+                display_name = None
 
             return UserAttributes(localpart=localpart, display_name=display_name)
 

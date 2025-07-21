@@ -778,7 +778,7 @@ class RoomMemberHandler(metaclass=abc.ABCMeta):
 
         effective_membership_state = action
         if action in ["kick", "unban"]:
-            effective_membership_state = "leave"
+            effective_membership_state = Membership.LEAVE
 
         # if this is a join with a 3pid signature, we may need to turn a 3pid
         # invite into a normal invite before we can handle the join.
@@ -793,7 +793,7 @@ class RoomMemberHandler(metaclass=abc.ABCMeta):
         if not remote_room_hosts:
             remote_room_hosts = []
 
-        if effective_membership_state not in ("leave", "ban"):
+        if effective_membership_state not in (Membership.LEAVE, Membership.BAN):
             is_blocked = await self.store.is_room_blocked(room_id)
             if is_blocked:
                 raise RelapseError(403, "This room has been blocked on this server")

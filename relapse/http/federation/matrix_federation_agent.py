@@ -14,7 +14,7 @@
 import logging
 import urllib.parse
 from collections.abc import Generator
-from typing import Any, Optional
+from typing import Any, Optional, cast
 from urllib.request import (  # type: ignore[attr-defined]
     getproxies_environment,
     proxy_bypass_environment,
@@ -358,7 +358,7 @@ class MatrixHostnameEndpoint:
                 if self._tls_options:
                     endpoint = wrapClientTLS(self._tls_options, endpoint)
                 result = await make_deferred_yieldable(
-                    endpoint.connect(protocol_factory)
+                    cast(IStreamClientEndpoint, endpoint).connect(protocol_factory)
                 )
 
                 return result
