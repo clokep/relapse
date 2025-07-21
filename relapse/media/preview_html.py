@@ -37,6 +37,8 @@ _content_type_match = re.compile(r'.*; *charset="?(.*?)"?(;|$)', flags=re.I)
 # Certain elements aren't meant for display.
 ARIA_ROLES_TO_IGNORE = {"directory", "menu", "menubar", "toolbar"}
 
+NON_BLANK = re.compile(".+")
+
 
 def decode_body(body: Union[bytes, str], uri: str) -> Optional["BeautifulSoup"]:
     """
@@ -90,7 +92,9 @@ def _get_meta_tags(
     """
 
     results: dict[str, Optional[str]] = {}
-    for tag in soup.find_all("meta", property=re.compile(rf"^{prefix}:"), content=True):
+    for tag in soup.find_all(
+        "meta", attrs={property: re.compile(rf"^{prefix}:")}, content=NON_BLANK
+    ):
         # if we've got more than 50 tags, someone is taking the piss
         if len(results) >= 50:
             logger.warning(
@@ -99,7 +103,7 @@ def _get_meta_tags(
             )
             return {}
 
-        key = tag["property"]
+        key = tag[property]
         if property_mapper:
             new_key = property_mapper(key)
             # None is a special value used to ignore a value.
@@ -189,7 +193,9 @@ def parse_html_to_open_graph(soup: "BeautifulSoup") -> Dict[str, Optional[str]]:
 
     if "og:title" not in og:
         # Attempt to find a title from the title tag, or the biggest header on the page.
-        title = cast(Optional["Tag"], soup.find(("title", "h1", "h2", "h3")))
+        title = cast(
+            Optional["Tag"], soup.find(("title", "h1", "h2", "h3"), string=True)
+        )
         if title and title.string:
             og["og:title"] = title.string.strip()
         else:
@@ -197,7 +203,10 @@ def parse_html_to_open_graph(soup: "BeautifulSoup") -> Dict[str, Optional[str]]:
 
     if "og:image" not in og:
         # Check microdata for an image.
-        meta_image = cast(Optional["Tag"], soup.find("meta", itemprop=re.compile("image", re.I), content=True))
+        meta_image = cast(
+            Optional["Tag"],
+            soup.find("meta", itemprop=re.compile("image", re.I), content=NON_BLANK),
+        )
         # If a meta image is found, use it.
         if meta_image:
             og["og:image"] = cast(str, meta_image["content"])
@@ -205,27 +214,41 @@ def parse_html_to_open_graph(soup: "BeautifulSoup") -> Dict[str, Optional[str]]:
             # Try to find images which are larger than 10px by 10px.
             #
             # TODO: consider inlined CSS styles as well as width & height attribs
-            images = cast(list["Tag"], soup.find_all("img", src=True, width=True, height=True))
+            images = cast(
+                list["Tag"],
+                soup.find_all("img", src=NON_BLANK, width=NON_BLANK, height=NON_BLANK),
+            )
             images = sorted(
-                filter(lambda tag: int(tag["width"]) > 10 and int(tag["height"]) > 10, images),
-                key=lambda i: (-1 * float(cast(str, i["width"])) * float(cast(str, i["height"]))),
+                filter(
+                    lambda tag: int(cast(str, tag["width"])) > 10
+                    and int(cast(str, tag["height"])) > 10,
+                    images,
+                ),
+                key=lambda i: (
+                    -1 * float(cast(str, i["width"])) * float(cast(str, i["height"]))
+                ),
             )
             # If no images were found, try to find *any* images.
             if not images:
-                images = soup.find_all("img", src=True, limit=1)
+                images = soup.find_all("img", src=NON_BLANK, limit=1)
             if images:
-                og["og:image"] = images[0]["src"]
+                og["og:image"] = cast(str, images[0]["src"])
 
             # Finally, fallback to the favicon if nothing else.
             else:
-                favicon = soup.find("link", href=True, rel="icon")
+                favicon = cast("Tag", soup.find("link", href=NON_BLANK, rel="icon"))
                 if favicon:
-                    og["og:image"] = favicon["href"]
+                    og["og:image"] = cast(str, favicon["href"])
 
     if "og:description" not in og:
         # Check the first meta description tag for content.
         meta_description = cast(
-            Optional["Tag"], soup.find("meta", description="description")
+            Optional["Tag"],
+            soup.find(
+                "meta",
+                attrs={"name": re.compile("description", re.I)},
+                content=NON_BLANK,
+            ),
         )
 
         # If a meta description is found with content, use it.

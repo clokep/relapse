@@ -350,7 +350,7 @@ class OpenGraphFromHtmlTestCase(unittest.TestCase):
         soup = decode_body(html, "http://example.com/test.html")
         assert soup is not None
         og = parse_html_to_open_graph(soup)
-        self.assertEqual(og, {"og:title": "ÿÿ Foo", "og:description": "Some text."})
+        self.assertEqual(og, {"og:title": "˙˙ Foo", "og:description": "Some text."})
 
     def test_windows_1252(self) -> None:
         """A body which uses cp1252, but doesn't declare that."""
@@ -372,20 +372,44 @@ class OpenGraphFromHtmlTestCase(unittest.TestCase):
         """Test the spots an image can be pulled from ."""
         # Ordered listed of tags, we'll pop off the top and keep testing.
         tags = [
-            (b"""<meta property="og:image" content="https://example.com/meta-prop.png">""", "meta-prop"),
-            (b"""<meta itemprop="IMAGE" content="https://example.com/meta-IMAGE.png">""", "meta-IMAGE"),
-            (b"""<meta itemprop="image" content="https://example.com/meta-image.png">""",
-             "meta-image"),
+            (
+                b"""<meta property="og:image" content="https://example.com/meta-prop.png">""",
+                "meta-prop",
+            ),
+            (
+                b"""<meta itemprop="IMAGE" content="https://example.com/meta-IMAGE.png">""",
+                "meta-IMAGE",
+            ),
+            (
+                b"""<meta itemprop="image" content="https://example.com/meta-image.png">""",
+                "meta-image",
+            ),
             (b"""<img src="https://example.com/img-no-width-no-height.png">""", "img"),
-            (b"""<img src="https://example.com/img-no-height.png" width="100">""", "img"),
-            (b"""<img src="https://example.com/img-no-width.png" height="100">""", "img"),
-            (b"""<img src="https://example.com/img-small.png" width="100" height="100">""", "img"),
-            (b"""<img src="https://example.com/img.png" width="200" height="100">""",
-             "img"),
+            (
+                b"""<img src="https://example.com/img-no-height.png" width="100">""",
+                "img",
+            ),
+            (
+                b"""<img src="https://example.com/img-no-width.png" height="100">""",
+                "img",
+            ),
+            (
+                b"""<img src="https://example.com/img-small.png" width="100" height="100">""",
+                "img",
+            ),
+            (
+                b"""<img src="https://example.com/img.png" width="200" height="100">""",
+                "img",
+            ),
             # Put this image again since if it is the *only* image it will be used.
-            (b"""<img src="https://example.com/img-no-width-no-height.png">""",
-             "img-no-width-no-height"),
-            (b"""<link rel="icon" href="https://example.com/favicon.png">""", "favicon"),
+            (
+                b"""<img src="https://example.com/img-no-width-no-height.png">""",
+                "img-no-width-no-height",
+            ),
+            (
+                b"""<link rel="icon" href="https://example.com/favicon.png">""",
+                "favicon",
+            ),
         ]
 
         while tags:
