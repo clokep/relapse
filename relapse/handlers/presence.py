@@ -73,7 +73,15 @@ from bisect import bisect
 from collections.abc import Collection, Generator, Iterable
 from contextlib import contextmanager
 from types import TracebackType
-from typing import TYPE_CHECKING, AbstractSet, Any, Callable, ContextManager, Optional
+from typing import (
+    TYPE_CHECKING,
+    AbstractSet,
+    Any,
+    Callable,
+    ContextManager,
+    Optional,
+    Union,
+)
 
 from prometheus_client import Counter
 
@@ -1384,7 +1392,7 @@ class PresenceHandler(BasePresenceHandler):
         # Based on the state of each user's device calculate the new presence state.
         presence = _combine_device_states(devices.values())
 
-        new_fields = {"state": presence}
+        new_fields: dict[str, Optional[Union[str, int]]] = {"state": presence}
 
         if presence == PresenceState.ONLINE or presence == PresenceState.BUSY:
             new_fields["last_active_ts"] = now

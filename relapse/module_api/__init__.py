@@ -250,7 +250,8 @@ class ModuleApi:
         try:
             app_name = self._hs.config.email.email_app_name
 
-            self._from_string = self._hs.config.email.email_notif_from % {
+            # mypy ignore: exception is caught below.
+            self._from_string = self._hs.config.email.email_notif_from % {  # type: ignore[operator]
                 "app": app_name
             }
         except (KeyError, TypeError):
