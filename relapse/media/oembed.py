@@ -14,16 +14,17 @@
 import html
 import logging
 import urllib.parse
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, cast
 
 import attr
 
-from relapse.media.preview_html import decode_body, parse_html_description
+from relapse.media.preview_html import NON_BLANK, decode_body, parse_html_description
 from relapse.types import JsonDict
 from relapse.util import json_decoder
 
 if TYPE_CHECKING:
     from bs4 import BeautifulSoup
+    from bs4.element import Tag
 
     from relapse.server import HomeServer
 
@@ -110,15 +111,13 @@ class OEmbedProvider:
         """
         # Search for link elements with the proper rel and type attributes.
         # Some providers (e.g. Flickr) use alternative instead of alternate.
-        for tag in soup.find_all(
+        tag = soup.find(
             "link",
             rel=("alternate", "alternative"),
             type="application/json+oembed",
-            href=True,
-        ):
-            return tag["href"]
-
-        return None
+            href=NON_BLANK,
+        )
+        return cast(str, cast("Tag", tag)["href"]) if tag else None
 
     def parse_oembed_response(self, url: str, raw_body: bytes) -> OEmbedResult:
         """
@@ -208,8 +207,9 @@ class OEmbedProvider:
         return OEmbedResult(open_graph_response, author_name, cache_age)
 
 
-def _fetch_urls(soup: "BeautifulSoup", tag_name: str) -> list[str]:
-    return [tag["src"] for tag in soup.find_all(tag_name, src=True)]
+def _fetch_url(soup: "BeautifulSoup", tag_name: str) -> Optional[str]:
+    tag = soup.find(tag_name, src=NON_BLANK)
+    return cast(str, cast("Tag", tag)["src"]) if tag else None
 
 
 def calc_description_and_urls(
@@ -234,13 +234,17 @@ def calc_description_and_urls(
 
     # Attempt to find interesting URLs (images, videos, embeds).
     if "og:image" not in open_graph_response:
-        image_urls = _fetch_urls(soup, "img")
-        if image_urls:
-            open_graph_response["og:image"] = image_urls[0]
+        image_url = _fetch_url(soup, "img")
+        if image_url:
+            open_graph_response["og:image"] = image_url
 
-    video_urls = _fetch_urls(soup, "video") + _fetch_urls(soup, "embed")
-    if video_urls:
-        open_graph_response["og:video"] = video_urls[0]
+    video_url = _fetch_url(soup, "video")
+    if video_url:
+        open_graph_response["og:video"] = video_url
+    else:
+        embed_url = _fetch_url(soup, "embed")
+        if embed_url:
+            open_graph_response["og:video"] = embed_url
 
     description = parse_html_description(soup)
     if description:
