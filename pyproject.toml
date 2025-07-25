@@ -283,7 +283,7 @@ all = [
     # oidc and jwt
     "authlib",
     # url-preview
-    "lxml",
+    "lxml", "beautifulsoup4",
     # sentry
     "sentry-sdk",
     # opentracing
