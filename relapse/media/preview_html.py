@@ -157,6 +157,27 @@ def _map_microdata_to_open_graph(key: str) -> Optional[str]:
     return None
 
 
+def _favicon_sort(image: "Tag") -> float:
+    """
+    Return a sorting weight for an favicon tag.
+
+    The sizes property can be "any" or a space separated list of MxN sizes.
+
+    """
+    if "sizes" not in image.attrs:
+        # Prefer apple-touch-icon over favicon.
+        if "apple-touch-icon" in image["rel"]:
+            return 0
+        return -1
+
+    sizes_attr = cast(str, image["sizes"])
+    if sizes_attr.lower() == "any":
+        return float("inf")
+
+    sizes = re.split(r"[ x]+", sizes_attr)
+    return max([int(s) for s in sizes if s.isdigit()])
+
+
 def parse_html_to_open_graph(soup: "BeautifulSoup") -> Dict[str, Optional[str]]:
     """
     Calculate metadata for an HTML document.
@@ -251,20 +272,29 @@ def parse_html_to_open_graph(soup: "BeautifulSoup") -> Dict[str, Optional[str]]:
                 images,
             ),
             key=lambda i: (
-                -1 * float(cast(str, i["width"])) * float(cast(str, i["height"]))
+                float(cast(str, i["width"])) * float(cast(str, i["height"]))
             ),
         )
         # If no images were found, try to find *any* images.
         if not images:
             images = soup.find_all("img", src=NON_BLANK, limit=1)
         if images:
-            og["og:image"] = cast(str, images[0]["src"])
+            og["og:image"] = cast(str, images[-1]["src"])
 
         # Finally, fallback to the favicon if nothing else.
         else:
-            favicon = cast("Tag", soup.find("link", href=NON_BLANK, rel="icon"))
-            if favicon:
-                og["og:image"] = cast(str, favicon["href"])
+            favicons = cast(
+                list["Tag"],
+                soup.find_all("link", href=NON_BLANK, rel=("icon", "apple-touch-icon")),
+            )
+            favicons = sorted(
+                favicons,
+                # The "sizes" property can be "any" or a list of MxN sizes.
+                # If the "sizes" property does not exist, then prioritize last.
+                key=_favicon_sort,
+            )
+            if favicons:
+                og["og:image"] = cast(str, favicons[-1]["href"])
 
     if "og:description" not in og:
         # Check the first meta description tag for content.
