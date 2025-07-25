@@ -373,8 +373,12 @@ class OpenGraphFromHtmlTestCase(unittest.TestCase):
         # Ordered listed of tags, we'll pop off the top and keep testing.
         tags = [
             (
-                b"""<meta property="og:image" content="https://example.com/meta-prop.png">""",
-                "meta-prop",
+                b"""<meta property="og:image" content="https://example.com/meta-og-prop.png">""",
+                "meta-og-prop",
+            ),
+            (
+                b"""<meta name="twitter:image" content="https://example.com/meta-twitter-prop.png">""",
+                "meta-twitter-prop",
             ),
             (
                 b"""<meta itemprop="IMAGE" content="https://example.com/meta-IMAGE.png">""",
