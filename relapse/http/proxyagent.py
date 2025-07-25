@@ -59,6 +59,7 @@ from relapse.http.connectproxyclient import (
     ProxyCredentials,
 )
 from relapse.logging.context import run_in_background
+from relapse.types import IRelapseReactor
 
 logger = logging.getLogger(__name__)
 
@@ -111,8 +112,8 @@ class ProxyAgent(_AgentBase):
 
     def __init__(
         self,
-        reactor: IReactorCore,
-        proxy_reactor: Optional[IReactorCore] = None,
+        reactor: IRelapseReactor,
+        proxy_reactor: Optional[IRelapseReactor] = None,
         contextFactory: Optional[IPolicyForHTTPS] = None,
         connectTimeout: Optional[float] = None,
         bindAddress: Optional[bytes] = None,
@@ -245,7 +246,7 @@ class ProxyAgent(_AgentBase):
             raise ValueError(f"Invalid URI {uri!r}")
 
         parsed_uri = URI.fromBytes(uri)
-        pool_key = f"{parsed_uri.scheme!r}{parsed_uri.host!r}{parsed_uri.port}"
+        pool_key = (parsed_uri.scheme, parsed_uri.host, parsed_uri.port)
         request_path = parsed_uri.originForm
 
         should_skip_proxy = False
@@ -271,7 +272,7 @@ class ProxyAgent(_AgentBase):
                 )
             # Cache *all* connections under the same key, since we are only
             # connecting to a single destination, the proxy:
-            pool_key = "http-proxy"
+            pool_key = (b"http-proxy", 0, 0)
             endpoint = self.http_proxy_endpoint
             request_path = uri
         elif (

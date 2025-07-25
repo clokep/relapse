@@ -169,11 +169,16 @@ class ReplicationAgent(_AgentBase):
             return defer.fail(Failure())
 
         worker_name = parsedURI.netloc.decode("utf-8")
-        key_scheme = self._endpointFactory.instance_map[worker_name].scheme()
-        key_netloc = self._endpointFactory.instance_map[worker_name].netloc()
+        instance = self._endpointFactory.instance_map[worker_name]
+        key_scheme = instance.scheme().encode()
         # This sets the Pool key to be:
-        #  (http(s), <host:port>) or (unix, <socket_path>)
-        key = (key_scheme, key_netloc)
+        #  (http(s), host, port) or (unix, <socket_path>, 0)
+        if isinstance(instance, InstanceTcpLocationConfig):
+            key = (key_scheme, instance.host.encode(), instance.port)
+        elif isinstance(instance, InstanceUnixLocationConfig):
+            key = (key_scheme, instance.path.encode(), 0)
+        else:
+            raise SchemeNotSupported(f"Unsupported config: {type(instance)}")
 
         # _requestWithEndpoint comes from _AgentBase class
         return self._requestWithEndpoint(
