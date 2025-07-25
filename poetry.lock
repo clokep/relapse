@@ -186,7 +186,7 @@ files = [
     {file = "beautifulsoup4-4.12.0-py3-none-any.whl", hash = "sha256:2130a5ad7f513200fae61a17abb5e338ca980fa28c439c0571014bc0217e9591"},
     {file = "beautifulsoup4-4.12.0.tar.gz", hash = "sha256:c5fceeaec29d09c84970e47c65f2f0efe57872f7cff494c9691a26ec0ff13234"},
 ]
-markers = {main = "extra == \"url-preview\""}
+markers = {main = "extra == \"url-preview\" or extra == \"all\""}
 
 [package.dependencies]
 soupsieve = ">1.2"
@@ -2830,7 +2830,7 @@ files = [
     {file = "soupsieve-2.4-py3-none-any.whl", hash = "sha256:49e5368c2cda80ee7e84da9dbe3e110b70a4575f196efb74e51b94549d921955"},
     {file = "soupsieve-2.4.tar.gz", hash = "sha256:e28dba9ca6c7c00173e34e4ba57448f0688bb681b7c5e8bf4971daafc093d69a"},
 ]
-markers = {main = "extra == \"url-preview\""}
+markers = {main = "extra == \"url-preview\" or extra == \"all\""}
 
 [[package]]
 name = "sphinx"
@@ -3713,7 +3713,7 @@ docs = ["Sphinx", "repoze.sphinx.autointerface"]
 test = ["zope.i18nmessageid", "zope.testing", "zope.testrunner"]
 
 [extras]
-all = ["Pympler", "authlib", "hiredis", "jaeger-client", "lxml", "matrix-synapse-ldap3", "opentracing", "psycopg2", "psycopg2cffi", "psycopg2cffi-compat", "pysaml2", "sentry-sdk", "txredisapi"]
+all = ["Pympler", "authlib", "beautifulsoup4", "hiredis", "jaeger-client", "lxml", "matrix-synapse-ldap3", "opentracing", "psycopg2", "psycopg2cffi", "psycopg2cffi-compat", "pysaml2", "sentry-sdk", "txredisapi"]
 cache-memory = ["Pympler"]
 jwt = ["authlib"]
 matrix-synapse-ldap3 = ["matrix-synapse-ldap3"]
@@ -3730,4 +3730,4 @@ url-preview = ["beautifulsoup4", "lxml"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.9.2"
-content-hash = "3a73ce7956bea365d4ac5acb0a3d5301f482bd2548e482f4ce36b07140db79a4"
+content-hash = "85699bc64f81b612f4d97d84f8470a705fe86b5bf6482b6c2244fd2e99d7550b"
