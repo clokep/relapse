@@ -373,8 +373,12 @@ class OpenGraphFromHtmlTestCase(unittest.TestCase):
         # Ordered listed of tags, we'll pop off the top and keep testing.
         tags = [
             (
-                b"""<meta property="og:image" content="https://example.com/meta-prop.png">""",
-                "meta-prop",
+                b"""<meta property="og:image" content="https://example.com/meta-og-prop.png">""",
+                "meta-og-prop",
+            ),
+            (
+                b"""<meta name="twitter:image" content="https://example.com/meta-twitter-prop.png">""",
+                "meta-twitter-prop",
             ),
             (
                 b"""<meta itemprop="IMAGE" content="https://example.com/meta-IMAGE.png">""",
@@ -405,6 +409,19 @@ class OpenGraphFromHtmlTestCase(unittest.TestCase):
             (
                 b"""<img src="https://example.com/img-no-width-no-height.png">""",
                 "img-no-width-no-height",
+            ),
+            # Apple touch icons are prioritized by size.
+            (
+                b"""<link rel="apple-touch-icon" sizes="152x152  bad-size   " href="https://example.com/apple-touch-icon-152.png">""",
+                "apple-touch-icon-167",
+            ),
+            (
+                b"""<link rel="apple-touch-icon" sizes="167x167 100x100" href="https://example.com/apple-touch-icon-167.png">""",
+                "apple-touch-icon-167",
+            ),
+            (
+                b"""<link rel="apple-touch-icon" href="https://example.com/apple-touch-icon.png">""",
+                "apple-touch-icon",
             ),
             (
                 b"""<link rel="icon" href="https://example.com/favicon.png">""",

@@ -93,7 +93,7 @@ def _get_meta_tags(
 
     results: dict[str, Optional[str]] = {}
     for tag in soup.find_all(
-        "meta", attrs={property: re.compile(rf"^{prefix}:")}, content=NON_BLANK
+        "meta", attrs={property: re.compile(rf"^{prefix}.+")}, content=NON_BLANK
     ):
         # if we've got more than 50 tags, someone is taking the piss
         if len(results) >= 50:
@@ -105,13 +105,13 @@ def _get_meta_tags(
 
         key = tag[property]
         if property_mapper:
-            new_key = property_mapper(key)
+            key = property_mapper(key)
             # None is a special value used to ignore a value.
-            if new_key is None:
+            if key is None:
                 continue
-            key = new_key
 
-        results[key] = tag["content"]
+        if key not in results:
+            results[key] = tag["content"]
 
     return results
 
@@ -119,6 +119,8 @@ def _get_meta_tags(
 def _map_twitter_to_open_graph(key: str) -> Optional[str]:
     """
     Map a Twitter card property to the analogous Open Graph property.
+
+    See https://developer.x.com/en/docs/x-for-websites/cards/overview/markup
 
     Args:
         key: The Twitter card property (starts with "twitter:").
@@ -136,6 +138,46 @@ def _map_twitter_to_open_graph(key: str) -> Optional[str]:
     return "og" + key[7:]
 
 
+def _map_microdata_to_open_graph(key: str) -> Optional[str]:
+    """
+    Map a microdata tags property to the analogous Open Graph property.
+
+    See https://developers.facebook.com/docs/marketing-api/catalog/reference/#schema-og-required-tags
+
+    Args:
+        key: The microdata itemprop
+
+    Returns:
+        The Open Graph property (starts with "og:") or None to have this property
+        be ignored.
+    """
+    key = key.lower()
+    if key in ("image", "description", "name"):
+        return "og:" + key
+    return None
+
+
+def _favicon_sort(image: "Tag") -> float:
+    """
+    Return a sorting weight for an favicon tag.
+
+    The sizes property can be "any" or a space separated list of MxN sizes.
+
+    """
+    if "sizes" not in image.attrs:
+        # Prefer apple-touch-icon over favicon.
+        if "apple-touch-icon" in image["rel"]:
+            return 0
+        return -1
+
+    sizes_attr = cast(str, image["sizes"])
+    if sizes_attr.lower() == "any":
+        return float("inf")
+
+    sizes = re.split(r"[ x]+", sizes_attr)
+    return max([int(s) for s in sizes if s.isdigit()])
+
+
 def parse_html_to_open_graph(soup: "BeautifulSoup") -> Dict[str, Optional[str]]:
     """
     Calculate metadata for an HTML document.
@@ -151,6 +193,8 @@ def parse_html_to_open_graph(soup: "BeautifulSoup") -> Dict[str, Optional[str]]:
 
     # Search for Open Graph (og:) meta tags, e.g.:
     #
+    # <meta property="og:url" content"https://matrix.org">
+    #
     # "og:type"         : "video",
     # "og:url"          : "https://www.youtube.com/watch?v=LXDBoHyjmtw",
     # "og:site_name"    : "YouTube",
@@ -164,7 +208,7 @@ def parse_html_to_open_graph(soup: "BeautifulSoup") -> Dict[str, Optional[str]]:
     # "og:video:secure_url": "https://www.youtube.com/v/LXDBoHyjmtw?version=3",
 
     # TODO: grab article: meta tags too, e.g.:
-    og = _get_meta_tags(soup, "property", "og")
+    og = _get_meta_tags(soup, "property", "og:")
 
     # TODO: Search for properties specific to the different Open Graph types,
     # such as article: meta tags, e.g.:
@@ -178,18 +222,30 @@ def parse_html_to_open_graph(soup: "BeautifulSoup") -> Dict[str, Optional[str]]:
 
     # Search for Twitter Card (twitter:) meta tags, e.g.:
     #
+    # <meta name="twitter:url" content"https://matrix.org">
+    #
     # "twitter:site"    : "@matrixdotorg"
     # "twitter:creator" : "@matrixdotorg"
     #
     # Twitter cards tags also duplicate Open Graph tags.
     #
     # See https://developer.twitter.com/en/docs/twitter-for-websites/cards/guides/getting-started
-    twitter = _get_meta_tags(soup, "name", "twitter", _map_twitter_to_open_graph)
-    # Merge the Twitter values with the Open Graph values, but do not overwrite
+    twitter = _get_meta_tags(soup, "name", "twitter:", _map_twitter_to_open_graph)
+
+    # Search for microdata (schema.org) meta tags, e.g.:
+    #
+    # <meta itemprop="url" content"https://matrix.org">
+    #
+    # "name"    : "@matrixdotorg"
+    # "url"     : "https://matrix.org"
+    microdata = _get_meta_tags(soup, "itemprop", "", _map_microdata_to_open_graph)
+
+    # Merge the Twitter & microdata values with the Open Graph values, but do not overwrite
     # information from Open Graph tags.
-    for key, value in twitter.items():
-        if key not in og:
-            og[key] = value
+    for props in (twitter, microdata):
+        for key, value in props.items():
+            if key not in og:
+                og[key] = value
 
     if "og:title" not in og:
         # Attempt to find a title from the title tag, or the biggest header on the page.
@@ -202,43 +258,43 @@ def parse_html_to_open_graph(soup: "BeautifulSoup") -> Dict[str, Optional[str]]:
             og["og:title"] = None
 
     if "og:image" not in og:
-        # Check microdata for an image.
-        meta_image = cast(
-            Optional["Tag"],
-            soup.find("meta", itemprop=re.compile("image", re.I), content=NON_BLANK),
+        # Try to find images which are larger than 10px by 10px.
+        #
+        # TODO: consider inlined CSS styles as well as width & height attribs
+        images = cast(
+            list["Tag"],
+            soup.find_all("img", src=NON_BLANK, width=NON_BLANK, height=NON_BLANK),
         )
-        # If a meta image is found, use it.
-        if meta_image:
-            og["og:image"] = cast(str, meta_image["content"])
-        else:
-            # Try to find images which are larger than 10px by 10px.
-            #
-            # TODO: consider inlined CSS styles as well as width & height attribs
-            images = cast(
-                list["Tag"],
-                soup.find_all("img", src=NON_BLANK, width=NON_BLANK, height=NON_BLANK),
-            )
-            images = sorted(
-                filter(
-                    lambda tag: int(cast(str, tag["width"])) > 10
-                    and int(cast(str, tag["height"])) > 10,
-                    images,
-                ),
-                key=lambda i: (
-                    -1 * float(cast(str, i["width"])) * float(cast(str, i["height"]))
-                ),
-            )
-            # If no images were found, try to find *any* images.
-            if not images:
-                images = soup.find_all("img", src=NON_BLANK, limit=1)
-            if images:
-                og["og:image"] = cast(str, images[0]["src"])
+        images = sorted(
+            filter(
+                lambda tag: int(cast(str, tag["width"])) > 10
+                and int(cast(str, tag["height"])) > 10,
+                images,
+            ),
+            key=lambda i: (
+                float(cast(str, i["width"])) * float(cast(str, i["height"]))
+            ),
+        )
+        # If no images were found, try to find *any* images.
+        if not images:
+            images = soup.find_all("img", src=NON_BLANK, limit=1)
+        if images:
+            og["og:image"] = cast(str, images[-1]["src"])
 
-            # Finally, fallback to the favicon if nothing else.
-            else:
-                favicon = cast("Tag", soup.find("link", href=NON_BLANK, rel="icon"))
-                if favicon:
-                    og["og:image"] = cast(str, favicon["href"])
+        # Finally, fallback to the favicon if nothing else.
+        else:
+            favicons = cast(
+                list["Tag"],
+                soup.find_all("link", href=NON_BLANK, rel=("icon", "apple-touch-icon")),
+            )
+            favicons = sorted(
+                favicons,
+                # The "sizes" property can be "any" or a list of MxN sizes.
+                # If the "sizes" property does not exist, then prioritize last.
+                key=_favicon_sort,
+            )
+            if favicons:
+                og["og:image"] = cast(str, favicons[-1]["href"])
 
     if "og:description" not in og:
         # Check the first meta description tag for content.
