@@ -299,6 +299,7 @@ class FakeSite:
     server_version_string = b"1"
     site_tag = "test"
     access_logger = logging.getLogger("relapse.access.http.fake")
+    _parsePOSTFormSubmission = False
 
     def __init__(self, resource: IResource, reactor: IReactorTime):
         """
@@ -438,6 +439,8 @@ class ThreadedMemoryReactorClock(MemoryReactorClock):
     """
 
     def __init__(self) -> None:
+        super().__init__()
+
         self.threadpool = ThreadPool(self)
 
         self._tcp_callbacks: dict[tuple[str, int], Callable] = {}
@@ -467,7 +470,6 @@ class ThreadedMemoryReactorClock(MemoryReactorClock):
             tls._get_default_clock = lambda: self
 
         self.nameResolver = SimpleResolverComplexifier(FakeResolver())
-        super().__init__()
 
     def installNameResolver(self, resolver: IHostnameResolver) -> IHostnameResolver:
         raise NotImplementedError()

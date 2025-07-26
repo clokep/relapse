@@ -482,9 +482,7 @@ class JsonResource(DirectServeJsonResource):
             A tuple of the callback to use, the name of the servlet, and the
             key word arguments to pass to the callback
         """
-        # At this point the path must be bytes.
-        request_path_bytes: bytes = request.path  # type: ignore
-        request_path = request_path_bytes.decode("ascii")
+        request_path = request.path.decode("ascii")
         # Treat HEAD requests as GET requests.
         request_method = request.method
         if request_method == b"HEAD":
