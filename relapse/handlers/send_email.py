@@ -19,13 +19,11 @@ from email.mime.text import MIMEText
 from io import BytesIO
 from typing import TYPE_CHECKING, Any, Optional
 
-import twisted
-from incremental import Version
 from twisted.internet.defer import Deferred
 from twisted.internet.endpoints import HostnameEndpoint
-from twisted.internet.interfaces import IOpenSSLContextFactory, IProtocolFactory
+from twisted.internet.interfaces import IProtocolFactory
 from twisted.internet.ssl import optionsForClientTLS
-from twisted.mail.smtp import ESMTPSender, ESMTPSenderFactory
+from twisted.mail.smtp import ESMTPSenderFactory
 from twisted.protocols.tls import TLSMemoryBIOFactory
 
 from relapse.logging.context import make_deferred_yieldable
@@ -35,19 +33,6 @@ if TYPE_CHECKING:
     from relapse.server import HomeServer
 
 logger = logging.getLogger(__name__)
-
-_is_old_twisted = twisted.version < Version("Twisted", 21, 2, 0)
-
-
-class _NoTLSESMTPSender(ESMTPSender):
-    """Extend ESMTPSender to disable TLS
-
-    Unfortunately, before Twisted 21.2, ESMTPSender doesn't give an easy way to disable
-    TLS, so we override its internal method which it uses to generate a context factory.
-    """
-
-    def _getContextFactory(self) -> Optional[IOpenSSLContextFactory]:
-        return None
 
 
 async def _sendmail(
@@ -98,18 +83,9 @@ async def _sendmail(
             **kwargs,
         )
 
-    factory: IProtocolFactory
-    if _is_old_twisted:
-        # before twisted 21.2, we have to override the ESMTPSender protocol to disable
-        # TLS
-        factory = build_sender_factory()
-
-        if not enable_tls:
-            factory.protocol = _NoTLSESMTPSender
-    else:
-        # for twisted 21.2 and later, there is a 'hostname' parameter which we should
-        # set to enable TLS.
-        factory = build_sender_factory(hostname=smtphost if enable_tls else None)
+    factory: IProtocolFactory = build_sender_factory(
+        hostname=smtphost if enable_tls else None
+    )
 
     if force_tls:
         factory = TLSMemoryBIOFactory(optionsForClientTLS(smtphost), True, factory)
