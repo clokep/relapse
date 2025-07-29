@@ -49,7 +49,6 @@ class RelationPaginationServlet(RestServlet):
         self.auth = hs.get_auth()
         self._store = hs.get_datastores().main
         self._relations_handler = hs.get_relations_handler()
-        self._support_recurse = hs.config.experimental.msc3981_recurse_relations
 
     async def on_GET(
         self,
@@ -64,12 +63,7 @@ class RelationPaginationServlet(RestServlet):
         pagination_config = await PaginationConfig.from_request(
             self._store, request, default_limit=5, default_dir=Direction.BACKWARDS
         )
-        if self._support_recurse:
-            recurse = parse_boolean(
-                request, "org.matrix.msc3981.recurse", default=False
-            )
-        else:
-            recurse = False
+        recurse = parse_boolean(request, "recurse", default=False)
 
         # The unstable version of this API returns an extra field for client
         # compatibility, see https://github.com/matrix-org/synapse/issues/12930.
