@@ -375,11 +375,6 @@ class ExperimentalConfig(Config):
         # Check that none of the other config options conflict with MSC3861 when enabled
         self.msc3861.check_config_conflicts(self.root)
 
-        # MSC4010: Do not allow setting m.push_rules account data.
-        self.msc4010_push_rules_account_data = experimental.get(
-            "msc4010_push_rules_account_data", False
-        )
-
         # MSC4041: Use HTTP header Retry-After to enable library-assisted retry handling
         #
         # This is a bit hacky, but the most reasonable way to *alway* include the
