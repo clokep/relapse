@@ -18,7 +18,6 @@ from typing import TYPE_CHECKING, Any, Optional
 import attr
 import attr.validators
 
-from relapse.api.errors import LimitExceededError
 from relapse.api.room_versions import KNOWN_ROOM_VERSIONS, RoomVersions
 from relapse.config import ConfigError
 from relapse.config._base import Config, RootConfig
@@ -374,14 +373,6 @@ class ExperimentalConfig(Config):
 
         # Check that none of the other config options conflict with MSC3861 when enabled
         self.msc3861.check_config_conflicts(self.root)
-
-        # MSC4041: Use HTTP header Retry-After to enable library-assisted retry handling
-        #
-        # This is a bit hacky, but the most reasonable way to *alway* include the
-        # headers.
-        LimitExceededError.include_retry_after_header = experimental.get(
-            "msc4041_enabled", False
-        )
 
         self.msc4028_push_encrypted_events = experimental.get(
             "msc4028_push_encrypted_events", False
