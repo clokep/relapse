@@ -29,9 +29,6 @@ from ..util.check_dependencies import check_requirements
 from ._base import Config, ConfigError, read_file
 
 DEFAULT_USER_MAPPING_PROVIDER = "relapse.handlers.oidc.JinjaOidcMappingProvider"
-# The module that JinjaOidcMappingProvider is in was renamed, we want to
-# transparently handle both the same.
-LEGACY_USER_MAPPING_PROVIDER = "relapse.handlers.oidc_handler.JinjaOidcMappingProvider"
 
 
 class OIDCConfig(Config):
@@ -66,7 +63,7 @@ class OIDCConfig(Config):
 # jsonschema definition of the configuration settings for an oidc identity provider
 OIDC_PROVIDER_CONFIG_SCHEMA = {
     "type": "object",
-    "required": ["issuer", "client_id"],
+    "required": ["idp_id", "idp_name", "issuer", "client_id"],
     "properties": {
         "idp_id": {
             "type": "string",
@@ -141,34 +138,18 @@ OIDC_PROVIDER_CONFIG_SCHEMA = {
     },
 }
 
-# the same as OIDC_PROVIDER_CONFIG_SCHEMA, but with compulsory idp_id and idp_name
-OIDC_PROVIDER_CONFIG_WITH_ID_SCHEMA = {
-    "allOf": [OIDC_PROVIDER_CONFIG_SCHEMA, {"required": ["idp_id", "idp_name"]}]
-}
-
 # the `oidc_providers` list can either be None (as it is in the default config), or
 # a list of provider configs, each of which requires an explicit ID and name.
 OIDC_PROVIDER_LIST_SCHEMA = {
     "oneOf": [
         {"type": "null"},
-        {"type": "array", "items": OIDC_PROVIDER_CONFIG_WITH_ID_SCHEMA},
+        {"type": "array", "items": OIDC_PROVIDER_CONFIG_SCHEMA},
     ]
 }
 
-# the `oidc_config` setting can either be None (which it used to be in the default
-# config), or an object. If an object, it is ignored unless it has an "enabled: True"
-# property.
-#
-# It's *possible* to represent this with jsonschema, but the resultant errors aren't
-# particularly clear, so we just check for either an object or a null here, and do
-# additional checks in the code.
-OIDC_CONFIG_SCHEMA = {"oneOf": [{"type": "null"}, {"type": "object"}]}
-
-# the top-level schema can contain an "oidc_config" and/or an "oidc_providers".
 MAIN_CONFIG_SCHEMA = {
     "type": "object",
     "properties": {
-        "oidc_config": OIDC_CONFIG_SCHEMA,
         "oidc_providers": OIDC_PROVIDER_LIST_SCHEMA,
     },
 }
@@ -177,40 +158,24 @@ MAIN_CONFIG_SCHEMA = {
 def _parse_oidc_provider_configs(config: JsonDict) -> Iterable["OidcProviderConfig"]:
     """extract and parse the OIDC provider configs from the config dict
 
-    The configuration may contain either a single `oidc_config` object with an
-    `enabled: True` property, or a list of provider configurations under
-    `oidc_providers`, *or both*.
-
     Returns a generator which yields the OidcProviderConfig objects
     """
     validate_config(MAIN_CONFIG_SCHEMA, config, ())
 
     for i, p in enumerate(config.get("oidc_providers") or []):
-        yield _parse_oidc_config_dict(p, ("oidc_providers", "<item %i>" % (i,)))
-
-    # for backwards-compatibility, it is also possible to provide a single "oidc_config"
-    # object with an "enabled: True" property.
-    oidc_config = config.get("oidc_config")
-    if oidc_config and oidc_config.get("enabled", False):
-        # MAIN_CONFIG_SCHEMA checks that `oidc_config` is an object, but not that
-        # it matches OIDC_PROVIDER_CONFIG_SCHEMA (see the comments on OIDC_CONFIG_SCHEMA
-        # above), so now we need to validate it.
-        validate_config(OIDC_PROVIDER_CONFIG_SCHEMA, oidc_config, ("oidc_config",))
-        yield _parse_oidc_config_dict(oidc_config, ("oidc_config",))
+        yield _parse_oidc_providers_dict(p, ("oidc_providers", "<item %i>" % (i,)))
 
 
-def _parse_oidc_config_dict(
-    oidc_config: JsonDict, config_path: tuple[str, ...]
+def _parse_oidc_providers_dict(
+    oidc_provider: JsonDict, config_path: tuple[str, ...]
 ) -> "OidcProviderConfig":
     """Take the configuration dict and parse it into an OidcProviderConfig
 
     Raises:
         ConfigError if the configuration is malformed.
     """
-    ump_config = oidc_config.get("user_mapping_provider", {})
+    ump_config = oidc_provider.get("user_mapping_provider", {})
     ump_config.setdefault("module", DEFAULT_USER_MAPPING_PROVIDER)
-    if ump_config.get("module") == LEGACY_USER_MAPPING_PROVIDER:
-        ump_config["module"] = DEFAULT_USER_MAPPING_PROVIDER
     ump_config.setdefault("config", {})
 
     (
@@ -239,7 +204,7 @@ def _parse_oidc_config_dict(
             config_path + ("user_mapping_provider", "module"),
         )
 
-    idp_id = oidc_config.get("idp_id", "oidc")
+    idp_id = oidc_provider.get("idp_id", "oidc")
 
     # prefix the given IDP with a prefix specific to the SSO mechanism, to avoid
     # clashes with other mechs (such as SAML, CAS).
@@ -253,7 +218,7 @@ def _parse_oidc_config_dict(
         idp_id = "oidc-" + idp_id
 
     # MSC2858 also specifies that the idp_icon must be a valid MXC uri
-    idp_icon = oidc_config.get("idp_icon")
+    idp_icon = oidc_provider.get("idp_icon")
     if idp_icon is not None:
         try:
             parse_and_validate_mxc_uri(idp_icon)
@@ -262,7 +227,7 @@ def _parse_oidc_config_dict(
                 "idp_icon must be a valid MXC URI", config_path + ("idp_icon",)
             ) from e
 
-    client_secret_jwt_key_config = oidc_config.get("client_secret_jwt_key")
+    client_secret_jwt_key_config = oidc_provider.get("client_secret_jwt_key")
     client_secret_jwt_key: Optional[OidcProviderClientSecretJwtKey] = None
     if client_secret_jwt_key_config is not None:
         keyfile = client_secret_jwt_key_config.get("key_file")
@@ -278,12 +243,12 @@ def _parse_oidc_config_dict(
     # parse attribute_requirements from config (list of dicts) into a list of SsoAttributeRequirement
     attribute_requirements = [
         SsoAttributeRequirement(**x)
-        for x in oidc_config.get("attribute_requirements", [])
+        for x in oidc_provider.get("attribute_requirements", [])
     ]
 
     # Read from either `client_secret_path` or `client_secret`. If both exist, error.
-    client_secret = oidc_config.get("client_secret")
-    client_secret_path = oidc_config.get("client_secret_path")
+    client_secret = oidc_provider.get("client_secret")
+    client_secret_path = oidc_provider.get("client_secret_path")
     if client_secret_path is not None:
         if client_secret is None:
             client_secret = read_file(
@@ -297,32 +262,36 @@ def _parse_oidc_config_dict(
 
     return OidcProviderConfig(
         idp_id=idp_id,
-        idp_name=oidc_config.get("idp_name", "OIDC"),
+        idp_name=oidc_provider.get("idp_name", "OIDC"),
         idp_icon=idp_icon,
-        idp_brand=oidc_config.get("idp_brand"),
-        discover=oidc_config.get("discover", True),
-        issuer=oidc_config["issuer"],
-        client_id=oidc_config["client_id"],
+        idp_brand=oidc_provider.get("idp_brand"),
+        discover=oidc_provider.get("discover", True),
+        issuer=oidc_provider["issuer"],
+        client_id=oidc_provider["client_id"],
         client_secret=client_secret,
         client_secret_jwt_key=client_secret_jwt_key,
-        client_auth_method=oidc_config.get("client_auth_method", "client_secret_basic"),
-        pkce_method=oidc_config.get("pkce_method", "auto"),
-        scopes=oidc_config.get("scopes", ["openid"]),
-        authorization_endpoint=oidc_config.get("authorization_endpoint"),
-        token_endpoint=oidc_config.get("token_endpoint"),
-        userinfo_endpoint=oidc_config.get("userinfo_endpoint"),
-        jwks_uri=oidc_config.get("jwks_uri"),
-        backchannel_logout_enabled=oidc_config.get("backchannel_logout_enabled", False),
-        backchannel_logout_ignore_sub=oidc_config.get(
+        client_auth_method=oidc_provider.get(
+            "client_auth_method", "client_secret_basic"
+        ),
+        pkce_method=oidc_provider.get("pkce_method", "auto"),
+        scopes=oidc_provider.get("scopes", ["openid"]),
+        authorization_endpoint=oidc_provider.get("authorization_endpoint"),
+        token_endpoint=oidc_provider.get("token_endpoint"),
+        userinfo_endpoint=oidc_provider.get("userinfo_endpoint"),
+        jwks_uri=oidc_provider.get("jwks_uri"),
+        backchannel_logout_enabled=oidc_provider.get(
+            "backchannel_logout_enabled", False
+        ),
+        backchannel_logout_ignore_sub=oidc_provider.get(
             "backchannel_logout_ignore_sub", False
         ),
-        skip_verification=oidc_config.get("skip_verification", False),
-        user_profile_method=oidc_config.get("user_profile_method", "auto"),
-        allow_existing_users=oidc_config.get("allow_existing_users", False),
+        skip_verification=oidc_provider.get("skip_verification", False),
+        user_profile_method=oidc_provider.get("user_profile_method", "auto"),
+        allow_existing_users=oidc_provider.get("allow_existing_users", False),
         user_mapping_provider_class=user_mapping_provider_class,
         user_mapping_provider_config=user_mapping_provider_config,
         attribute_requirements=attribute_requirements,
-        enable_registration=oidc_config.get("enable_registration", True),
+        enable_registration=oidc_provider.get("enable_registration", True),
     )
 
 

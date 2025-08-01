@@ -31,26 +31,6 @@ class PushConfig(Config):
             "group_unread_count_by_room", True
         )
 
-        # There was a a 'redact_content' setting but mistakenly read from the
-        # 'email'section'. Check for the flag in the 'push' section, and log,
-        # but do not honour it to avoid nasty surprises when people upgrade.
-        if push_config.get("redact_content") is not None:
-            print(
-                "The push.redact_content content option has never worked. "
-                "Please set push.include_content if you want this behaviour"
-            )
-
-        # Now check for the one in the 'email' section and honour it,
-        # with a warning.
-        email_push_config = config.get("email") or {}
-        redact_content = email_push_config.get("redact_content")
-        if redact_content is not None:
-            print(
-                "The 'email.redact_content' option is deprecated: "
-                "please set push.include_content instead"
-            )
-            self.push_include_content = not redact_content
-
         # Whether to apply a random delay to outbound push.
         self.push_jitter_delay_ms = None
         push_jitter_delay = push_config.get("jitter_delay", None)

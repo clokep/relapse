@@ -1,5 +1,5 @@
-import relapse
 from relapse.api.constants import EventTypes, RoomEncryptionAlgorithms
+from relapse.rest import admin
 from relapse.rest.client import login, room
 
 from tests import unittest
@@ -9,7 +9,7 @@ from tests.unittest import override_config
 class EncryptedByDefaultTestCase(unittest.HomeserverTestCase):
     servlets = [
         login.register_servlets,
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         room.register_servlets,
     ]
 

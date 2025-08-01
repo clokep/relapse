@@ -16,8 +16,8 @@ from typing import Optional
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import relapse.rest.admin
 from relapse.api.constants import EduTypes, EventTypes, HistoryVisibility, ReceiptTypes
+from relapse.rest import admin
 from relapse.rest.client import login, receipts, room, sync
 from relapse.server import HomeServer
 from relapse.types import JsonDict
@@ -30,7 +30,7 @@ class ReceiptsTestCase(unittest.HomeserverTestCase):
     servlets = [
         login.register_servlets,
         receipts.register_servlets,
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         room.register_servlets,
         sync.register_servlets,
     ]

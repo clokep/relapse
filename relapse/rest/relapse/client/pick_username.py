@@ -78,8 +78,6 @@ class AccountDetailsResource(DirectServeHtmlResource):
         def template_search_dirs() -> Generator[str, None, None]:
             if hs.config.server.custom_template_directory:
                 yield hs.config.server.custom_template_directory
-            if hs.config.sso.sso_template_dir:
-                yield hs.config.sso.sso_template_dir
             yield hs.config.sso.default_template_dir
 
         self._jinja_env = build_jinja_env(list(template_search_dirs()), hs.config)

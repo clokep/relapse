@@ -58,13 +58,12 @@ from relapse.storage.databases.main.registration import (
 )
 from relapse.types import JsonDict, Requester, UserID
 from relapse.util import stringutils as stringutils
-from relapse.util.async_helpers import delay_cancellation, maybe_awaitable
+from relapse.util.async_helpers import delay_cancellation
 from relapse.util.msisdn import phone_number_to_msisdn
 from relapse.util.stringutils import base62_encode
 from relapse.util.threepids import canonicalise_email
 
 if TYPE_CHECKING:
-    from relapse.module_api import ModuleApi
     from relapse.rest.client.login import LoginResponse
     from relapse.server import HomeServer
 
@@ -154,6 +153,8 @@ def login_id_phone_to_thirdparty(identifier: JsonDict) -> dict[str, str]:
 
     # Accept both "phone" and "number" as valid keys in m.id.phone
     phone_number = identifier.get("phone", identifier["number"])
+    if not isinstance(phone_number, str):
+        raise RelapseError(400, "Bad parameter: number", Codes.INVALID_PARAM)
 
     # Convert user-provided phone number to a consistent representation
     msisdn = phone_number_to_msisdn(identifier["country"], phone_number)
@@ -1851,150 +1852,6 @@ class AuthHandler:
         query.append((param_name, param))
         url_parts[4] = urllib.parse.urlencode(query)
         return urllib.parse.urlunparse(url_parts)
-
-
-def load_legacy_password_auth_providers(hs: "HomeServer") -> None:
-    module_api = hs.get_module_api()
-    for module, config in hs.config.authproviders.password_providers:
-        load_single_legacy_password_auth_provider(
-            module=module, config=config, api=module_api
-        )
-
-
-def load_single_legacy_password_auth_provider(
-    module: type,
-    config: JsonDict,
-    api: "ModuleApi",
-) -> None:
-    try:
-        provider = module(config=config, account_handler=api)
-    except Exception as e:
-        logger.error("Error while initializing %r: %s", module, e)
-        raise
-
-    # All methods that the module provides should be async, but this wasn't enforced
-    # in the old module system, so we wrap them if needed
-    def async_wrapper(f: Optional[Callable]) -> Optional[Callable[..., Awaitable]]:
-        # f might be None if the callback isn't implemented by the module. In this
-        # case we don't want to register a callback at all so we return None.
-        if f is None:
-            return None
-
-        # We need to wrap check_password because its old form would return a boolean
-        # but we now want it to behave just like check_auth() and return the matrix id of
-        # the user if authentication succeeded or None otherwise
-        if f.__name__ == "check_password":
-
-            async def wrapped_check_password(
-                username: str, login_type: str, login_dict: JsonDict
-            ) -> Optional[tuple[str, Optional[Callable]]]:
-                # We've already made sure f is not None above, but mypy doesn't do well
-                # across function boundaries so we need to tell it f is definitely not
-                # None.
-                assert f is not None
-
-                matrix_user_id = api.get_qualified_user_id(username)
-                password = login_dict["password"]
-
-                is_valid = await f(matrix_user_id, password)
-
-                if is_valid:
-                    return matrix_user_id, None
-
-                return None
-
-            return wrapped_check_password
-
-        # We need to wrap check_auth as in the old form it could return
-        # just a str, but now it must return Optional[Tuple[str, Optional[Callable]]
-        if f.__name__ == "check_auth":
-
-            async def wrapped_check_auth(
-                username: str, login_type: str, login_dict: JsonDict
-            ) -> Optional[tuple[str, Optional[Callable]]]:
-                # We've already made sure f is not None above, but mypy doesn't do well
-                # across function boundaries so we need to tell it f is definitely not
-                # None.
-                assert f is not None
-
-                result = await f(username, login_type, login_dict)
-
-                if isinstance(result, str):
-                    return result, None
-
-                return result
-
-            return wrapped_check_auth
-
-        # We need to wrap check_3pid_auth as in the old form it could return
-        # just a str, but now it must return Optional[Tuple[str, Optional[Callable]]
-        if f.__name__ == "check_3pid_auth":
-
-            async def wrapped_check_3pid_auth(
-                medium: str, address: str, password: str
-            ) -> Optional[tuple[str, Optional[Callable]]]:
-                # We've already made sure f is not None above, but mypy doesn't do well
-                # across function boundaries so we need to tell it f is definitely not
-                # None.
-                assert f is not None
-
-                result = await f(medium, address, password)
-
-                if isinstance(result, str):
-                    return result, None
-
-                return result
-
-            return wrapped_check_3pid_auth
-
-        def run(*args: tuple, **kwargs: dict) -> Awaitable:
-            # mypy doesn't do well across function boundaries so we need to tell it
-            # f is definitely not None.
-            assert f is not None
-
-            return maybe_awaitable(f(*args, **kwargs))
-
-        return run
-
-    # If the module has these methods implemented, then we pull them out
-    # and register them as hooks.
-    check_3pid_auth_hook: Optional[CHECK_3PID_AUTH_CALLBACK] = async_wrapper(
-        getattr(provider, "check_3pid_auth", None)
-    )
-    on_logged_out_hook: Optional[ON_LOGGED_OUT_CALLBACK] = async_wrapper(
-        getattr(provider, "on_logged_out", None)
-    )
-
-    supported_login_types = {}
-    # call get_supported_login_types and add that to the dict
-    g = getattr(provider, "get_supported_login_types", None)
-    if g is not None:
-        # Note the old module style also called get_supported_login_types at loading time
-        # and it is synchronous
-        supported_login_types.update(g())
-
-    auth_checkers = {}
-    # Legacy modules have a check_auth method which expects to be called with one of
-    # the keys returned by get_supported_login_types. New style modules register a
-    # dictionary of login_type->check_auth_method mappings
-    check_auth = async_wrapper(getattr(provider, "check_auth", None))
-    if check_auth is not None:
-        for login_type, fields in supported_login_types.items():
-            # need tuple(fields) since fields can be any Iterable type (so may not be hashable)
-            auth_checkers[(login_type, tuple(fields))] = check_auth
-
-    # if it has a "check_password" method then it should handle all auth checks
-    # with login type of LoginType.PASSWORD
-    check_password = async_wrapper(getattr(provider, "check_password", None))
-    if check_password is not None:
-        # need to use a tuple here for ("password",) not a list since lists aren't hashable
-        auth_checkers[(LoginType.PASSWORD, ("password",))] = check_password
-
-    api.register_password_auth_provider_callbacks(
-        check_3pid_auth=check_3pid_auth_hook,
-        on_logged_out=on_logged_out_hook,
-        auth_checkers=auth_checkers,
-    )
 
 
 CHECK_3PID_AUTH_CALLBACK = Callable[

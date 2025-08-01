@@ -22,13 +22,13 @@ from parameterized import parameterized
 from twisted.internet.task import deferLater
 from twisted.test.proto_helpers import MemoryReactor
 
-import relapse.rest.admin
 from relapse.api.constants import EventTypes, Membership, RoomTypes
 from relapse.api.errors import Codes
 from relapse.handlers.pagination import (
     PURGE_ROOM_ACTION_NAME,
     SHUTDOWN_AND_PURGE_ROOM_ACTION_NAME,
 )
+from relapse.rest import admin
 from relapse.rest.client import directory, events, knock, login, room, sync
 from relapse.server import HomeServer
 from relapse.types import UserID
@@ -45,7 +45,7 @@ ONE_HOUR_IN_S = 3600
 
 class DeleteRoomTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         login.register_servlets,
         events.register_servlets,
         room.register_servlets,
@@ -527,7 +527,7 @@ class DeleteRoomTestCase(unittest.HomeserverTestCase):
 
 class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         login.register_servlets,
         events.register_servlets,
         room.register_servlets,
@@ -1263,7 +1263,7 @@ class RoomTestCase(unittest.HomeserverTestCase):
     """Test /room admin API."""
 
     servlets = [
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         login.register_servlets,
         room.register_servlets,
         directory.register_servlets,
@@ -1996,7 +1996,7 @@ class RoomTestCase(unittest.HomeserverTestCase):
 
 class RoomMessagesTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         login.register_servlets,
         room.register_servlets,
     ]
@@ -2186,7 +2186,7 @@ class RoomMessagesTestCase(unittest.HomeserverTestCase):
 
 class JoinAliasRoomTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         room.register_servlets,
         login.register_servlets,
     ]
@@ -2518,7 +2518,7 @@ class JoinAliasRoomTestCase(unittest.HomeserverTestCase):
 
 class MakeRoomAdminTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         room.register_servlets,
         login.register_servlets,
     ]
@@ -2653,7 +2653,7 @@ class MakeRoomAdminTestCase(unittest.HomeserverTestCase):
 
 class BlockRoomTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         room.register_servlets,
         login.register_servlets,
     ]

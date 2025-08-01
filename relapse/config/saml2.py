@@ -27,11 +27,6 @@ from ._util import validate_config
 logger = logging.getLogger(__name__)
 
 DEFAULT_USER_MAPPING_PROVIDER = "relapse.handlers.saml.DefaultSamlMappingProvider"
-# The module that DefaultSamlMappingProvider is in was renamed, we want to
-# transparently handle both the same.
-LEGACY_USER_MAPPING_PROVIDER = (
-    "relapse.handlers.saml_handler.DefaultSamlMappingProvider"
-)
 
 
 def _dict_merge(merge_dict: dict, into_dict: dict) -> None:
@@ -102,30 +97,9 @@ class SAML2Config(Config):
 
         # Use the default user mapping provider if not set
         ump_dict.setdefault("module", DEFAULT_USER_MAPPING_PROVIDER)
-        if ump_dict.get("module") == LEGACY_USER_MAPPING_PROVIDER:
-            ump_dict["module"] = DEFAULT_USER_MAPPING_PROVIDER
 
         # Ensure a config is present
         ump_dict["config"] = ump_dict.get("config") or {}
-
-        if ump_dict["module"] == DEFAULT_USER_MAPPING_PROVIDER:
-            # Load deprecated options for use by the default module
-            old_mxid_source_attribute = saml2_config.get("mxid_source_attribute")
-            if old_mxid_source_attribute:
-                logger.warning(
-                    "The config option saml2_config.mxid_source_attribute is deprecated. "
-                    "Please use saml2_config.user_mapping_provider.config"
-                    ".mxid_source_attribute instead."
-                )
-                ump_dict["config"]["mxid_source_attribute"] = old_mxid_source_attribute
-
-            old_mxid_mapping = saml2_config.get("mxid_mapping")
-            if old_mxid_mapping:
-                logger.warning(
-                    "The config option saml2_config.mxid_mapping is deprecated. Please "
-                    "use saml2_config.user_mapping_provider.config.mxid_mapping instead."
-                )
-                ump_dict["config"]["mxid_mapping"] = old_mxid_mapping
 
         # Retrieve an instance of the module's class
         # Pass the config dictionary to the module for processing

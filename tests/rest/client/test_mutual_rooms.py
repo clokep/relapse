@@ -15,7 +15,7 @@ from urllib.parse import quote
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import relapse.rest.admin
+from relapse.rest import admin
 from relapse.rest.client import login, mutual_rooms, room
 from relapse.server import HomeServer
 from relapse.util import Clock
@@ -31,7 +31,7 @@ class UserMutualRoomsTest(unittest.HomeserverTestCase):
 
     servlets = [
         login.register_servlets,
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         room.register_servlets,
         mutual_rooms.register_servlets,
     ]

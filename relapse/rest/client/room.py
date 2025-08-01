@@ -203,25 +203,25 @@ class RoomStateEventRestServlet(RestServlet):
 
         http_server.register_paths(
             "GET",
-            client_patterns(state_key, v1=True),
+            client_patterns(state_key),
             self.on_GET,
             self.__class__.__name__,
         )
         http_server.register_paths(
             "PUT",
-            client_patterns(state_key, v1=True),
+            client_patterns(state_key),
             self.on_PUT,
             self.__class__.__name__,
         )
         http_server.register_paths(
             "GET",
-            client_patterns(no_state_key, v1=True),
+            client_patterns(no_state_key),
             self.on_GET_no_state_key,
             self.__class__.__name__,
         )
         http_server.register_paths(
             "PUT",
-            client_patterns(no_state_key, v1=True),
+            client_patterns(no_state_key),
             self.on_PUT_no_state_key,
             self.__class__.__name__,
         )
@@ -287,7 +287,17 @@ class RoomStateEventRestServlet(RestServlet):
 
         try:
             if event_type == EventTypes.Member:
-                membership = content.get("membership", None)
+                try:
+                    membership = content["membership"]
+                except KeyError:
+                    raise RelapseError(
+                        400, "Membership missing", errcode=Codes.MISSING_PARAM
+                    )
+                if not isinstance(membership, str):
+                    # TODO Assert it is an expected value.
+                    raise RelapseError(
+                        400, "Membership must be a string", errcode=Codes.INVALID_PARAM
+                    )
                 event_id, _ = await self.room_member_handler.update_membership(
                     requester,
                     target=UserID.from_string(state_key),
@@ -467,7 +477,7 @@ class JoinRoomAliasServlet(ResolveRoomIdMixin, TransactionRestServlet):
 
 # TODO: Needs unit testing
 class PublicRoomListRestServlet(RestServlet):
-    PATTERNS = client_patterns("/publicRooms$", v1=True)
+    PATTERNS = client_patterns("/publicRooms$")
     CATEGORY = "Client API requests"
 
     def __init__(self, hs: "HomeServer"):
@@ -586,7 +596,7 @@ class PublicRoomListRestServlet(RestServlet):
 
 # TODO: Needs unit testing
 class RoomMemberListRestServlet(RestServlet):
-    PATTERNS = client_patterns("/rooms/(?P<room_id>[^/]*)/members$", v1=True)
+    PATTERNS = client_patterns("/rooms/(?P<room_id>[^/]*)/members$")
     CATEGORY = "Client API requests"
 
     def __init__(self, hs: "HomeServer"):
@@ -642,7 +652,7 @@ class RoomMemberListRestServlet(RestServlet):
 # deprecated in favour of /members?membership=join?
 # except it does custom AS logic and has a simpler return format
 class JoinedRoomMemberListRestServlet(RestServlet):
-    PATTERNS = client_patterns("/rooms/(?P<room_id>[^/]*)/joined_members$", v1=True)
+    PATTERNS = client_patterns("/rooms/(?P<room_id>[^/]*)/joined_members$")
     CATEGORY = "Client API requests"
 
     def __init__(self, hs: "HomeServer"):
@@ -664,7 +674,7 @@ class JoinedRoomMemberListRestServlet(RestServlet):
 
 # TODO: Needs better unit testing
 class RoomMessageListRestServlet(RestServlet):
-    PATTERNS = client_patterns("/rooms/(?P<room_id>[^/]*)/messages$", v1=True)
+    PATTERNS = client_patterns("/rooms/(?P<room_id>[^/]*)/messages$")
     # TODO The routing information should be exposed programatically.
     #      I want to do this but for now I felt bad about leaving this without
     #      at least a visible warning on it.
@@ -734,7 +744,7 @@ class RoomMessageListRestServlet(RestServlet):
 
 # TODO: Needs unit testing
 class RoomStateRestServlet(RestServlet):
-    PATTERNS = client_patterns("/rooms/(?P<room_id>[^/]*)/state$", v1=True)
+    PATTERNS = client_patterns("/rooms/(?P<room_id>[^/]*)/state$")
     CATEGORY = "Client API requests"
 
     def __init__(self, hs: "HomeServer"):
@@ -757,7 +767,7 @@ class RoomStateRestServlet(RestServlet):
 
 # TODO: Needs unit testing
 class RoomInitialSyncRestServlet(RestServlet):
-    PATTERNS = client_patterns("/rooms/(?P<room_id>[^/]*)/initialSync$", v1=True)
+    PATTERNS = client_patterns("/rooms/(?P<room_id>[^/]*)/initialSync$")
     CATEGORY = "Sync requests"
 
     def __init__(self, hs: "HomeServer"):
@@ -780,9 +790,7 @@ class RoomInitialSyncRestServlet(RestServlet):
 
 
 class RoomEventServlet(RestServlet):
-    PATTERNS = client_patterns(
-        "/rooms/(?P<room_id>[^/]*)/event/(?P<event_id>[^/]*)$", v1=True
-    )
+    PATTERNS = client_patterns("/rooms/(?P<room_id>[^/]*)/event/(?P<event_id>[^/]*)$")
     CATEGORY = "Client API requests"
 
     def __init__(self, hs: "HomeServer"):
@@ -873,9 +881,7 @@ class RoomEventServlet(RestServlet):
 
 
 class RoomEventContextServlet(RestServlet):
-    PATTERNS = client_patterns(
-        "/rooms/(?P<room_id>[^/]*)/context/(?P<event_id>[^/]*)$", v1=True
-    )
+    PATTERNS = client_patterns("/rooms/(?P<room_id>[^/]*)/context/(?P<event_id>[^/]*)$")
     CATEGORY = "Client API requests"
 
     def __init__(self, hs: "HomeServer"):
@@ -1201,9 +1207,7 @@ class RoomRedactEventRestServlet(TransactionRestServlet):
 
 
 class RoomTypingRestServlet(RestServlet):
-    PATTERNS = client_patterns(
-        "/rooms/(?P<room_id>[^/]*)/typing/(?P<user_id>[^/]*)$", v1=True
-    )
+    PATTERNS = client_patterns("/rooms/(?P<room_id>[^/]*)/typing/(?P<user_id>[^/]*)$")
     CATEGORY = "The typing stream"
 
     def __init__(self, hs: "HomeServer"):
@@ -1287,7 +1291,7 @@ class RoomAliasListServlet(RestServlet):
 
 
 class SearchRestServlet(RestServlet):
-    PATTERNS = client_patterns("/search$", v1=True)
+    PATTERNS = client_patterns("/search$")
     CATEGORY = "Client API requests"
 
     def __init__(self, hs: "HomeServer"):
@@ -1307,7 +1311,7 @@ class SearchRestServlet(RestServlet):
 
 
 class JoinedRoomsRestServlet(RestServlet):
-    PATTERNS = client_patterns("/joined_rooms$", v1=True)
+    PATTERNS = client_patterns("/joined_rooms$")
     CATEGORY = "Client API requests"
 
     def __init__(self, hs: "HomeServer"):
@@ -1344,13 +1348,13 @@ def register_txn_path(
         raise RuntimeError("on_POST and on_PUT must exist when using register_txn_path")
     http_server.register_paths(
         "POST",
-        client_patterns(regex_string + "$", v1=True),
+        client_patterns(regex_string + "$"),
         on_POST,
         servlet.__class__.__name__,
     )
     http_server.register_paths(
         "PUT",
-        client_patterns(regex_string + "/(?P<txn_id>[^/]*)$", v1=True),
+        client_patterns(regex_string + "/(?P<txn_id>[^/]*)$"),
         on_PUT,
         servlet.__class__.__name__,
     )

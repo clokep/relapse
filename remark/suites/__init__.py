@@ -1,9 +1,9 @@
-from . import logging, lrucache, lrucache_evict
+from types import ModuleType
+from typing import Optional
 
-SUITES = [
-    (logging, 1000),
-    (logging, 10000),
-    (logging, None),
+from . import lrucache, lrucache_evict
+
+SUITES: list[tuple[ModuleType, Optional[int]]] = [
     (lrucache, None),
     (lrucache_evict, None),
 ]

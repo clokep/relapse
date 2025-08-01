@@ -1,3 +1,17 @@
+CREATE FUNCTION check_event_stream_ordering() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+            BEGIN
+                IF EXISTS (
+                    SELECT 1 FROM events
+                    WHERE events.event_id = NEW.event_id
+                       AND events.stream_ordering != NEW.event_stream_ordering
+                ) THEN
+                    RAISE EXCEPTION 'Incorrect event_stream_ordering';
+                END IF;
+                RETURN NEW;
+            END;
+            $$;
 CREATE FUNCTION check_partial_state_events() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
@@ -12,6 +26,55 @@ CREATE FUNCTION check_partial_state_events() RETURNS trigger
                 RETURN NEW;
             END;
             $$;
+CREATE FUNCTION delete_read_write_lock_parent() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+    new_token TEXT;
+    mode_row_token TEXT;
+BEGIN
+    -- Only update the token in `_mode` if its our token. This prevents
+    -- deadlocks.
+    --
+    -- We shove the token into `mode_row_token`, as otherwise postgres complains
+    -- we're not using the returned data.
+    SELECT token INTO mode_row_token FROM worker_read_write_locks_mode
+        WHERE
+            lock_name = OLD.lock_name
+            AND lock_key = OLD.lock_key
+            AND token = OLD.token
+        FOR UPDATE;
+    IF NOT FOUND THEN
+        RETURN NEW;
+    END IF;
+    SELECT token INTO new_token FROM worker_read_write_locks
+        WHERE
+            lock_name = OLD.lock_name
+            AND lock_key = OLD.lock_key
+        LIMIT 1 FOR UPDATE SKIP LOCKED;
+    IF NOT FOUND THEN
+        DELETE FROM worker_read_write_locks_mode
+            WHERE lock_name = OLD.lock_name AND lock_key = OLD.lock_key AND token = OLD.token;
+    ELSE
+        UPDATE worker_read_write_locks_mode
+            SET token = new_token
+            WHERE lock_name = OLD.lock_name AND lock_key = OLD.lock_key;
+    END IF;
+    RETURN NEW;
+END
+$$;
+CREATE FUNCTION upsert_read_write_lock_parent() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    INSERT INTO worker_read_write_locks_mode (lock_name, lock_key, write_lock, token)
+        VALUES (NEW.lock_name, NEW.lock_key, NEW.write_lock, NEW.token)
+        ON CONFLICT (lock_name, lock_key)
+        DO UPDATE SET write_lock = NEW.write_lock
+            WHERE OLD.write_lock != NEW.write_lock;
+    RETURN NEW;
+END
+$$;
 CREATE TABLE access_tokens (
     id bigint NOT NULL,
     user_id text NOT NULL,
@@ -72,11 +135,6 @@ CREATE TABLE appservice_stream_position (
     stream_ordering bigint,
     CONSTRAINT appservice_stream_position_lock_check CHECK ((lock = 'X'::bpchar))
 );
-CREATE TABLE batch_events (
-    event_id text NOT NULL,
-    room_id text NOT NULL,
-    batch_id text NOT NULL
-);
 CREATE TABLE blocked_rooms (
     room_id text NOT NULL,
     user_id text NOT NULL
@@ -108,7 +166,8 @@ CREATE TABLE current_state_events (
     room_id text NOT NULL,
     type text NOT NULL,
     state_key text NOT NULL,
-    membership text
+    membership text,
+    event_stream_ordering bigint
 );
 CREATE TABLE dehydrated_devices (
     user_id text NOT NULL,
@@ -126,6 +185,11 @@ CREATE TABLE destination_rooms (
     room_id text NOT NULL,
     stream_ordering bigint NOT NULL
 );
+COMMENT ON TABLE destination_rooms IS 'Information about transmission of PDUs in a given room to a given remote homeserver.';
+COMMENT ON COLUMN destination_rooms.destination IS 'server name of remote homeserver in question';
+COMMENT ON COLUMN destination_rooms.room_id IS 'room ID in question';
+COMMENT ON COLUMN destination_rooms.stream_ordering IS '`stream_ordering` of the most recent PDU in this room that needs to be sent (by us) to this homeserver.
+This can only be pointing to our own PDU because we are only responsible for sending our own PDUs.';
 CREATE TABLE destinations (
     destination text NOT NULL,
     retry_last_ts bigint,
@@ -133,6 +197,17 @@ CREATE TABLE destinations (
     failure_ts bigint,
     last_successful_stream_ordering bigint
 );
+COMMENT ON TABLE destinations IS 'Information about remote homeservers and the health of our connection to them.';
+COMMENT ON COLUMN destinations.destination IS 'server name of remote homeserver in question';
+COMMENT ON COLUMN destinations.retry_last_ts IS 'The last time we tried and failed to reach the remote server, in ms.
+This field is reset to `0` when we succeed in connecting again.';
+COMMENT ON COLUMN destinations.retry_interval IS 'How long, in milliseconds, to wait since the last time we tried to reach the remote server before trying again.
+This field is reset to `0` when we succeed in connecting again.';
+COMMENT ON COLUMN destinations.failure_ts IS 'The first time we tried and failed to reach the remote server, in ms.
+This field is reset to `NULL` when we succeed in connecting again.';
+COMMENT ON COLUMN destinations.last_successful_stream_ordering IS 'Stream ordering of the most recently successfully sent PDU to this server, sent through normal send (not e.g. backfill).
+In Catch-Up Mode, the original PDU persisted by us is represented here, even if we sent a later forward extremity in its stead.
+See `destination_rooms` for more information about catch-up.';
 CREATE TABLE device_auth_providers (
     user_id text NOT NULL,
     device_id text NOT NULL,
@@ -165,6 +240,12 @@ CREATE SEQUENCE device_inbox_sequence
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
+CREATE TABLE device_lists_changes_converted_stream_position (
+    lock character(1) DEFAULT 'X'::bpchar NOT NULL,
+    stream_id bigint NOT NULL,
+    room_id text NOT NULL,
+    CONSTRAINT device_lists_changes_converted_stream_position_lock_check CHECK ((lock = 'X'::bpchar))
+);
 CREATE TABLE device_lists_changes_in_room (
     user_id text NOT NULL,
     device_id text NOT NULL,
@@ -196,6 +277,11 @@ CREATE TABLE device_lists_remote_extremeties (
     user_id text NOT NULL,
     stream_id text NOT NULL
 );
+CREATE TABLE device_lists_remote_pending (
+    stream_id bigint NOT NULL,
+    user_id text NOT NULL,
+    device_id text NOT NULL
+);
 CREATE TABLE device_lists_remote_resync (
     user_id text NOT NULL,
     added_ts bigint NOT NULL
@@ -218,7 +304,8 @@ CREATE TABLE e2e_cross_signing_keys (
     user_id text NOT NULL,
     keytype text NOT NULL,
     keydata text NOT NULL,
-    stream_id bigint NOT NULL
+    stream_id bigint NOT NULL,
+    updatable_without_uia_before_ms bigint
 );
 CREATE TABLE e2e_cross_signing_signatures (
     user_id text NOT NULL,
@@ -312,6 +399,13 @@ CREATE TABLE event_expiry (
     event_id text NOT NULL,
     expiry_ts bigint NOT NULL
 );
+CREATE TABLE event_failed_pull_attempts (
+    room_id text NOT NULL,
+    event_id text NOT NULL,
+    num_attempts integer NOT NULL,
+    last_attempt_ts bigint NOT NULL,
+    last_cause text NOT NULL
+);
 CREATE TABLE event_forward_extremities (
     event_id text NOT NULL,
     room_id text NOT NULL
@@ -340,7 +434,8 @@ CREATE TABLE event_push_actions (
     notif smallint,
     highlight smallint,
     unread smallint,
-    thread_id text
+    thread_id text,
+    CONSTRAINT event_push_actions_thread_id CHECK ((thread_id IS NOT NULL))
 );
 CREATE TABLE event_push_actions_staging (
     event_id text NOT NULL,
@@ -349,7 +444,9 @@ CREATE TABLE event_push_actions_staging (
     notif smallint NOT NULL,
     highlight smallint NOT NULL,
     unread smallint,
-    thread_id text
+    thread_id text,
+    inserted_ts bigint DEFAULT (date_part('epoch'::text, now()) * (1000)::double precision),
+    CONSTRAINT event_push_actions_staging_thread_id CHECK ((thread_id IS NOT NULL))
 );
 CREATE TABLE event_push_summary (
     user_id text NOT NULL,
@@ -358,7 +455,8 @@ CREATE TABLE event_push_summary (
     stream_ordering bigint NOT NULL,
     unread_count bigint,
     last_receipt_stream_ordering bigint,
-    thread_id text
+    thread_id text,
+    CONSTRAINT event_push_summary_thread_id CHECK ((thread_id IS NOT NULL))
 );
 CREATE TABLE event_push_summary_last_receipt_stream_id (
     lock character(1) DEFAULT 'X'::bpchar NOT NULL,
@@ -394,15 +492,16 @@ CREATE TABLE event_search (
     origin_server_ts bigint,
     stream_ordering bigint
 );
+ALTER TABLE ONLY event_search ALTER COLUMN room_id SET (n_distinct=-0.01);
 CREATE TABLE event_to_state_groups (
     event_id text NOT NULL,
     state_group bigint NOT NULL
 );
-CREATE TABLE event_txn_id (
+CREATE TABLE event_txn_id_device_id (
     event_id text NOT NULL,
     room_id text NOT NULL,
     user_id text NOT NULL,
-    token_id bigint NOT NULL,
+    device_id text NOT NULL,
     txn_id text NOT NULL,
     inserted_ts bigint NOT NULL
 );
@@ -460,20 +559,6 @@ CREATE TABLE ignored_users (
     ignorer_user_id text NOT NULL,
     ignored_user_id text NOT NULL
 );
-CREATE TABLE insertion_event_edges (
-    event_id text NOT NULL,
-    room_id text NOT NULL,
-    insertion_prev_event_id text NOT NULL
-);
-CREATE TABLE insertion_event_extremities (
-    event_id text NOT NULL,
-    room_id text NOT NULL
-);
-CREATE TABLE insertion_events (
-    event_id text NOT NULL,
-    room_id text NOT NULL,
-    next_batch_id text NOT NULL
-);
 CREATE TABLE instance_map (
     instance_id integer NOT NULL,
     instance_name text NOT NULL
@@ -490,7 +575,8 @@ CREATE TABLE local_current_membership (
     room_id text NOT NULL,
     user_id text NOT NULL,
     event_id text NOT NULL,
-    membership text NOT NULL
+    membership text NOT NULL,
+    event_stream_ordering bigint
 );
 CREATE TABLE local_media_repository (
     media_id text,
@@ -521,6 +607,14 @@ CREATE TABLE local_media_repository_url_cache (
     media_id text,
     download_ts bigint
 );
+CREATE TABLE login_tokens (
+    token text NOT NULL,
+    user_id text NOT NULL,
+    expiry_ts bigint NOT NULL,
+    used_ts bigint,
+    auth_provider_id text,
+    auth_provider_session_id text
+);
 CREATE TABLE monthly_active_users (
     user_id text NOT NULL,
     "timestamp" bigint NOT NULL
@@ -535,17 +629,19 @@ CREATE TABLE partial_state_events (
     event_id text NOT NULL
 );
 CREATE TABLE partial_state_rooms (
-    room_id text NOT NULL
+    room_id text NOT NULL,
+    device_lists_stream_id bigint DEFAULT 0 NOT NULL,
+    join_event_id text,
+    joined_via text
 );
 CREATE TABLE partial_state_rooms_servers (
     room_id text NOT NULL,
     server_name text NOT NULL
 );
-CREATE TABLE presence (
+CREATE TABLE per_user_experimental_features (
     user_id text NOT NULL,
-    state character varying(20),
-    status_msg text,
-    mtime bigint
+    feature text NOT NULL,
+    enabled boolean DEFAULT false
 );
 CREATE TABLE presence_stream (
     stream_id bigint,
@@ -567,7 +663,9 @@ CREATE SEQUENCE presence_stream_sequence
 CREATE TABLE profiles (
     user_id text NOT NULL,
     displayname text,
-    avatar_url text
+    avatar_url text,
+    full_user_id text,
+    CONSTRAINT full_user_id_not_null CHECK ((full_user_id IS NOT NULL))
 );
 CREATE TABLE push_rules (
     id bigint NOT NULL,
@@ -616,7 +714,9 @@ CREATE TABLE pushers (
     data text,
     last_stream_ordering bigint,
     last_success bigint,
-    failing_since bigint
+    failing_since bigint,
+    enabled boolean,
+    device_id text
 );
 CREATE TABLE ratelimit_override (
     user_id text NOT NULL,
@@ -725,6 +825,11 @@ CREATE TABLE room_depth (
     room_id text NOT NULL,
     min_depth bigint
 );
+CREATE TABLE room_forgetter_stream_pos (
+    lock character(1) DEFAULT 'X'::bpchar NOT NULL,
+    stream_id bigint NOT NULL,
+    CONSTRAINT room_forgetter_stream_pos_lock_check CHECK ((lock = 'X'::bpchar))
+);
 CREATE TABLE room_memberships (
     event_id text NOT NULL,
     user_id text NOT NULL,
@@ -733,7 +838,8 @@ CREATE TABLE room_memberships (
     membership text NOT NULL,
     forgotten integer DEFAULT 0,
     display_name text,
-    avatar_url text
+    avatar_url text,
+    event_stream_ordering bigint
 );
 CREATE TABLE room_retention (
     room_id text NOT NULL,
@@ -788,6 +894,16 @@ CREATE TABLE rooms (
     room_version text,
     has_auth_chain_index boolean
 );
+CREATE TABLE scheduled_tasks (
+    id text NOT NULL,
+    action text NOT NULL,
+    status text NOT NULL,
+    "timestamp" bigint NOT NULL,
+    resource_id text,
+    params text,
+    result text,
+    error text
+);
 CREATE TABLE server_keys_json (
     server_name text NOT NULL,
     key_id text NOT NULL,
@@ -832,6 +948,13 @@ CREATE TABLE stream_positions (
     instance_name text NOT NULL,
     stream_id bigint NOT NULL
 );
+CREATE TABLE threads (
+    room_id text NOT NULL,
+    thread_id text NOT NULL,
+    latest_event_id text NOT NULL,
+    topological_ordering bigint NOT NULL,
+    stream_ordering bigint NOT NULL
+);
 CREATE TABLE threepid_guest_access_tokens (
     medium text,
     address text,
@@ -852,6 +975,11 @@ CREATE TABLE threepid_validation_token (
     next_link text,
     expires bigint NOT NULL
 );
+CREATE TABLE timeline_gaps (
+    room_id text NOT NULL,
+    instance_name text NOT NULL,
+    stream_ordering bigint NOT NULL
+);
 CREATE TABLE ui_auth_sessions (
     session_id text NOT NULL,
     creation_time bigint NOT NULL,
@@ -871,6 +999,29 @@ CREATE TABLE ui_auth_sessions_ips (
     ip text NOT NULL,
     user_agent text NOT NULL
 );
+CREATE TABLE un_partial_stated_event_stream (
+    stream_id bigint NOT NULL,
+    instance_name text NOT NULL,
+    event_id text NOT NULL,
+    rejection_status_changed boolean NOT NULL
+);
+CREATE SEQUENCE un_partial_stated_event_stream_sequence
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+CREATE TABLE un_partial_stated_room_stream (
+    stream_id bigint NOT NULL,
+    instance_name text NOT NULL,
+    room_id text NOT NULL
+);
+CREATE SEQUENCE un_partial_stated_room_stream_sequence
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
 CREATE TABLE user_daily_visits (
     user_id text NOT NULL,
     device_id text,
@@ -887,6 +1038,12 @@ CREATE TABLE user_directory_search (
     user_id text NOT NULL,
     vector tsvector
 );
+CREATE TABLE user_directory_stale_remote_users (
+    user_id text NOT NULL,
+    user_server_name text NOT NULL,
+    next_try_at_ts bigint NOT NULL,
+    retry_counter integer NOT NULL
+);
 CREATE TABLE user_directory_stream_pos (
     lock character(1) DEFAULT 'X'::bpchar NOT NULL,
     stream_id bigint,
@@ -900,7 +1057,9 @@ CREATE TABLE user_external_ids (
 CREATE TABLE user_filters (
     user_id text NOT NULL,
     filter_id bigint NOT NULL,
-    filter_json bytea NOT NULL
+    filter_json bytea NOT NULL,
+    full_user_id text,
+    CONSTRAINT full_user_id_not_null CHECK ((full_user_id IS NOT NULL))
 );
 CREATE SEQUENCE user_id_seq
     START WITH 1
@@ -952,7 +1111,9 @@ CREATE TABLE users (
     user_type text,
     deactivated smallint DEFAULT 0 NOT NULL,
     shadow_banned boolean,
-    consent_ts bigint
+    consent_ts bigint,
+    approved boolean,
+    locked boolean DEFAULT false NOT NULL
 );
 CREATE TABLE users_in_public_rooms (
     user_id text NOT NULL,
@@ -976,6 +1137,20 @@ CREATE TABLE worker_locks (
     instance_name text NOT NULL,
     token text NOT NULL,
     last_renewed_ts bigint NOT NULL
+);
+CREATE UNLOGGED TABLE worker_read_write_locks (
+    lock_name text NOT NULL,
+    lock_key text NOT NULL,
+    instance_name text NOT NULL,
+    write_lock boolean NOT NULL,
+    token text NOT NULL,
+    last_renewed_ts bigint NOT NULL
+);
+CREATE UNLOGGED TABLE worker_read_write_locks_mode (
+    lock_name text NOT NULL,
+    lock_key text NOT NULL,
+    write_lock boolean NOT NULL,
+    token text NOT NULL
 );
 ALTER TABLE ONLY instance_map ALTER COLUMN instance_id SET DEFAULT nextval('instance_map_instance_id_seq'::regclass);
 ALTER TABLE ONLY access_tokens
@@ -1002,6 +1177,10 @@ ALTER TABLE ONLY destination_rooms
     ADD CONSTRAINT destination_rooms_pkey PRIMARY KEY (destination, room_id);
 ALTER TABLE ONLY destinations
     ADD CONSTRAINT destinations_pkey PRIMARY KEY (destination);
+ALTER TABLE ONLY device_lists_changes_converted_stream_position
+    ADD CONSTRAINT device_lists_changes_converted_stream_position_lock_key UNIQUE (lock);
+ALTER TABLE ONLY device_lists_remote_pending
+    ADD CONSTRAINT device_lists_remote_pending_pkey PRIMARY KEY (stream_id);
 ALTER TABLE ONLY devices
     ADD CONSTRAINT device_uniqueness UNIQUE (user_id, device_id);
 ALTER TABLE ONLY e2e_device_keys_json
@@ -1018,6 +1197,8 @@ ALTER TABLE ONLY event_backward_extremities
     ADD CONSTRAINT event_backward_extremities_event_id_room_id_key UNIQUE (event_id, room_id);
 ALTER TABLE ONLY event_expiry
     ADD CONSTRAINT event_expiry_pkey PRIMARY KEY (event_id);
+ALTER TABLE ONLY event_failed_pull_attempts
+    ADD CONSTRAINT event_failed_pull_attempts_pkey PRIMARY KEY (room_id, event_id);
 ALTER TABLE ONLY event_forward_extremities
     ADD CONSTRAINT event_forward_extremities_event_id_room_id_key UNIQUE (event_id, room_id);
 ALTER TABLE ONLY event_push_actions
@@ -1042,6 +1223,8 @@ ALTER TABLE ONLY instance_map
     ADD CONSTRAINT instance_map_pkey PRIMARY KEY (instance_id);
 ALTER TABLE ONLY local_media_repository
     ADD CONSTRAINT local_media_repository_media_id_key UNIQUE (media_id);
+ALTER TABLE ONLY login_tokens
+    ADD CONSTRAINT login_tokens_pkey PRIMARY KEY (token);
 ALTER TABLE ONLY user_threepids
     ADD CONSTRAINT medium_address UNIQUE (medium, address);
 ALTER TABLE ONLY open_id_tokens
@@ -1052,8 +1235,8 @@ ALTER TABLE ONLY partial_state_rooms
     ADD CONSTRAINT partial_state_rooms_pkey PRIMARY KEY (room_id);
 ALTER TABLE ONLY partial_state_rooms_servers
     ADD CONSTRAINT partial_state_rooms_servers_room_id_server_name_key UNIQUE (room_id, server_name);
-ALTER TABLE ONLY presence
-    ADD CONSTRAINT presence_user_id_key UNIQUE (user_id);
+ALTER TABLE ONLY per_user_experimental_features
+    ADD CONSTRAINT per_user_experimental_features_pkey PRIMARY KEY (user_id, feature);
 ALTER TABLE ONLY profiles
     ADD CONSTRAINT profiles_user_id_key UNIQUE (user_id);
 ALTER TABLE ONLY push_rules_enable
@@ -1071,11 +1254,7 @@ ALTER TABLE ONLY pushers
 ALTER TABLE ONLY pushers
     ADD CONSTRAINT pushers2_pkey PRIMARY KEY (id);
 ALTER TABLE ONLY receipts_graph
-    ADD CONSTRAINT receipts_graph_uniqueness UNIQUE (room_id, receipt_type, user_id);
-ALTER TABLE ONLY receipts_graph
     ADD CONSTRAINT receipts_graph_uniqueness_thread UNIQUE (room_id, receipt_type, user_id, thread_id);
-ALTER TABLE ONLY receipts_linearized
-    ADD CONSTRAINT receipts_linearized_uniqueness UNIQUE (room_id, receipt_type, user_id);
 ALTER TABLE ONLY receipts_linearized
     ADD CONSTRAINT receipts_linearized_uniqueness_thread UNIQUE (room_id, receipt_type, user_id, thread_id);
 ALTER TABLE ONLY received_transactions
@@ -1098,6 +1277,8 @@ ALTER TABLE ONLY room_aliases
     ADD CONSTRAINT room_aliases_room_alias_key UNIQUE (room_alias);
 ALTER TABLE ONLY room_depth
     ADD CONSTRAINT room_depth_room_id_key UNIQUE (room_id);
+ALTER TABLE ONLY room_forgetter_stream_pos
+    ADD CONSTRAINT room_forgetter_stream_pos_lock_key UNIQUE (lock);
 ALTER TABLE ONLY room_memberships
     ADD CONSTRAINT room_memberships_event_id_key UNIQUE (event_id);
 ALTER TABLE ONLY room_retention
@@ -1110,6 +1291,8 @@ ALTER TABLE ONLY room_tags
     ADD CONSTRAINT room_tag_uniqueness UNIQUE (user_id, room_id, tag);
 ALTER TABLE ONLY rooms
     ADD CONSTRAINT rooms_pkey PRIMARY KEY (room_id);
+ALTER TABLE ONLY scheduled_tasks
+    ADD CONSTRAINT scheduled_tasks_pkey PRIMARY KEY (id);
 ALTER TABLE ONLY server_keys_json
     ADD CONSTRAINT server_keys_json_uniqueness UNIQUE (server_name, key_id, from_server);
 ALTER TABLE ONLY server_signature_keys
@@ -1120,6 +1303,8 @@ ALTER TABLE ONLY state_events
     ADD CONSTRAINT state_events_event_id_key UNIQUE (event_id);
 ALTER TABLE ONLY stats_incremental_position
     ADD CONSTRAINT stats_incremental_position_lock_key UNIQUE (lock);
+ALTER TABLE ONLY threads
+    ADD CONSTRAINT threads_uniqueness UNIQUE (room_id, thread_id);
 ALTER TABLE ONLY threepid_validation_session
     ADD CONSTRAINT threepid_validation_session_pkey PRIMARY KEY (session_id);
 ALTER TABLE ONLY threepid_validation_token
@@ -1130,6 +1315,12 @@ ALTER TABLE ONLY ui_auth_sessions_ips
     ADD CONSTRAINT ui_auth_sessions_ips_session_id_ip_user_agent_key UNIQUE (session_id, ip, user_agent);
 ALTER TABLE ONLY ui_auth_sessions
     ADD CONSTRAINT ui_auth_sessions_session_id_key UNIQUE (session_id);
+ALTER TABLE ONLY un_partial_stated_event_stream
+    ADD CONSTRAINT un_partial_stated_event_stream_pkey PRIMARY KEY (stream_id);
+ALTER TABLE ONLY un_partial_stated_room_stream
+    ADD CONSTRAINT un_partial_stated_room_stream_pkey PRIMARY KEY (stream_id);
+ALTER TABLE ONLY user_directory_stale_remote_users
+    ADD CONSTRAINT user_directory_stale_remote_users_pkey PRIMARY KEY (user_id);
 ALTER TABLE ONLY user_directory_stream_pos
     ADD CONSTRAINT user_directory_stream_pos_lock_key UNIQUE (lock);
 ALTER TABLE ONLY user_external_ids
@@ -1144,13 +1335,12 @@ CREATE INDEX access_tokens_device_id ON access_tokens USING btree (user_id, devi
 CREATE INDEX account_data_stream_id ON account_data USING btree (user_id, stream_id);
 CREATE INDEX application_services_txns_id ON application_services_txns USING btree (as_id);
 CREATE UNIQUE INDEX appservice_room_list_idx ON appservice_room_list USING btree (appservice_id, network_id, room_id);
-CREATE INDEX batch_events_batch_id ON batch_events USING btree (batch_id);
 CREATE UNIQUE INDEX blocked_rooms_idx ON blocked_rooms USING btree (room_id);
 CREATE UNIQUE INDEX cache_invalidation_stream_by_instance_id ON cache_invalidation_stream_by_instance USING btree (stream_id);
 CREATE INDEX cache_invalidation_stream_by_instance_instance_index ON cache_invalidation_stream_by_instance USING btree (instance_name, stream_id);
-CREATE UNIQUE INDEX chunk_events_event_id ON batch_events USING btree (event_id);
 CREATE INDEX current_state_delta_stream_idx ON current_state_delta_stream USING btree (stream_id);
 CREATE INDEX current_state_events_member_index ON current_state_events USING btree (state_key) WHERE (type = 'm.room.member'::text);
+CREATE INDEX current_state_events_stream_ordering_idx ON current_state_events USING btree (event_stream_ordering);
 CREATE INDEX deleted_pushers_stream_id ON deleted_pushers USING btree (stream_id);
 CREATE INDEX destination_rooms_room_id ON destination_rooms USING btree (room_id);
 CREATE INDEX device_auth_providers_devices ON device_auth_providers USING btree (user_id, device_id);
@@ -1160,6 +1350,7 @@ CREATE INDEX device_federation_outbox_destination_id ON device_federation_outbox
 CREATE INDEX device_federation_outbox_id ON device_federation_outbox USING btree (stream_id);
 CREATE INDEX device_inbox_stream_id_user_id ON device_inbox USING btree (stream_id, user_id);
 CREATE INDEX device_inbox_user_stream_id ON device_inbox USING btree (user_id, device_id, stream_id);
+CREATE INDEX device_lists_changes_in_room_by_room_idx ON device_lists_changes_in_room USING btree (room_id, stream_id);
 CREATE UNIQUE INDEX device_lists_changes_in_stream_id ON device_lists_changes_in_room USING btree (stream_id, room_id);
 CREATE INDEX device_lists_changes_in_stream_id_unconverted ON device_lists_changes_in_room USING btree (stream_id) WHERE (NOT converted_to_destinations);
 CREATE UNIQUE INDEX device_lists_outbound_last_success_unique_idx ON device_lists_outbound_last_success USING btree (destination, user_id);
@@ -1168,6 +1359,7 @@ CREATE INDEX device_lists_outbound_pokes_stream ON device_lists_outbound_pokes U
 CREATE INDEX device_lists_outbound_pokes_user ON device_lists_outbound_pokes USING btree (destination, user_id);
 CREATE UNIQUE INDEX device_lists_remote_cache_unique_id ON device_lists_remote_cache USING btree (user_id, device_id);
 CREATE UNIQUE INDEX device_lists_remote_extremeties_unique_idx ON device_lists_remote_extremeties USING btree (user_id);
+CREATE UNIQUE INDEX device_lists_remote_pending_user_device_id ON device_lists_remote_pending USING btree (user_id, device_id);
 CREATE UNIQUE INDEX device_lists_remote_resync_idx ON device_lists_remote_resync USING btree (user_id);
 CREATE INDEX device_lists_remote_resync_ts_idx ON device_lists_remote_resync USING btree (added_ts);
 CREATE INDEX device_lists_stream_id ON device_lists_stream USING btree (stream_id, user_id);
@@ -1175,6 +1367,7 @@ CREATE INDEX device_lists_stream_user_id ON device_lists_stream USING btree (use
 CREATE UNIQUE INDEX e2e_cross_signing_keys_idx ON e2e_cross_signing_keys USING btree (user_id, keytype, stream_id);
 CREATE UNIQUE INDEX e2e_cross_signing_keys_stream_idx ON e2e_cross_signing_keys USING btree (stream_id);
 CREATE INDEX e2e_cross_signing_signatures2_idx ON e2e_cross_signing_signatures USING btree (user_id, target_user_id, target_device_id);
+CREATE INDEX e2e_room_keys_room_id ON e2e_room_keys USING btree (room_id);
 CREATE UNIQUE INDEX e2e_room_keys_versions_idx ON e2e_room_keys_versions USING btree (user_id, version);
 CREATE UNIQUE INDEX e2e_room_keys_with_version_idx ON e2e_room_keys USING btree (user_id, version, room_id, session_id);
 CREATE UNIQUE INDEX erased_users_user ON erased_users USING btree (user_id);
@@ -1190,6 +1383,7 @@ CREATE UNIQUE INDEX event_auth_chains_c_seq_index ON event_auth_chains USING btr
 CREATE INDEX event_contains_url_index ON events USING btree (room_id, topological_ordering, stream_ordering) WHERE ((contains_url = true) AND (outlier = false));
 CREATE UNIQUE INDEX event_edges_event_id_prev_event_id_idx ON event_edges USING btree (event_id, prev_event_id);
 CREATE INDEX event_expiry_expiry_ts_idx ON event_expiry USING btree (expiry_ts);
+CREATE INDEX event_failed_pull_attempts_room_id ON event_failed_pull_attempts USING btree (room_id);
 CREATE INDEX event_labels_room_id_label_idx ON event_labels USING btree (room_id, label, topological_ordering);
 CREATE INDEX event_push_actions_highlights_index ON event_push_actions USING btree (user_id, room_id, topological_ordering, stream_ordering) WHERE (highlight = 1);
 CREATE INDEX event_push_actions_rm_tokens ON event_push_actions USING btree (user_id, room_id, topological_ordering, stream_ordering);
@@ -1198,7 +1392,7 @@ CREATE INDEX event_push_actions_staging_id ON event_push_actions_staging USING b
 CREATE INDEX event_push_actions_stream_highlight_index ON event_push_actions USING btree (highlight, stream_ordering) WHERE (highlight = 0);
 CREATE INDEX event_push_actions_stream_ordering ON event_push_actions USING btree (stream_ordering, user_id);
 CREATE INDEX event_push_actions_u_highlight ON event_push_actions USING btree (user_id, stream_ordering);
-CREATE UNIQUE INDEX event_push_summary_unique_index ON event_push_summary USING btree (user_id, room_id);
+CREATE INDEX event_push_summary_index_room_id ON event_push_summary USING btree (room_id);
 CREATE UNIQUE INDEX event_push_summary_unique_index2 ON event_push_summary USING btree (user_id, room_id, thread_id);
 CREATE UNIQUE INDEX event_relations_id ON event_relations USING btree (event_id);
 CREATE INDEX event_relations_relates ON event_relations USING btree (relates_to_id, relation_type, aggregation_key);
@@ -1206,9 +1400,10 @@ CREATE INDEX event_search_ev_ridx ON event_search USING btree (room_id);
 CREATE UNIQUE INDEX event_search_event_id_idx ON event_search USING btree (event_id);
 CREATE INDEX event_search_fts_idx ON event_search USING gin (vector);
 CREATE INDEX event_to_state_groups_sg_index ON event_to_state_groups USING btree (state_group);
-CREATE UNIQUE INDEX event_txn_id_event_id ON event_txn_id USING btree (event_id);
-CREATE INDEX event_txn_id_ts ON event_txn_id USING btree (inserted_ts);
-CREATE UNIQUE INDEX event_txn_id_txn_id ON event_txn_id USING btree (room_id, user_id, token_id, txn_id);
+CREATE UNIQUE INDEX event_txn_id_device_id_event_id ON event_txn_id_device_id USING btree (event_id);
+CREATE INDEX event_txn_id_device_id_ts ON event_txn_id_device_id USING btree (inserted_ts);
+CREATE UNIQUE INDEX event_txn_id_device_id_txn_id ON event_txn_id_device_id USING btree (room_id, user_id, device_id, txn_id);
+CREATE INDEX events_jump_to_date_idx ON events USING btree (room_id, origin_server_ts) WHERE (NOT outlier);
 CREATE INDEX events_order_room ON events USING btree (room_id, topological_ordering, stream_ordering);
 CREATE INDEX events_room_stream ON events USING btree (room_id, stream_ordering);
 CREATE UNIQUE INDEX events_stream_ordering ON events USING btree (stream_ordering);
@@ -1216,24 +1411,21 @@ CREATE INDEX events_ts ON events USING btree (origin_server_ts, stream_ordering)
 CREATE UNIQUE INDEX federation_inbound_events_staging_instance_event ON federation_inbound_events_staging USING btree (origin, event_id);
 CREATE INDEX federation_inbound_events_staging_room ON federation_inbound_events_staging USING btree (room_id, received_ts);
 CREATE UNIQUE INDEX federation_stream_position_instance ON federation_stream_position USING btree (type, instance_name);
+CREATE UNIQUE INDEX full_users_unique_idx ON user_filters USING btree (full_user_id, filter_id);
 CREATE INDEX ignored_users_ignored_user_id ON ignored_users USING btree (ignored_user_id);
 CREATE UNIQUE INDEX ignored_users_uniqueness ON ignored_users USING btree (ignorer_user_id, ignored_user_id);
-CREATE INDEX insertion_event_edges_event_id ON insertion_event_edges USING btree (event_id);
-CREATE INDEX insertion_event_edges_insertion_prev_event_id ON insertion_event_edges USING btree (insertion_prev_event_id);
-CREATE INDEX insertion_event_edges_insertion_room_id ON insertion_event_edges USING btree (room_id);
-CREATE UNIQUE INDEX insertion_event_extremities_event_id ON insertion_event_extremities USING btree (event_id);
-CREATE INDEX insertion_event_extremities_room_id ON insertion_event_extremities USING btree (room_id);
-CREATE UNIQUE INDEX insertion_events_event_id ON insertion_events USING btree (event_id);
-CREATE INDEX insertion_events_next_batch_id ON insertion_events USING btree (next_batch_id);
 CREATE UNIQUE INDEX instance_map_idx ON instance_map USING btree (instance_name);
 CREATE UNIQUE INDEX local_current_membership_idx ON local_current_membership USING btree (user_id, room_id);
 CREATE INDEX local_current_membership_room_idx ON local_current_membership USING btree (room_id);
+CREATE INDEX local_current_membership_stream_ordering_idx ON local_current_membership USING btree (event_stream_ordering);
 CREATE UNIQUE INDEX local_media_repository_thumbn_media_id_width_height_method_key ON local_media_repository_thumbnails USING btree (media_id, thumbnail_width, thumbnail_height, thumbnail_type, thumbnail_method);
 CREATE INDEX local_media_repository_thumbnails_media_id ON local_media_repository_thumbnails USING btree (media_id);
 CREATE INDEX local_media_repository_url_cache_by_url_download_ts ON local_media_repository_url_cache USING btree (url, download_ts);
 CREATE INDEX local_media_repository_url_cache_expires_idx ON local_media_repository_url_cache USING btree (expires_ts);
 CREATE INDEX local_media_repository_url_cache_media_idx ON local_media_repository_url_cache USING btree (media_id);
 CREATE INDEX local_media_repository_url_idx ON local_media_repository USING btree (created_ts) WHERE (url_cache IS NOT NULL);
+CREATE INDEX login_tokens_auth_provider_idx ON login_tokens USING btree (auth_provider_id, auth_provider_session_id);
+CREATE INDEX login_tokens_expiry_time_idx ON login_tokens USING btree (expiry_ts);
 CREATE INDEX monthly_active_users_time_stamp ON monthly_active_users USING btree ("timestamp");
 CREATE UNIQUE INDEX monthly_active_users_users ON monthly_active_users USING btree (user_id);
 CREATE INDEX open_id_tokens_ts_valid_until_ms ON open_id_tokens USING btree (ts_valid_until_ms);
@@ -1241,6 +1433,7 @@ CREATE INDEX partial_state_events_room_id_idx ON partial_state_events USING btre
 CREATE INDEX presence_stream_id ON presence_stream USING btree (stream_id, user_id);
 CREATE INDEX presence_stream_state_not_offline_idx ON presence_stream USING btree (state) WHERE (state <> 'offline'::text);
 CREATE INDEX presence_stream_user_id ON presence_stream USING btree (user_id);
+CREATE UNIQUE INDEX profiles_full_user_id_key ON profiles USING btree (full_user_id);
 CREATE INDEX public_room_index ON rooms USING btree (is_public);
 CREATE INDEX push_rules_enable_user_name ON push_rules_enable USING btree (user_name);
 CREATE INDEX push_rules_stream_id ON push_rules_stream USING btree (stream_id);
@@ -1257,25 +1450,36 @@ CREATE INDEX redactions_have_censored_ts ON redactions USING btree (received_ts)
 CREATE INDEX redactions_redacts ON redactions USING btree (redacts);
 CREATE INDEX refresh_tokens_next_token_id ON refresh_tokens USING btree (next_token_id) WHERE (next_token_id IS NOT NULL);
 CREATE UNIQUE INDEX remote_media_repository_thumbn_media_origin_id_width_height_met ON remote_media_cache_thumbnails USING btree (media_origin, media_id, thumbnail_width, thumbnail_height, thumbnail_type, thumbnail_method);
+CREATE INDEX room_account_data_room_id ON room_account_data USING btree (room_id);
 CREATE INDEX room_account_data_stream_id ON room_account_data USING btree (user_id, stream_id);
 CREATE INDEX room_alias_servers_alias ON room_alias_servers USING btree (room_alias);
 CREATE INDEX room_aliases_id ON room_aliases USING btree (room_id);
+CREATE INDEX room_membership_user_room_idx ON room_memberships USING btree (user_id, room_id);
 CREATE INDEX room_memberships_room_id ON room_memberships USING btree (room_id);
+CREATE INDEX room_memberships_stream_ordering_idx ON room_memberships USING btree (event_stream_ordering);
 CREATE INDEX room_memberships_user_id ON room_memberships USING btree (user_id);
 CREATE INDEX room_memberships_user_room_forgotten ON room_memberships USING btree (user_id, room_id) WHERE (forgotten = 1);
 CREATE INDEX room_retention_max_lifetime_idx ON room_retention USING btree (max_lifetime);
 CREATE UNIQUE INDEX room_stats_earliest_token_idx ON room_stats_earliest_token USING btree (room_id);
 CREATE UNIQUE INDEX room_stats_state_room ON room_stats_state USING btree (room_id);
+CREATE INDEX scheduled_tasks_status ON scheduled_tasks USING btree (status);
+CREATE INDEX scheduled_tasks_timestamp ON scheduled_tasks USING btree ("timestamp");
 CREATE INDEX stream_ordering_to_exterm_idx ON stream_ordering_to_exterm USING btree (stream_ordering);
 CREATE INDEX stream_ordering_to_exterm_rm_idx ON stream_ordering_to_exterm USING btree (room_id, stream_ordering);
 CREATE UNIQUE INDEX stream_positions_idx ON stream_positions USING btree (stream_name, instance_name);
+CREATE INDEX threads_ordering_idx ON threads USING btree (room_id, topological_ordering, stream_ordering);
 CREATE UNIQUE INDEX threepid_guest_access_tokens_index ON threepid_guest_access_tokens USING btree (medium, address);
 CREATE INDEX threepid_validation_token_session_id ON threepid_validation_token USING btree (session_id);
+CREATE INDEX timeline_gaps_room_id ON timeline_gaps USING btree (room_id, stream_ordering);
+CREATE UNIQUE INDEX un_partial_stated_event_stream_room_id ON un_partial_stated_event_stream USING btree (event_id);
+CREATE INDEX un_partial_stated_room_stream_room_id ON un_partial_stated_room_stream USING btree (room_id);
 CREATE INDEX user_daily_visits_ts_idx ON user_daily_visits USING btree ("timestamp");
 CREATE INDEX user_daily_visits_uts_idx ON user_daily_visits USING btree (user_id, "timestamp");
 CREATE INDEX user_directory_room_idx ON user_directory USING btree (room_id);
 CREATE INDEX user_directory_search_fts_idx ON user_directory_search USING gin (vector);
 CREATE UNIQUE INDEX user_directory_search_user_idx ON user_directory_search USING btree (user_id);
+CREATE INDEX user_directory_stale_remote_users_next_try_by_server_idx ON user_directory_stale_remote_users USING btree (user_server_name, next_try_at_ts);
+CREATE INDEX user_directory_stale_remote_users_next_try_idx ON user_directory_stale_remote_users USING btree (next_try_at_ts, user_server_name);
 CREATE UNIQUE INDEX user_directory_user_idx ON user_directory USING btree (user_id);
 CREATE INDEX user_external_ids_user_id_idx ON user_external_ids USING btree (user_id);
 CREATE UNIQUE INDEX user_filters_unique ON user_filters USING btree (user_id, filter_id);
@@ -1295,7 +1499,16 @@ CREATE INDEX users_who_share_private_rooms_o_idx ON users_who_share_private_room
 CREATE INDEX users_who_share_private_rooms_r_idx ON users_who_share_private_rooms USING btree (room_id);
 CREATE UNIQUE INDEX users_who_share_private_rooms_u_idx ON users_who_share_private_rooms USING btree (user_id, other_user_id, room_id);
 CREATE UNIQUE INDEX worker_locks_key ON worker_locks USING btree (lock_name, lock_key);
+CREATE UNIQUE INDEX worker_read_write_locks_key ON worker_read_write_locks USING btree (lock_name, lock_key, token);
+CREATE UNIQUE INDEX worker_read_write_locks_mode_key ON worker_read_write_locks_mode USING btree (lock_name, lock_key);
+CREATE UNIQUE INDEX worker_read_write_locks_mode_type ON worker_read_write_locks_mode USING btree (lock_name, lock_key, write_lock);
+CREATE UNIQUE INDEX worker_read_write_locks_write ON worker_read_write_locks USING btree (lock_name, lock_key) WHERE write_lock;
+CREATE TRIGGER check_event_stream_ordering BEFORE INSERT OR UPDATE ON current_state_events FOR EACH ROW EXECUTE PROCEDURE check_event_stream_ordering();
+CREATE TRIGGER check_event_stream_ordering BEFORE INSERT OR UPDATE ON local_current_membership FOR EACH ROW EXECUTE PROCEDURE check_event_stream_ordering();
+CREATE TRIGGER check_event_stream_ordering BEFORE INSERT OR UPDATE ON room_memberships FOR EACH ROW EXECUTE PROCEDURE check_event_stream_ordering();
 CREATE TRIGGER check_partial_state_events BEFORE INSERT OR UPDATE ON partial_state_events FOR EACH ROW EXECUTE PROCEDURE check_partial_state_events();
+CREATE TRIGGER delete_read_write_lock_parent_trigger AFTER DELETE ON worker_read_write_locks FOR EACH ROW EXECUTE PROCEDURE delete_read_write_lock_parent();
+CREATE TRIGGER upsert_read_write_lock_parent_trigger BEFORE INSERT ON worker_read_write_locks FOR EACH ROW EXECUTE PROCEDURE upsert_read_write_lock_parent();
 ALTER TABLE ONLY access_tokens
     ADD CONSTRAINT access_tokens_refresh_token_id_fkey FOREIGN KEY (refresh_token_id) REFERENCES refresh_tokens(id) ON DELETE CASCADE;
 ALTER TABLE ONLY destination_rooms
@@ -1304,33 +1517,57 @@ ALTER TABLE ONLY destination_rooms
     ADD CONSTRAINT destination_rooms_room_id_fkey FOREIGN KEY (room_id) REFERENCES rooms(room_id);
 ALTER TABLE ONLY event_edges
     ADD CONSTRAINT event_edges_event_id_fkey FOREIGN KEY (event_id) REFERENCES events(event_id);
-ALTER TABLE ONLY event_txn_id
-    ADD CONSTRAINT event_txn_id_event_id_fkey FOREIGN KEY (event_id) REFERENCES events(event_id) ON DELETE CASCADE;
-ALTER TABLE ONLY event_txn_id
-    ADD CONSTRAINT event_txn_id_token_id_fkey FOREIGN KEY (token_id) REFERENCES access_tokens(id) ON DELETE CASCADE;
+ALTER TABLE ONLY event_failed_pull_attempts
+    ADD CONSTRAINT event_failed_pull_attempts_room_id_fkey FOREIGN KEY (room_id) REFERENCES rooms(room_id);
+ALTER TABLE ONLY event_forward_extremities
+    ADD CONSTRAINT event_forward_extremities_event_id FOREIGN KEY (event_id) REFERENCES events(event_id) DEFERRABLE INITIALLY DEFERRED;
+ALTER TABLE ONLY current_state_events
+    ADD CONSTRAINT event_stream_ordering_fkey FOREIGN KEY (event_stream_ordering) REFERENCES events(stream_ordering) NOT VALID;
+ALTER TABLE ONLY local_current_membership
+    ADD CONSTRAINT event_stream_ordering_fkey FOREIGN KEY (event_stream_ordering) REFERENCES events(stream_ordering) NOT VALID;
+ALTER TABLE ONLY room_memberships
+    ADD CONSTRAINT event_stream_ordering_fkey FOREIGN KEY (event_stream_ordering) REFERENCES events(stream_ordering) NOT VALID;
+ALTER TABLE ONLY event_txn_id_device_id
+    ADD CONSTRAINT event_txn_id_device_id_event_id_fkey FOREIGN KEY (event_id) REFERENCES events(event_id) ON DELETE CASCADE;
+ALTER TABLE ONLY event_txn_id_device_id
+    ADD CONSTRAINT event_txn_id_device_id_user_id_fkey FOREIGN KEY (user_id, device_id) REFERENCES devices(user_id, device_id) ON DELETE CASCADE;
 ALTER TABLE ONLY partial_state_events
     ADD CONSTRAINT partial_state_events_event_id_fkey FOREIGN KEY (event_id) REFERENCES events(event_id);
 ALTER TABLE ONLY partial_state_events
     ADD CONSTRAINT partial_state_events_room_id_fkey FOREIGN KEY (room_id) REFERENCES partial_state_rooms(room_id);
 ALTER TABLE ONLY partial_state_rooms
+    ADD CONSTRAINT partial_state_rooms_join_event_id_fkey FOREIGN KEY (join_event_id) REFERENCES events(event_id);
+ALTER TABLE ONLY partial_state_rooms
     ADD CONSTRAINT partial_state_rooms_room_id_fkey FOREIGN KEY (room_id) REFERENCES rooms(room_id);
 ALTER TABLE ONLY partial_state_rooms_servers
     ADD CONSTRAINT partial_state_rooms_servers_room_id_fkey FOREIGN KEY (room_id) REFERENCES partial_state_rooms(room_id);
+ALTER TABLE ONLY per_user_experimental_features
+    ADD CONSTRAINT per_user_experimental_features_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(name);
 ALTER TABLE ONLY refresh_tokens
     ADD CONSTRAINT refresh_tokens_next_token_id_fkey FOREIGN KEY (next_token_id) REFERENCES refresh_tokens(id) ON DELETE CASCADE;
 ALTER TABLE ONLY ui_auth_sessions_credentials
     ADD CONSTRAINT ui_auth_sessions_credentials_session_id_fkey FOREIGN KEY (session_id) REFERENCES ui_auth_sessions(session_id);
 ALTER TABLE ONLY ui_auth_sessions_ips
     ADD CONSTRAINT ui_auth_sessions_ips_session_id_fkey FOREIGN KEY (session_id) REFERENCES ui_auth_sessions(session_id);
+ALTER TABLE ONLY un_partial_stated_event_stream
+    ADD CONSTRAINT un_partial_stated_event_stream_event_id_fkey FOREIGN KEY (event_id) REFERENCES events(event_id) ON DELETE CASCADE;
+ALTER TABLE ONLY un_partial_stated_room_stream
+    ADD CONSTRAINT un_partial_stated_room_stream_room_id_fkey FOREIGN KEY (room_id) REFERENCES rooms(room_id) ON DELETE CASCADE;
 ALTER TABLE ONLY users_to_send_full_presence_to
     ADD CONSTRAINT users_to_send_full_presence_to_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(name);
+ALTER TABLE ONLY worker_read_write_locks
+    ADD CONSTRAINT worker_read_write_locks_lock_name_fkey FOREIGN KEY (lock_name, lock_key, write_lock) REFERENCES worker_read_write_locks_mode(lock_name, lock_key, write_lock);
+ALTER TABLE ONLY worker_read_write_locks_mode
+    ADD CONSTRAINT worker_read_write_locks_mode_foreign FOREIGN KEY (lock_name, lock_key, token) REFERENCES worker_read_write_locks(lock_name, lock_key, token) DEFERRABLE INITIALLY DEFERRED;
 INSERT INTO appservice_stream_position VALUES ('X', 0);
+INSERT INTO device_lists_changes_converted_stream_position VALUES ('X', 1, '');
 INSERT INTO event_push_summary_last_receipt_stream_id VALUES ('X', 0);
 INSERT INTO event_push_summary_stream_ordering VALUES ('X', 0);
 INSERT INTO federation_stream_position VALUES ('federation', -1, 'master');
 INSERT INTO federation_stream_position VALUES ('events', -1, 'master');
+INSERT INTO room_forgetter_stream_pos VALUES ('X', 1);
 INSERT INTO stats_incremental_position VALUES ('X', 1);
-INSERT INTO user_directory_stream_pos VALUES ('X', 1);
+INSERT INTO user_directory_stream_pos VALUES ('X', -1);
 SELECT pg_catalog.setval('account_data_sequence', 1, true);
 SELECT pg_catalog.setval('application_services_txn_id_seq', 1, false);
 SELECT pg_catalog.setval('cache_invalidation_stream_seq', 1, true);
@@ -1341,4 +1578,6 @@ SELECT pg_catalog.setval('events_stream_seq', 1, true);
 SELECT pg_catalog.setval('instance_map_instance_id_seq', 1, false);
 SELECT pg_catalog.setval('presence_stream_sequence', 1, true);
 SELECT pg_catalog.setval('receipts_sequence', 1, true);
+SELECT pg_catalog.setval('un_partial_stated_event_stream_sequence', 1, true);
+SELECT pg_catalog.setval('un_partial_stated_room_stream_sequence', 1, true);
 SELECT pg_catalog.setval('user_id_seq', 1, false);

@@ -15,7 +15,6 @@
 from typing import TYPE_CHECKING, Callable
 
 from relapse.http.server import HttpServer, JsonResource
-from relapse.rest import admin
 from relapse.rest.client import (
     account,
     account_data,
@@ -46,7 +45,6 @@ from relapse.rest.client import (
     receipts,
     register,
     relations,
-    rendezvous,
     report_event,
     room,
     room_keys,
@@ -59,6 +57,7 @@ from relapse.rest.client import (
     user_directory,
     versions,
     voip,
+    whois,
 )
 
 if TYPE_CHECKING:
@@ -140,13 +139,10 @@ class ClientRestResource(JsonResource):
         knock.register_servlets(hs, client_resource)
         appservice_ping.register_servlets(hs, client_resource)
 
-        # moving to /_relapse/admin
-        if is_main_process:
-            admin.register_servlets_for_client_rest_resource(hs, client_resource)
+        whois.register_servlets(hs, client_resource)
 
         # unstable
         if is_main_process:
             mutual_rooms.register_servlets(hs, client_resource)
             login_token_request.register_servlets(hs, client_resource)
-            rendezvous.register_servlets(hs, client_resource)
             auth_issuer.register_servlets(hs, client_resource)

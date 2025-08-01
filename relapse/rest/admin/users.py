@@ -38,7 +38,6 @@ from relapse.rest.admin._base import (
     assert_requester_is_admin,
     assert_user_is_admin,
 )
-from relapse.rest.client._base import client_patterns
 from relapse.storage.databases.main.registration import ExternalIDReuseException
 from relapse.storage.databases.main.stats import UserSortOrder
 from relapse.types import JsonDict, JsonMapping, UserID
@@ -657,37 +656,6 @@ class UserRegisterServlet(RestServlet):
         return HTTPStatus.OK, result
 
 
-class WhoisRestServlet(RestServlet):
-    path_regex = "/whois/(?P<user_id>[^/]*)$"
-    PATTERNS = [
-        *admin_patterns(path_regex),
-        # URL for spec reason
-        # https://matrix.org/docs/spec/client_server/r0.6.1#get-matrix-client-r0-admin-whois-userid
-        *client_patterns("/admin" + path_regex, v1=True),
-    ]
-
-    def __init__(self, hs: "HomeServer"):
-        self.auth = hs.get_auth()
-        self.admin_handler = hs.get_admin_handler()
-        self.is_mine = hs.is_mine
-
-    async def on_GET(
-        self, request: RelapseRequest, user_id: str
-    ) -> tuple[int, JsonMapping]:
-        target_user = UserID.from_string(user_id)
-        requester = await self.auth.get_user_by_req(request)
-
-        if target_user != requester.user:
-            await assert_user_is_admin(self.auth, requester)
-
-        if not self.is_mine(target_user):
-            raise RelapseError(HTTPStatus.BAD_REQUEST, "Can only whois a local user")
-
-        ret = await self.admin_handler.get_whois(target_user)
-
-        return HTTPStatus.OK, ret
-
-
 class DeactivateAccountRestServlet(RestServlet):
     PATTERNS = admin_patterns("/deactivate/(?P<target_user_id>[^/]*)$")
 
@@ -744,24 +712,19 @@ class AccountValidityRenewServlet(RestServlet):
     async def on_POST(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         await assert_requester_is_admin(self.auth, request)
 
-        if self.account_validity_module_callbacks.on_legacy_admin_request_callback:
-            expiration_ts = await self.account_validity_module_callbacks.on_legacy_admin_request_callback(
-                request
-            )
-        else:
-            body = parse_json_object_from_request(request)
+        body = parse_json_object_from_request(request)
 
-            if "user_id" not in body:
-                raise RelapseError(
-                    HTTPStatus.BAD_REQUEST,
-                    "Missing property 'user_id' in the request body",
-                )
-
-            expiration_ts = await self.account_validity_handler.renew_account_for_user(
-                body["user_id"],
-                body.get("expiration_ts"),
-                not body.get("enable_renewal_emails", True),
+        if "user_id" not in body:
+            raise RelapseError(
+                HTTPStatus.BAD_REQUEST,
+                "Missing property 'user_id' in the request body",
             )
+
+        expiration_ts = await self.account_validity_handler.renew_account_for_user(
+            body["user_id"],
+            body.get("expiration_ts"),
+            not body.get("enable_renewal_emails", True),
+        )
 
         res = {"expiration_ts": expiration_ts}
         return HTTPStatus.OK, res

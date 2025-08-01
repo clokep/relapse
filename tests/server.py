@@ -62,14 +62,8 @@ from twisted.web.server import Request, Site
 
 from relapse.config.database import DatabaseConnectionConfig
 from relapse.config.homeserver import HomeServerConfig
-from relapse.events.presence_router import load_legacy_presence_router
-from relapse.handlers.auth import load_legacy_password_auth_providers
 from relapse.http.site import RelapseRequest
 from relapse.logging.context import ContextResourceUsage
-from relapse.module_api.callbacks.spamchecker_callbacks import load_legacy_spam_checkers
-from relapse.module_api.callbacks.third_party_event_rules_callbacks import (
-    load_legacy_third_party_event_rules,
-)
 from relapse.server import HomeServer
 from relapse.storage import DataStore
 from relapse.storage.database import LoggingDatabaseConnection
@@ -305,13 +299,9 @@ class FakeSite:
     server_version_string = b"1"
     site_tag = "test"
     access_logger = logging.getLogger("relapse.access.http.fake")
+    _parsePOSTFormSubmission = False
 
-    def __init__(
-        self,
-        resource: IResource,
-        reactor: IReactorTime,
-        experimental_cors_msc3886: bool = False,
-    ):
+    def __init__(self, resource: IResource, reactor: IReactorTime):
         """
 
         Args:
@@ -319,7 +309,6 @@ class FakeSite:
         """
         self._resource = resource
         self.reactor = reactor
-        self.experimental_cors_msc3886 = experimental_cors_msc3886
 
     def getResourceFor(self, request: Request) -> IResource:
         return self._resource
@@ -450,6 +439,8 @@ class ThreadedMemoryReactorClock(MemoryReactorClock):
     """
 
     def __init__(self) -> None:
+        super().__init__()
+
         self.threadpool = ThreadPool(self)
 
         self._tcp_callbacks: dict[tuple[str, int], Callable] = {}
@@ -479,7 +470,6 @@ class ThreadedMemoryReactorClock(MemoryReactorClock):
             tls._get_default_clock = lambda: self
 
         self.nameResolver = SimpleResolverComplexifier(FakeResolver())
-        super().__init__()
 
     def installNameResolver(self, resolver: IHostnameResolver) -> IHostnameResolver:
         raise NotImplementedError()
@@ -1132,10 +1122,5 @@ def setup_test_homeserver(
     module_api = hs.get_module_api()
     for module, module_config in hs.config.modules.loaded_modules:
         module(config=module_config, api=module_api)
-
-    load_legacy_spam_checkers(hs)
-    load_legacy_third_party_event_rules(hs)
-    load_legacy_presence_router(hs)
-    load_legacy_password_auth_providers(hs)
 
     return hs

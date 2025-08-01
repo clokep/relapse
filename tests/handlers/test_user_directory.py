@@ -17,11 +17,11 @@ from urllib.parse import quote
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import relapse.rest.admin
 from relapse.api.constants import UserTypes
 from relapse.api.errors import RelapseError
 from relapse.api.room_versions import RoomVersion, RoomVersions
 from relapse.appservice import ApplicationService
+from relapse.rest import admin
 from relapse.rest.client import login, register, room, user_directory
 from relapse.server import HomeServer
 from relapse.storage.roommember import ProfileInfo
@@ -56,7 +56,7 @@ class UserDirectoryTestCase(unittest.HomeserverTestCase):
 
     servlets = [
         login.register_servlets,
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         register.register_servlets,
         room.register_servlets,
     ]
@@ -1061,7 +1061,7 @@ class TestUserDirSearchDisabled(unittest.HomeserverTestCase):
         user_directory.register_servlets,
         room.register_servlets,
         login.register_servlets,
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
     ]
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
@@ -1112,7 +1112,7 @@ class TestUserDirSearchDisabled(unittest.HomeserverTestCase):
 class UserDirectoryRemoteProfileTestCase(unittest.HomeserverTestCase):
     servlets = [
         login.register_servlets,
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         register.register_servlets,
         room.register_servlets,
     ]

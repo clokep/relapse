@@ -21,8 +21,6 @@ from parameterized import parameterized
 from twisted.internet import defer
 from twisted.test.proto_helpers import MemoryReactor
 
-import relapse.rest.admin
-import relapse.storage
 from relapse.api.constants import EduTypes, EventTypes
 from relapse.appservice import (
     ApplicationService,
@@ -30,6 +28,7 @@ from relapse.appservice import (
     TransactionUnusedFallbackKeys,
 )
 from relapse.handlers.appservice import ApplicationServicesHandler
+from relapse.rest import admin
 from relapse.rest.client import login, receipts, register, room, sendtodevice
 from relapse.server import HomeServer
 from relapse.types import (
@@ -399,7 +398,7 @@ class ApplicationServicesHandlerSendEventsTestCase(unittest.HomeserverTestCase):
     """
 
     servlets = [
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         login.register_servlets,
         room.register_servlets,
         sendtodevice.register_servlets,
@@ -1022,7 +1021,7 @@ class ApplicationServicesHandlerDeviceListsTestCase(unittest.HomeserverTestCase)
     """
 
     servlets = [
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         login.register_servlets,
         room.register_servlets,
     ]
@@ -1128,7 +1127,7 @@ class ApplicationServicesHandlerOtkCountsTestCase(unittest.HomeserverTestCase):
     ARG_FALLBACK_KEYS = 5
 
     servlets = [
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         login.register_servlets,
         register.register_servlets,
         room.register_servlets,

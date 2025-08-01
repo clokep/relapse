@@ -17,8 +17,8 @@ from http import HTTPStatus
 
 from twisted.test.proto_helpers import MemoryReactor
 
-import relapse.rest.admin
 from relapse.api.urls import ConsentURIBuilder
+from relapse.rest import admin
 from relapse.rest.client import login, room
 from relapse.rest.consent import consent_resource
 from relapse.server import HomeServer
@@ -30,7 +30,7 @@ from tests.server import FakeSite, make_request
 
 class ConsentResourceTestCase(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         room.register_servlets,
         login.register_servlets,
     ]

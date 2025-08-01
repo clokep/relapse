@@ -13,7 +13,6 @@
 # limitations under the License.
 from twisted.test.proto_helpers import MemoryReactor
 
-import relapse.rest.admin
 from relapse.api.constants import EventTypes
 from relapse.rest import admin
 from relapse.rest.client import login, read_marker, register, room
@@ -32,7 +31,7 @@ class ReadMarkerTestCase(unittest.HomeserverTestCase):
         register.register_servlets,
         read_marker.register_servlets,
         room.register_servlets,
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         admin.register_servlets,
     ]
 

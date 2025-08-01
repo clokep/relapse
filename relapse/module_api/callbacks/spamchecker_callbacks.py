@@ -13,13 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import inspect
 import logging
 from collections.abc import Awaitable, Collection
-from typing import TYPE_CHECKING, Any, Callable, Optional, Union
-
-# `Literal` appears with Python 3.8.
-from typing_extensions import Literal
+from typing import TYPE_CHECKING, Callable, Literal, Optional, Union
 
 import relapse
 from relapse.api.errors import Codes
@@ -28,7 +24,7 @@ from relapse.media._base import FileInfo
 from relapse.media.media_storage import ReadableFileWrapper
 from relapse.spam_checker_api import RegistrationBehaviour
 from relapse.types import JsonDict, RoomAlias, UserProfile
-from relapse.util.async_helpers import delay_cancellation, maybe_awaitable
+from relapse.util.async_helpers import delay_cancellation
 from relapse.util.metrics import Measure
 
 if TYPE_CHECKING:
@@ -154,14 +150,6 @@ USER_MAY_PUBLISH_ROOM_CALLBACK = Callable[
     ],
 ]
 CHECK_USERNAME_FOR_SPAM_CALLBACK = Callable[[UserProfile], Awaitable[bool]]
-LEGACY_CHECK_REGISTRATION_FOR_SPAM_CALLBACK = Callable[
-    [
-        Optional[dict],
-        Optional[str],
-        Collection[tuple[str, str]],
-    ],
-    Awaitable[RegistrationBehaviour],
-]
 CHECK_REGISTRATION_FOR_SPAM_CALLBACK = Callable[
     [
         Optional[dict],
@@ -207,94 +195,6 @@ CHECK_LOGIN_FOR_SPAM_CALLBACK = Callable[
         ]
     ],
 ]
-
-
-def load_legacy_spam_checkers(hs: "relapse.server.HomeServer") -> None:
-    """Wrapper that loads spam checkers configured using the old configuration, and
-    registers the spam checker hooks they implement.
-    """
-    spam_checkers: list[Any] = []
-    api = hs.get_module_api()
-    for module, config in hs.config.spamchecker.spam_checkers:
-        # Older spam checkers don't accept the `api` argument, so we
-        # try and detect support.
-        spam_args = inspect.getfullargspec(module)
-        if "api" in spam_args.args:
-            spam_checkers.append(module(config=config, api=api))
-        else:
-            spam_checkers.append(module(config=config))
-
-    # The known spam checker hooks. If a spam checker module implements a method
-    # which name appears in this set, we'll want to register it.
-    spam_checker_methods = {
-        "check_event_for_spam",
-        "user_may_invite",
-        "user_may_create_room",
-        "user_may_create_room_alias",
-        "user_may_publish_room",
-        "check_username_for_spam",
-        "check_registration_for_spam",
-        "check_media_file_for_spam",
-    }
-
-    for spam_checker in spam_checkers:
-        # Methods on legacy spam checkers might not be async, so we wrap them around a
-        # wrapper that will call maybe_awaitable on the result.
-        def async_wrapper(f: Optional[Callable]) -> Optional[Callable[..., Awaitable]]:
-            # f might be None if the callback isn't implemented by the module. In this
-            # case we don't want to register a callback at all so we return None.
-            if f is None:
-                return None
-
-            wrapped_func = f
-
-            if f.__name__ == "check_registration_for_spam":
-                checker_args = inspect.signature(f)
-                if len(checker_args.parameters) == 3:
-                    # Backwards compatibility; some modules might implement a hook that
-                    # doesn't expect a 4th argument. In this case, wrap it in a function
-                    # that gives it only 3 arguments and drops the auth_provider_id on
-                    # the floor.
-                    def wrapper(
-                        email_threepid: Optional[dict],
-                        username: Optional[str],
-                        request_info: Collection[tuple[str, str]],
-                        auth_provider_id: Optional[str],
-                    ) -> Union[Awaitable[RegistrationBehaviour], RegistrationBehaviour]:
-                        # Assertion required because mypy can't prove we won't
-                        # change `f` back to `None`. See
-                        # https://mypy.readthedocs.io/en/latest/common_issues.html#narrowing-and-inner-functions
-                        assert f is not None
-
-                        return f(
-                            email_threepid,
-                            username,
-                            request_info,
-                        )
-
-                    wrapped_func = wrapper
-                elif len(checker_args.parameters) != 4:
-                    raise RuntimeError(
-                        "Bad signature for callback check_registration_for_spam",
-                    )
-
-            def run(*args: Any, **kwargs: Any) -> Awaitable:
-                # Assertion required because mypy can't prove we won't change `f`
-                # back to `None`. See
-                # https://mypy.readthedocs.io/en/latest/common_issues.html#narrowing-and-inner-functions
-                assert wrapped_func is not None
-
-                return maybe_awaitable(wrapped_func(*args, **kwargs))
-
-            return run
-
-        # Register the hooks through the module API.
-        hooks = {
-            hook: async_wrapper(getattr(spam_checker, hook, None))
-            for hook in spam_checker_methods
-        }
-
-        api.register_spam_checker_callbacks(**hooks)
 
 
 class SpamCheckerModuleApiCallbacks:

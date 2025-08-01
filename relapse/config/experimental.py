@@ -189,11 +189,6 @@ class MSC3861:
         ):
             raise ConfigError("SSO cannot be enabled when OAuth delegation is enabled")
 
-        if bool(root.authproviders.password_providers):
-            raise ConfigError(
-                "Password auth providers cannot be enabled when OAuth delegation is enabled"
-            )
-
         if root.captcha.enable_registration_captcha:
             raise ConfigError(
                 "CAPTCHA cannot be enabled when OAuth delegation is enabled",
@@ -255,26 +250,8 @@ class ExperimentalConfig(Config):
         # MSC3026 (busy presence state)
         self.msc3026_enabled: bool = experimental.get("msc3026_enabled", False)
 
-        # MSC2697 (device dehydration)
-        # Enabled by default since this option was added after adding the feature.
-        # It is not recommended that both MSC2697 and MSC3814 both be enabled at
-        # once.
-        self.msc2697_enabled: bool = experimental.get("msc2697_enabled", True)
-
         # MSC3814 (dehydrated devices with SSSS)
-        # This is an alternative method to achieve the same goals as MSC2697.
-        # It is not recommended that both MSC2697 and MSC3814 both be enabled at
-        # once.
         self.msc3814_enabled: bool = experimental.get("msc3814_enabled", False)
-
-        if self.msc2697_enabled and self.msc3814_enabled:
-            raise ConfigError(
-                "MSC2697 and MSC3814 should not both be enabled.",
-                (
-                    "experimental_features",
-                    "msc3814_enabled",
-                ),
-            )
 
         # MSC3244 (room version capabilities)
         self.msc3244_enabled: bool = experimental.get("msc3244_enabled", True)
@@ -347,11 +324,6 @@ class ExperimentalConfig(Config):
 
         # MSC3874: Filtering /messages with rel_types / not_rel_types.
         self.msc3874_enabled: bool = experimental.get("msc3874_enabled", False)
-
-        # MSC3886: Simple client rendezvous capability
-        self.msc3886_endpoint: Optional[str] = experimental.get(
-            "msc3886_endpoint", None
-        )
 
         # MSC3890: Remotely silence local notifications
         # Note: This option requires "experimental_features.msc3391_enabled" to be

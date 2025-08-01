@@ -64,9 +64,6 @@ from relapse.logging.context import (
 from relapse.metrics.background_process_metrics import run_as_background_process
 from relapse.module_api.callbacks.account_validity_callbacks import (
     IS_USER_EXPIRED_CALLBACK,
-    ON_LEGACY_ADMIN_REQUEST,
-    ON_LEGACY_RENEW_CALLBACK,
-    ON_LEGACY_SEND_MAIL_CALLBACK,
     ON_USER_LOGIN_CALLBACK,
     ON_USER_REGISTRATION_CALLBACK,
 )
@@ -253,7 +250,8 @@ class ModuleApi:
         try:
             app_name = self._hs.config.email.email_app_name
 
-            self._from_string = self._hs.config.email.email_notif_from % {
+            # mypy ignore: exception is caught below.
+            self._from_string = self._hs.config.email.email_notif_from % {  # type: ignore[operator]
                 "app": app_name
             }
         except (KeyError, TypeError):
@@ -323,9 +321,6 @@ class ModuleApi:
         is_user_expired: Optional[IS_USER_EXPIRED_CALLBACK] = None,
         on_user_registration: Optional[ON_USER_REGISTRATION_CALLBACK] = None,
         on_user_login: Optional[ON_USER_LOGIN_CALLBACK] = None,
-        on_legacy_send_mail: Optional[ON_LEGACY_SEND_MAIL_CALLBACK] = None,
-        on_legacy_renew: Optional[ON_LEGACY_RENEW_CALLBACK] = None,
-        on_legacy_admin_request: Optional[ON_LEGACY_ADMIN_REQUEST] = None,
     ) -> None:
         """Registers callbacks for account validity capabilities.
 
@@ -335,9 +330,6 @@ class ModuleApi:
             is_user_expired=is_user_expired,
             on_user_registration=on_user_registration,
             on_user_login=on_user_login,
-            on_legacy_send_mail=on_legacy_send_mail,
-            on_legacy_renew=on_legacy_renew,
-            on_legacy_admin_request=on_legacy_admin_request,
         )
 
     def register_third_party_rules_callbacks(

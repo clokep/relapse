@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 
 class PushersRestServlet(RestServlet):
-    PATTERNS = client_patterns("/pushers$", v1=True)
+    PATTERNS = client_patterns("/pushers$")
 
     def __init__(self, hs: "HomeServer"):
         super().__init__()
@@ -65,7 +65,7 @@ class PushersRestServlet(RestServlet):
 
 
 class PushersSetRestServlet(RestServlet):
-    PATTERNS = client_patterns("/pushers/set$", v1=True)
+    PATTERNS = client_patterns("/pushers/set$")
 
     def __init__(self, hs: "HomeServer"):
         super().__init__()
@@ -154,7 +154,7 @@ class LegacyPushersRemoveRestServlet(UnsubscribeResource, RestServlet):
     This should be kept for some time, so unsubscribe links in past emails stay valid.
     """
 
-    PATTERNS = client_patterns("/pushers/remove$", releases=[], v1=False, unstable=True)
+    PATTERNS = client_patterns("/pushers/remove$", releases=(), unstable=True)
 
     async def on_GET(self, request: RelapseRequest) -> None:
         # Forward the request to the UnsubscribeResource

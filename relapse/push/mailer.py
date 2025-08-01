@@ -835,8 +835,8 @@ class Mailer:
         Returns:
              A link to open a room in the web client.
         """
-        if self.hs.config.email.email_riot_base_url:
-            base_url = "%s/#/room" % (self.hs.config.email.email_riot_base_url)
+        if self.hs.config.email.email_client_base_url:
+            base_url = "%s/#/room" % (self.hs.config.email.email_client_base_url)
         elif self.app_name == "Vector":
             # need /beta for Universal Links to work on iOS
             base_url = "https://vector.im/beta/#/room"
@@ -854,9 +854,9 @@ class Mailer:
         Returns:
              A link to open the notification in the web client.
         """
-        if self.hs.config.email.email_riot_base_url:
+        if self.hs.config.email.email_client_base_url:
             return "%s/#/room/%s/%s" % (
-                self.hs.config.email.email_riot_base_url,
+                self.hs.config.email.email_client_base_url,
                 notif.room_id,
                 notif.event_id,
             )

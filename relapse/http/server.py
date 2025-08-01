@@ -482,9 +482,7 @@ class JsonResource(DirectServeJsonResource):
             A tuple of the callback to use, the name of the servlet, and the
             key word arguments to pass to the callback
         """
-        # At this point the path must be bytes.
-        request_path_bytes: bytes = request.path  # type: ignore
-        request_path = request_path_bytes.decode("ascii")
+        request_path = request.path.decode("ascii")
         # Treat HEAD requests as GET requests.
         request_method = request.method
         if request_method == b"HEAD":
@@ -897,24 +895,14 @@ def set_cors_headers(request: "RelapseRequest") -> None:
     request.setHeader(
         b"Access-Control-Allow-Methods", b"GET, HEAD, POST, PUT, DELETE, OPTIONS"
     )
-    if request.experimental_cors_msc3886:
-        request.setHeader(
-            b"Access-Control-Allow-Headers",
-            b"X-Requested-With, Content-Type, Authorization, Date, If-Match, If-None-Match",
-        )
-        request.setHeader(
-            b"Access-Control-Expose-Headers",
-            b"ETag, Location, X-Max-Bytes",
-        )
-    else:
-        request.setHeader(
-            b"Access-Control-Allow-Headers",
-            b"X-Requested-With, Content-Type, Authorization, Date",
-        )
-        request.setHeader(
-            b"Access-Control-Expose-Headers",
-            b"Relapse-Trace-Id, Server",
-        )
+    request.setHeader(
+        b"Access-Control-Allow-Headers",
+        b"X-Requested-With, Content-Type, Authorization, Date",
+    )
+    request.setHeader(
+        b"Access-Control-Expose-Headers",
+        b"Relapse-Trace-Id, Server",
+    )
 
 
 def set_corp_headers(request: Request) -> None:

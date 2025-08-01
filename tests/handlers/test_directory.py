@@ -19,9 +19,9 @@ from unittest.mock import AsyncMock, Mock
 from twisted.test.proto_helpers import MemoryReactor
 
 import relapse.api.errors
-import relapse.rest.admin
 from relapse.api.constants import EventTypes
 from relapse.events import EventBase
+from relapse.rest import admin
 from relapse.rest.client import directory, login, room
 from relapse.server import HomeServer
 from relapse.types import JsonDict, RoomAlias, create_requester
@@ -107,7 +107,7 @@ class DirectoryTestCase(unittest.HomeserverTestCase):
 
 class TestCreateAlias(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         login.register_servlets,
         room.register_servlets,
         directory.register_servlets,
@@ -175,7 +175,7 @@ class TestCreateAlias(unittest.HomeserverTestCase):
 
 class TestDeleteAlias(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         login.register_servlets,
         room.register_servlets,
         directory.register_servlets,
@@ -290,7 +290,7 @@ class CanonicalAliasTestCase(unittest.HomeserverTestCase):
     """Test modifications of the canonical alias when delete aliases."""
 
     servlets = [
-        relapse.rest.admin.register_servlets,
+        admin.register_servlets,
         login.register_servlets,
         room.register_servlets,
         directory.register_servlets,
@@ -460,7 +460,7 @@ class TestCreateAliasACL(unittest.HomeserverTestCase):
 
 class TestCreatePublishedRoomACL(unittest.HomeserverTestCase):
     servlets = [
-        relapse.rest.admin.register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         login.register_servlets,
         directory.register_servlets,
         room.register_servlets,

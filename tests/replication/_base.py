@@ -213,10 +213,8 @@ class BaseStreamTestCase(unittest.HomeserverTestCase):
         """Asserts that the given request is a HTTP replication request for
         fetching updates for given stream.
         """
-
-        path: bytes = request.path  # type: ignore
         self.assertRegex(
-            path,
+            request.path,
             rb"^/_relapse/replication/get_repl_stream_updates/%s/[^/]+$"
             % (stream_name.encode("ascii"),),
         )

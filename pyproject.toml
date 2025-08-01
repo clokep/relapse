@@ -149,7 +149,7 @@ relapse_review_recent_signups = "relapse._scripts.review_recent_signups:main"
 update_relapse_database = "relapse._scripts.update_relapse_database:main"
 
 [tool.poetry.dependencies]
-python = "^3.9.0"
+python = "^3.9.2"
 
 # Mandatory Dependencies
 # ----------------------
@@ -166,12 +166,11 @@ canonicaljson = "^2.0.0"
 signedjson = "^1.1.0"
 # validating SSL certs for IP addresses requires service_identity 18.1.
 service-identity = ">=18.1.0"
-# Twisted 18.9 introduces some logger improvements that the structured
-# logger utilises
-Twisted = {extras = ["tls"], version = ">=18.9.0"}
-treq = ">=15.1"
-# Twisted has required pyopenssl 16.0 since about Twisted 16.6.
-pyOpenSSL = ">=16.0.0"
+# Twisted 22.8.0 fixes compatibility with cryptography >= 37.
+Twisted = {extras = ["tls"], version = ">=22.8.0"}
+treq = ">=21.1.0"
+# A version that is compatible with cryptography 44.x.
+pyOpenSSL = ">=24.3.0"
 PyYAML = ">=6.0"
 pyasn1 = ">=0.1.9"
 pyasn1-modules = ">=0.0.7"
@@ -186,9 +185,8 @@ msgpack = ">=0.5.2"
 phonenumbers = ">=8.2.0"
 # we use GaugeHistogramMetric, which was added in prom-client 0.4.0.
 prometheus-client = ">=0.4.0"
-# we use `order`, which arrived in attrs 19.2.0.
-# Note: 21.1.0 broke `/sync`, see https://github.com/matrix-org/synapse/issues/9936
-attrs = ">=19.2.0,!=21.1.0"
+# Twisted uses attrs unsafe_hash parameter introduced in attrs 22.2.0.
+attrs = ">=22.2.0"
 netaddr = ">=0.7.18"
 # Jinja 2.x is incompatible with MarkupSafe>=2.1. To ensure that admins do not
 # end up with a broken installation, with recent MarkupSafe but old Jinja, we
@@ -199,7 +197,7 @@ bleach = ">=1.4.3"
 typing-extensions = ">=4.6.1"
 # We enforce that we have a `cryptography` version that bundles an `openssl`
 # with the latest security patches.
-cryptography = ">=3.4.7"
+cryptography = ">=44.0.1"
 # ijson 3.1.4 fixes a bug with "." in property names
 ijson = ">=3.1.4"
 matrix-common = "^1.3.0"
@@ -232,6 +230,7 @@ authlib = { version = ">=0.15.1", optional = true }
 # Note: systemd-python 231 appears to have been yanked from pypi
 systemd-python = { version = ">=231", optional = true }
 lxml = { version = ">=4.7.1", optional = true }
+beautifulsoup4 = { version = ">=4.10.0", optional = true }
 sentry-sdk = { version = ">=0.7.2", optional = true }
 opentracing = { version = ">=2.2.0", optional = true }
 jaeger-client = { version = ">=4.0.0", optional = true }
@@ -252,7 +251,7 @@ oidc = ["authlib"]
 # `systemd.journal.JournalHandler`, as is documented in
 # `contrib/systemd/log_config.yaml`.
 systemd = ["systemd-python"]
-url-preview = ["lxml"]
+url_preview = ["lxml", "beautifulsoup4"]
 sentry = ["sentry-sdk"]
 opentracing = ["jaeger-client", "opentracing"]
 jwt = ["authlib"]
@@ -284,7 +283,7 @@ all = [
     # oidc and jwt
     "authlib",
     # url-preview
-    "lxml",
+    "lxml", "beautifulsoup4",
     # sentry
     "sentry-sdk",
     # opentracing
@@ -303,7 +302,7 @@ all = [
 # failing on new releases. Keeping lower bounds loose here means that dependabot
 # can bump versions without having to update the content-hash in the lockfile.
 # This helps prevents merge conflicts when running a batch of dependabot updates.
-ruff = "0.11.7"
+ruff = "0.12.3"
 
 # Typechecking
 lxml-stubs = ">=0.4.0"
@@ -320,6 +319,7 @@ types-pyOpenSSL = ">=20.0.7"
 types-PyYAML = ">=5.4.10"
 types-requests = ">=2.26.0"
 types-setuptools = ">=57.4.0"
+types-beautifulsoup4 = ">=4.10.5"
 
 # Dependencies which are exclusively required by unit test code. This is
 # NOT a list of all modules that are necessary to run the unit tests.

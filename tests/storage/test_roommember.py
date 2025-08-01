@@ -17,7 +17,7 @@ from typing import Optional, cast
 from twisted.test.proto_helpers import MemoryReactor
 
 from relapse.api.constants import Membership
-from relapse.rest.admin import register_servlets_for_client_rest_resource
+from relapse.rest import admin
 from relapse.rest.client import login, room
 from relapse.server import HomeServer
 from relapse.types import UserID, create_requester
@@ -31,7 +31,7 @@ from tests.test_utils import event_injection
 class RoomMemberStoreTestCase(unittest.HomeserverTestCase):
     servlets = [
         login.register_servlets,
-        register_servlets_for_client_rest_resource,
+        admin.register_servlets,
         room.register_servlets,
     ]
 

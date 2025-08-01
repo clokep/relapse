@@ -240,9 +240,7 @@ class FederationClientTests(HomeserverTestCase):
         """Ensure that Relapse does not try to connect to blocked IPs"""
 
         # Set up the ip_range blocklist
-        self.hs.config.server.federation_ip_range_blocklist = IPSet(
-            ["127.0.0.0/8", "fe80::/64"]
-        )
+        self.hs.config.server.ip_range_blocklist = IPSet(["127.0.0.0/8", "fe80::/64"])
         self.reactor.lookups["internal"] = "127.0.0.1"
         self.reactor.lookups["internalv6"] = "fe80:0:0:0:0:8a2e:370:7337"
         self.reactor.lookups["fine"] = "10.20.30.40"

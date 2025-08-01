@@ -39,10 +39,11 @@ from tests.server import FakeChannel, make_request
 from tests.test_utils.html_parsers import TestHtmlParser
 from tests.test_utils.oidc import FakeAuthorizationGrant, FakeOidcServer
 
-# an 'oidc_config' suitable for login_via_oidc.
+# an 'oidc_providers' suitable for login_via_oidc.
 TEST_OIDC_ISSUER = "https://issuer.test/"
 TEST_OIDC_CONFIG = {
-    "enabled": True,
+    "idp_id": "oidc",
+    "idp_name": "OIDC",
     "issuer": TEST_OIDC_ISSUER,
     "client_id": "test-client-id",
     "client_secret": "test-client-secret",
@@ -635,7 +636,7 @@ class RestHelper:
 
         Returns the result of the final token login and the fake authorization grant.
 
-        Requires that "oidc_config" in the homeserver config be set appropriately
+        Requires that "oidc_providers" in the homeserver config be set appropriately
         (TEST_OIDC_CONFIG is a suitable example) - and by implication, needs a
         "public_base_url".
 
@@ -675,7 +676,7 @@ class RestHelper:
 
         Returns the result of the token login.
 
-        Requires that "oidc_config" in the homeserver config be set appropriately
+        Requires that "oidc_providers" in the homeserver config be set appropriately
         (TEST_OIDC_CONFIG is a suitable example) - and by implication, needs a
         "public_base_url".
 
@@ -713,7 +714,7 @@ class RestHelper:
         OIDC callback endpoint, intercepting the HTTP requests that will get sent back
         to the OIDC provider.
 
-        Requires that "oidc_config" in the homeserver config be set appropriately
+        Requires that "oidc_providers" in the homeserver config be set appropriately
         (TEST_OIDC_CONFIG is a suitable example) - and by implication, needs a
         "public_base_url".
 

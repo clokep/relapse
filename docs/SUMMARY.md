@@ -30,7 +30,6 @@
         - [SAML](usage/configuration/user_authentication/single_sign_on/saml.md)
         - [CAS](usage/configuration/user_authentication/single_sign_on/cas.md)
         - [SSO Mapping Providers](sso_mapping_providers.md)
-      - [Password Auth Providers](password_auth_providers.md)
       - [JSON Web Tokens](jwt.md)
       - [Refresh Tokens](usage/configuration/user_authentication/refresh_tokens.md)
     - [Registration Captcha](CAPTCHA_SETUP.md)

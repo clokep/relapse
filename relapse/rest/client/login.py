@@ -63,7 +63,7 @@ class LoginResponse(TypedDict, total=False):
 
 
 class LoginRestServlet(RestServlet):
-    PATTERNS = client_patterns("/login$", v1=True)
+    PATTERNS = client_patterns("/login$")
     CATEGORY = "Registration/login requests"
 
     CAS_TYPE = "m.login.cas"
@@ -606,7 +606,7 @@ class RefreshTokenServlet(RestServlet):
 
 
 class SsoRedirectServlet(RestServlet):
-    PATTERNS = list(client_patterns("/login/(cas|sso)/redirect$", v1=True)) + [
+    PATTERNS = list(client_patterns("/login/(cas|sso)/redirect$")) + [
         re.compile(
             "^"
             + CLIENT_API_PREFIX
@@ -664,7 +664,7 @@ class SsoRedirectServlet(RestServlet):
 
 
 class CasTicketServlet(RestServlet):
-    PATTERNS = client_patterns("/login/cas/ticket", v1=True)
+    PATTERNS = client_patterns("/login/cas/ticket")
 
     def __init__(self, hs: "HomeServer"):
         super().__init__()

@@ -116,16 +116,9 @@ class ContentRepositoryConfig(Config):
     section = "media"
 
     def read_config(self, config: JsonDict, **kwargs: Any) -> None:
-        # Only enable the media repo if either the media repo is enabled or the
-        # current worker app is the media repo.
-        if (
-            self.root.server.enable_media_repo is False
-            and config.get("worker_app") != "relapse.app.media_repository"
-        ):
-            self.can_load_media_repo = False
+        self.can_load_media_repo = self.root.server.enable_media_repo
+        if not self.can_load_media_repo:
             return
-        else:
-            self.can_load_media_repo = True
 
         # Whether this instance should be the one to run the background jobs to
         # e.g clean up old URL previews.
