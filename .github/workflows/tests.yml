@@ -216,7 +216,6 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
             toolchain: 1.82.0
-        with:
             components: clippy
       - uses: Swatinem/rust-cache@v2
 
