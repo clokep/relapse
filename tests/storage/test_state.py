@@ -17,7 +17,7 @@ from typing import cast
 
 from immutabledict import immutabledict
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EventTypes, Membership
 from relapse.api.room_versions import RoomVersions

@@ -16,7 +16,7 @@ from collections.abc import Collection
 from typing import Any, Optional
 from unittest.mock import AsyncMock, Mock
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.auth.internal import InternalAuth
 from relapse.api.constants import UserTypes

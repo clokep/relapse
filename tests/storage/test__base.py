@@ -17,7 +17,7 @@ import secrets
 from collections.abc import Generator
 from typing import cast
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.server import HomeServer
 from relapse.util import Clock

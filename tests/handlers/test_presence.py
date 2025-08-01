@@ -18,7 +18,7 @@ from unittest.mock import Mock, call
 from parameterized import parameterized
 from signedjson.key import generate_signing_key
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EventTypes, Membership, PresenceState
 from relapse.api.presence import UserDevicePresenceState, UserPresenceState

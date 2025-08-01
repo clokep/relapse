@@ -15,7 +15,7 @@ from collections.abc import Mapping, Sequence
 from typing import Any, Optional, Union
 from unittest.mock import Mock
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.appservice import ApplicationService
 from relapse.server import HomeServer

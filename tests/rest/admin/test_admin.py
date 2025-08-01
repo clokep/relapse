@@ -16,7 +16,7 @@ import urllib.parse
 
 from parameterized import parameterized
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 from twisted.web.resource import Resource
 
 from relapse.http.server import JsonResource

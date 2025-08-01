@@ -13,7 +13,7 @@ from http import HTTPStatus
 from typing import BinaryIO, Callable, Optional
 from unittest.mock import Mock
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 from twisted.web.http_headers import Headers
 
 from relapse.api.errors import Codes, RelapseError

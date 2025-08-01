@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from twisted.internet.address import IPv6Address
-from twisted.test.proto_helpers import MemoryReactor, StringTransport
+from twisted.internet.testing import MemoryReactor, StringTransport
 
 from relapse.app.homeserver import RelapseHomeServer
 from relapse.server import HomeServer

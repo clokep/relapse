@@ -13,7 +13,7 @@
 # limitations under the License.
 from unittest import mock
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.app.generic_worker import GenericWorkerServer
 from relapse.server import HomeServer

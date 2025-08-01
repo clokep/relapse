@@ -14,7 +14,7 @@
 from typing import Any
 from unittest.mock import AsyncMock
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import UserTypes
 from relapse.server import HomeServer

@@ -14,7 +14,7 @@
 from typing import Optional
 from unittest.mock import patch
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EventContentFields, EventTypes, RoomTypes
 from relapse.config.server import DEFAULT_ROOM_VERSION

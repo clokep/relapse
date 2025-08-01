@@ -13,7 +13,7 @@
 # limitations under the License.
 from http import HTTPStatus
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.errors import Codes
 from relapse.events.utils import CANONICALJSON_MAX_INT, CANONICALJSON_MIN_INT

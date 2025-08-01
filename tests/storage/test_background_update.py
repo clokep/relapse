@@ -18,7 +18,7 @@ from unittest.mock import AsyncMock, Mock
 import yaml
 
 from twisted.internet.defer import Deferred, ensureDeferred
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.server import HomeServer
 from relapse.storage.background_updates import (

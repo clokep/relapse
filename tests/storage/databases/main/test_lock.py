@@ -16,7 +16,7 @@
 from twisted.internet import defer, reactor
 from twisted.internet.base import ReactorBase
 from twisted.internet.defer import Deferred
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.server import HomeServer
 from relapse.storage.databases.main.lock import _LOCK_TIMEOUT_MS, _RENEWAL_INTERVAL_MS

@@ -23,8 +23,8 @@ from incremental import Version
 from twisted import version
 from twisted.internet.defer import Deferred
 from twisted.internet.error import ConnectionDone
+from twisted.internet.testing import MemoryReactorClock
 from twisted.python.failure import Failure
-from twisted.test.proto_helpers import MemoryReactorClock
 from twisted.web.server import Site
 
 from relapse.http.server import (

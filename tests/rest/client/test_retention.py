@@ -14,7 +14,7 @@
 from typing import Any
 from unittest.mock import Mock
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EventTypes
 from relapse.rest import admin

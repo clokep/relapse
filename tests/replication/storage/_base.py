@@ -17,7 +17,7 @@ from collections.abc import Iterable
 from typing import Any, Callable, Optional
 from unittest.mock import Mock
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.server import HomeServer
 from relapse.util import Clock

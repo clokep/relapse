@@ -3,7 +3,7 @@ from typing import Callable, Optional
 from unittest import mock
 from unittest.mock import AsyncMock, Mock
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EventTypes
 from relapse.events import EventBase

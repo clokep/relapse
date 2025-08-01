@@ -15,7 +15,7 @@ from unittest.mock import Mock, patch
 
 from parameterized import parameterized
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.app.generic_worker import GenericWorkerServer
 from relapse.app.homeserver import RelapseHomeServer

@@ -14,7 +14,7 @@
 
 from http import HTTPStatus
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import LoginType
 from relapse.api.errors import Codes

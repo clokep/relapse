@@ -20,7 +20,7 @@ from unittest.mock import AsyncMock, Mock
 import yaml
 
 from twisted.internet import defer
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.appservice import ApplicationService, ApplicationServiceState
 from relapse.config._base import ConfigError

@@ -16,7 +16,7 @@ from unittest.mock import AsyncMock
 
 import pymacaroons
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.errors import AuthError, ResourceLimitError
 from relapse.rest import admin

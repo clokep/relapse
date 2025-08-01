@@ -16,7 +16,7 @@ from collections.abc import Awaitable
 from typing import cast
 
 from twisted.internet import defer
-from twisted.test.proto_helpers import MemoryReactorClock
+from twisted.internet.testing import MemoryReactorClock
 
 from relapse.logging.context import (
     LoggingContext,

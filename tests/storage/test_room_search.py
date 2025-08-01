@@ -14,7 +14,7 @@
 
 from unittest.case import SkipTest
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EventTypes
 from relapse.api.errors import StoreError

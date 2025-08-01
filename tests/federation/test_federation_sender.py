@@ -18,7 +18,7 @@ from signedjson import key, sign
 from signedjson.types import BaseKey, SigningKey
 
 from twisted.internet import defer
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EduTypes, RoomEncryptionAlgorithms
 from relapse.federation.units import Transaction

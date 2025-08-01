@@ -14,7 +14,7 @@
 # limitations under the License.
 from typing import Optional
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 from twisted.web.resource import Resource
 
 from relapse.api.errors import Codes

@@ -16,7 +16,7 @@ from unittest import mock
 
 import twisted.web.client
 from twisted.internet import defer
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.room_versions import RoomVersions
 from relapse.events import EventBase

@@ -15,7 +15,7 @@
 import resource
 from unittest import mock
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.app.phone_stats_home import phone_stats_home
 from relapse.rest import admin

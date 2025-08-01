@@ -14,7 +14,7 @@
 from typing import Optional
 from unittest.mock import AsyncMock, Mock, patch
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EventTypes, JoinRules
 from relapse.api.errors import Codes, ResourceLimitError

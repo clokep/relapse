@@ -15,7 +15,7 @@ from typing import Any
 from unittest.mock import Mock
 
 from twisted.internet.defer import Deferred
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.logging.context import make_deferred_yieldable
 from relapse.push import PusherConfig, PusherConfigException

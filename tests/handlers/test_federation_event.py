@@ -14,7 +14,7 @@
 from typing import Optional
 from unittest import mock
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.errors import AuthError, StoreError
 from relapse.api.room_versions import RoomVersion

@@ -15,7 +15,7 @@ from typing import Any, Optional
 from unittest.mock import AsyncMock, Mock
 
 from twisted.internet import defer
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EduTypes, EventTypes
 from relapse.api.errors import NotFoundError

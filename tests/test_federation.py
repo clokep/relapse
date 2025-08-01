@@ -16,7 +16,7 @@ from collections.abc import Collection
 from typing import Optional, Union
 from unittest.mock import AsyncMock, Mock
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.errors import FederationError
 from relapse.api.room_versions import RoomVersion, RoomVersions

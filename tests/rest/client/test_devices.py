@@ -14,7 +14,7 @@
 from http import HTTPStatus
 
 from twisted.internet.defer import ensureDeferred
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.errors import NotFoundError
 from relapse.rest import admin, devices, room, sync

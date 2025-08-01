@@ -16,7 +16,7 @@
 
 from typing import Optional
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import APP_SERVICE_REGISTRATION_TYPE, LoginType
 from relapse.api.errors import Codes, HttpResponseException, RelapseError

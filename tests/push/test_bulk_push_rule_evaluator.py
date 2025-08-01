@@ -17,7 +17,7 @@ from unittest.mock import AsyncMock, patch
 
 from parameterized import parameterized
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EventContentFields, RelationTypes
 from relapse.api.room_versions import RoomVersions

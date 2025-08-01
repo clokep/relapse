@@ -15,7 +15,7 @@ from typing import Any, Optional, cast
 from unittest import mock
 from unittest.mock import Mock, patch
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EventTypes, Membership, UserTypes
 from relapse.appservice import ApplicationService

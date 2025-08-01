@@ -13,7 +13,7 @@
 # limitations under the License.
 import logging
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EventTypes
 from relapse.events import EventBase

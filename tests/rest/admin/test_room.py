@@ -20,7 +20,7 @@ from unittest.mock import AsyncMock, Mock
 from parameterized import parameterized
 
 from twisted.internet.task import deferLater
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EventTypes, Membership, RoomTypes
 from relapse.api.errors import Codes

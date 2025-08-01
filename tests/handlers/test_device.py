@@ -18,7 +18,7 @@ from typing import Optional
 from unittest import mock
 
 from twisted.internet.defer import ensureDeferred
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import RoomEncryptionAlgorithms
 from relapse.api.errors import NotFoundError, RelapseError

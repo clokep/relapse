@@ -20,7 +20,7 @@ from canonicaljson import encode_canonical_json
 from signedjson.sign import sign_json
 from signedjson.types import SigningKey
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 from twisted.web.resource import NoResource, Resource
 
 from relapse.crypto.keyring import PerspectivesKeyFetcher

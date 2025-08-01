@@ -21,7 +21,7 @@ from urllib.parse import urlencode
 import pymacaroons
 from typing_extensions import Literal
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 from twisted.web.resource import Resource
 
 from relapse.api.constants import ApprovalNoticeMedium, LoginType

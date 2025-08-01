@@ -14,7 +14,7 @@
 
 import json
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import RoomTypes
 from relapse.rest import admin

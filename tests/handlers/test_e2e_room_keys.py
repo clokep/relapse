@@ -17,7 +17,7 @@
 import copy
 from unittest import mock
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.errors import RelapseError
 from relapse.server import HomeServer

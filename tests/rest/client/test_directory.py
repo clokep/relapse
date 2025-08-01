@@ -13,7 +13,7 @@
 # limitations under the License.
 from http import HTTPStatus
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.appservice import ApplicationService
 from relapse.rest import admin

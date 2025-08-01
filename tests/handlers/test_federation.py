@@ -18,7 +18,7 @@ from unittest import TestCase
 from unittest.mock import AsyncMock, Mock, patch
 
 from twisted.internet.defer import Deferred
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EventTypes
 from relapse.api.errors import (
