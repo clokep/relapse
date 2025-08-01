@@ -14,7 +14,7 @@
 
 from copy import deepcopy
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EduTypes, ReceiptTypes
 from relapse.server import HomeServer

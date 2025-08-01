@@ -27,7 +27,7 @@ from urllib import parse as urlparse
 from parameterized import param, parameterized
 from typing_extensions import Literal
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse import module_api
 from relapse.api.constants import (

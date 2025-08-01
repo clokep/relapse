@@ -15,7 +15,7 @@
 import os
 from http import HTTPStatus
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.urls import ConsentURIBuilder
 from relapse.rest import admin

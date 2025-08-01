@@ -16,7 +16,7 @@ from unittest.mock import AsyncMock, Mock
 
 import pymacaroons
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.auth.internal import InternalAuth
 from relapse.api.auth_blocking import AuthBlocking

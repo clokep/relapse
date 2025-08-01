@@ -20,12 +20,10 @@ import signal
 import socket
 import sys
 import traceback
-import warnings
 from collections.abc import Awaitable
 from textwrap import indent
 from typing import TYPE_CHECKING, Any, Callable, NoReturn, Optional, cast
 
-from cryptography.utils import CryptographyDeprecationWarning
 from typing_extensions import ParamSpec
 
 import twisted
@@ -302,15 +300,6 @@ def listen_manhole(
     manhole_settings: ManholeConfig,
     manhole_globals: dict,
 ) -> None:
-    # twisted.conch.manhole 21.1.0 uses "int_from_bytes", which produces a confusing
-    # warning. It's fixed by https://github.com/twisted/twisted/pull/1522), so
-    # suppress the warning for now.
-    warnings.filterwarnings(
-        action="ignore",
-        category=CryptographyDeprecationWarning,
-        message="int_from_bytes is deprecated",
-    )
-
     from relapse.util.manhole import manhole
 
     listen_tcp(

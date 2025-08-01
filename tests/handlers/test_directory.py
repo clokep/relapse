@@ -16,7 +16,7 @@ from collections.abc import Awaitable
 from typing import Any, Callable
 from unittest.mock import AsyncMock, Mock
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 import relapse.api.errors
 from relapse.api.constants import EventTypes

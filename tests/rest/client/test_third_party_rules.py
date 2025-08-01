@@ -14,7 +14,7 @@
 from typing import TYPE_CHECKING, Any, Optional
 from unittest.mock import AsyncMock, Mock
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EventTypes, LoginType, Membership
 from relapse.api.errors import RelapseError

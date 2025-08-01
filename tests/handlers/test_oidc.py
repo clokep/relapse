@@ -19,7 +19,7 @@ from urllib.parse import parse_qs, urlparse
 
 import pymacaroons
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.handlers.sso import MappingException
 from relapse.http.site import RelapseRequest

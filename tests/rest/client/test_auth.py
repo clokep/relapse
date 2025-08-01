@@ -17,7 +17,7 @@ from http import HTTPStatus
 from typing import Any, Optional, Union
 
 from twisted.internet.defer import succeed
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 from twisted.web.resource import Resource
 
 from relapse.api.constants import ApprovalNoticeMedium, LoginType

@@ -14,7 +14,7 @@
 import logging
 from unittest.mock import patch
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.rest import admin
 from relapse.rest.client import login, room, sync

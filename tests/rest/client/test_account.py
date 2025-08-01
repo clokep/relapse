@@ -19,7 +19,7 @@ from typing import Any, Optional, Union
 from unittest.mock import Mock
 
 from twisted.internet.interfaces import IReactorTCP
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import LoginType, Membership
 from relapse.api.errors import Codes, HttpResponseException

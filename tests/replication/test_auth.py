@@ -13,7 +13,7 @@
 # limitations under the License.
 import logging
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.rest.client import register
 from relapse.server import HomeServer

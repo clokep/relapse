@@ -15,7 +15,7 @@
 from collections.abc import Iterable
 from typing import Optional
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import AccountDataTypes
 from relapse.server import HomeServer

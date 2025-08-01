@@ -17,7 +17,7 @@ from unittest.mock import Mock, call
 
 from twisted.internet import defer
 from twisted.internet.defer import CancelledError, Deferred
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.server import HomeServer
 from relapse.storage.database import (

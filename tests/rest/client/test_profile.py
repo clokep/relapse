@@ -18,7 +18,7 @@ import urllib.parse
 from http import HTTPStatus
 from typing import Any, Optional
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.errors import Codes
 from relapse.rest import admin

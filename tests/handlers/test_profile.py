@@ -17,7 +17,7 @@ from unittest.mock import AsyncMock, Mock
 
 from parameterized import parameterized
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 import relapse.types
 from relapse.api.errors import AuthError, RelapseError

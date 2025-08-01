@@ -16,7 +16,7 @@ from typing import Any, Optional
 
 from parameterized import parameterized
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EventTypes, Membership
 from relapse.events import EventBase

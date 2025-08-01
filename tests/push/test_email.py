@@ -22,7 +22,7 @@ import attr
 from parameterized import parameterized
 
 from twisted.internet.defer import Deferred
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.errors import Codes, RelapseError
 from relapse.push.emailpusher import EmailPusher

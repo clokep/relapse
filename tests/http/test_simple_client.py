@@ -17,7 +17,7 @@ from netaddr import IPSet
 
 from twisted.internet import defer
 from twisted.internet.error import DNSLookupError
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.http import RequestTimedOutError
 from relapse.http.client import SimpleHttpClient

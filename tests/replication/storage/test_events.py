@@ -18,7 +18,7 @@ from typing import Any, Optional
 from canonicaljson import encode_canonical_json
 from parameterized import parameterized
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import ReceiptTypes
 from relapse.api.room_versions import RoomVersions

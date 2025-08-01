@@ -14,7 +14,7 @@
 # limitations under the License.
 from typing import Optional, cast
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import Membership
 from relapse.rest import admin

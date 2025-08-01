@@ -27,8 +27,8 @@ from typing_extensions import Literal
 
 from twisted.internet import defer
 from twisted.internet.defer import Deferred
+from twisted.internet.testing import MemoryReactor
 from twisted.python.failure import Failure
-from twisted.test.proto_helpers import MemoryReactor
 from twisted.web.resource import Resource
 
 from relapse.api.errors import Codes, HttpResponseException

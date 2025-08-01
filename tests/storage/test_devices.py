@@ -14,7 +14,7 @@
 
 from collections.abc import Collection
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 import relapse.api.errors
 from relapse.api.constants import EduTypes

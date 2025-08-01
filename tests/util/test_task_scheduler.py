@@ -15,7 +15,7 @@
 from typing import Optional
 
 from twisted.internet.task import deferLater
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.server import HomeServer
 from relapse.types import JsonMapping, ScheduledTask, TaskStatus

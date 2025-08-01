@@ -19,7 +19,7 @@ from typing import TypeVar, Union, cast
 import attr
 from parameterized import parameterized
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EventTypes
 from relapse.api.room_versions import (

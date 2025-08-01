@@ -15,7 +15,7 @@ from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
 from urllib.parse import quote
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import UserTypes
 from relapse.api.errors import RelapseError

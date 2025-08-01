@@ -14,7 +14,7 @@
 from http import HTTPStatus
 from typing import Optional
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EduTypes, EventTypes, HistoryVisibility, ReceiptTypes
 from relapse.rest import admin

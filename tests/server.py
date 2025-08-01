@@ -53,9 +53,9 @@ from twisted.internet.interfaces import (
     ITransport,
 )
 from twisted.internet.protocol import ClientFactory, DatagramProtocol, Factory
+from twisted.internet.testing import AccumulatingProtocol, MemoryReactorClock
 from twisted.python import threadpool
 from twisted.python.failure import Failure
-from twisted.test.proto_helpers import AccumulatingProtocol, MemoryReactorClock
 from twisted.web.http_headers import Headers
 from twisted.web.resource import IResource
 from twisted.web.server import Request, Site
@@ -390,12 +390,6 @@ def make_request(
     req.content = BytesIO(content)
     # Twisted expects to be at the end of the content when parsing the request.
     req.content.seek(0, SEEK_END)
-
-    # Old version of Twisted (<20.3.0) have issues with parsing x-www-form-urlencoded
-    # bodies if the Content-Length header is missing
-    req.requestHeaders.addRawHeader(
-        b"Content-Length", str(len(content)).encode("ascii")
-    )
 
     if access_token:
         req.requestHeaders.addRawHeader(

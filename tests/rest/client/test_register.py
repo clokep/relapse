@@ -17,7 +17,7 @@ import datetime
 import importlib.resources
 from typing import Any
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import (
     APP_SERVICE_REGISTRATION_TYPE,

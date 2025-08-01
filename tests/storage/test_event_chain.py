@@ -14,7 +14,7 @@
 
 from typing import cast
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 from twisted.trial import unittest
 
 from relapse.api.constants import EventTypes

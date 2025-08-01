@@ -18,7 +18,7 @@ from unittest.mock import ANY, AsyncMock, Mock, call
 
 from netaddr import IPSet
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 from twisted.web.resource import Resource
 
 from relapse.api.constants import EduTypes

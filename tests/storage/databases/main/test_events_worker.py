@@ -18,7 +18,7 @@ from unittest import mock
 
 from twisted.enterprise.adbapi import ConnectionPool
 from twisted.internet.defer import CancelledError, Deferred, ensureDeferred
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.room_versions import EventFormatVersions, RoomVersions
 from relapse.events import make_event_from_dict

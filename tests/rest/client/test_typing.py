@@ -15,7 +15,7 @@
 
 """Tests REST events for /rooms paths."""
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EduTypes
 from relapse.rest.client import room

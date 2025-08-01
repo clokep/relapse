@@ -17,7 +17,7 @@ from http import HTTPStatus
 
 from parameterized import parameterized
 
-from twisted.test.proto_helpers import MemoryReactor
+from twisted.internet.testing import MemoryReactor
 
 from relapse.api.room_versions import KNOWN_ROOM_VERSIONS
 from relapse.config.server import DEFAULT_ROOM_VERSION
