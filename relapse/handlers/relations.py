@@ -24,8 +24,11 @@ from relapse.events import EventBase, relation_from_event
 from relapse.events.utils import SerializeEventConfig
 from relapse.logging.context import make_deferred_yieldable, run_in_background
 from relapse.logging.opentracing import trace
-from relapse.storage.databases.main.relations import ThreadsNextBatch, _RelatedEvent, \
-    MAX_RECURSION_DEPTH
+from relapse.storage.databases.main.relations import (
+    MAX_RECURSION_DEPTH,
+    ThreadsNextBatch,
+    _RelatedEvent,
+)
 from relapse.streams.config import PaginationConfig
 from relapse.types import JsonDict, Requester, UserID
 from relapse.util.async_helpers import gather_results
