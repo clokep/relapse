@@ -3318,15 +3318,18 @@ types-html5lib = "*"
 
 [[package]]
 name = "types-bleach"
-version = "6.1.0.1"
+version = "6.2.0.20250809"
 description = "Typing stubs for bleach"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.9"
 groups = ["dev"]
 files = [
-    {file = "types-bleach-6.1.0.1.tar.gz", hash = "sha256:1e43c437e734a90efe4f40ebfe831057599568d3b275939ffbd6094848a18a27"},
-    {file = "types_bleach-6.1.0.1-py3-none-any.whl", hash = "sha256:f83f80e0709f13d809a9c79b958a1089df9b99e68059287beb196e38967e4ddf"},
+    {file = "types_bleach-6.2.0.20250809-py3-none-any.whl", hash = "sha256:0b372a75117947d9ac8a31ae733fd0f8d92ec75c4772e7b37093ba3fa5b48fb9"},
+    {file = "types_bleach-6.2.0.20250809.tar.gz", hash = "sha256:188d7a1119f6c953140b513ed57ba4213755695815472c19d0c22ac09c79b90b"},
 ]
+
+[package.dependencies]
+types-html5lib = "*"
 
 [[package]]
 name = "types-cffi"
