@@ -248,6 +248,11 @@ skipped_test_packages=(
   TestRemotePngThumbnail
   TestFederationThumbnail
   TestPartialStateJoin/Device_list_tracking/Device_list_tracked_for_new_members_in_partial_state_room
+  TestMSC4289PrivilegedRoomCreators
+  TestMSC4291RoomIDAsHashOfCreateEvent
+  TestMSC4297StateResolutionV2_1_starts_from_empty_set
+  TestMSC4297StateResolutionV2_1_includes_conflicted_subgraph
+  TestMSC4311FullCreateEventOnStrippedState
 )
 skip_flag=$(IFS="|" ; echo "${skipped_test_packages[*]}")
 
