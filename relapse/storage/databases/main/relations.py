@@ -42,6 +42,9 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+# The number of relations to traverse when recursing through relations.
+MAX_RECURSION_DEPTH = 3
+
 
 @attr.s(slots=True, frozen=True, auto_attribs=True)
 class ThreadsNextBatch:
@@ -218,11 +221,11 @@ class RelationsWorkerStore(SQLBaseStore):
         if pagination_clause:
             where_clause.append(pagination_clause)
 
-        # If a recursive query is requested then the filters are applied after
+        # If a recursive query is requested, then the filters are applied after
         # recursively following relationships from the requested event to children
-        # up to 3-relations deep.
+        # up to a limited number of relations deep.
         #
-        # If no recursion is needed then the event_relations table is queried
+        # If no recursion is needed, then the event_relations table is queried
         # for direct children of the requested event.
         if recurse:
             sql = """
@@ -233,7 +236,7 @@ class RelationsWorkerStore(SQLBaseStore):
                     UNION SELECT e.event_id, e.relation_type, e.relates_to_id, depth + 1
                     FROM event_relations e
                     INNER JOIN related_events r ON r.event_id = e.relates_to_id
-                    WHERE depth <= 3
+                    WHERE depth <= %s
                 )
                 SELECT event_id, relation_type, sender, topological_ordering, stream_ordering
                 FROM related_events
@@ -242,6 +245,7 @@ class RelationsWorkerStore(SQLBaseStore):
                 ORDER BY topological_ordering %s, stream_ordering %s
                 LIMIT ?;
             """ % (
+                MAX_RECURSION_DEPTH,
                 " AND ".join(where_clause),
                 order,
                 order,
@@ -1027,7 +1031,7 @@ class RelationsWorkerStore(SQLBaseStore):
                 UNION SELECT e.event_id, e.relates_to_id, e.relation_type, depth + 1
                 FROM event_relations e
                 INNER JOIN related_events r ON r.relates_to_id = e.event_id
-                WHERE depth <= 3
+                WHERE depth <= ?
             )
             SELECT relates_to_id FROM related_events
             WHERE relation_type = 'm.thread'
@@ -1036,7 +1040,7 @@ class RelationsWorkerStore(SQLBaseStore):
         """
 
         def _get_thread_id(txn: LoggingTransaction) -> str:
-            txn.execute(sql, (event_id,))
+            txn.execute(sql, (event_id, MAX_RECURSION_DEPTH))
             row = txn.fetchone()
             if row:
                 return row[0]
@@ -1087,7 +1091,7 @@ class RelationsWorkerStore(SQLBaseStore):
                 UNION SELECT e.event_id, e.relates_to_id, e.relation_type, depth + 1
                 FROM event_relations e
                 INNER JOIN related_events r ON r.relates_to_id = e.event_id
-                WHERE depth <= 3
+                WHERE depth <= ?
             )
             SELECT relates_to_id FROM related_events
             ORDER BY depth DESC
@@ -1096,7 +1100,7 @@ class RelationsWorkerStore(SQLBaseStore):
         """
 
         def _get_related_thread_id(txn: LoggingTransaction) -> str:
-            txn.execute(sql, (event_id, event_id))
+            txn.execute(sql, (event_id, MAX_RECURSION_DEPTH, event_id))
             row = txn.fetchone()
             if row:
                 return row[0]

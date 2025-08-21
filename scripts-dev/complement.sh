@@ -233,7 +233,6 @@ skipped_test_packages=(
   TestContentMediaV1
   TestFederationRoomsInvite/Parallel/Remote_invited_user_can_reject_invite_when_homeserver_is_already_participating_in_the_room
   TestFederationRoomsInvite/Parallel/Remote_invited_user_can_join_the_room_when_homeserver_is_already_participating_in_the_room
-  #TestSyncOmitsStateChangeOnFilteredEvents
   TestToDeviceMessagesOverFederation/stopped_server
   TestMediaFilenames/Parallel/ASCII/Can_download_file_\'name\;with\;semicolons\'_over_/_matrix/client/v1/media/download
   TestMediaFilenames/Parallel/ASCII/Can_download_file_\'name_with_spaces\'_over_/_matrix/client/v1/media/download
