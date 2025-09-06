@@ -68,11 +68,11 @@ class ModuleApiTestCase(BaseModuleApiTestCase):
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         # Mock out the calls over federation.
-        self.fed_transport_client = Mock(spec=["send_transaction"])
-        self.fed_transport_client.send_transaction = AsyncMock(return_value={})
+        self.federation_client = Mock(spec=["send_transaction"])
+        self.federation_client.send_transaction = AsyncMock(return_value={})
 
         return self.setup_test_homeserver(
-            federation_transport_client=self.fed_transport_client,
+            federation_client=self.federation_client,
         )
 
     def test_can_register_user(self) -> None:
@@ -419,7 +419,7 @@ class ModuleApiTestCase(BaseModuleApiTestCase):
         #
         # Thus we reset the mock, and try sending online local user
         # presence again
-        self.fed_transport_client.send_transaction.reset_mock()
+        self.federation_client.send_transaction.reset_mock()
 
         # Broadcast local user online presence
         self.get_success(
@@ -431,7 +431,7 @@ class ModuleApiTestCase(BaseModuleApiTestCase):
 
         # Check that a presence update was sent as part of a federation transaction
         found_update = False
-        calls = self.fed_transport_client.send_transaction.call_args_list
+        calls = self.federation_client.send_transaction.call_args_list
         for call in calls:
             call_args = call[0]
             federation_transaction: Transaction = call_args[0]

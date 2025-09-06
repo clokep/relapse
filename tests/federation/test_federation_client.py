@@ -289,7 +289,7 @@ class FederationClientTest(FederatingHomeserverTestCase):
                 # fetch the PDU again from the origin server if the signature
                 # fails. Just want to make sure that the failure is counted from
                 # both code paths.
-                dest="yet.another.server",
+                destination="yet.another.server",
                 room_id=room_id,
                 limit=1,
                 extremities=[pulled_event.event_id],

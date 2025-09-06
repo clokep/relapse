@@ -71,10 +71,10 @@ class RoomComplexityTests(unittest.FederatingHomeserverTestCase):
         u1 = self.register_user("u1", "pass")
 
         handler = self.hs.get_room_member_handler()
-        fed_transport = self.hs.get_federation_transport_client()
+        fed_client = self.hs.get_federation_client()
 
         # Mock out some things, because we don't want to test the whole join
-        fed_transport.client.get_json = AsyncMock(return_value={"v1": 9999})  # type: ignore[method-assign]
+        fed_client.client.get_json = AsyncMock(return_value={"v1": 9999})  # type: ignore[method-assign]
         handler.federation_handler.do_invite_join = AsyncMock(  # type: ignore[method-assign]
             return_value=("", 1)
         )
@@ -102,10 +102,10 @@ class RoomComplexityTests(unittest.FederatingHomeserverTestCase):
         u1 = self.register_user("u1", "pass", admin=True)
 
         handler = self.hs.get_room_member_handler()
-        fed_transport = self.hs.get_federation_transport_client()
+        fed_client = self.hs.get_federation_client()
 
         # Mock out some things, because we don't want to test the whole join
-        fed_transport.client.get_json = AsyncMock(return_value={"v1": 9999})  # type: ignore[method-assign]
+        fed_client.client.get_json = AsyncMock(return_value={"v1": 9999})  # type: ignore[method-assign]
         handler.federation_handler.do_invite_join = AsyncMock(  # type: ignore[method-assign]
             return_value=("", 1)
         )
@@ -139,10 +139,10 @@ class RoomComplexityTests(unittest.FederatingHomeserverTestCase):
         room_1 = self.helper.create_room_as(u1, tok=u1_token)
 
         handler = self.hs.get_room_member_handler()
-        fed_transport = self.hs.get_federation_transport_client()
+        fed_client = self.hs.get_federation_client()
 
         # Mock out some things, because we don't want to test the whole join
-        fed_transport.client.get_json = AsyncMock(return_value=None)  # type: ignore[method-assign]
+        fed_client.client.get_json = AsyncMock(return_value=None)  # type: ignore[method-assign]
         handler.federation_handler.do_invite_join = AsyncMock(  # type: ignore[method-assign]
             return_value=("", 1)
         )
@@ -198,10 +198,10 @@ class RoomComplexityAdminTests(unittest.FederatingHomeserverTestCase):
         u1 = self.register_user("u1", "pass")
 
         handler = self.hs.get_room_member_handler()
-        fed_transport = self.hs.get_federation_transport_client()
+        fed_client = self.hs.get_federation_client()
 
         # Mock out some things, because we don't want to test the whole join
-        fed_transport.client.get_json = AsyncMock(return_value={"v1": 9999})  # type: ignore[method-assign]
+        fed_client.client.get_json = AsyncMock(return_value={"v1": 9999})  # type: ignore[method-assign]
         handler.federation_handler.do_invite_join = AsyncMock(  # type: ignore[method-assign]
             return_value=("", 1)
         )
@@ -228,10 +228,10 @@ class RoomComplexityAdminTests(unittest.FederatingHomeserverTestCase):
         u1 = self.register_user("u1", "pass", admin=True)
 
         handler = self.hs.get_room_member_handler()
-        fed_transport = self.hs.get_federation_transport_client()
+        fed_client = self.hs.get_federation_client()
 
         # Mock out some things, because we don't want to test the whole join
-        fed_transport.client.get_json = AsyncMock(return_value={"v1": 9999})  # type: ignore[method-assign]
+        fed_client.client.get_json = AsyncMock(return_value={"v1": 9999})  # type: ignore[method-assign]
         handler.federation_handler.do_invite_join = AsyncMock(  # type: ignore[method-assign]
             return_value=("", 1)
         )

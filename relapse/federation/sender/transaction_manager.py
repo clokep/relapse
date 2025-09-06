@@ -56,7 +56,7 @@ class TransactionManager:
         self.clock = hs.get_clock()  # nb must be called this for @measure_func
         self._store = hs.get_datastores().main
         self._transaction_actions = TransactionActions(self._store)
-        self._transport_layer = hs.get_federation_transport_client()
+        self._federation_client = hs.get_federation_client()
 
         self._federation_metrics_domains = (
             hs.config.federation.federation_metrics_domains
@@ -160,7 +160,7 @@ class TransactionManager:
                 return data
 
             try:
-                response = await self._transport_layer.send_transaction(
+                response = await self._federation_client.send_transaction(
                     transaction, json_data_cb
                 )
             except HttpResponseException as e:

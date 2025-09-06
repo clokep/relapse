@@ -51,7 +51,6 @@ from relapse.federation.federation_server import (
 )
 from relapse.federation.send_queue import FederationRemoteSendQueue
 from relapse.federation.sender import AbstractFederationSender, FederationSender
-from relapse.federation.transport.client import TransportLayerClient
 from relapse.handlers.account import AccountHandler
 from relapse.handlers.account_data import AccountDataHandler
 from relapse.handlers.account_validity import AccountValidityHandler
@@ -678,10 +677,6 @@ class HomeServer(metaclass=abc.ABCMeta):
     @cache_in_self
     def get_media_repository(self) -> MediaRepository:
         return MediaRepository(self)
-
-    @cache_in_self
-    def get_federation_transport_client(self) -> TransportLayerClient:
-        return TransportLayerClient(self)
 
     @cache_in_self
     def get_federation_sender(self) -> AbstractFederationSender:
