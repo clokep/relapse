@@ -30,8 +30,8 @@ from relapse.api.constants import (
 from relapse.api.errors import AuthError, NotFoundError, RelapseError
 from relapse.api.room_versions import RoomVersions
 from relapse.events import make_event_from_dict
-from relapse.federation.transport.client import TransportLayerClient
 from relapse.handlers.room_summary import _child_events_comparison_key, _RoomEntry
+from relapse.http.types import QueryParams
 from relapse.rest import admin
 from relapse.rest.client import login, room
 from relapse.server import HomeServer
@@ -119,6 +119,11 @@ class SpaceSummaryTestCase(unittest.HomeserverTestCase):
         room.register_servlets,
         login.register_servlets,
     ]
+
+    def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
+        self.mock_client = mock.Mock(spec=["get_json", "agent"])
+        self.mock_client.get_json = mock.AsyncMock()
+        return super().setup_test_homeserver(federation_http_client=self.mock_client)
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.hs = hs
@@ -961,10 +966,9 @@ class SpaceSummaryTestCase(unittest.HomeserverTestCase):
         federation_requests = 0
 
         async def get_room_hierarchy(
-            _self: TransportLayerClient,
             destination: str,
-            room_id: str,
-            suggested_only: bool,
+            path: str,
+            args: Optional[QueryParams] = None,
         ) -> JsonDict:
             nonlocal federation_requests
             federation_requests += 1
@@ -999,32 +1003,30 @@ class SpaceSummaryTestCase(unittest.HomeserverTestCase):
             (fed_room, ()),
         ]
 
-        with mock.patch(
-            "relapse.federation.transport.client.TransportLayerClient.get_room_hierarchy",
-            new=get_room_hierarchy,
-        ):
-            result = self.get_success(
-                self.handler.get_room_hierarchy(create_requester(self.user), self.space)
-            )
-            self.assertEqual(federation_requests, 1)
-            self._assert_hierarchy(result, expected)
+        self.mock_client.get_json.side_effect = get_room_hierarchy
 
-            # The previous federation response should be reused.
-            result = self.get_success(
-                self.handler.get_room_hierarchy(create_requester(self.user), self.space)
-            )
-            self.assertEqual(federation_requests, 1)
-            self._assert_hierarchy(result, expected)
+        result = self.get_success(
+            self.handler.get_room_hierarchy(create_requester(self.user), self.space)
+        )
+        self.assertEqual(federation_requests, 1)
+        self._assert_hierarchy(result, expected)
 
-            # Expire the response cache
-            self.reactor.advance(5 * 60 + 1)
+        # The previous federation response should be reused.
+        result = self.get_success(
+            self.handler.get_room_hierarchy(create_requester(self.user), self.space)
+        )
+        self.assertEqual(federation_requests, 1)
+        self._assert_hierarchy(result, expected)
 
-            # A new federation request should be made.
-            result = self.get_success(
-                self.handler.get_room_hierarchy(create_requester(self.user), self.space)
-            )
-            self.assertEqual(federation_requests, 2)
-            self._assert_hierarchy(result, expected)
+        # Expire the response cache
+        self.reactor.advance(5 * 60 + 1)
+
+        # A new federation request should be made.
+        result = self.get_success(
+            self.handler.get_room_hierarchy(create_requester(self.user), self.space)
+        )
+        self.assertEqual(federation_requests, 2)
+        self._assert_hierarchy(result, expected)
 
 
 class RoomSummaryTestCase(unittest.HomeserverTestCase):

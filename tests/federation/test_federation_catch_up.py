@@ -39,9 +39,9 @@ class FederationCatchUpTestCases(FederatingHomeserverTestCase):
     ]
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
-        self.federation_transport_client = Mock(spec=["send_transaction"])
+        self.federation_client = Mock(spec=["send_transaction"])
         return self.setup_test_homeserver(
-            federation_transport_client=self.federation_transport_client,
+            federation_client=self.federation_client,
         )
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
@@ -59,9 +59,7 @@ class FederationCatchUpTestCases(FederatingHomeserverTestCase):
         self.pdus: list[JsonDict] = []
         self.failed_pdus: list[JsonDict] = []
         self.is_online = True
-        self.federation_transport_client.send_transaction.side_effect = (
-            self.record_transaction
-        )
+        self.federation_client.send_transaction.side_effect = self.record_transaction
 
         federation_sender = hs.get_federation_sender()
         assert isinstance(federation_sender, FederationSender)

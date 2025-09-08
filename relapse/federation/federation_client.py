@@ -28,6 +28,7 @@ from collections.abc import (
 from typing import (
     TYPE_CHECKING,
     AbstractSet,
+    Any,
     BinaryIO,
     Callable,
     Optional,
@@ -54,14 +55,26 @@ from relapse.api.room_versions import (
     RoomVersion,
     RoomVersions,
 )
+from relapse.api.urls import FEDERATION_UNSTABLE_PREFIX, FEDERATION_V1_PREFIX
 from relapse.events import EventBase, builder, make_event_from_dict
 from relapse.federation.federation_base import (
     FederationBase,
     InvalidEventSignatureError,
     event_from_pdu_json,
 )
-from relapse.federation.transport.client import SendJoinResponse
+from relapse.federation.federation_client_helpers import (
+    SendJoinParser,
+    SendJoinResponse,
+    TimestampToEventResponse,
+    _create_path,
+    _create_v1_path,
+    _create_v2_path,
+    _StateParser,
+    _validate_hierarchy_event,
+)
+from relapse.federation.units import Transaction
 from relapse.http.client import is_unknown_endpoint
+from relapse.http.matrixfederationclient import LegacyJsonSendParser
 from relapse.http.types import QueryParams
 from relapse.logging.opentracing import RelapseTags, log_kv, set_tag, tag_args, trace
 from relapse.types import JsonDict, StrCollection, UserID, get_domain_from_id
@@ -124,7 +137,8 @@ class FederationClient(FederationBase):
         self.pdu_destination_tried: dict[str, dict[str, int]] = {}
         self._clock.looping_call(self._clear_tried_cache, 60 * 1000)
         self.state = hs.get_state_handler()
-        self.transport_layer = hs.get_federation_transport_client()
+        self.client = hs.get_federation_http_client()
+        self._is_mine_server_name = hs.is_mine_server_name
 
         self.hostname = hs.hostname
         self.signing_key = hs.signing_key
@@ -198,11 +212,14 @@ class FederationClient(FederationBase):
         """
         sent_queries_counter.labels(query_type).inc()
 
-        return await self.transport_layer.make_query(
-            destination,
-            query_type,
-            args,
+        path = _create_path(FEDERATION_V1_PREFIX, "/query/%s", query_type)
+
+        return await self.client.get_json(
+            destination=destination,
+            path=path,
+            args=args,
             retry_on_dns_fail=retry_on_dns_fail,
+            timeout=10000,
             ignore_backoff=ignore_backoff,
         )
 
@@ -219,8 +236,9 @@ class FederationClient(FederationBase):
             The JSON object from the response
         """
         sent_queries_counter.labels("client_device_keys").inc()
-        return await self.transport_layer.query_client_keys(
-            destination, content, timeout
+        path = _create_v1_path("/user/keys/query")
+        return await self.client.post_json(
+            destination=destination, path=path, data=content, timeout=timeout
         )
 
     async def query_user_devices(
@@ -230,8 +248,9 @@ class FederationClient(FederationBase):
         server.
         """
         sent_queries_counter.labels("user_devices").inc()
-        return await self.transport_layer.query_user_devices(
-            destination, user_id, timeout
+        path = _create_v1_path("/user/devices/%s", user_id)
+        return await self.client.get_json(
+            destination=destination, path=path, timeout=timeout
         )
 
     async def claim_client_keys(
@@ -282,8 +301,12 @@ class FederationClient(FederationBase):
 
         if use_unstable:
             try:
-                return await self.transport_layer.claim_client_keys_unstable(
-                    user, destination, unstable_content, timeout
+                path = _create_path(FEDERATION_UNSTABLE_PREFIX, "/user/keys/claim")
+                return await self.client.post_json(
+                    destination=destination,
+                    path=path,
+                    data={"one_time_keys": unstable_content},
+                    timeout=timeout,
                 )
             except HttpResponseException as e:
                 # If an error is received that is due to an unrecognised endpoint,
@@ -299,14 +322,18 @@ class FederationClient(FederationBase):
             logger.debug("Skipping unstable claim client keys API")
 
         # TODO Potentially attempt multiple queries and combine the results?
-        return await self.transport_layer.claim_client_keys(
-            user, destination, content, timeout
+        path = _create_v1_path("/user/keys/claim")
+        return await self.client.post_json(
+            destination=destination,
+            path=path,
+            data={"one_time_keys": content},
+            timeout=timeout,
         )
 
     @trace
     @tag_args
     async def backfill(
-        self, dest: str, room_id: str, limit: int, extremities: Collection[str]
+        self, destination: str, room_id: str, limit: int, extremities: Collection[str]
     ) -> Optional[list[EventBase]]:
         """Requests some more historic PDUs for the given room from the
         given destination server.
@@ -325,8 +352,20 @@ class FederationClient(FederationBase):
         if not extremities:
             return None
 
-        transaction_data = await self.transport_layer.backfill(
-            dest, room_id, extremities, limit
+        logger.debug(
+            "backfill dest=%s, room_id=%s, event_tuples=%r, limit=%s",
+            destination,
+            room_id,
+            extremities,
+            str(limit),
+        )
+
+        path = _create_v1_path("/backfill/%s", room_id)
+
+        args = {"v": extremities, "limit": [str(limit)]}
+
+        transaction_data = await self.client.get_json(
+            destination, path=path, args=args, try_trailing_slash_on_400=True
         )
 
         logger.debug("backfill transaction_data=%r", transaction_data)
@@ -344,7 +383,7 @@ class FederationClient(FederationBase):
 
         # Check signatures and hash of pdus, removing any from the list that fail checks
         pdus[:] = await self._check_sigs_and_hash_for_pulled_events_and_fetch(
-            dest, pdus, room_version=room_version
+            destination, pdus, room_version=room_version
         )
 
         return pdus
@@ -373,8 +412,11 @@ class FederationClient(FederationBase):
         Raises:
             RelapseError, NotRetryingDestination, FederationDeniedError
         """
-        transaction_data = await self.transport_layer.get_event(
-            destination, event_id, timeout=timeout
+        logger.debug("get_pdu dest=%s, event_id=%s", destination, event_id)
+
+        path = _create_v1_path("/event/%s", event_id)
+        transaction_data = await self.client.get_json(
+            destination, path=path, timeout=timeout, try_trailing_slash_on_400=True
         )
 
         logger.debug(
@@ -545,14 +587,26 @@ class FederationClient(FederationBase):
         """Calls the /state_ids endpoint to fetch the state at a particular point
         in the room, and the auth events for the given event
 
+        Args:
+            destination: The host name of the remote homeserver we want
+                to get the state from.
+            room_id: the room we want the state of
+            event_id: The event we want the context at.
+
         Returns:
             a tuple of (state event_ids, auth event_ids)
 
         Raises:
             InvalidResponseError: if fields in the response have the wrong type.
         """
-        result = await self.transport_layer.get_room_state_ids(
-            destination, room_id, event_id=event_id
+        logger.debug("get_room_state_ids dest=%s, room=%s", destination, room_id)
+
+        path = _create_v1_path("/state_ids/%s", room_id)
+        result = await self.client.get_json(
+            destination,
+            path=path,
+            args={"event_id": event_id},
+            try_trailing_slash_on_400=True,
         )
 
         state_event_ids = result["pdu_ids"]
@@ -605,11 +659,16 @@ class FederationClient(FederationBase):
         Returns:
             a tuple of (state events, auth events)
         """
-        result = await self.transport_layer.get_room_state(
-            room_version,
+        path = _create_v1_path("/state/%s", room_id)
+        result = await self.client.get_json(
             destination,
-            room_id,
-            event_id,
+            path=path,
+            args={"event_id": event_id},
+            # This can take a looooooong time for large rooms. Give this a generous
+            # timeout of 10 minutes to avoid the partial state resync timing out early
+            # and trying a bunch of servers who haven't seen our join yet.
+            timeout=600_000,
+            parser=_StateParser(room_version),
         )
         state_events = result.state
         auth_events = result.auth_events
@@ -796,7 +855,8 @@ class FederationClient(FederationBase):
     async def get_event_auth(
         self, destination: str, room_id: str, event_id: str
     ) -> list[EventBase]:
-        res = await self.transport_layer.get_event_auth(destination, room_id, event_id)
+        path = _create_v1_path("/event_auth/%s/%s", room_id, event_id)
+        res = await self.client.get_json(destination=destination, path=path)
 
         room_version = await self.store.get_room_version(room_id)
 
@@ -972,8 +1032,26 @@ class FederationClient(FederationBase):
             )
 
         async def send_request(destination: str) -> tuple[str, EventBase, RoomVersion]:
-            ret = await self.transport_layer.make_membership_event(
-                destination, room_id, user_id, membership, params
+            path = _create_v1_path("/make_%s/%s/%s", membership, room_id, user_id)
+
+            ignore_backoff = False
+            retry_on_dns_fail = False
+
+            if membership == Membership.LEAVE:
+                # we particularly want to do our best to send leave events. The
+                # problem is that if it fails, we won't retry it later, so if the
+                # remote server was just having a momentary blip, the room will be
+                # out of sync.
+                ignore_backoff = True
+                retry_on_dns_fail = True
+
+            ret = await self.client.get_json(
+                destination=destination,
+                path=path,
+                args=params,
+                retry_on_dns_fail=retry_on_dns_fail,
+                timeout=20000,
+                ignore_backoff=ignore_backoff,
             )
 
             # Note: If not supplied, the room version may be either v1 or v2,
@@ -1223,13 +1301,18 @@ class FederationClient(FederationBase):
         time_now = self._clock.time_msec()
 
         try:
-            return await self.transport_layer.send_join_v2(
-                room_version=room_version,
+            path = _create_v2_path("/send_join/%s/%s", pdu.room_id, pdu.event_id)
+            query_params: dict[str, str] = {
+                # lazy-load state on join
+                "omit_members": "true" if omit_members else "false"
+            }
+
+            return await self.client.put_json(
                 destination=destination,
-                room_id=pdu.room_id,
-                event_id=pdu.event_id,
-                content=pdu.get_pdu_json(time_now),
-                omit_members=omit_members,
+                path=path,
+                args=query_params,
+                data=pdu.get_pdu_json(time_now),
+                parser=SendJoinParser(room_version, v1_api=False),
             )
         except HttpResponseException as e:
             # If an error is received that is due to an unrecognised endpoint,
@@ -1240,12 +1323,12 @@ class FederationClient(FederationBase):
 
         logger.debug("Couldn't send_join with the v2 API, falling back to the v1 API")
 
-        return await self.transport_layer.send_join_v1(
-            room_version=room_version,
+        path = _create_v1_path("/send_join/%s/%s", pdu.room_id, pdu.event_id)
+        return await self.client.put_json(
             destination=destination,
-            room_id=pdu.room_id,
-            event_id=pdu.event_id,
-            content=pdu.get_pdu_json(time_now),
+            path=path,
+            data=pdu.get_pdu_json(time_now),
+            parser=SendJoinParser(room_version, v1_api=True),
         )
 
     async def send_invite(
@@ -1294,15 +1377,17 @@ class FederationClient(FederationBase):
         time_now = self._clock.time_msec()
 
         try:
-            return await self.transport_layer.send_invite_v2(
+            path = _create_v2_path("/invite/%s/%s", pdu.room_id, pdu.event_id)
+
+            return await self.client.put_json(
                 destination=destination,
-                room_id=pdu.room_id,
-                event_id=pdu.event_id,
-                content={
+                path=path,
+                data={
                     "event": pdu.get_pdu_json(time_now),
                     "room_version": room_version.identifier,
                     "invite_room_state": pdu.unsigned.get("invite_room_state", []),
                 },
+                ignore_backoff=True,
             )
         except HttpResponseException as e:
             # If an error is received that is due to an unrecognised endpoint,
@@ -1321,12 +1406,13 @@ class FederationClient(FederationBase):
 
         # Didn't work, try v1 API.
         # Note the v1 API returns a tuple of `(200, content)`
-
-        _, content = await self.transport_layer.send_invite_v1(
+        path = _create_v1_path("/invite/%s/%s", pdu.room_id, pdu.event_id)
+        _, content = await self.client.put_json(
             destination=destination,
-            room_id=pdu.room_id,
-            event_id=pdu.event_id,
-            content=pdu.get_pdu_json(time_now),
+            path=path,
+            data=pdu.get_pdu_json(time_now),
+            ignore_backoff=True,
+            parser=LegacyJsonSendParser(),
         )
         return content
 
@@ -1360,11 +1446,16 @@ class FederationClient(FederationBase):
         time_now = self._clock.time_msec()
 
         try:
-            return await self.transport_layer.send_leave_v2(
+            path = _create_v2_path("/send_leave/%s/%s", pdu.room_id, pdu.event_id)
+            return await self.client.put_json(
                 destination=destination,
-                room_id=pdu.room_id,
-                event_id=pdu.event_id,
-                content=pdu.get_pdu_json(time_now),
+                path=path,
+                data=pdu.get_pdu_json(time_now),
+                # we want to do our best to send this through. The problem is
+                # that if it fails, we won't retry it later, so if the remote
+                # server was just having a momentary blip, the room will be out of
+                # sync.
+                ignore_backoff=True,
             )
         except HttpResponseException as e:
             # If an error is received that is due to an unrecognised endpoint,
@@ -1375,11 +1466,17 @@ class FederationClient(FederationBase):
 
         logger.debug("Couldn't send_leave with the v2 API, falling back to the v1 API")
 
-        resp = await self.transport_layer.send_leave_v1(
+        path = _create_v1_path("/send_leave/%s/%s", pdu.room_id, pdu.event_id)
+        resp = await self.client.put_json(
             destination=destination,
-            room_id=pdu.room_id,
-            event_id=pdu.event_id,
-            content=pdu.get_pdu_json(time_now),
+            path=path,
+            data=pdu.get_pdu_json(time_now),
+            # we want to do our best to send this through. The problem is
+            # that if it fails, we won't retry it later, so if the remote
+            # server was just having a momentary blip, the room will be out of
+            # sync.
+            ignore_backoff=True,
+            parser=LegacyJsonSendParser(),
         )
 
         # We expect the v1 API to respond with [200, content], so we only return the
@@ -1434,12 +1531,9 @@ class FederationClient(FederationBase):
             The list of state events may be empty.
         """
         time_now = self._clock.time_msec()
-
-        return await self.transport_layer.send_knock_v1(
-            destination=destination,
-            room_id=pdu.room_id,
-            event_id=pdu.event_id,
-            content=pdu.get_pdu_json(time_now),
+        path = _create_v1_path("/send_knock/%s/%s", pdu.room_id, pdu.event_id)
+        return await self.client.put_json(
+            destination=destination, path=path, data=pdu.get_pdu_json(time_now)
         )
 
     async def get_public_rooms(
@@ -1473,14 +1567,59 @@ class FederationClient(FederationBase):
                 requests over federation
 
         """
-        return await self.transport_layer.get_public_rooms(
-            remote_server,
-            limit,
-            since_token,
-            search_filter,
-            include_all_networks=include_all_networks,
-            third_party_instance_id=third_party_instance_id,
-        )
+        path = _create_v1_path("/publicRooms")
+
+        if search_filter:
+            # this uses MSC2197 (Search Filtering over Federation)
+            data: dict[str, Any] = {"include_all_networks": include_all_networks}
+            if third_party_instance_id:
+                data["third_party_instance_id"] = third_party_instance_id
+            if limit:
+                data["limit"] = limit
+            if since_token:
+                data["since"] = since_token
+
+            data["filter"] = search_filter
+
+            try:
+                response = await self.client.post_json(
+                    destination=remote_server, path=path, data=data, ignore_backoff=True
+                )
+            except HttpResponseException as e:
+                if e.code == 403:
+                    raise RelapseError(
+                        403,
+                        "You are not allowed to view the public rooms list of %s"
+                        % (remote_server,),
+                        errcode=Codes.FORBIDDEN,
+                    )
+                raise
+        else:
+            args: dict[str, Union[str, Iterable[str]]] = {
+                "include_all_networks": "true" if include_all_networks else "false"
+            }
+            if third_party_instance_id:
+                args["third_party_instance_id"] = third_party_instance_id
+            if limit:
+                args["limit"] = str(limit)
+            if since_token:
+                args["since"] = since_token
+
+            try:
+                response = await self.client.get_json(
+                    destination=remote_server, path=path, args=args, ignore_backoff=True
+                )
+            except HttpResponseException as e:
+                if e.code == 403:
+                    raise RelapseError(
+                        403,
+                        "You are not allowed to view the public rooms list of %s"
+                        % (remote_server,),
+                        errcode=Codes.FORBIDDEN,
+                    )
+                raise
+
+        return response
 
     async def get_missing_events(
         self,
@@ -1508,13 +1647,16 @@ class FederationClient(FederationBase):
             timeout: Max time to wait in ms
         """
         try:
-            content = await self.transport_layer.get_missing_events(
+            path = _create_v1_path("/get_missing_events/%s", room_id)
+            content = await self.client.post_json(
                 destination=destination,
-                room_id=room_id,
-                earliest_events=earliest_events_ids,
-                latest_events=[e.event_id for e in latest_events],
-                limit=limit,
-                min_depth=min_depth,
+                path=path,
+                data={
+                    "limit": int(limit),
+                    "min_depth": int(min_depth),
+                    "earliest_events": earliest_events_ids,
+                    "latest_events": [e.event_id for e in latest_events],
+                },
                 timeout=timeout,
             )
 
@@ -1545,8 +1687,9 @@ class FederationClient(FederationBase):
                 continue
 
             try:
-                await self.transport_layer.exchange_third_party_invite(
-                    destination=destination, room_id=room_id, event_dict=event_dict
+                path = _create_v1_path("/exchange_third_party_invite/%s", room_id)
+                await self.client.put_json(
+                    destination=destination, path=path, data=event_dict
                 )
                 return
             except CodeMessageException:
@@ -1573,9 +1716,10 @@ class FederationClient(FederationBase):
             could not fetch the complexity.
         """
         try:
-            return await self.transport_layer.get_room_complexity(
-                destination=destination, room_id=room_id
+            path = _create_path(
+                FEDERATION_UNSTABLE_PREFIX, "/rooms/%s/complexity", room_id
             )
+            return await self.client.get_json(destination=destination, path=path)
         except CodeMessageException as e:
             # We didn't manage to get it -- probably a 404. We are okay if other
             # servers don't give it to us.
@@ -1632,10 +1776,11 @@ class FederationClient(FederationBase):
             destination: str,
         ) -> tuple[JsonDict, Sequence[JsonDict], Sequence[JsonDict], Sequence[str]]:
             try:
-                res = await self.transport_layer.get_room_hierarchy(
+                path = _create_v1_path("/hierarchy/%s", room_id)
+                res = await self.client.get_json(
                     destination=destination,
-                    room_id=room_id,
-                    suggested_only=suggested_only,
+                    path=path,
+                    args={"suggested_only": "true" if suggested_only else "false"},
                 )
             except HttpResponseException as e:
                 # If an error is received that is due to an unrecognised endpoint,
@@ -1648,10 +1793,15 @@ class FederationClient(FederationBase):
                     "Couldn't fetch room hierarchy with the v1 API, falling back to the unstable API"
                 )
 
-                res = await self.transport_layer.get_room_hierarchy_unstable(
+                path = _create_path(
+                    FEDERATION_UNSTABLE_PREFIX,
+                    "/org.matrix.msc2946/hierarchy/%s",
+                    room_id,
+                )
+                res = await self.client.get_json(
                     destination=destination,
-                    room_id=room_id,
-                    suggested_only=suggested_only,
+                    path=path,
+                    args={"suggested_only": "true" if suggested_only else "false"},
                 )
 
             room = res.get("room")
@@ -1708,7 +1858,7 @@ class FederationClient(FederationBase):
         room_id: str,
         timestamp: int,
         direction: Direction,
-    ) -> Optional["TimestampToEventResponse"]:
+    ) -> Optional[TimestampToEventResponse]:
         """
         Calls each remote federating server from `destinations` asking for their closest
         event to the given timestamp in the given direction until we get a response.
@@ -1766,7 +1916,7 @@ class FederationClient(FederationBase):
 
     async def _timestamp_to_event_from_destination(
         self, destination: str, room_id: str, timestamp: int, direction: Direction
-    ) -> "TimestampToEventResponse":
+    ) -> TimestampToEventResponse:
         """
         Calls a remote federating server at `destination` asking for their
         closest event to the given timestamp in the given direction. Also
@@ -1790,8 +1940,15 @@ class FederationClient(FederationBase):
             InvalidResponseError when the response does not have the correct
             keys or wrong types
         """
-        remote_response = await self.transport_layer.timestamp_to_event(
-            destination, room_id, timestamp, direction
+        path = _create_v1_path(
+            "/timestamp_to_event/%s",
+            room_id,
+        )
+
+        args = {"ts": [str(timestamp)], "dir": [direction.value]}
+
+        remote_response = await self.client.get_json(
+            destination, path=path, args=args, try_trailing_slash_on_400=True
         )
 
         if not isinstance(remote_response, dict):
@@ -1822,7 +1979,13 @@ class FederationClient(FederationBase):
             possible to retrieve a status.
         """
         try:
-            res = await self.transport_layer.get_account_status(destination, user_ids)
+            path = _create_path(
+                FEDERATION_UNSTABLE_PREFIX, "/org.matrix.msc3720/account_status"
+            )
+
+            res = await self.client.post_json(
+                destination=destination, path=path, data={"user_ids": user_ids}
+            )
         except Exception:
             # If the query failed for any reason, mark all the users as failed.
             return {}, user_ids
@@ -1871,12 +2034,23 @@ class FederationClient(FederationBase):
         max_timeout_ms: int,
     ) -> tuple[int, dict[bytes, list[bytes]]]:
         try:
-            return await self.transport_layer.download_media_v3(
+            path = f"/_matrix/media/v3/download/{destination}/{media_id}"
+            return await self.client.get_file(
                 destination,
-                media_id,
+                path,
                 output_stream=output_stream,
                 max_size=max_size,
-                max_timeout_ms=max_timeout_ms,
+                args={
+                    # tell the remote server to 404 if it doesn't
+                    # recognise the server_name, to make sure we don't
+                    # end up with a routing loop.
+                    "allow_remote": "false",
+                    "timeout_ms": str(max_timeout_ms),
+                    # Matrix 1.7 allows for this to redirect to another URL, this should
+                    # just be ignored for an old homeserver, so always provide it.
+                    "allow_redirect": "true",
+                },
+                follow_redirects=True,
             )
         except HttpResponseException as e:
             # If an error is received that is due to an unrecognised endpoint,
@@ -1891,76 +2065,67 @@ class FederationClient(FederationBase):
             media_id,
         )
 
-        return await self.transport_layer.download_media_r0(
+        path = f"/_matrix/media/r0/download/{destination}/{media_id}"
+        return await self.client.get_file(
             destination,
-            media_id,
+            path,
             output_stream=output_stream,
             max_size=max_size,
-            max_timeout_ms=max_timeout_ms,
+            args={
+                # tell the remote server to 404 if it doesn't
+                # recognise the server_name, to make sure we don't
+                # end up with a routing loop.
+                "allow_remote": "false",
+                "timeout_ms": str(max_timeout_ms),
+            },
         )
 
-
-@attr.s(frozen=True, slots=True, auto_attribs=True)
-class TimestampToEventResponse:
-    """Typed response dictionary for the federation /timestamp_to_event endpoint"""
-
-    event_id: str
-    origin_server_ts: int
-
-    # the raw data, including the above keys
-    data: JsonDict
-
-    @classmethod
-    def from_json_dict(cls, d: JsonDict) -> "TimestampToEventResponse":
-        """Parsed response from the federation /timestamp_to_event endpoint
+    async def send_transaction(
+        self,
+        transaction: Transaction,
+        json_data_callback: Optional[Callable[[], JsonDict]] = None,
+    ) -> JsonDict:
+        """Sends the given Transaction to its destination
 
         Args:
-            d: JSON object response to be parsed
+            transaction
 
-        Raises:
-            ValueError if d does not the correct keys or they are the wrong types
+        Returns:
+            Succeeds when we get a 2xx HTTP response. The result
+            will be the decoded JSON body.
+
+            Fails with ``HTTPRequestException`` if we get an HTTP response
+            code >= 300.
+
+            Fails with ``NotRetryingDestination`` if we are not yet ready
+            to retry this server.
+
+            Fails with ``FederationDeniedError`` if this destination
+            is not on our federation whitelist
         """
+        logger.debug(
+            "send_data dest=%s, txid=%s",
+            transaction.destination,
+            transaction.transaction_id,
+        )
 
-        event_id = d.get("event_id")
-        if not isinstance(event_id, str):
-            raise ValueError(
-                "Invalid response: 'event_id' must be a str but received %r" % event_id
-            )
+        if self._is_mine_server_name(transaction.destination):
+            raise RuntimeError("Transport layer cannot send to itself!")
 
-        origin_server_ts = d.get("origin_server_ts")
-        if type(origin_server_ts) is not int:  # noqa: E721
-            raise ValueError(
-                "Invalid response: 'origin_server_ts' must be a int but received %r"
-                % origin_server_ts
-            )
+        # FIXME: This is only used by the tests. The actual json sent is
+        # generated by the json_data_callback.
+        json_data = transaction.get_dict()
 
-        return cls(event_id, origin_server_ts, d)
+        path = _create_v1_path("/send/%s", transaction.transaction_id)
 
-
-def _validate_hierarchy_event(d: JsonDict) -> None:
-    """Validate an event within the result of a /hierarchy request
-
-    Args:
-        d: json object to be parsed
-
-    Raises:
-        ValueError if d is not a valid event
-    """
-
-    event_type = d.get("type")
-    if not isinstance(event_type, str):
-        raise ValueError("Invalid event: 'event_type' must be a str")
-
-    state_key = d.get("state_key")
-    if not isinstance(state_key, str):
-        raise ValueError("Invalid event: 'state_key' must be a str")
-
-    content = d.get("content")
-    if not isinstance(content, dict):
-        raise ValueError("Invalid event: 'content' must be a dict")
-
-    via = content.get("via")
-    if not isinstance(via, list):
-        raise ValueError("Invalid event: 'via' must be a list")
-    if any(not isinstance(v, str) for v in via):
-        raise ValueError("Invalid event: 'via' must be a list of strings")
+        return await self.client.put_json(
+            transaction.destination,
+            path=path,
+            data=json_data,
+            json_data_callback=json_data_callback,
+            long_retries=True,
+            try_trailing_slash_on_400=True,
+            # Sending a transaction should always succeed, if it doesn't
+            # then something is wrong and we should backoff.
+            backoff_on_all_error_codes=True,
+        )

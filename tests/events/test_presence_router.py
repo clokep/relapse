@@ -110,11 +110,11 @@ class PresenceRouterTestCase(FederatingHomeserverTestCase):
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         # Mock out the calls over federation.
-        self.fed_transport_client = Mock(spec=["send_transaction"])
-        self.fed_transport_client.send_transaction = AsyncMock(return_value={})
+        self.federation_client = Mock(spec=["send_transaction"])
+        self.federation_client.send_transaction = AsyncMock(return_value={})
 
         hs = self.setup_test_homeserver(
-            federation_transport_client=self.fed_transport_client,
+            federation_client=self.federation_client,
         )
 
         return hs
@@ -332,7 +332,7 @@ class PresenceRouterTestCase(FederatingHomeserverTestCase):
         #
         # Thus we reset the mock, and try sending all online local user
         # presence again
-        self.fed_transport_client.send_transaction.reset_mock()
+        self.federation_client.send_transaction.reset_mock()
 
         # Broadcast local user online presence
         self.get_success(
@@ -357,7 +357,7 @@ class PresenceRouterTestCase(FederatingHomeserverTestCase):
         }
         found_users = set()
 
-        calls = self.fed_transport_client.send_transaction.call_args_list
+        calls = self.federation_client.send_transaction.call_args_list
         for call in calls:
             call_args = call[0]
             federation_transaction: Transaction = call_args[0]

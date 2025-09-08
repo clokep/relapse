@@ -43,11 +43,11 @@ class HTTPPusherTests(HomeserverTestCase):
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         # Mock out the calls over federation.
-        fed_transport_client = Mock(spec=["send_transaction"])
-        fed_transport_client.send_transaction = AsyncMock(return_value={})
+        federation_client = Mock(spec=["send_transaction"])
+        federation_client.send_transaction = AsyncMock(return_value={})
 
         return self.setup_test_homeserver(
-            federation_transport_client=fed_transport_client,
+            federation_client=federation_client,
         )
 
     def test_notify_for_local_invites(self) -> None:

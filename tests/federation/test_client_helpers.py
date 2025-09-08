@@ -19,7 +19,7 @@ from unittest.mock import Mock
 import ijson.common
 
 from relapse.api.room_versions import RoomVersions
-from relapse.federation.transport.client import SendJoinParser
+from relapse.federation.federation_client_helpers import SendJoinParser
 from relapse.types import JsonDict
 from relapse.util import ExceptionBundle
 

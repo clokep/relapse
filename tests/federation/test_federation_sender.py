@@ -41,10 +41,10 @@ class FederationSenderReceiptsTestCases(HomeserverTestCase):
     """
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
-        self.federation_transport_client = Mock(spec=["send_transaction"])
-        self.federation_transport_client.send_transaction = AsyncMock()
+        self.federation_client = Mock(spec=["send_transaction"])
+        self.federation_client.send_transaction = AsyncMock()
         hs = self.setup_test_homeserver(
-            federation_transport_client=self.federation_transport_client,
+            federation_client=self.federation_client,
         )
 
         hs.get_storage_controllers().state.get_current_hosts_in_room = AsyncMock(  # type: ignore[method-assign]
@@ -63,7 +63,7 @@ class FederationSenderReceiptsTestCases(HomeserverTestCase):
         return config
 
     def test_send_receipts(self) -> None:
-        mock_send_transaction = self.federation_transport_client.send_transaction
+        mock_send_transaction = self.federation_client.send_transaction
         mock_send_transaction.return_value = {}
 
         sender = self.hs.get_federation_sender()
@@ -103,7 +103,7 @@ class FederationSenderReceiptsTestCases(HomeserverTestCase):
         )
 
     def test_send_receipts_thread(self) -> None:
-        mock_send_transaction = self.federation_transport_client.send_transaction
+        mock_send_transaction = self.federation_client.send_transaction
         mock_send_transaction.return_value = {}
 
         # Create receipts for:
@@ -180,7 +180,7 @@ class FederationSenderReceiptsTestCases(HomeserverTestCase):
     def test_send_receipts_with_backoff(self) -> None:
         """Send two receipts in quick succession; the second should be flushed, but
         only after 20ms"""
-        mock_send_transaction = self.federation_transport_client.send_transaction
+        mock_send_transaction = self.federation_client.send_transaction
         mock_send_transaction.return_value = {}
 
         sender = self.hs.get_federation_sender()
@@ -274,13 +274,11 @@ class FederationSenderDevicesTestCases(HomeserverTestCase):
     ]
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
-        self.federation_transport_client = Mock(
-            spec=["send_transaction", "query_user_devices"]
-        )
-        self.federation_transport_client.send_transaction = AsyncMock()
-        self.federation_transport_client.query_user_devices = AsyncMock()
+        self.federation_client = Mock(spec=["send_transaction", "query_user_devices"])
+        self.federation_client.send_transaction = AsyncMock()
+        self.federation_client.query_user_devices = AsyncMock()
         return self.setup_test_homeserver(
-            federation_transport_client=self.federation_transport_client,
+            federation_client=self.federation_client,
         )
 
     def default_config(self) -> JsonDict:
@@ -316,9 +314,7 @@ class FederationSenderDevicesTestCases(HomeserverTestCase):
 
         # whenever send_transaction is called, record the edu data
         self.edus: list[JsonDict] = []
-        self.federation_transport_client.send_transaction.side_effect = (
-            self.record_transaction
-        )
+        self.federation_client.send_transaction.side_effect = self.record_transaction
 
     async def record_transaction(
         self, txn: Transaction, json_cb: Optional[Callable[[], JsonDict]] = None
@@ -359,7 +355,7 @@ class FederationSenderDevicesTestCases(HomeserverTestCase):
 
         # Send the server a device list EDU for the other user, this will cause
         # it to try and resync the device lists.
-        self.federation_transport_client.query_user_devices.return_value = {
+        self.federation_client.query_user_devices.return_value = {
             "stream_id": "1",
             "user_id": "@user2:host2",
             "devices": [{"device_id": "D1"}],
@@ -533,7 +529,7 @@ class FederationSenderDevicesTestCases(HomeserverTestCase):
         """If the destination server is unreachable, all the updates should get sent on
         recovery
         """
-        mock_send_txn = self.federation_transport_client.send_transaction
+        mock_send_txn = self.federation_client.send_transaction
         mock_send_txn.side_effect = AssertionError("fail")
 
         # create devices
@@ -580,7 +576,7 @@ class FederationSenderDevicesTestCases(HomeserverTestCase):
 
         This case tests the behaviour when the server has never been reachable.
         """
-        mock_send_txn = self.federation_transport_client.send_transaction
+        mock_send_txn = self.federation_client.send_transaction
         mock_send_txn.side_effect = AssertionError("fail")
 
         # create devices
@@ -640,7 +636,7 @@ class FederationSenderDevicesTestCases(HomeserverTestCase):
         self.check_device_update_edu(self.edus.pop(0), u1, "D1", None)
 
         # now the server goes offline
-        mock_send_txn = self.federation_transport_client.send_transaction
+        mock_send_txn = self.federation_client.send_transaction
         mock_send_txn.side_effect = AssertionError("fail")
 
         self.login("user", "pass", device_id="D2")
