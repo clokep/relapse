@@ -217,7 +217,6 @@ class RelapseHomeServer(HomeServer):
                     {
                         MEDIA_R0_PREFIX: media_repo,
                         MEDIA_V3_PREFIX: media_repo,
-                        LEGACY_MEDIA_PREFIX: media_repo,
                     }
                 )
             elif name == "media":
