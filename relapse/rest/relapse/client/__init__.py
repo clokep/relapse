@@ -66,10 +66,6 @@ def build_relapse_client_resource_tree(hs: "HomeServer") -> Mapping[str, Resourc
         res = SAML2Resource(hs)
         resources["/_relapse/client/saml2"] = res
 
-        # This is also mounted under '/_matrix' for backwards-compatibility.
-        # To be removed in Relapse v1.32.0.
-        resources["/_matrix/saml2"] = res
-
     return resources
 
 

@@ -22,7 +22,6 @@ import relapse.events
 from relapse.api.urls import (
     CLIENT_API_PREFIX,
     FEDERATION_PREFIX,
-    LEGACY_MEDIA_PREFIX,
     MEDIA_R0_PREFIX,
     MEDIA_V3_PREFIX,
     SERVER_KEY_PREFIX,
@@ -190,7 +189,6 @@ class GenericWorkerServer(HomeServer):
                             {
                                 MEDIA_R0_PREFIX: media_repo,
                                 MEDIA_V3_PREFIX: media_repo,
-                                LEGACY_MEDIA_PREFIX: media_repo,
                                 "/_relapse/admin": admin_resource,
                             }
                         )

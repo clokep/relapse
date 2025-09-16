@@ -26,7 +26,6 @@ from relapse.http.servlet import (
 from relapse.http.site import RelapseRequest
 from relapse.push import PusherConfigException
 from relapse.rest.client._base import client_patterns
-from relapse.rest.relapse.client.unsubscribe import UnsubscribeResource
 from relapse.types import JsonDict
 
 if TYPE_CHECKING:
@@ -147,21 +146,6 @@ class PushersSetRestServlet(RestServlet):
         return 200, {}
 
 
-class LegacyPushersRemoveRestServlet(UnsubscribeResource, RestServlet):
-    """
-    A servlet to handle legacy "email unsubscribe" links, forwarding requests to the ``UnsubscribeResource``
-
-    This should be kept for some time, so unsubscribe links in past emails stay valid.
-    """
-
-    PATTERNS = client_patterns("/pushers/remove$", releases=(), unstable=True)
-
-    async def on_GET(self, request: RelapseRequest) -> None:
-        # Forward the request to the UnsubscribeResource
-        await self._async_render(request)
-
-
 def register_servlets(hs: "HomeServer", http_server: HttpServer) -> None:
     PushersRestServlet(hs).register(http_server)
     PushersSetRestServlet(hs).register(http_server)
-    LegacyPushersRemoveRestServlet(hs).register(http_server)
