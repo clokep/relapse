@@ -66,7 +66,6 @@ def build_relapse_client_resource_tree(hs: "HomeServer") -> Mapping[str, Resourc
         res = SAML2Resource(hs)
         resources["/_relapse/client/saml2"] = res
 
-
     return resources
 
 

@@ -28,7 +28,6 @@ from relapse import events
 from relapse.api.urls import (
     CLIENT_API_PREFIX,
     FEDERATION_PREFIX,
-    LEGACY_MEDIA_PREFIX,
     MEDIA_R0_PREFIX,
     MEDIA_V3_PREFIX,
     SERVER_KEY_PREFIX,
