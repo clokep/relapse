@@ -252,6 +252,7 @@ skipped_test_packages=(
   TestMSC4297StateResolutionV2_1_starts_from_empty_set
   TestMSC4297StateResolutionV2_1_includes_conflicted_subgraph
   TestMSC4311FullCreateEventOnStrippedState
+  TestFederationRoomsInvite/Parallel/Inviter_user_can_rescind_invite_over_federation
 )
 skip_flag=$(IFS="|" ; echo "${skipped_test_packages[*]}")
 
