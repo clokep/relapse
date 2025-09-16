@@ -26,7 +26,6 @@ See doc/log_contexts.rst for details on how this works.
 import logging
 import threading
 import typing
-import warnings
 from collections.abc import Awaitable
 from types import TracebackType
 from typing import (
