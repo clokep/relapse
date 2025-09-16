@@ -29,6 +29,7 @@ from relapse.config.homeserver import HomeServerConfig
 from relapse.config.logger import setup_logging
 from relapse.events import EventBase
 from relapse.handlers.admin import ExfiltrationWriter
+from relapse.logging.context import LoggingContext
 from relapse.server import HomeServer
 from relapse.storage.database import DatabasePool, LoggingDatabaseConnection
 from relapse.storage.databases.main.account_data import AccountDataWorkerStore
@@ -60,7 +61,6 @@ from relapse.storage.databases.main.tags import TagsWorkerStore
 from relapse.storage.databases.main.user_erasure_store import UserErasureWorkerStore
 from relapse.types import JsonMapping, StateMap
 from relapse.util import RELAPSE_VERSION
-from relapse.util.logcontext import LoggingContext
 
 logger = logging.getLogger("relapse.app.admin_cmd")
 
