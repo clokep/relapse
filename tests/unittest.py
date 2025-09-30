@@ -45,7 +45,6 @@ from relapse.config._base import Config, RootConfig
 from relapse.config.homeserver import HomeServerConfig
 from relapse.config.server import DEFAULT_ROOM_VERSION
 from relapse.crypto.event_signing import add_hashes_and_signatures
-from relapse.federation.transport.server import TransportLayerServer
 from relapse.http.server import JsonResource, OptionsResource
 from relapse.http.site import RelapseRequest, RelapseSite
 from relapse.logging.context import (
@@ -54,7 +53,7 @@ from relapse.logging.context import (
     current_context,
     set_current_context,
 )
-from relapse.rest import RegisterServletsFunc
+from relapse.rest import RegisterServletsFunc, federation
 from relapse.server import HomeServer
 from relapse.storage.keys import FetchKeyResult
 from relapse.types import JsonDict, Requester, UserID, create_requester
@@ -867,7 +866,9 @@ class FederatingHomeserverTestCase(HomeserverTestCase):
 
     def create_resource_dict(self) -> dict[str, Resource]:
         d = super().create_resource_dict()
-        d["/_matrix/federation"] = TransportLayerServer(self.hs)
+        federation_resource = JsonResource(self.hs)
+        federation.register_servlets(self.hs, federation_resource)
+        d["/_matrix/federation"] = federation_resource
         return d
 
     def make_signed_federation_request(

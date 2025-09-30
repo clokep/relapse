@@ -37,12 +37,11 @@ from relapse.config._base import ConfigError
 from relapse.config.homeserver import HomeServerConfig
 from relapse.config.logger import setup_logging
 from relapse.config.server import ListenerConfig, TCPListenerConfig
-from relapse.federation.transport.server import TransportLayerServer
 from relapse.http.server import JsonResource, OptionsResource
 from relapse.logging.context import LoggingContext
 from relapse.metrics import METRICS_PREFIX, MetricsResource, RegistryProxy
 from relapse.replication.http import REPLICATION_PREFIX, ReplicationRestResource
-from relapse.rest import ClientRestResource
+from relapse.rest import ClientRestResource, federation
 from relapse.rest.admin import register_servlets_for_media_repo
 from relapse.rest.health import HealthResource
 from relapse.rest.key.v2 import KeyResource
@@ -175,7 +174,9 @@ class GenericWorkerServer(HomeServer):
                     resources["/.well-known"] = well_known_resource(self)
 
                 elif name == "federation":
-                    resources[FEDERATION_PREFIX] = TransportLayerServer(self)
+                    federation_resource = JsonResource(self, canonical_json=False)
+                    federation.register_servlets(self, federation_resource)
+                    resources[FEDERATION_PREFIX] = federation_resource
                 elif name == "media":
                     if self.config.media.can_load_media_repo:
                         media_repo = self.get_media_repository_resource()
@@ -205,9 +206,11 @@ class GenericWorkerServer(HomeServer):
                     # Only load the openid resource separately if federation resource
                     # is not specified since federation resource includes openid
                     # resource.
-                    resources[FEDERATION_PREFIX] = TransportLayerServer(
-                        self, servlet_groups=["openid"]
+                    federation_resource = JsonResource(self, canonical_json=False)
+                    federation.register_servlets(
+                        self, federation_resource, servlet_groups=["openid"]
                     )
+                    resources[FEDERATION_PREFIX] = federation_resource
 
                 if name in ["keys", "federation"]:
                     resources[SERVER_KEY_PREFIX] = KeyResource(self)

@@ -22,15 +22,15 @@ from relapse.api.constants import Direction, EduTypes
 from relapse.api.errors import Codes, RelapseError
 from relapse.api.room_versions import RoomVersions
 from relapse.api.urls import FEDERATION_UNSTABLE_PREFIX, FEDERATION_V2_PREFIX
-from relapse.federation.transport.server._base import (
-    Authenticator,
-    BaseFederationServlet,
-)
 from relapse.http.servlet import (
     parse_boolean_from_args,
     parse_integer_from_args,
     parse_string_from_args,
     parse_strings_from_args,
+)
+from relapse.rest.federation._base import (
+    Authenticator,
+    BaseFederationServlet,
 )
 from relapse.types import JsonDict
 from relapse.util import RELAPSE_VERSION

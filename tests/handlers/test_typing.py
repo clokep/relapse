@@ -12,18 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 import json
 from unittest.mock import ANY, AsyncMock, Mock, call
 
 from netaddr import IPSet
 
 from twisted.internet.testing import MemoryReactor
-from twisted.web.resource import Resource
 
 from relapse.api.constants import EduTypes
 from relapse.api.errors import AuthError
-from relapse.federation.transport.server import TransportLayerServer
 from relapse.handlers.typing import TypingWriterHandler
 from relapse.http.federation.matrix_federation_agent import MatrixFederationAgent
 from relapse.server import HomeServer
@@ -63,7 +60,7 @@ def _make_edu_transaction_json(edu_type: str, content: JsonDict) -> bytes:
     return json.dumps(_expect_edu_transaction(edu_type, content)).encode("utf8")
 
 
-class TypingNotificationsTestCase(unittest.HomeserverTestCase):
+class TypingNotificationsTestCase(unittest.FederatingHomeserverTestCase):
     def make_homeserver(
         self,
         reactor: ThreadedMemoryReactorClock,
@@ -97,11 +94,6 @@ class TypingNotificationsTestCase(unittest.HomeserverTestCase):
         )
 
         return hs
-
-    def create_resource_dict(self) -> dict[str, Resource]:
-        d = super().create_resource_dict()
-        d["/_matrix/federation"] = TransportLayerServer(self.hs)
-        return d
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.on_new_event = self.mock_hs_notifier.on_new_event

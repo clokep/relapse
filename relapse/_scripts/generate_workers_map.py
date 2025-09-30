@@ -25,12 +25,8 @@ from typing import Optional
 import yaml
 
 from relapse.config.homeserver import HomeServerConfig
-from relapse.federation.transport.server import (
-    TransportLayerServer,
-    register_servlets as register_federation_servlets,
-)
 from relapse.http.server import HttpServer, ServletCallback
-from relapse.rest import ClientRestResource
+from relapse.rest import ClientRestResource, federation
 from relapse.rest.key.v2 import RemoteKey
 from relapse.server import HomeServer
 from relapse.storage import DataStore
@@ -117,17 +113,7 @@ def get_registered_paths_for_hs(
 
     enumerator = EnumerationResource(is_worker=hs.config.worker.worker_app is not None)
     ClientRestResource.register_servlets(enumerator, hs)
-    federation_server = TransportLayerServer(hs)
-
-    # we can't use `federation_server.register_servlets` but this line does the
-    # same thing, only it uses this enumerator
-    register_federation_servlets(
-        federation_server.hs,
-        resource=enumerator,
-        ratelimiter=federation_server.ratelimiter,
-        authenticator=federation_server.authenticator,
-        servlet_groups=federation_server.servlet_groups,
-    )
+    federation.register_servlets(hs, enumerator)
 
     # the key server endpoints are separate again
     RemoteKey(hs).register(enumerator)

@@ -44,9 +44,9 @@ from relapse.app._base import (
 from relapse.config._base import ConfigError, format_config_error
 from relapse.config.homeserver import HomeServerConfig
 from relapse.config.server import ListenerConfig, TCPListenerConfig
-from relapse.federation.transport.server import TransportLayerServer
 from relapse.http.additional_resource import AdditionalResource
 from relapse.http.server import (
+    JsonResource,
     OptionsResource,
     RootOptionsRedirectResource,
     StaticResource,
@@ -54,7 +54,7 @@ from relapse.http.server import (
 from relapse.logging.context import LoggingContext
 from relapse.metrics import METRICS_PREFIX, MetricsResource, RegistryProxy
 from relapse.replication.http import REPLICATION_PREFIX, ReplicationRestResource
-from relapse.rest import ClientRestResource
+from relapse.rest import ClientRestResource, federation
 from relapse.rest.admin import AdminRestResource
 from relapse.rest.health import HealthResource
 from relapse.rest.key.v2 import KeyResource
@@ -194,15 +194,20 @@ class RelapseHomeServer(HomeServer):
             resources["/_matrix/consent"] = consent_resource
 
         if name == "federation":
-            federation_resource: Resource = TransportLayerServer(self)
+            federation_server = JsonResource(self, canonical_json=False)
+            federation.register_servlets(self, federation_server)
+            federation_resource: Resource = federation_server
             if compress:
                 federation_resource = gz_wrap(federation_resource)
             resources[FEDERATION_PREFIX] = federation_resource
 
         if name == "openid":
-            resources[FEDERATION_PREFIX] = TransportLayerServer(
-                self, servlet_groups=["openid"]
+            federation_resource = JsonResource(self, canonical_json=False)
+            federation.register_servlets(
+                self, federation_resource, servlet_groups=["openid"]
             )
+
+            resources[FEDERATION_PREFIX] = federation_resource
 
         if name in ["static", "client"]:
             resources[STATIC_PREFIX] = StaticResource(
