@@ -17,9 +17,9 @@ from http import HTTPStatus
 from twisted.web.resource import Resource
 
 from relapse.api.errors import Codes
-from relapse.federation.transport.server import BaseFederationServlet
-from relapse.federation.transport.server._base import Authenticator, _parse_auth_header
 from relapse.http.server import JsonResource
+from relapse.rest.federation import BaseFederationServlet
+from relapse.rest.federation._base import Authenticator, _parse_auth_header
 from relapse.server import HomeServer
 from relapse.types import JsonDict
 from relapse.util.cancellation import cancellable

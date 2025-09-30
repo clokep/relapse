@@ -19,63 +19,28 @@ from typing import TYPE_CHECKING, Optional
 from typing_extensions import Literal
 
 from relapse.api.errors import FederationDeniedError, RelapseError
-from relapse.federation.transport.server._base import (
-    Authenticator,
-    BaseFederationServlet,
-)
-from relapse.federation.transport.server.federation import (
-    FEDERATION_SERVLET_CLASSES,
-    FederationAccountStatusServlet,
-    FederationUnstableClientKeysClaimServlet,
-)
-from relapse.http.server import HttpServer, JsonResource
+from relapse.http.server import HttpServer
 from relapse.http.servlet import (
     parse_boolean_from_args,
     parse_integer_from_args,
     parse_string_from_args,
 )
-from relapse.types import JsonDict, ThirdPartyInstanceID
+from relapse.rest.federation._base import (
+    Authenticator,
+    BaseFederationServlet,
+)
+from relapse.rest.federation.federation import (
+    FEDERATION_SERVLET_CLASSES,
+    FederationAccountStatusServlet,
+    FederationUnstableClientKeysClaimServlet,
+)
+from relapse.types import JsonDict, StrCollection, ThirdPartyInstanceID
 from relapse.util.ratelimitutils import FederationRateLimiter
 
 if TYPE_CHECKING:
     from relapse.server import HomeServer
 
 logger = logging.getLogger(__name__)
-
-
-class TransportLayerServer(JsonResource):
-    """Handles incoming federation HTTP requests"""
-
-    def __init__(self, hs: "HomeServer", servlet_groups: Optional[list[str]] = None):
-        """Initialize the TransportLayerServer
-
-        Will by default register all servlets. For custom behaviour, pass in
-        a list of servlet_groups to register.
-
-        Args:
-            hs: homeserver
-            servlet_groups: List of servlet groups to register.
-                Defaults to ``DEFAULT_SERVLET_GROUPS``.
-        """
-        self.hs = hs
-        self.clock = hs.get_clock()
-        self.servlet_groups = servlet_groups
-
-        super().__init__(hs, canonical_json=False)
-
-        self.authenticator = Authenticator(hs)
-        self.ratelimiter = hs.get_federation_ratelimiter()
-
-        self.register_servlets()
-
-    def register_servlets(self) -> None:
-        register_servlets(
-            self.hs,
-            resource=self,
-            ratelimiter=self.ratelimiter,
-            authenticator=self.authenticator,
-            servlet_groups=self.servlet_groups,
-        )
 
 
 class PublicRoomList(BaseFederationServlet):
@@ -265,10 +230,8 @@ SERVLET_GROUPS: dict[str, Iterable[type[BaseFederationServlet]]] = {
 
 def register_servlets(
     hs: "HomeServer",
-    resource: HttpServer,
-    authenticator: Authenticator,
-    ratelimiter: FederationRateLimiter,
-    servlet_groups: Optional[Iterable[str]] = None,
+    http_server: HttpServer,
+    servlet_groups: Optional[StrCollection] = None,
 ) -> None:
     """Initialize and register servlet classes.
 
@@ -277,12 +240,14 @@ def register_servlets(
 
     Args:
         hs: homeserver
-        resource: resource class to register to
-        authenticator: authenticator to use
-        ratelimiter: ratelimiter to use
+        http_server: router to register to
         servlet_groups: List of servlet groups to register.
             Defaults to ``DEFAULT_SERVLET_GROUPS``.
     """
+
+    authenticator = Authenticator(hs)
+    ratelimiter = hs.get_federation_ratelimiter()
+
     if not servlet_groups:
         servlet_groups = SERVLET_GROUPS.keys()
 
@@ -311,4 +276,4 @@ def register_servlets(
                 authenticator=authenticator,
                 ratelimiter=ratelimiter,
                 server_name=hs.hostname,
-            ).register(resource)
+            ).register(http_server)

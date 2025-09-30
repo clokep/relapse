@@ -31,7 +31,7 @@ from relapse.types import JsonDict
 from relapse.util import Clock
 
 from tests import unittest
-from tests.federation.transport.test_knocking import (
+from tests.rest.federation.test_knocking import (
     KnockingStrippedStateEventHelperMixin,
 )
 from tests.server import TimedOutException
