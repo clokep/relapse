@@ -14,7 +14,8 @@
 from twisted.internet.testing import MemoryReactor
 
 from relapse.events import EventBase
-from relapse.rest import admin, login, room
+from relapse.rest import admin
+from relapse.rest.client import login, room
 from relapse.server import HomeServer
 from relapse.types import JsonDict
 from relapse.util import Clock

@@ -41,7 +41,7 @@ from relapse.http.server import JsonResource, OptionsResource
 from relapse.logging.context import LoggingContext
 from relapse.metrics import METRICS_PREFIX, MetricsResource, RegistryProxy
 from relapse.replication.http import REPLICATION_PREFIX, ReplicationRestResource
-from relapse.rest import ClientRestResource, federation
+from relapse.rest import client, federation
 from relapse.rest.admin import register_servlets_for_media_repo
 from relapse.rest.health import HealthResource
 from relapse.rest.key.v2 import KeyResource
@@ -166,8 +166,8 @@ class GenericWorkerServer(HomeServer):
                 if name == "metrics":
                     resources[METRICS_PREFIX] = MetricsResource(RegistryProxy)
                 elif name == "client":
-                    resource: Resource = ClientRestResource(self)
-
+                    resource = JsonResource(self, canonical_json=False)
+                    client.register_servlets(self, resource)
                     resources[CLIENT_API_PREFIX] = resource
 
                     resources.update(build_relapse_client_resource_tree(self))

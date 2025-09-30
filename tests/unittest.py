@@ -45,7 +45,7 @@ from relapse.config._base import Config, RootConfig
 from relapse.config.homeserver import HomeServerConfig
 from relapse.config.server import DEFAULT_ROOM_VERSION
 from relapse.crypto.event_signing import add_hashes_and_signatures
-from relapse.http.server import JsonResource, OptionsResource
+from relapse.http.server import HttpServer, JsonResource, OptionsResource
 from relapse.http.site import RelapseRequest, RelapseSite
 from relapse.logging.context import (
     SENTINEL_CONTEXT,
@@ -53,7 +53,7 @@ from relapse.logging.context import (
     current_context,
     set_current_context,
 )
-from relapse.rest import RegisterServletsFunc, federation
+from relapse.rest import federation
 from relapse.server import HomeServer
 from relapse.storage.keys import FetchKeyResult
 from relapse.types import JsonDict, Requester, UserID, create_requester
@@ -81,6 +81,8 @@ _ExcType = TypeVar("_ExcType", bound=BaseException, covariant=True)
 P = ParamSpec("P")
 R = TypeVar("R")
 S = TypeVar("S")
+
+RegisterServletsFunc = Callable[["HomeServer", HttpServer], None]
 
 
 class _TypedFailure(Generic[_ExcType], Protocol):

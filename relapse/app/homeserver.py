@@ -54,7 +54,7 @@ from relapse.http.server import (
 from relapse.logging.context import LoggingContext
 from relapse.metrics import METRICS_PREFIX, MetricsResource, RegistryProxy
 from relapse.replication.http import REPLICATION_PREFIX, ReplicationRestResource
-from relapse.rest import ClientRestResource, federation
+from relapse.rest import client, federation
 from relapse.rest.admin import AdminRestResource
 from relapse.rest.health import HealthResource
 from relapse.rest.key.v2 import KeyResource
@@ -163,7 +163,9 @@ class RelapseHomeServer(HomeServer):
         """
         resources: dict[str, Resource] = {}
         if name == "client":
-            client_resource: Resource = ClientRestResource(self)
+            client_server = JsonResource(self, canonical_json=False)
+            client.register_servlets(self, client_server)
+            client_resource: Resource = client_server
             if compress:
                 client_resource = gz_wrap(client_resource)
 
