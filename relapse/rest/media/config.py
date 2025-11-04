@@ -17,9 +17,9 @@
 import re
 from typing import TYPE_CHECKING
 
-from relapse.http.server import respond_with_json
 from relapse.http.servlet import RestServlet
 from relapse.http.site import RelapseRequest
+from relapse.types import JsonDict
 
 if TYPE_CHECKING:
     from relapse.server import HomeServer
@@ -35,6 +35,6 @@ class MediaConfigServlet(RestServlet):
         self.auth = hs.get_auth()
         self.limits_dict = {"m.upload.size": config.media.max_upload_size}
 
-    async def on_GET(self, request: RelapseRequest) -> None:
+    async def on_GET(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         await self.auth.get_user_by_req(request)
-        respond_with_json(request, 200, self.limits_dict, send_cors=True)
+        return 200, self.limits_dict

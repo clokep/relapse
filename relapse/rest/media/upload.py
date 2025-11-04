@@ -18,10 +18,10 @@ import re
 from typing import IO, TYPE_CHECKING, Optional
 
 from relapse.api.errors import Codes, RelapseError
-from relapse.http.server import respond_with_json
 from relapse.http.servlet import RestServlet, parse_bytes_from_args
 from relapse.http.site import RelapseRequest
 from relapse.media.media_storage import SpamMediaException
+from relapse.types import JsonDict
 
 if TYPE_CHECKING:
     from relapse.media.media_repository import MediaRepository
@@ -95,7 +95,7 @@ class BaseUploadServlet(RestServlet):
 class UploadServlet(BaseUploadServlet):
     PATTERNS = [re.compile("/_matrix/media/(r0|v3|v1)/upload$")]
 
-    async def on_POST(self, request: RelapseRequest) -> None:
+    async def on_POST(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         requester = await self.auth.get_user_by_req(request)
         content_length, upload_name, media_type = self._get_file_metadata(request)
 
@@ -111,9 +111,7 @@ class UploadServlet(BaseUploadServlet):
 
         logger.info("Uploaded content with URI '%s'", content_uri)
 
-        respond_with_json(
-            request, 200, {"content_uri": str(content_uri)}, send_cors=True
-        )
+        return 200, {"content_uri": str(content_uri)}
 
 
 class AsyncUploadServlet(BaseUploadServlet):
@@ -125,7 +123,7 @@ class AsyncUploadServlet(BaseUploadServlet):
 
     async def on_PUT(
         self, request: RelapseRequest, server_name: str, media_id: str
-    ) -> None:
+    ) -> tuple[int, JsonDict]:
         requester = await self.auth.get_user_by_req(request)
 
         if server_name != self.server_name:
@@ -163,4 +161,4 @@ class AsyncUploadServlet(BaseUploadServlet):
                 raise RelapseError(400, "Bad content")
 
             logger.info("Uploaded content for media ID %r", media_id)
-            respond_with_json(request, 200, {}, send_cors=True)
+        return 200, {}
