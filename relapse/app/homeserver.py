@@ -53,7 +53,10 @@ from relapse.http.server import (
 )
 from relapse.logging.context import LoggingContext
 from relapse.metrics import METRICS_PREFIX, MetricsResource, RegistryProxy
-from relapse.replication.http import REPLICATION_PREFIX, ReplicationRestResource
+from relapse.replication.http import (
+    REPLICATION_PREFIX,
+    register_servlets as register_replication_servlets,
+)
 from relapse.rest import client, federation, key
 from relapse.rest.admin import AdminRestResource
 from relapse.rest.health import HealthResource
@@ -235,7 +238,9 @@ class RelapseHomeServer(HomeServer):
             resources[METRICS_PREFIX] = metrics_resource
 
         if name == "replication":
-            resources[REPLICATION_PREFIX] = ReplicationRestResource(self)
+            replication_resource = JsonResource(self, canonical_json=False)
+            register_replication_servlets(self, replication_resource)
+            resources[REPLICATION_PREFIX] = replication_resource
 
         return resources
 

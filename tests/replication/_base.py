@@ -19,12 +19,12 @@ from twisted.internet.address import IPv4Address
 from twisted.internet.protocol import Protocol, connectionDone
 from twisted.internet.testing import MemoryReactor
 from twisted.python.failure import Failure
-from twisted.web.resource import Resource
 
 from relapse.app.generic_worker import GenericWorkerServer
 from relapse.config.workers import InstanceTcpLocationConfig, InstanceUnixLocationConfig
+from relapse.http.server import JsonResource
 from relapse.http.site import RelapseRequest, RelapseSite
-from relapse.replication.http import ReplicationRestResource
+from relapse.replication.http import register_servlets
 from relapse.replication.tcp.client import ReplicationDataHandler
 from relapse.replication.tcp.handler import ReplicationCommandHandler
 from relapse.replication.tcp.protocol import (
@@ -49,6 +49,8 @@ logger = logging.getLogger(__name__)
 
 class BaseStreamTestCase(unittest.HomeserverTestCase):
     """Base class for tests of the replication streams"""
+
+    servlets = [register_servlets]
 
     # hiredis is an optional dependency so we don't want to require it for running
     # the tests.
@@ -102,11 +104,6 @@ class BaseStreamTestCase(unittest.HomeserverTestCase):
 
         self._client_transport: Optional[FakeTransport] = None
         self._server_transport: Optional[FakeTransport] = None
-
-    def create_resource_dict(self) -> dict[str, Resource]:
-        d = super().create_resource_dict()
-        d["/_relapse/replication"] = ReplicationRestResource(self.hs)
-        return d
 
     def _get_worker_hs_config(self) -> dict:
         config = self.default_config()
@@ -293,19 +290,6 @@ class BaseMultiWorkerStreamTestCase(unittest.HomeserverTestCase):
             lambda: self._handle_http_replication_attempt(self.hs, 8765),
         )
 
-    def create_test_resource(self) -> ReplicationRestResource:
-        """Overrides `HomeserverTestCase.create_test_resource`."""
-        # We override this so that it automatically registers all the HTTP
-        # replication servlets, without having to explicitly do that in all
-        # subclassses.
-
-        resource = ReplicationRestResource(self.hs)
-
-        for servlet in self.servlets:
-            servlet(self.hs, resource)
-
-        return resource
-
     def make_worker_hs(
         self, worker_app: str, extra_config: Optional[dict] = None, **kwargs: Any
     ) -> HomeServer:
@@ -368,7 +352,7 @@ class BaseMultiWorkerStreamTestCase(unittest.HomeserverTestCase):
         store.db_pool._db_pool = self.database_pool._db_pool
 
         # Set up a resource for the worker
-        resource = ReplicationRestResource(worker_hs)
+        resource = JsonResource(self.hs)
 
         for servlet in self.servlets:
             servlet(worker_hs, resource)

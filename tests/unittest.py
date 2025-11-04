@@ -466,6 +466,7 @@ class HomeserverTestCase(TestCase):
             "/_matrix/client": servlet_resource,
             "/_matrix/key": servlet_resource,
             "/_relapse/admin": servlet_resource,
+            "/_relapse/replication": servlet_resource,
         }
 
     def default_config(self) -> JsonDict:
