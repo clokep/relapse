@@ -41,7 +41,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class ThumbnailResource(RestServlet):
+class ThumbnailServlet(RestServlet):
     PATTERNS = [
         re.compile(
             "/_matrix/media/(r0|v3|v1)/thumbnail/(?P<server_name>[^/]*)/(?P<media_id>[^/]*)$"

@@ -13,14 +13,14 @@
 # limitations under the License.
 import logging
 import os
-from typing import Any, Optional
+from typing import Optional
 
 from twisted.internet.protocol import Factory
 from twisted.internet.testing import MemoryReactor
 from twisted.web.http import HTTPChannel
 from twisted.web.server import Request
 
-from relapse.rest import admin
+from relapse.rest import admin, media
 from relapse.rest.client import login
 from relapse.server import HomeServer
 from relapse.util import Clock
@@ -45,6 +45,7 @@ class MediaRepoShardTestCase(BaseMultiWorkerStreamTestCase):
     servlets = [
         admin.register_servlets,
         login.register_servlets,
+        media.register_servlets,
     ]
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
@@ -57,16 +58,6 @@ class MediaRepoShardTestCase(BaseMultiWorkerStreamTestCase):
         conf = super().default_config()
         conf["federation_custom_ca_list"] = [get_test_ca_cert_file()]
         return conf
-
-    def make_worker_hs(
-        self, worker_app: str, extra_config: Optional[dict] = None, **kwargs: Any
-    ) -> HomeServer:
-        worker_hs = super().make_worker_hs(worker_app, extra_config, **kwargs)
-        # Force the media paths onto the replication resource.
-        worker_hs.get_media_repository_resource().register_servlets(
-            self._hs_to_site[worker_hs].resource, worker_hs
-        )
-        return worker_hs
 
     def _get_media_req(
         self, hs: HomeServer, target: str, media_id: str

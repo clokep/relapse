@@ -29,7 +29,6 @@ from twisted.internet import defer
 from twisted.internet.defer import Deferred
 from twisted.internet.testing import MemoryReactor
 from twisted.python.failure import Failure
-from twisted.web.resource import Resource
 
 from relapse.api.errors import Codes, HttpResponseException
 from relapse.events import EventBase
@@ -40,9 +39,9 @@ from relapse.media.filepath import MediaFilePaths
 from relapse.media.media_storage import MediaStorage, ReadableFileWrapper
 from relapse.media.storage_provider import FileStorageProviderBackend
 from relapse.module_api import ModuleApi
-from relapse.rest import admin
+from relapse.rest import admin, media
 from relapse.rest.client import login
-from relapse.rest.media.thumbnail_resource import ThumbnailResource
+from relapse.rest.media.thumbnail import ThumbnailServlet
 from relapse.server import HomeServer
 from relapse.types import JsonDict, RoomAlias
 from relapse.util import Clock
@@ -227,6 +226,7 @@ class MediaRepoTests(unittest.HomeserverTestCase):
     test_image: ClassVar[_TestImage]
     hijack_auth = True
     user_id = "@test:user"
+    servlets = [media.register_servlets]
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         self.fetches: list[
@@ -299,11 +299,6 @@ class MediaRepoTests(unittest.HomeserverTestCase):
         self.media_repo = hs.get_media_repository()
 
         self.media_id = "example.com/12345"
-
-    def create_resource_dict(self) -> dict[str, Resource]:
-        resources = super().create_resource_dict()
-        resources["/_matrix/media"] = self.hs.get_media_repository_resource()
-        return resources
 
     def _req(
         self, content_disposition: Optional[bytes], include_content_type: bool = True
@@ -616,7 +611,7 @@ class MediaRepoTests(unittest.HomeserverTestCase):
 
         content_type = self.test_image.content_type.decode()
         media_repo = self.hs.get_media_repository()
-        thumbnail_resouce = ThumbnailResource(
+        thumbnail_resouce = ThumbnailServlet(
             self.hs, media_repo, media_repo.media_storage
         )
 
@@ -778,6 +773,7 @@ class SpamCheckerTestCase(unittest.HomeserverTestCase):
     servlets = [
         login.register_servlets,
         admin.register_servlets,
+        media.register_servlets,
     ]
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
@@ -787,11 +783,6 @@ class SpamCheckerTestCase(unittest.HomeserverTestCase):
         hs.get_module_api().register_spam_checker_callbacks(
             check_media_file_for_spam=self.check_media_file_for_spam
         )
-
-    def create_resource_dict(self) -> dict[str, Resource]:
-        resources = super().create_resource_dict()
-        resources["/_matrix/media"] = self.hs.get_media_repository_resource()
-        return resources
 
     async def check_media_file_for_spam(
         self, file_wrapper: ReadableFileWrapper, file_info: FileInfo

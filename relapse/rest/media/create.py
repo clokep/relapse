@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class CreateResource(RestServlet):
+class CreateServlet(RestServlet):
     PATTERNS = [re.compile("/_matrix/media/v1/create")]
 
     def __init__(self, hs: "HomeServer", media_repo: "MediaRepository"):

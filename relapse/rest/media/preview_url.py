@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     from relapse.server import HomeServer
 
 
-class PreviewUrlResource(RestServlet):
+class PreviewUrlServlet(RestServlet):
     """
     The `GET /_matrix/media/r0/preview_url` endpoint provides a generic preview API
     for URLs which outputs Open Graph (https://ogp.me/) responses (with some Matrix

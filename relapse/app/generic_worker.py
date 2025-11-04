@@ -46,7 +46,7 @@ from relapse.replication.http import (
     REPLICATION_PREFIX,
     register_servlets as register_replication_servlets,
 )
-from relapse.rest import client, federation, key
+from relapse.rest import client, federation, key, media
 from relapse.rest.admin import register_servlets_for_media_repo
 from relapse.rest.health import HealthResource
 from relapse.rest.relapse.client import build_relapse_client_resource_tree
@@ -183,7 +183,8 @@ class GenericWorkerServer(HomeServer):
                     resources[FEDERATION_PREFIX] = federation_resource
                 elif name == "media":
                     if self.config.media.can_load_media_repo:
-                        media_repo = self.get_media_repository_resource()
+                        media_resource = JsonResource(self, canonical_json=False)
+                        media.register_servlets(self, media_resource)
 
                         # We need to serve the admin servlets for media on the
                         # worker.
@@ -192,8 +193,8 @@ class GenericWorkerServer(HomeServer):
 
                         resources.update(
                             {
-                                MEDIA_R0_PREFIX: media_repo,
-                                MEDIA_V3_PREFIX: media_repo,
+                                MEDIA_R0_PREFIX: media_resource,
+                                MEDIA_V3_PREFIX: media_resource,
                                 "/_relapse/admin": admin_resource,
                             }
                         )

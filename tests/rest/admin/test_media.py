@@ -17,11 +17,10 @@ import os
 from parameterized import parameterized
 
 from twisted.internet.testing import MemoryReactor
-from twisted.web.resource import Resource
 
 from relapse.api.errors import Codes
 from relapse.media.filepath import MediaFilePaths
-from relapse.rest import admin
+from relapse.rest import admin, media
 from relapse.rest.client import login, profile, room
 from relapse.server import HomeServer
 from relapse.util import Clock
@@ -38,12 +37,8 @@ class _AdminMediaTests(unittest.HomeserverTestCase):
         admin.register_servlets,
         admin.register_servlets_for_media_repo,
         login.register_servlets,
+        media.register_servlets,
     ]
-
-    def create_resource_dict(self) -> dict[str, Resource]:
-        resources = super().create_resource_dict()
-        resources["/_matrix/media"] = self.hs.get_media_repository_resource()
-        return resources
 
 
 class DeleteMediaByIDTestCase(_AdminMediaTests):
@@ -193,16 +188,12 @@ class DeleteMediaByIDTestCase(_AdminMediaTests):
 
 
 class DeleteMediaByDateSizeTestCase(_AdminMediaTests):
-    servlets = [
-        admin.register_servlets,
-        admin.register_servlets_for_media_repo,
-        login.register_servlets,
+    servlets = _AdminMediaTests.servlets + [
         profile.register_servlets,
         room.register_servlets,
     ]
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
-        self.media_repo = hs.get_media_repository_resource()
         self.server_name = hs.hostname
 
         self.admin_user = self.register_user("admin", "pass", admin=True)
@@ -702,7 +693,6 @@ class QuarantineMediaByIDTestCase(_AdminMediaTests):
 
 class ProtectMediaByIDTestCase(_AdminMediaTests):
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
-        hs.get_media_repository_resource()
         self.store = hs.get_datastores().main
 
         self.admin_user = self.register_user("admin", "pass", admin=True)
@@ -787,16 +777,12 @@ class ProtectMediaByIDTestCase(_AdminMediaTests):
 
 
 class PurgeMediaCacheTestCase(_AdminMediaTests):
-    servlets = [
-        admin.register_servlets,
-        admin.register_servlets_for_media_repo,
-        login.register_servlets,
+    servlets = _AdminMediaTests.servlets + [
         profile.register_servlets,
         room.register_servlets,
     ]
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
-        self.media_repo = hs.get_media_repository_resource()
         self.server_name = hs.hostname
 
         self.admin_user = self.register_user("admin", "pass", admin=True)

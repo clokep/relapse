@@ -25,7 +25,7 @@ if TYPE_CHECKING:
     from relapse.server import HomeServer
 
 
-class MediaConfigResource(RestServlet):
+class MediaConfigServlet(RestServlet):
     PATTERNS = [re.compile("/_matrix/media/(r0|v3|v1)/config$")]
 
     def __init__(self, hs: "HomeServer"):

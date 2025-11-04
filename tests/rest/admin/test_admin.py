@@ -17,10 +17,9 @@ import urllib.parse
 from parameterized import parameterized
 
 from twisted.internet.testing import MemoryReactor
-from twisted.web.resource import Resource
 
 from relapse.http.server import JsonResource
-from relapse.rest import admin
+from relapse.rest import admin, media
 from relapse.rest.admin import VersionServlet
 from relapse.rest.client import login, room
 from relapse.server import HomeServer
@@ -53,12 +52,8 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
         admin.register_servlets_for_media_repo,
         login.register_servlets,
         room.register_servlets,
+        media.register_servlets,
     ]
-
-    def create_resource_dict(self) -> dict[str, Resource]:
-        resources = super().create_resource_dict()
-        resources["/_matrix/media"] = self.hs.get_media_repository_resource()
-        return resources
 
     def _ensure_quarantined(
         self, admin_user_tok: str, server_and_media_id: str

@@ -465,6 +465,7 @@ class HomeserverTestCase(TestCase):
         return {
             "/_matrix/client": servlet_resource,
             "/_matrix/key": servlet_resource,
+            "/_matrix/media": servlet_resource,
             "/_relapse/admin": servlet_resource,
             "/_relapse/replication": servlet_resource,
         }
