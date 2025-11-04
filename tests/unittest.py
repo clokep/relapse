@@ -464,6 +464,7 @@ class HomeserverTestCase(TestCase):
             servlet(self.hs, servlet_resource)
         return {
             "/_matrix/client": servlet_resource,
+            "/_matrix/key": servlet_resource,
             "/_relapse/admin": servlet_resource,
         }
 

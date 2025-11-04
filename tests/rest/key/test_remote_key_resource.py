@@ -21,16 +21,14 @@ from signedjson.sign import sign_json
 from signedjson.types import SigningKey
 
 from twisted.internet.testing import MemoryReactor
-from twisted.web.resource import NoResource, Resource
 
 from relapse.crypto.keyring import PerspectivesKeyFetcher
 from relapse.http.site import RelapseRequest
-from relapse.rest.key.v2 import KeyResource
+from relapse.rest import key
 from relapse.server import HomeServer
 from relapse.storage.keys import FetchKeyResult
 from relapse.types import JsonDict
 from relapse.util import Clock
-from relapse.util.httpresourcetree import create_resource_tree
 from relapse.util.stringutils import random_string
 
 from tests import unittest
@@ -39,14 +37,11 @@ from tests.utils import default_config
 
 
 class BaseRemoteKeyResourceTestCase(unittest.HomeserverTestCase):
+    servlets = [key.register_servlets]
+
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         self.http_client = Mock()
         return self.setup_test_homeserver(federation_http_client=self.http_client)
-
-    def create_test_resource(self) -> Resource:
-        return create_resource_tree(
-            {"/_matrix/key/v2": KeyResource(self.hs)}, root_resource=NoResource()
-        )
 
     def expect_outgoing_key_request(
         self, server_name: str, signing_key: SigningKey
