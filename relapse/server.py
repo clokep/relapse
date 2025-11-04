@@ -21,7 +21,7 @@
 import abc
 import functools
 import logging
-from typing import TYPE_CHECKING, Any, Callable, Optional, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Callable, Iterable, Optional, TypeVar, cast
 
 from typing_extensions import TypeAlias
 
@@ -38,6 +38,7 @@ from relapse.api.ratelimiting import Ratelimiter, RequestRatelimiter
 from relapse.appservice.api import ApplicationServiceApi
 from relapse.appservice.scheduler import ApplicationServiceScheduler
 from relapse.config.homeserver import HomeServerConfig
+from relapse.config.server import ListenerConfig
 from relapse.crypto import context_factory
 from relapse.crypto.context_factory import RegularPolicyForHTTPS
 from relapse.crypto.keyring import Keyring
@@ -353,6 +354,10 @@ class HomeServer(metaclass=abc.ABCMeta):
         Does nothing in this base class; overridden in derived classes to start the
         appropriate listeners.
         """
+
+    def listen_http(self, listener_config: ListenerConfig) -> Iterable[Port]:  # noqa: B027 (no-op by design)
+        """Configure a single HTTP listener."""
+        return ()
 
     def setup_background_tasks(self) -> None:
         """

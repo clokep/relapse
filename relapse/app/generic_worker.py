@@ -14,7 +14,9 @@
 # limitations under the License.
 import logging
 import sys
+from typing import Iterable
 
+from twisted.internet.tcp import Port
 from twisted.web.resource import Resource
 
 import relapse
@@ -41,10 +43,9 @@ from relapse.http.server import JsonResource, OptionsResource
 from relapse.logging.context import LoggingContext
 from relapse.metrics import METRICS_PREFIX, MetricsResource, RegistryProxy
 from relapse.replication.http import REPLICATION_PREFIX, ReplicationRestResource
-from relapse.rest import client, federation
+from relapse.rest import client, federation, key
 from relapse.rest.admin import register_servlets_for_media_repo
 from relapse.rest.health import HealthResource
-from relapse.rest.key.v2 import KeyResource
 from relapse.rest.relapse.client import build_relapse_client_resource_tree
 from relapse.rest.well_known import well_known_resource
 from relapse.server import HomeServer
@@ -155,7 +156,7 @@ class GenericWorkerStore(
 class GenericWorkerServer(HomeServer):
     DATASTORE_CLASS = GenericWorkerStore
 
-    def _listen_http(self, listener_config: ListenerConfig) -> None:
+    def listen_http(self, listener_config: ListenerConfig) -> Iterable[Port]:
         assert listener_config.http_options is not None
 
         # We always include a health resource.
@@ -213,7 +214,9 @@ class GenericWorkerServer(HomeServer):
                     resources[FEDERATION_PREFIX] = federation_resource
 
                 if name in ["keys", "federation"]:
-                    resources[SERVER_KEY_PREFIX] = KeyResource(self)
+                    key_resource = JsonResource(self, canonical_json=True)
+                    key.register_servlets(self, key_resource)
+                    resources[SERVER_KEY_PREFIX] = key_resource
 
                 if name == "replication":
                     resources[REPLICATION_PREFIX] = ReplicationRestResource(self)
@@ -224,7 +227,7 @@ class GenericWorkerServer(HomeServer):
 
         root_resource = create_resource_tree(resources, OptionsResource())
 
-        _base.listen_http(
+        return _base.listen_http(
             self,
             listener_config,
             root_resource,
@@ -237,7 +240,7 @@ class GenericWorkerServer(HomeServer):
     def start_listening(self) -> None:
         for listener in self.config.worker.worker_listeners:
             if listener.type == "http":
-                self._listen_http(listener)
+                self.listen_http(listener)
             elif listener.type == "manhole":
                 if isinstance(listener, TCPListenerConfig):
                     _base.listen_manhole(

@@ -11,3 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from typing import TYPE_CHECKING
+
+from relapse.http.server import HttpServer
+from relapse.rest.key.local_key import LocalKey
+from relapse.rest.key.remote_key import RemoteKey
+
+if TYPE_CHECKING:
+    from relapse.server import HomeServer
+
+
+def register_servlets(hs: "HomeServer", http_server: HttpServer) -> None:
+    LocalKey(hs).register(http_server)
+    RemoteKey(hs).register(http_server)

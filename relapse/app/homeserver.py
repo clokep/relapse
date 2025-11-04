@@ -54,10 +54,9 @@ from relapse.http.server import (
 from relapse.logging.context import LoggingContext
 from relapse.metrics import METRICS_PREFIX, MetricsResource, RegistryProxy
 from relapse.replication.http import REPLICATION_PREFIX, ReplicationRestResource
-from relapse.rest import client, federation
+from relapse.rest import client, federation, key
 from relapse.rest.admin import AdminRestResource
 from relapse.rest.health import HealthResource
-from relapse.rest.key.v2 import KeyResource
 from relapse.rest.relapse.client import build_relapse_client_resource_tree
 from relapse.rest.well_known import well_known_resource
 from relapse.server import HomeServer
@@ -76,11 +75,7 @@ def gz_wrap(r: Resource) -> Resource:
 class RelapseHomeServer(HomeServer):
     DATASTORE_CLASS = DataStore
 
-    def _listener_http(
-        self,
-        config: HomeServerConfig,
-        listener_config: ListenerConfig,
-    ) -> Iterable[Port]:
+    def listen_http(self, listener_config: ListenerConfig) -> Iterable[Port]:
         # Must exist since this is an HTTP listener.
         assert listener_config.http_options is not None
         site_tag = listener_config.get_site_tag()
@@ -137,7 +132,7 @@ class RelapseHomeServer(HomeServer):
         else:
             root_resource = OptionsResource()
 
-        ports = listen_http(
+        return listen_http(
             self,
             listener_config,
             create_resource_tree(resources, root_resource),
@@ -146,8 +141,6 @@ class RelapseHomeServer(HomeServer):
             self.tls_server_context_factory,
             reactor=self.get_reactor(),
         )
-
-        return ports
 
     def _configure_named_resource(
         self, name: str, compress: bool = False
@@ -231,7 +224,9 @@ class RelapseHomeServer(HomeServer):
                 )
 
         if name in ["keys", "federation"]:
-            resources[SERVER_KEY_PREFIX] = KeyResource(self)
+            key_resource = JsonResource(self, canonical_json=True)
+            key.register_servlets(self, key_resource)
+            resources[SERVER_KEY_PREFIX] = key_resource
 
         if name == "metrics" and self.config.metrics.enable_metrics:
             metrics_resource: Resource = MetricsResource(RegistryProxy)
@@ -253,9 +248,7 @@ class RelapseHomeServer(HomeServer):
 
         for listener in self.config.server.listeners:
             if listener.type == "http":
-                self._listening_services.extend(
-                    self._listener_http(self.config, listener)
-                )
+                self._listening_services.extend(self.listen_http(listener))
             elif listener.type == "manhole":
                 if isinstance(listener, TCPListenerConfig):
                     _base.listen_manhole(

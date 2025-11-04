@@ -26,8 +26,7 @@ import yaml
 
 from relapse.config.homeserver import HomeServerConfig
 from relapse.http.server import HttpServer, ServletCallback
-from relapse.rest import client, federation
-from relapse.rest.key.v2 import RemoteKey
+from relapse.rest import client, federation, key
 from relapse.server import HomeServer
 from relapse.storage import DataStore
 
@@ -114,9 +113,8 @@ def get_registered_paths_for_hs(
     enumerator = EnumerationResource(is_worker=hs.config.worker.worker_app is not None)
     client.register_servlets(hs, enumerator)
     federation.register_servlets(hs, enumerator)
-
     # the key server endpoints are separate again
-    RemoteKey(hs).register(enumerator)
+    key.register_servlets(hs, enumerator)
 
     return enumerator.registrations
 
