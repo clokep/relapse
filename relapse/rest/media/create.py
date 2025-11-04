@@ -18,9 +18,9 @@ from typing import TYPE_CHECKING
 
 from relapse.api.errors import LimitExceededError
 from relapse.api.ratelimiting import Ratelimiter
-from relapse.http.server import respond_with_json
 from relapse.http.servlet import RestServlet
 from relapse.http.site import RelapseRequest
+from relapse.types import JsonDict
 
 if TYPE_CHECKING:
     from relapse.media.media_repository import MediaRepository
@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class CreateResource(RestServlet):
+class CreateServlet(RestServlet):
     PATTERNS = [re.compile("/_matrix/media/v1/create")]
 
     def __init__(self, hs: "HomeServer", media_repo: "MediaRepository"):
@@ -47,7 +47,7 @@ class CreateResource(RestServlet):
             cfg=hs.config.ratelimiting.rc_media_create,
         )
 
-    async def on_POST(self, request: RelapseRequest) -> None:
+    async def on_POST(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         requester = await self.auth.get_user_by_req(request)
 
         # If the create media requests for the user are over the limit, drop them.
@@ -72,12 +72,7 @@ class CreateResource(RestServlet):
             content_uri,
             unused_expires_at,
         )
-        respond_with_json(
-            request,
-            200,
-            {
-                "content_uri": content_uri,
-                "unused_expires_at": unused_expires_at,
-            },
-            send_cors=True,
-        )
+        return 200, {
+            "content_uri": content_uri,
+            "unused_expires_at": unused_expires_at,
+        }

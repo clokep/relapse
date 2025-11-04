@@ -15,10 +15,9 @@
 from typing import Optional
 
 from twisted.internet.testing import MemoryReactor
-from twisted.web.resource import Resource
 
 from relapse.api.errors import Codes
-from relapse.rest import admin
+from relapse.rest import admin, media
 from relapse.rest.client import login
 from relapse.server import HomeServer
 from relapse.types import JsonDict
@@ -32,6 +31,7 @@ class UserMediaStatisticsTestCase(unittest.HomeserverTestCase):
     servlets = [
         admin.register_servlets,
         login.register_servlets,
+        media.register_servlets,
     ]
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
@@ -42,11 +42,6 @@ class UserMediaStatisticsTestCase(unittest.HomeserverTestCase):
         self.other_user_tok = self.login("user", "pass")
 
         self.url = "/_relapse/admin/v1/statistics/users/media"
-
-    def create_resource_dict(self) -> dict[str, Resource]:
-        resources = super().create_resource_dict()
-        resources["/_matrix/media"] = self.hs.get_media_repository_resource()
-        return resources
 
     def test_no_auth(self) -> None:
         """

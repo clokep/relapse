@@ -57,7 +57,7 @@ from relapse.replication.http import (
     REPLICATION_PREFIX,
     register_servlets as register_replication_servlets,
 )
-from relapse.rest import client, federation, key
+from relapse.rest import client, federation, key, media
 from relapse.rest.admin import AdminRestResource
 from relapse.rest.health import HealthResource
 from relapse.rest.relapse.client import build_relapse_client_resource_tree
@@ -214,11 +214,12 @@ class RelapseHomeServer(HomeServer):
 
         if name in ["media", "federation", "client"]:
             if self.config.server.enable_media_repo:
-                media_repo = self.get_media_repository_resource()
+                media_resource = JsonResource(self, canonical_json=False)
+                media.register_servlets(self, media_resource)
                 resources.update(
                     {
-                        MEDIA_R0_PREFIX: media_repo,
-                        MEDIA_V3_PREFIX: media_repo,
+                        MEDIA_R0_PREFIX: media_resource,
+                        MEDIA_V3_PREFIX: media_resource,
                     }
                 )
             elif name == "media":

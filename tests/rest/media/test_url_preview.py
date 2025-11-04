@@ -25,10 +25,10 @@ from twisted.internet.address import IPv4Address, IPv6Address
 from twisted.internet.error import DNSLookupError
 from twisted.internet.interfaces import IAddress, IResolutionReceiver
 from twisted.internet.testing import AccumulatingProtocol, MemoryReactor
-from twisted.web.resource import Resource
 
 from relapse.config.oembed import OEmbedEndpointConfig
 from relapse.media.url_previewer import IMAGE_CACHE_EXPIRY_MS
+from relapse.rest import media
 from relapse.server import HomeServer
 from relapse.types import JsonDict
 from relapse.util import Clock
@@ -50,6 +50,8 @@ class URLPreviewTests(unittest.HomeserverTestCase):
 
     hijack_auth = True
     user_id = "@test:user"
+    servlets = [media.register_servlets]
+
     end_content = (
         b"<html><head>"
         b'<meta property="og:title" content="~matrix~" />'
@@ -143,16 +145,6 @@ class URLPreviewTests(unittest.HomeserverTestCase):
                 return resolutionReceiver
 
         self.reactor.nameResolver = Resolver()  # type: ignore[assignment]
-
-    def create_resource_dict(self) -> dict[str, Resource]:
-        """Create a resource tree for the test server
-
-        A resource tree is a mapping from path to twisted.web.resource.
-
-        The default implementation creates a JsonResource and calls each function in
-        `servlets` to register servlets against it.
-        """
-        return {"/_matrix/media": self.hs.get_media_repository_resource()}
 
     def _assert_small_png(self, json_body: JsonDict) -> None:
         """Assert properties from the SMALL_PNG test image."""

@@ -126,7 +126,6 @@ from relapse.replication.tcp.external_cache import ExternalCache
 from relapse.replication.tcp.handler import ReplicationCommandHandler
 from relapse.replication.tcp.resource import ReplicationStreamer
 from relapse.replication.tcp.streams import STREAMS_MAP, Stream
-from relapse.rest.media.media_repository_resource import MediaRepositoryResource
 from relapse.server_notices.server_notices_manager import ServerNoticesManager
 from relapse.server_notices.server_notices_sender import ServerNoticesSender
 from relapse.server_notices.worker_server_notices_sender import (
@@ -672,12 +671,6 @@ class HomeServer(metaclass=abc.ABCMeta):
     @cache_in_self
     def get_pusherpool(self) -> PusherPool:
         return PusherPool(self)
-
-    @cache_in_self
-    def get_media_repository_resource(self) -> MediaRepositoryResource:
-        # build the media repo resource. This indirects through the HomeServer
-        # to ensure that we only have a single instance of
-        return MediaRepositoryResource(self)
 
     @cache_in_self
     def get_media_repository(self) -> MediaRepository:

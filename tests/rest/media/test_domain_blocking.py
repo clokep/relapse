@@ -13,9 +13,9 @@
 # limitations under the License.
 
 from twisted.internet.testing import MemoryReactor
-from twisted.web.resource import Resource
 
 from relapse.media._base import FileInfo
+from relapse.rest import media
 from relapse.server import HomeServer
 from relapse.util import Clock
 
@@ -25,6 +25,8 @@ from tests.unittest import override_config
 
 
 class MediaDomainBlockingTests(unittest.HomeserverTestCase):
+    servlets = [media.register_servlets]
+
     remote_media_id = "doesnotmatter"
     remote_server_name = "evil.com"
 
@@ -55,11 +57,6 @@ class MediaDomainBlockingTests(unittest.HomeserverTestCase):
                 filesystem_id=file_id,
             )
         )
-
-    def create_resource_dict(self) -> dict[str, Resource]:
-        # We need to manually set the resource tree to include media, the
-        # default only does `/_matrix/client` APIs.
-        return {"/_matrix/media": self.hs.get_media_repository_resource()}
 
     @override_config(
         {

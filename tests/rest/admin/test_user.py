@@ -23,13 +23,12 @@ from unittest.mock import AsyncMock, Mock, patch
 from parameterized import parameterized
 
 from twisted.internet.testing import MemoryReactor
-from twisted.web.resource import Resource
 
 from relapse.api.constants import ApprovalNoticeMedium, LoginType, UserTypes
 from relapse.api.errors import Codes, HttpResponseException, ResourceLimitError
 from relapse.api.room_versions import RoomVersions
 from relapse.media.filepath import MediaFilePaths
-from relapse.rest import admin
+from relapse.rest import admin, media
 from relapse.rest.client import (
     devices,
     login,
@@ -3417,6 +3416,7 @@ class UserMediaRestTestCase(unittest.HomeserverTestCase):
     servlets = [
         admin.register_servlets,
         login.register_servlets,
+        media.register_servlets,
     ]
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
@@ -3430,11 +3430,6 @@ class UserMediaRestTestCase(unittest.HomeserverTestCase):
         self.url = "/_relapse/admin/v1/users/%s/media" % urllib.parse.quote(
             self.other_user
         )
-
-    def create_resource_dict(self) -> dict[str, Resource]:
-        resources = super().create_resource_dict()
-        resources["/_matrix/media"] = self.hs.get_media_repository_resource()
-        return resources
 
     @parameterized.expand(["GET", "DELETE"])
     def test_no_auth(self, method: str) -> None:
