@@ -14,7 +14,7 @@
 
 from typing import TYPE_CHECKING
 
-from relapse.http.server import JsonResource
+from relapse.http.server import HttpServer
 from relapse.replication.http import (
     account_data,
     devices,
@@ -36,25 +36,19 @@ if TYPE_CHECKING:
 REPLICATION_PREFIX = "/_relapse/replication"
 
 
-class ReplicationRestResource(JsonResource):
-    def __init__(self, hs: "HomeServer"):
-        # We enable extracting jaeger contexts here as these are internal APIs.
-        super().__init__(hs, canonical_json=False, extract_context=True)
-        self.register_servlets(hs)
+def register_servlets(hs: "HomeServer", http_server: HttpServer) -> None:
+    send_event.register_servlets(hs, http_server)
+    send_events.register_servlets(hs, http_server)
+    federation.register_servlets(hs, http_server)
+    presence.register_servlets(hs, http_server)
+    membership.register_servlets(hs, http_server)
+    streams.register_servlets(hs, http_server)
+    account_data.register_servlets(hs, http_server)
+    push.register_servlets(hs, http_server)
+    state.register_servlets(hs, http_server)
 
-    def register_servlets(self, hs: "HomeServer") -> None:
-        send_event.register_servlets(hs, self)
-        send_events.register_servlets(hs, self)
-        federation.register_servlets(hs, self)
-        presence.register_servlets(hs, self)
-        membership.register_servlets(hs, self)
-        streams.register_servlets(hs, self)
-        account_data.register_servlets(hs, self)
-        push.register_servlets(hs, self)
-        state.register_servlets(hs, self)
-
-        # The following can't currently be instantiated on workers.
-        if hs.config.worker.worker_app is None:
-            login.register_servlets(hs, self)
-            register.register_servlets(hs, self)
-            devices.register_servlets(hs, self)
+    # The following can't currently be instantiated on workers.
+    if hs.config.worker.worker_app is None:
+        login.register_servlets(hs, http_server)
+        register.register_servlets(hs, http_server)
+        devices.register_servlets(hs, http_server)

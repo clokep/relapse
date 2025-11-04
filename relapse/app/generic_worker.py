@@ -42,7 +42,10 @@ from relapse.config.server import ListenerConfig, TCPListenerConfig
 from relapse.http.server import JsonResource, OptionsResource
 from relapse.logging.context import LoggingContext
 from relapse.metrics import METRICS_PREFIX, MetricsResource, RegistryProxy
-from relapse.replication.http import REPLICATION_PREFIX, ReplicationRestResource
+from relapse.replication.http import (
+    REPLICATION_PREFIX,
+    register_servlets as register_replication_servlets,
+)
 from relapse.rest import client, federation, key
 from relapse.rest.admin import register_servlets_for_media_repo
 from relapse.rest.health import HealthResource
@@ -219,7 +222,9 @@ class GenericWorkerServer(HomeServer):
                     resources[SERVER_KEY_PREFIX] = key_resource
 
                 if name == "replication":
-                    resources[REPLICATION_PREFIX] = ReplicationRestResource(self)
+                    replication_resource = JsonResource(self, canonical_json=False)
+                    register_replication_servlets(self, replication_resource)
+                    resources[REPLICATION_PREFIX] = replication_resource
 
         # Attach additional resources registered by modules.
         resources.update(self._module_web_resources)
