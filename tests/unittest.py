@@ -464,6 +464,7 @@ class HomeserverTestCase(TestCase):
             servlet(self.hs, servlet_resource)
         return {
             "/.well-known": servlet_resource,
+            "/health": servlet_resource,
             "/_matrix/client": servlet_resource,
             "/_matrix/key": servlet_resource,
             "/_matrix/media": servlet_resource,

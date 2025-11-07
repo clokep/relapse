@@ -13,26 +13,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import re
+
 from prometheus_client import REGISTRY, CollectorRegistry, generate_latest
 
-from twisted.web.resource import Resource
 from twisted.web.server import Request
+
+from relapse.http.server import finish_request
+from relapse.http.servlet import RestServlet
 
 CONTENT_TYPE_LATEST = "text/plain; version=0.0.4; charset=utf-8"
 
 
-class MetricsResource(Resource):
+class MetricsServlet(RestServlet):
     """
     Twisted ``Resource`` that serves prometheus metrics.
     """
 
-    isLeaf = True
+    PATTERNS = [re.compile(r"/_relapse/metrics")]
 
     def __init__(self, registry: CollectorRegistry = REGISTRY):
         self.registry = registry
 
-    def render_GET(self, request: Request) -> bytes:
+    async def on_GET(self, request: Request) -> None:
         request.setHeader(b"Content-Type", CONTENT_TYPE_LATEST.encode("ascii"))
         response = generate_latest(self.registry)
         request.setHeader(b"Content-Length", str(len(response)))
-        return response
+        request.write(response)
+        finish_request(request)

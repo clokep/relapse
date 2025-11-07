@@ -52,14 +52,15 @@ from relapse.http.server import (
     StaticResource,
 )
 from relapse.logging.context import LoggingContext
-from relapse.metrics import METRICS_PREFIX, MetricsResource, RegistryProxy
+from relapse.metrics import METRICS_PREFIX, RegistryProxy
 from relapse.replication.http import (
     REPLICATION_PREFIX,
     register_servlets as register_replication_servlets,
 )
 from relapse.rest import admin, client, federation, key, media, well_known
-from relapse.rest.health import HealthResource
+from relapse.rest.health import HealthServlet
 from relapse.rest.relapse.client import build_relapse_client_resource_tree
+from relapse.rest.relapse.metrics import MetricsServlet
 from relapse.server import HomeServer
 from relapse.storage import DataStore
 from relapse.util.check_dependencies import VERSION, check_requirements
@@ -82,7 +83,9 @@ class RelapseHomeServer(HomeServer):
         site_tag = listener_config.get_site_tag()
 
         # We always include a health resource.
-        resources: dict[str, Resource] = {"/health": HealthResource()}
+        health_resource = JsonResource(self, canonical_json=False)
+        HealthServlet().register(health_resource)
+        resources: dict[str, Resource] = {"/health": health_resource}
 
         for res in listener_config.http_options.resources:
             for name in res.names:
@@ -237,7 +240,9 @@ class RelapseHomeServer(HomeServer):
             resources[SERVER_KEY_PREFIX] = key_resource
 
         if name == "metrics" and self.config.metrics.enable_metrics:
-            metrics_resource: Resource = MetricsResource(RegistryProxy)
+            metrics_server = JsonResource(self, canonical_json=False)
+            MetricsServlet(RegistryProxy).register(metrics_server)
+            metrics_resource: Resource = metrics_server
             if compress:
                 metrics_resource = gz_wrap(metrics_resource)
             resources[METRICS_PREFIX] = metrics_resource

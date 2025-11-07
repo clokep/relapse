@@ -11,12 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import re
 
-from twisted.web.resource import Resource
 from twisted.web.server import Request
 
+from relapse.http.server import finish_request
+from relapse.http.servlet import RestServlet
 
-class HealthResource(Resource):
+
+class HealthServlet(RestServlet):
     """A resource that does nothing except return a 200 with a body of `OK`,
     which can be used as a health check.
 
@@ -24,8 +27,9 @@ class HealthResource(Resource):
     `/health` do not get logged at INFO.
     """
 
-    isLeaf = 1
+    PATTERNS = [re.compile(r"/health")]
 
-    def render_GET(self, request: Request) -> bytes:
+    async def on_GET(self, request: Request) -> None:
         request.setHeader(b"Content-Type", b"text/plain")
-        return b"OK"
+        request.write(b"OK")
+        finish_request(request)

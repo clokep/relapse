@@ -41,15 +41,16 @@ from relapse.config.logger import setup_logging
 from relapse.config.server import ListenerConfig, TCPListenerConfig
 from relapse.http.server import JsonResource, OptionsResource
 from relapse.logging.context import LoggingContext
-from relapse.metrics import METRICS_PREFIX, MetricsResource, RegistryProxy
+from relapse.metrics import METRICS_PREFIX, RegistryProxy
 from relapse.replication.http import (
     REPLICATION_PREFIX,
     register_servlets as register_replication_servlets,
 )
 from relapse.rest import client, federation, key, media, well_known
 from relapse.rest.admin import register_servlets_for_media_repo
-from relapse.rest.health import HealthResource
+from relapse.rest.health import HealthServlet
 from relapse.rest.relapse.client import build_relapse_client_resource_tree
+from relapse.rest.relapse.metrics import MetricsServlet
 from relapse.server import HomeServer
 from relapse.storage.databases.main.account_data import AccountDataWorkerStore
 from relapse.storage.databases.main.appservice import (
@@ -162,12 +163,16 @@ class GenericWorkerServer(HomeServer):
         assert listener_config.http_options is not None
 
         # We always include a health resource.
-        resources: dict[str, Resource] = {"/health": HealthResource()}
+        health_resource = JsonResource(self, canonical_json=False)
+        HealthServlet().register(health_resource)
+        resources: dict[str, Resource] = {"/health": health_resource}
 
         for res in listener_config.http_options.resources:
             for name in res.names:
                 if name == "metrics":
-                    resources[METRICS_PREFIX] = MetricsResource(RegistryProxy)
+                    metrics_resource = JsonResource(self, canonical_json=False)
+                    MetricsServlet(RegistryProxy).register(metrics_resource)
+                    resources[METRICS_PREFIX] = metrics_resource
                 elif name == "client":
                     resource = JsonResource(self, canonical_json=False)
                     client.register_servlets(self, resource)

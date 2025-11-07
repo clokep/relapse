@@ -34,7 +34,6 @@ from twisted.python.threadpool import ThreadPool
 # This module is imported for its side effects; flake8 needn't warn that it's unused.
 import relapse.metrics._reactor_metrics  # noqa: F401
 from relapse.metrics._gc import MIN_TIME_BETWEEN_GCS, install_gc_manager
-from relapse.metrics._twisted_exposition import MetricsResource, generate_latest
 from relapse.metrics._types import Collector
 from relapse.types import StrSequence
 from relapse.util import RELAPSE_VERSION
@@ -457,8 +456,6 @@ def register_threadpool(name: str, threadpool: ThreadPool) -> None:
 
 __all__ = [
     "Collector",
-    "MetricsResource",
-    "generate_latest",
     "LaterGauge",
     "InFlightGauge",
     "GaugeBucketCollector",
