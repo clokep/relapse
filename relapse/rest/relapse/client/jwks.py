@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
+import re
 from typing import TYPE_CHECKING
 
-from relapse.http.server import DirectServeJsonResource
+from relapse.http.servlet import RestServlet
 from relapse.http.site import RelapseRequest
 from relapse.types import JsonDict
 
@@ -24,10 +25,10 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class JwksResource(DirectServeJsonResource):
-    def __init__(self, hs: "HomeServer"):
-        super().__init__(extract_context=True)
+class JwksServlet(RestServlet):
+    PATTERNS = [re.compile(r"/_relapse/jwks")]
 
+    def __init__(self, hs: "HomeServer"):
         # Parameters that are allowed to be exposed in the public key.
         # This is done manually, because authlib's private to public key conversion
         # is unreliable depending on the version. Instead, we just serialize the private
@@ -66,5 +67,5 @@ class JwksResource(DirectServeJsonResource):
             "keys": keys,
         }
 
-    async def _async_render_GET(self, request: RelapseRequest) -> tuple[int, JsonDict]:
+    async def on_GET(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         return 200, self.res
