@@ -21,7 +21,7 @@ from typing import TYPE_CHECKING, Optional
 
 from relapse.api.errors import Codes, NotFoundError, RelapseError
 from relapse.handlers.pagination import PURGE_HISTORY_ACTION_NAME
-from relapse.http.server import HttpServer, JsonResource
+from relapse.http.server import HttpServer
 from relapse.http.servlet import RestServlet, parse_json_object_from_request
 from relapse.http.site import RelapseRequest
 from relapse.rest.admin._base import admin_patterns, assert_requester_is_admin
@@ -233,14 +233,6 @@ class PurgeHistoryStatusRestServlet(RestServlet):
 # them in separate files within the 'admin' package.
 #
 ########################################################################################
-
-
-class AdminRestResource(JsonResource):
-    """The REST resource which gets mounted at /_relapse/admin"""
-
-    def __init__(self, hs: "HomeServer"):
-        JsonResource.__init__(self, hs, canonical_json=False)
-        register_servlets(hs, self)
 
 
 def register_servlets(hs: "HomeServer", http_server: HttpServer) -> None:
