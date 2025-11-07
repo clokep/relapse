@@ -11,20 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from twisted.web.resource import Resource
 
-from relapse.rest.well_known import well_known_resource
+from relapse.rest import well_known
 
 from tests import unittest
 from tests.utils import HAS_AUTHLIB
 
 
 class WellKnownTests(unittest.HomeserverTestCase):
-    def create_test_resource(self) -> Resource:
-        # replace the JsonResource with a Resource wrapping the WellKnownResource
-        res = Resource()
-        res.putChild(b".well-known", well_known_resource(self.hs))
-        return res
+    servlets = [well_known.register_servlets]
 
     @unittest.override_config(
         {

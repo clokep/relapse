@@ -57,10 +57,9 @@ from relapse.replication.http import (
     REPLICATION_PREFIX,
     register_servlets as register_replication_servlets,
 )
-from relapse.rest import admin, client, federation, key, media
+from relapse.rest import admin, client, federation, key, media, well_known
 from relapse.rest.health import HealthResource
 from relapse.rest.relapse.client import build_relapse_client_resource_tree
-from relapse.rest.well_known import well_known_resource
 from relapse.server import HomeServer
 from relapse.storage import DataStore
 from relapse.util.check_dependencies import VERSION, check_requirements
@@ -164,13 +163,16 @@ class RelapseHomeServer(HomeServer):
             if compress:
                 client_resource = gz_wrap(client_resource)
 
+            well_known_resource = JsonResource(self, canonical_json=False)
+            well_known.register_servlets(self, well_known_resource)
+
             admin_resource = JsonResource(self, canonical_json=False)
             admin.register_servlets(self, admin_resource)
 
             resources.update(
                 {
                     CLIENT_API_PREFIX: client_resource,
-                    "/.well-known": well_known_resource(self),
+                    "/.well-known": well_known_resource,
                     "/_relapse/admin": admin_resource,
                     **build_relapse_client_resource_tree(self),
                 }
