@@ -15,11 +15,12 @@
 from importlib import metadata
 from unittest.mock import patch
 
+from prometheus_client import generate_latest
 from prometheus_client.core import Sample
 from typing_extensions import Protocol
 
 from relapse.app._base import _set_prometheus_client_use_created_metrics
-from relapse.metrics import REGISTRY, InFlightGauge, generate_latest
+from relapse.metrics import REGISTRY, InFlightGauge
 from relapse.util.caches.deferred_cache import DeferredCache
 
 from tests import unittest

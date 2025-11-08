@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING
 
 from twisted.web.resource import Resource
 
+from relapse.http.server import JsonResource
 from relapse.rest.relapse.client.new_user_consent import NewUserConsentResource
 from relapse.rest.relapse.client.pick_idp import PickIdpResource
 from relapse.rest.relapse.client.pick_username import pick_username_resource
@@ -49,9 +50,11 @@ def build_relapse_client_resource_tree(hs: "HomeServer") -> Mapping[str, Resourc
 
     # Expose the JWKS endpoint if OAuth2 delegation is enabled
     if hs.config.experimental.msc3861.enabled:
-        from relapse.rest.relapse.client.jwks import JwksResource
+        from relapse.rest.relapse.client.jwks import JwksServlet
 
-        resources["/_relapse/jwks"] = JwksResource(hs)
+        resource = JsonResource(hs, canonical_json=False)
+        JwksServlet(hs).register(resource)
+        resources["/_relapse/jwks"] = resource
 
     # provider-specific SSO bits. Only load these if they are enabled, since they
     # rely on optional dependencies.

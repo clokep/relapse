@@ -52,16 +52,15 @@ from relapse.http.server import (
     StaticResource,
 )
 from relapse.logging.context import LoggingContext
-from relapse.metrics import METRICS_PREFIX, MetricsResource, RegistryProxy
+from relapse.metrics import METRICS_PREFIX, RegistryProxy
 from relapse.replication.http import (
     REPLICATION_PREFIX,
     register_servlets as register_replication_servlets,
 )
-from relapse.rest import client, federation, key, media
-from relapse.rest.admin import AdminRestResource
-from relapse.rest.health import HealthResource
+from relapse.rest import admin, client, federation, key, media, well_known
+from relapse.rest.health import HealthServlet
 from relapse.rest.relapse.client import build_relapse_client_resource_tree
-from relapse.rest.well_known import well_known_resource
+from relapse.rest.relapse.metrics import MetricsServlet
 from relapse.server import HomeServer
 from relapse.storage import DataStore
 from relapse.util.check_dependencies import VERSION, check_requirements
@@ -84,7 +83,9 @@ class RelapseHomeServer(HomeServer):
         site_tag = listener_config.get_site_tag()
 
         # We always include a health resource.
-        resources: dict[str, Resource] = {"/health": HealthResource()}
+        health_resource = JsonResource(self, canonical_json=False)
+        HealthServlet().register(health_resource)
+        resources: dict[str, Resource] = {"/health": health_resource}
 
         for res in listener_config.http_options.resources:
             for name in res.names:
@@ -165,11 +166,17 @@ class RelapseHomeServer(HomeServer):
             if compress:
                 client_resource = gz_wrap(client_resource)
 
+            well_known_resource = JsonResource(self, canonical_json=False)
+            well_known.register_servlets(self, well_known_resource)
+
+            admin_resource = JsonResource(self, canonical_json=False)
+            admin.register_servlets(self, admin_resource)
+
             resources.update(
                 {
                     CLIENT_API_PREFIX: client_resource,
-                    "/.well-known": well_known_resource(self),
-                    "/_relapse/admin": AdminRestResource(self),
+                    "/.well-known": well_known_resource,
+                    "/_relapse/admin": admin_resource,
                     **build_relapse_client_resource_tree(self),
                 }
             )
@@ -233,7 +240,9 @@ class RelapseHomeServer(HomeServer):
             resources[SERVER_KEY_PREFIX] = key_resource
 
         if name == "metrics" and self.config.metrics.enable_metrics:
-            metrics_resource: Resource = MetricsResource(RegistryProxy)
+            metrics_server = JsonResource(self, canonical_json=False)
+            MetricsServlet(RegistryProxy).register(metrics_server)
+            metrics_resource: Resource = metrics_server
             if compress:
                 metrics_resource = gz_wrap(metrics_resource)
             resources[METRICS_PREFIX] = metrics_resource

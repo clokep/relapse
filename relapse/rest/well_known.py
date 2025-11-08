@@ -12,12 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
+import re
 from typing import TYPE_CHECKING, Optional
 
-from twisted.web.resource import Resource
 from twisted.web.server import Request
 
-from relapse.http.server import set_cors_headers
+from relapse.http.server import (
+    HttpServer,
+    finish_request,
+    set_cors_headers,
+)
+from relapse.http.servlet import RestServlet
 from relapse.http.site import RelapseRequest
 from relapse.types import JsonDict
 from relapse.util import json_encoder
@@ -65,35 +70,36 @@ class WellKnownBuilder:
         return result
 
 
-class ClientWellKnownResource(Resource):
-    """A Twisted web resource which renders the .well-known/matrix/client file"""
+class ClientWellKnownServlet(RestServlet):
+    """A servlet which renders the .well-known/matrix/client file"""
 
-    isLeaf = 1
+    PATTERNS = [re.compile(r"/.well-known/matrix/client")]
 
     def __init__(self, hs: "HomeServer"):
-        Resource.__init__(self)
         self._well_known_builder = WellKnownBuilder(hs)
 
-    def render_GET(self, request: RelapseRequest) -> bytes:
+    async def on_GET(self, request: RelapseRequest) -> None:
         set_cors_headers(request)
         r = self._well_known_builder.get_well_known()
         if not r:
             request.setResponseCode(404)
             request.setHeader(b"Content-Type", b"text/plain")
-            return b".well-known not available"
+            request.write(b".well-known not available")
+        else:
+            logger.debug("returning: %s", r)
+            request.setHeader(b"Content-Type", b"application/json")
+            request.write(json_encoder.encode(r).encode("utf-8"))
 
-        logger.debug("returning: %s", r)
-        request.setHeader(b"Content-Type", b"application/json")
-        return json_encoder.encode(r).encode("utf-8")
+        finish_request(request)
+        return None
 
 
-class ServerWellKnownResource(Resource):
-    """Resource for .well-known/matrix/server, redirecting to port 443"""
+class ServerWellKnownServlet(RestServlet):
+    """Servlet for .well-known/matrix/server, redirecting to port 443"""
 
-    isLeaf = 1
+    PATTERNS = [re.compile(r"/.well-known/matrix/server")]
 
     def __init__(self, hs: "HomeServer"):
-        super().__init__()
         self._serve_server_wellknown = hs.config.server.serve_server_wellknown
 
         host, port = parse_server_name(hs.config.server.server_name)
@@ -107,23 +113,18 @@ class ServerWellKnownResource(Resource):
             "utf-8"
         )
 
-    def render_GET(self, request: Request) -> bytes:
+    async def on_GET(self, request: Request) -> None:
         if not self._serve_server_wellknown:
             request.setResponseCode(404)
             request.setHeader(b"Content-Type", b"text/plain")
-            return b"404. Is anything ever truly *well* known?\n"
+            request.write(b"404. Is anything ever truly *well* known?\n")
+        else:
+            request.setHeader(b"Content-Type", b"application/json")
+            request.write(self._response)
+        finish_request(request)
+        return None
 
-        request.setHeader(b"Content-Type", b"application/json")
-        return self._response
 
-
-def well_known_resource(hs: "HomeServer") -> Resource:
-    """Returns a Twisted web resource which handles '.well-known' requests"""
-    res = Resource()
-    matrix_resource = Resource()
-    res.putChild(b"matrix", matrix_resource)
-
-    matrix_resource.putChild(b"server", ServerWellKnownResource(hs))
-    matrix_resource.putChild(b"client", ClientWellKnownResource(hs))
-
-    return res
+def register_servlets(hs: "HomeServer", http_server: HttpServer) -> None:
+    ServerWellKnownServlet(hs).register(http_server)
+    ClientWellKnownServlet(hs).register(http_server)
