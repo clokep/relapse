@@ -47,7 +47,7 @@ jobs:
             arch: aarch64
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - uses: actions/setup-python@v6
         with:
@@ -93,7 +93,7 @@ jobs:
     if: ${{ !startsWith(github.ref, 'refs/pull/') }}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
         with:
           python-version: '3.10'
