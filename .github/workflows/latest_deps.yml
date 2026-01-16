@@ -50,7 +50,7 @@ jobs:
       # poetry-core versions), so we install with poetry.
       - uses: matrix-org/setup-python-poetry@v2
         with:
-          python-version: "3.12.x"
+          python-version: "3.13.x"
           extras: "all"
       # Dump installed versions for debugging.
       - run: poetry run pip list > before.txt
@@ -70,7 +70,7 @@ jobs:
         include:
           - database: "sqlite"
           - database: "postgres"
-            postgres-version: "14"
+            postgres-version: "11"
 
     steps:
       - uses: actions/checkout@v6
@@ -91,7 +91,7 @@ jobs:
             postgres:${{ matrix.postgres-version }}
       - uses: actions/setup-python@v6
         with:
-          python-version: "3.12.x"
+          python-version: "3.13.x"
       - run: pip install .[all,test]
       - name: Await PostgreSQL
         if: ${{ matrix.postgres-version }}

@@ -35,13 +35,13 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 # Note that we use an (unneeded) variable here so that pyupgrade doesn't nuke the
 # if-statement completely.
 py_version = sys.version_info
-if py_version < (3, 9):
-    print("Relapse requires Python 3.9 or above.")
+if py_version < (3, 10):
+    print("Relapse requires Python 3.10 or above.")
     sys.exit(1)
 
 # Use the asyncio reactor, but if this is a forked run then don't crash.
 if "twisted.internet.reactor" in sys.modules:
-    from twisted.internet import asyncioreactor, reactor
+    from twisted.internet import reactor
 
     if not isinstance(reactor, asyncioreactor.AsyncioSelectorReactor):
         print("Relapse requires using the asyncioreactor.")
