@@ -4,7 +4,7 @@ name: Build release artifacts
 
 env:
   # The Python version to run commands under. (The max supported version.)
-  PYTHON_VERSION: 3.13.x
+  PYTHON_VERSION: 3.14.x
 
 on:
   # we build on PRs and develop to (hopefully) get early warning
