@@ -35,13 +35,13 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 # Note that we use an (unneeded) variable here so that pyupgrade doesn't nuke the
 # if-statement completely.
 py_version = sys.version_info
-if py_version < (3, 10):
-    print("Relapse requires Python 3.10 or above.")
+if py_version < (3, 9):
+    print("Relapse requires Python 3.9 or above.")
     sys.exit(1)
 
 # Use the asyncio reactor, but if this is a forked run then don't crash.
 if "twisted.internet.reactor" in sys.modules:
-    from twisted.internet import reactor
+    from twisted.internet import asyncioreactor, reactor
 
     if not isinstance(reactor, asyncioreactor.AsyncioSelectorReactor):
         print("Relapse requires using the asyncioreactor.")
@@ -49,14 +49,7 @@ if "twisted.internet.reactor" in sys.modules:
 
     print(f"Reactor already installed: {reactor.__class__.__name__}")
 else:
-    # try:
-    #     event_loop = asyncio.get_event_loop()
-    # except RuntimeError:
-    #     event_loop = asyncio.new_event_loop()
-
-    event_loop = asyncio.new_event_loop()
-
-    asyncioreactor.install(event_loop)
+    asyncioreactor.install(asyncio.get_event_loop())
 
 # Twisted and canonicaljson will fail to import when this file is executed to
 # get the __version__ during a fresh install. That's OK and subsequent calls to
@@ -99,5 +92,6 @@ if bool(os.environ.get("RELAPSE_TEST_PATCH_LOG_CONTEXTS", False)):
     from relapse.util.patch_inline_callbacks import do_patch
 
     do_patch()
+
 
 check_rust_lib_up_to_date()
