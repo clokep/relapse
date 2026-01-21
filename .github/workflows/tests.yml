@@ -87,7 +87,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
-            toolchain: 1.82.0
+            toolchain: 1.90.0
       - uses: Swatinem/rust-cache@v2
       - uses: matrix-org/setup-python-poetry@v2
         with:
@@ -153,7 +153,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
-            toolchain: 1.82.0
+            toolchain: 1.90.0
       - uses: Swatinem/rust-cache@v2
 
       - name: Setup Poetry
@@ -215,7 +215,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
-            toolchain: 1.82.0
+            toolchain: 1.90.0
             components: clippy
       - uses: Swatinem/rust-cache@v2
 
@@ -234,7 +234,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
-            toolchain: nightly-2024-10-31
+            toolchain: nightly-2025-08-01
             components: clippy
       - uses: Swatinem/rust-cache@v2
 
@@ -252,7 +252,7 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           # We use nightly so that it correctly groups together imports
-          toolchain: nightly-2024-10-31
+          toolchain: nightly-2025-08-01
           components: rustfmt
       - uses: Swatinem/rust-cache@v2
 
@@ -318,7 +318,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
-            toolchain: 1.82.0
+            toolchain: 1.90.0
       - uses: Swatinem/rust-cache@v2
 
       - uses: matrix-org/setup-python-poetry@v2
@@ -361,7 +361,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
-            toolchain: 1.82.0
+            toolchain: 1.90.0
       - uses: Swatinem/rust-cache@v2
 
       # There aren't wheels for some of the older deps, so we need to install
@@ -473,7 +473,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
-            toolchain: 1.82.0
+            toolchain: 1.90.0
       - uses: Swatinem/rust-cache@v2
 
       - name: Prep plugin
@@ -626,7 +626,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
-            toolchain: 1.82.0
+            toolchain: 1.90.0
       - uses: Swatinem/rust-cache@v2
 
       - name: Prepare Complement's Prerequisites
@@ -660,7 +660,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
-            toolchain: 1.82.0
+            toolchain: 1.90.0
       - uses: Swatinem/rust-cache@v2
 
       - run: cargo test
@@ -680,7 +680,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
-            toolchain: nightly-2024-10-31
+            toolchain: nightly-2025-08-01
       - uses: Swatinem/rust-cache@v2
 
       - run: cargo bench --no-run
