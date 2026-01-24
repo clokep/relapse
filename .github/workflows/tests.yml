@@ -1,6 +1,7 @@
 name: Tests
 
 env:
+  MIN_PYTHON_VERSION: 3.10.x
   # The Python version to run commands under. (The max supported version.)
   PYTHON_VERSION: 3.13.x
 
@@ -377,7 +378,7 @@ jobs:
 
       - uses: actions/setup-python@v6
         with:
-          python-version: '3.9'
+          python-version: ${{ env.MIN_PYTHON_VERSION }}
 
       - name: Prepare old deps
         if: steps.cache-poetry-old-deps.outputs.cache-hit != 'true'
@@ -421,7 +422,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["pypy-3.9"]
+        python-version: ["pypy-${{ env.MIN_PYTHON_VERSION }}"]
         extras: ["all"]
 
     steps:
