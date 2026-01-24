@@ -91,7 +91,7 @@ test_matrix = json.dumps(
 set_output("trial_test_matrix", test_matrix)
 
 
-# First calculate the various sytest jobs.
+# First, calculate the various sytest jobs.
 #
 # For each type of test we only run on bullseye on PRs
 
@@ -128,3 +128,23 @@ print("::endgroup::")
 
 test_matrix = json.dumps(sytest_tests)
 set_output("sytest_test_matrix", test_matrix)
+
+# First, calculate the various portdb jobs.
+
+portdb_tests = [
+    {
+        "python-version": "3.10",
+        "postgres-version": "11",
+    },
+    {
+        "python-version": "3.13",
+        "postgres-version": "15",
+    },
+]
+
+print("::group::Calculated portdb jobs")
+print(json.dumps(portdb_tests, indent=4))
+print("::endgroup::")
+
+test_matrix = json.dumps(portdb_tests)
+set_output("portdb_test_matrix", test_matrix)

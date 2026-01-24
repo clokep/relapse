@@ -1,8 +1,7 @@
 name: Tests
 
 env:
-  MIN_PYTHON_VERSION: 3.10.x
-  # THe Python version to run commands under. (The max supported version.)
+  # The Python version to run commands under. (The max supported version.)
   PYTHON_VERSION: 3.13.x
 
 on:
@@ -543,17 +542,12 @@ jobs:
   portdb:
     if: ${{ !failure() && !cancelled() && needs.changes.outputs.integration == 'true'}} # Allow previous steps to be skipped, but not fail
     needs:
-      - linting-done
+      - calculate-test-jobs
       - changes
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        include:
-          - python-version: ${{ env.MIN_PYTHON_VERSION }}
-            postgres-version: "11"
-
-          - python-version: ${{ env.PYTHON_VERSION }}
-            postgres-version: "15"
+        job: ${{ fromJson(needs.calculate-test-jobs.outputs.portdb_test_matrix) }}
 
     services:
       postgres:
