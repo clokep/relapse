@@ -1,5 +1,9 @@
 name: Twisted Trunk
 
+env:
+  # THe Python version to run commands under. (The max supported version.)
+  PYTHON_VERSION: 3.13.x
+
 on:
   schedule:
     - cron: 0 8 * * *
@@ -50,7 +54,7 @@ jobs:
 
       - uses: matrix-org/setup-python-poetry@v2
         with:
-          python-version: "3.13.x"
+          python-version: ${{ env.PYTHON_VERSION }}
           extras: "all"
       - run: |
           poetry remove twisted
@@ -77,7 +81,7 @@ jobs:
 
       - uses: matrix-org/setup-python-poetry@v2
         with:
-          python-version: "3.13.x"
+          python-version: ${{ env.PYTHON_VERSION }}
           extras: "all test"
       - run: |
           poetry remove twisted

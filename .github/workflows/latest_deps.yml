@@ -12,6 +12,10 @@
 
 name: Latest dependencies
 
+env:
+  # THe Python version to run commands under. (The max supported version.)
+  PYTHON_VERSION: 3.13.x
+
 on:
   schedule:
     - cron: 0 7 * * *
@@ -50,7 +54,7 @@ jobs:
       # poetry-core versions), so we install with poetry.
       - uses: matrix-org/setup-python-poetry@v2
         with:
-          python-version: "3.13.x"
+          python-version: ${{ env.PYTHON_VERSION }}
           extras: "all"
       # Dump installed versions for debugging.
       - run: poetry run pip list > before.txt
@@ -91,7 +95,7 @@ jobs:
             postgres:${{ matrix.postgres-version }}
       - uses: actions/setup-python@v6
         with:
-          python-version: "3.13.x"
+          python-version: ${{ env.PYTHON_VERSION }}
       - run: pip install .[all,test]
       - name: Await PostgreSQL
         if: ${{ matrix.postgres-version }}

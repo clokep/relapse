@@ -1,5 +1,9 @@
 name: Prepare documentation PR preview
 
+env:
+  # THe Python version to run commands under. (The max supported version.)
+  PYTHON_VERSION: 3.13.x
+
 on:
   pull_request:
     paths:
@@ -26,7 +30,7 @@ jobs:
       - name: Setup python
         uses: actions/setup-python@v6
         with:
-          python-version: "3.13.x"
+          python-version: ${{ env.PYTHON_VERSION }}
 
       - run: "pip install 'packaging>=20.0' 'GitPython>=3.1.20'"
 

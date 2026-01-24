@@ -3,6 +3,10 @@
 
 name: Attempt to automatically fix linting errors
 
+env:
+  # THe Python version to run commands under. (The max supported version.)
+  PYTHON_VERSION: 3.13.x
+
 on:
   workflow_dispatch:
 
@@ -27,7 +31,7 @@ jobs:
       - name: Setup Poetry
         uses: matrix-org/setup-python-poetry@v2
         with:
-          python-version: "3.13.x"
+          python-version: ${{ env.PYTHON_VERSION }}
           install-project: "false"
 
       - name: Code style (ruff)
