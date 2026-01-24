@@ -192,7 +192,8 @@ netaddr = ">=0.7.18"
 # end up with a broken installation, with recent MarkupSafe but old Jinja, we
 # add a lower bound to the Jinja2 dependency.
 Jinja2 = ">=3.0"
-bleach = ">=1.4.3"
+# 3.2.0 is the first version to support Python 3.10.
+bleach = ">=3.2.0"
 # Pydantic requires at least 4.6.1.
 typing-extensions = ">=4.6.1"
 # We enforce that we have a `cryptography` version that bundles an `openssl`
