@@ -233,7 +233,7 @@ lxml = { version = ">=4.7.1", optional = true }
 beautifulsoup4 = { version = ">=4.10.0", optional = true }
 sentry-sdk = { version = ">=0.7.2", optional = true }
 opentracing = { version = ">=2.2.0", optional = true }
-jaeger-client = { version = ">=4.0.0", optional = true }
+jaeger-client = { version = ">=4.8.0", optional = true }
 txredisapi = { version = ">=1.4.7", optional = true }
 hiredis = { version = "*", optional = true }
 Pympler = { version = "*", optional = true }
