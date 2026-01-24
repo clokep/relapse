@@ -420,19 +420,14 @@ jobs:
       - linting-done
       - changes
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["pypy-${{ env.MIN_PYTHON_VERSION }}"]
-        extras: ["all"]
-
     steps:
       - uses: actions/checkout@v6
       # Install libs necessary for PyPy to build binary wheels for dependencies
       - run: sudo apt-get -qq install xmlsec1 libxml2-dev libxslt-dev
       - uses: matrix-org/setup-python-poetry@v2
         with:
-          python-version: ${{ matrix.python-version }}
-          extras: ${{ matrix.extras }}
+          python-version: "pypy-${{ env.MIN_PYTHON_VERSION }}"
+          extras: "all"
       - run: poetry run trial --jobs=2 tests
       - name: Dump logs
         # Logs are most useful when the command fails, always include them.
