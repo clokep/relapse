@@ -3877,4 +3877,4 @@ url-preview = ["beautifulsoup4", "lxml"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "84afd7aafe526e2940f7dbae569a611c6d62d0d9545c17bb178ca690f19fcadd"
+content-hash = "f592e39e59ae7688611168aa7e734f77954c2860b10e0611506b4ee4908dbc85"
