@@ -478,6 +478,7 @@ jobs:
 
       - name: Prep plugin
         run: |
+          apt-get update
           apt-get install python3
           tar -czvf sytest_relapse.tar.gz sytest_relapse/
           python3 -m http.server &
