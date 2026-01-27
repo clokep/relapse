@@ -149,7 +149,7 @@ relapse_review_recent_signups = "relapse._scripts.review_recent_signups:main"
 update_relapse_database = "relapse._scripts.update_relapse_database:main"
 
 [tool.poetry.dependencies]
-python = "^3.9.2"
+python = "^3.10"
 
 # Mandatory Dependencies
 # ----------------------
@@ -178,8 +178,8 @@ bcrypt = ">=3.1.7"
 # 10.0.1 minimum is mandatory here because of libwebp CVE-2023-4863.
 # Packagers that already took care of libwebp can lower that down to 5.4.0.
 Pillow = ">=10.0.1"
-# We use SortedDict.peekitem(), which was added in sortedcontainers 1.5.2.
-sortedcontainers = ">=1.5.2"
+# First version w/ support for Python >= 3.10
+sortedcontainers = ">=2.0.5"
 pymacaroons = ">=0.13.0"
 msgpack = ">=0.5.2"
 phonenumbers = ">=8.2.0"
@@ -192,7 +192,8 @@ netaddr = ">=0.7.18"
 # end up with a broken installation, with recent MarkupSafe but old Jinja, we
 # add a lower bound to the Jinja2 dependency.
 Jinja2 = ">=3.0"
-bleach = ">=1.4.3"
+# 3.2.0 is the first version to support Python 3.10.
+bleach = ">=3.2.0"
 # Pydantic requires at least 4.6.1.
 typing-extensions = ">=4.6.1"
 # We enforce that we have a `cryptography` version that bundles an `openssl`
@@ -233,7 +234,7 @@ lxml = { version = ">=4.7.1", optional = true }
 beautifulsoup4 = { version = ">=4.10.0", optional = true }
 sentry-sdk = { version = ">=0.7.2", optional = true }
 opentracing = { version = ">=2.2.0", optional = true }
-jaeger-client = { version = ">=4.0.0", optional = true }
+jaeger-client = { version = ">=4.8.0", optional = true }
 txredisapi = { version = ">=1.4.7", optional = true }
 hiredis = { version = "*", optional = true }
 Pympler = { version = "*", optional = true }
@@ -349,9 +350,9 @@ tomli = ">=1.2.3"
 optional = true
 
 [tool.poetry.group.dev-docs.dependencies]
-sphinx = {version = "^7.4", python = "^3.9"}
-sphinx-autodoc2 = {version = ">=0.4.2,<0.6.0", python = "^3.9"}
-myst-parser = {version = "^3.0.1", python = "^3.9"}
+sphinx = {version = "^7.4", python = "^3.10"}
+sphinx-autodoc2 = {version = ">=0.4.2,<0.6.0", python = "^3.10"}
+myst-parser = {version = "^3.0.1", python = "^3.10"}
 furo = ">=2022.12.7,<2026.0.0"
 
 
@@ -370,13 +371,13 @@ build-backend = "poetry.core.masonry.api"
 # Skip unsupported platforms (by us or by Rust).
 # See https://cibuildwheel.readthedocs.io/en/stable/options/#build-skip for the list of build targets.
 # We skip:
-#  - CPython 3.6 and 3.7: EOLed
-#  - PyPy 3.9: we only support Python 3.9+
-#  - musllinux i686: excluded to reduce number of wheels we build.
+#  - CPython: only supported versions by upstream
+#  - PyPy: match the supported CPython versions
+#  - musllinux i686: excluded to reduce the number of wheels we build.
 #    c.f. https://github.com/matrix-org/synapse/pull/12595#discussion_r963107677
 #  - PyPy on Aarch64 and musllinux on aarch64: too slow to build.
 #    c.f. https://github.com/matrix-org/synapse/pull/14259
-skip = "cp36* cp37* cp38* pp37* pp38* *-musllinux_i686 pp*aarch64 *-musllinux_aarch64"
+skip = "cp36* cp37* cp38* cp39* pp37* pp38* pp39* *-musllinux_i686 pp*aarch64 *-musllinux_aarch64"
 
 # We need a rust compiler
 before-all =  "curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y --profile minimal"

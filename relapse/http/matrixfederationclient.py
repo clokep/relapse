@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import abc
-import cgi
 import codecs
 import logging
 import random
@@ -1520,16 +1519,16 @@ def check_content_type_is(headers: Headers, expected_content_type: str) -> None:
         RequestSendFailed: if the Content-Type header is missing or doesn't match
 
     """
-    content_type_headers = headers.getRawHeaders(b"Content-Type")
+    content_type_headers = headers.getRawHeaders("Content-Type")
     if content_type_headers is None:
         raise RequestSendFailed(
             RuntimeError("No Content-Type header received from remote server"),
             can_retry=False,
         )
 
-    c_type = content_type_headers[0].decode("ascii")  # only the first header
-    val, options = cgi.parse_header(c_type)
-    if val != expected_content_type:
+    content_type_header = content_type_headers[0]  # only the first header
+    c_type = content_type_header.split(";", maxsplit=1)[0]  # only the base content type
+    if c_type != expected_content_type:
         raise RequestSendFailed(
             RuntimeError(
                 f"Remote server sent Content-Type header of '{c_type}', not '{expected_content_type}'",
