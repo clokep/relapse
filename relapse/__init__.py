@@ -49,7 +49,9 @@ if "twisted.internet.reactor" in sys.modules:
 
     print(f"Reactor already installed: {reactor.__class__.__name__}")
 else:
-    asyncioreactor.install(asyncio.get_event_loop())
+    event_loop = asyncio.new_event_loop()
+
+    asyncioreactor.install(event_loop)
 
 # Twisted and canonicaljson will fail to import when this file is executed to
 # get the __version__ during a fresh install. That's OK and subsequent calls to

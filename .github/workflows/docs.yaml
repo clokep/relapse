@@ -2,7 +2,7 @@ name: Deploy the documentation
 
 env:
   # The Python version to run commands under. (The max supported version.)
-  PYTHON_VERSION: 3.13.x
+  PYTHON_VERSION: 3.14.x
 
 on:
   push:

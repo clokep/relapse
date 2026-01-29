@@ -3,7 +3,7 @@ name: Tests
 env:
   MIN_PYTHON_VERSION: 3.10.x
   # The Python version to run commands under. (The max supported version.)
-  PYTHON_VERSION: 3.13.x
+  PYTHON_VERSION: 3.14.x
 
 on:
   push:
