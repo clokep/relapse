@@ -1,5 +1,9 @@
 name: Twisted Trunk
 
+env:
+  # The Python version to run commands under. (The max supported version.)
+  PYTHON_VERSION: 3.13.x
+
 on:
   schedule:
     - cron: 0 8 * * *
@@ -45,12 +49,12 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
-            toolchain: 1.82.0
+            toolchain: 1.90.0
       - uses: Swatinem/rust-cache@v2
 
       - uses: matrix-org/setup-python-poetry@v2
         with:
-          python-version: "3.12.x"
+          python-version: ${{ env.PYTHON_VERSION }}
           extras: "all"
       - run: |
           poetry remove twisted
@@ -72,12 +76,12 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
-            toolchain: 1.82.0
+            toolchain: 1.90.0
       - uses: Swatinem/rust-cache@v2
 
       - uses: matrix-org/setup-python-poetry@v2
         with:
-          python-version: "3.12.x"
+          python-version: ${{ env.PYTHON_VERSION }}
           extras: "all test"
       - run: |
           poetry remove twisted
@@ -117,7 +121,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
-            toolchain: 1.82.0
+            toolchain: 1.90.0
       - uses: Swatinem/rust-cache@v2
 
       - name: Patch dependencies
@@ -142,7 +146,7 @@ jobs:
         if: ${{ always() }}
         run: /sytest/scripts/tap_to_gha.pl /logs/results.tap
       - name: Upload SyTest logs
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         if: ${{ always() }}
         with:
           name: Sytest Logs - ${{ job.status }} - (${{ join(matrix.*, ', ') }})
