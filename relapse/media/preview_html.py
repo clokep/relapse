@@ -48,7 +48,7 @@ def decode_body(body: Union[bytes, str], uri: str) -> Optional["BeautifulSoup"]:
         content_type: The Content-Type header.
 
     Returns:
-        The parsed HTML body, or None if an error occurred during processed.
+        The parsed HTML body, or None if an error occurred during processing.
     """
     # If there's no body, nothing useful is going to be found.
     if not body:
@@ -78,7 +78,7 @@ def _get_meta_tags(
     Search for meta tags prefixed with a particular string.
 
     Args:
-        tree: The parsed HTML document.
+        soup: The parsed HTML document.
         property: The name of the property which contains the tag name, e.g.
             "property" for Open Graph.
         prefix: The prefix on the property to search for, e.g. "og" for Open Graph.
@@ -101,15 +101,16 @@ def _get_meta_tags(
             )
             return {}
 
-        key = tag[property]
+        key = cast(str, tag[property])
         if property_mapper:
-            key = property_mapper(key)
+            mapped_key = property_mapper(key)
             # None is a special value used to ignore a value.
-            if key is None:
+            if mapped_key is None:
                 continue
+            key = mapped_key
 
         if key not in results:
-            results[key] = tag["content"]
+            results[key] = cast(str, tag["content"])
 
     return results
 
@@ -247,9 +248,10 @@ def parse_html_to_open_graph(soup: "BeautifulSoup") -> Dict[str, Optional[str]]:
 
     if "og:title" not in og:
         # Attempt to find a title from the title tag, or the biggest header on the page.
-        title = cast(
-            Optional["Tag"], soup.find(("title", "h1", "h2", "h3"), string=True)
-        )
+        #
+        # mypy doesn't like passing both name and string, but it is used to ignore
+        # empty elements.
+        title = soup.find(("title", "h1", "h2", "h3"), string=True)  # type: ignore[call-overload]
         if title and title.string:
             og["og:title"] = title.string.strip()
         else:
@@ -259,15 +261,14 @@ def parse_html_to_open_graph(soup: "BeautifulSoup") -> Dict[str, Optional[str]]:
         # Try to find images which are larger than 10px by 10px.
         #
         # TODO: consider inlined CSS styles as well as width & height attribs
-        images = cast(
-            list["Tag"],
-            soup.find_all("img", src=NON_BLANK, width=NON_BLANK, height=NON_BLANK),
+        raw_images = soup.find_all(
+            "img", src=NON_BLANK, width=NON_BLANK, height=NON_BLANK
         )
         images = sorted(
             filter(
                 lambda tag: int(cast(str, tag["width"])) > 10
                 and int(cast(str, tag["height"])) > 10,
-                images,
+                raw_images,
             ),
             key=lambda i: (
                 float(cast(str, i["width"])) * float(cast(str, i["height"]))
@@ -281,12 +282,11 @@ def parse_html_to_open_graph(soup: "BeautifulSoup") -> Dict[str, Optional[str]]:
 
         # Finally, fallback to the favicon if nothing else.
         else:
-            favicons = cast(
-                list["Tag"],
-                soup.find_all("link", href=NON_BLANK, rel=("icon", "apple-touch-icon")),
+            raw_favicons = soup.find_all(
+                "link", href=NON_BLANK, rel=("icon", "apple-touch-icon")
             )
             favicons = sorted(
-                favicons,
+                raw_favicons,
                 # The "sizes" property can be "any" or a list of MxN sizes.
                 # If the "sizes" property does not exist, then prioritize last.
                 key=_favicon_sort,
@@ -296,13 +296,10 @@ def parse_html_to_open_graph(soup: "BeautifulSoup") -> Dict[str, Optional[str]]:
 
     if "og:description" not in og:
         # Check the first meta description tag for content.
-        meta_description = cast(
-            Optional["Tag"],
-            soup.find(
-                "meta",
-                attrs={"name": re.compile("description", re.I)},
-                content=NON_BLANK,
-            ),
+        meta_description = soup.find(
+            "meta",
+            attrs={"name": re.compile("description", re.I)},
+            content=NON_BLANK,
         )
 
         # If a meta description is found with content, use it.
@@ -374,7 +371,7 @@ def _iterate_over_text(
     skipping text nodes inside certain tags.
 
     Args:
-        tree: The parent element to iterate. Can be None if there isn't one.
+        soup: The parent element to iterate.
         tags_to_ignore: Set of tags to ignore
         stack_limit: Maximum stack size limit for depth-first traversal.
             Nodes will be dropped if this limit is hit, which may truncate the
