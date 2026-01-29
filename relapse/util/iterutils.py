@@ -110,7 +110,7 @@ def sorted_topologically(
             reverse_graph.setdefault(edge, set()).add(node)
         reverse_graph.setdefault(node, set())
 
-    zero_degree = [node for node, degree in degree_map.items() if degree == 0]
+    zero_degree: list = [node for node, degree in degree_map.items() if degree == 0]
     heapq.heapify(zero_degree)
 
     while zero_degree:
