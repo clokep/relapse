@@ -230,8 +230,7 @@ authlib = { version = ">=0.15.1", optional = true }
 # `contrib/systemd/log_config.yaml`.
 # Note: systemd-python 231 appears to have been yanked from pypi
 systemd-python = { version = ">=231", optional = true }
-lxml = { version = ">=4.7.1", optional = true }
-beautifulsoup4 = { version = ">=4.10.0", optional = true }
+beautifulsoup4 = { version = ">=4.13.0", optional = true }
 sentry-sdk = { version = ">=0.7.2", optional = true }
 opentracing = { version = ">=2.2.0", optional = true }
 jaeger-client = { version = ">=4.8.0", optional = true }
@@ -252,7 +251,7 @@ oidc = ["authlib"]
 # `systemd.journal.JournalHandler`, as is documented in
 # `contrib/systemd/log_config.yaml`.
 systemd = ["systemd-python"]
-url_preview = ["lxml", "beautifulsoup4"]
+url_preview = ["beautifulsoup4"]
 sentry = ["sentry-sdk"]
 opentracing = ["jaeger-client", "opentracing"]
 jwt = ["authlib"]
@@ -284,7 +283,7 @@ all = [
     # oidc and jwt
     "authlib",
     # url-preview
-    "lxml", "beautifulsoup4",
+    "beautifulsoup4",
     # sentry
     "sentry-sdk",
     # opentracing
@@ -306,7 +305,6 @@ all = [
 ruff = "0.14.13"
 
 # Typechecking
-lxml-stubs = ">=0.4.0"
 mypy = "*"
 mypy-zope = "*"
 types-bleach = ">=4.1.0"
@@ -320,7 +318,6 @@ types-pyOpenSSL = ">=20.0.7"
 types-PyYAML = ">=5.4.10"
 types-requests = ">=2.26.0"
 types-setuptools = ">=57.4.0"
-types-beautifulsoup4 = ">=4.10.5"
 
 # Dependencies which are exclusively required by unit test code. This is
 # NOT a list of all modules that are necessary to run the unit tests.

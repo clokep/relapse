@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import itertools
 import logging
 import re
 from typing import (
@@ -20,7 +19,6 @@ from typing import (
     Dict,
     Generator,
     Iterable,
-    Iterator,
     Optional,
     Union,
     cast,
@@ -60,7 +58,7 @@ def decode_body(body: Union[bytes, str], uri: str) -> Optional["BeautifulSoup"]:
     from bs4.builder import ParserRejectedMarkup
 
     try:
-        soup = BeautifulSoup(body, "lxml")
+        soup = BeautifulSoup(body, "html.parser")
         # If an empty document is returned, convert to None.
         if not len(soup):
             return None
@@ -342,6 +340,7 @@ def parse_html_description(soup: "BeautifulSoup") -> Optional[str]:
     """
 
     TAGS_TO_REMOVE = {
+        "head",
         "header",
         "nav",
         "aside",
@@ -355,26 +354,19 @@ def parse_html_description(soup: "BeautifulSoup") -> Optional[str]:
         "canvas",
         "img",
         "picture",
-        # etree.Comment is a function which creates an etree._Comment element.
-        # The "tag" attribute of an etree._Comment instance is confusingly the
-        # etree.Comment function instead of a string.
-        # etree.Comment,
-        # XXX
     }
 
     # Split all the text nodes into paragraphs (by splitting on new
     # lines)
     text_nodes = (
         re.sub(r"\s+", "\n", el).strip()
-        for el in _iterate_over_text(
-            cast(Optional["Tag"], soup.find("body")), TAGS_TO_REMOVE
-        )
+        for el in _iterate_over_text(soup, TAGS_TO_REMOVE)
     )
     return summarize_paragraphs(text_nodes)
 
 
 def _iterate_over_text(
-    soup: Optional["Tag"],
+    soup: "Tag",
     tags_to_ignore: Iterable[str],
     stack_limit: int = 1024,
 ) -> Generator[str, None, None]:
@@ -389,27 +381,30 @@ def _iterate_over_text(
             textual result.
             Intended to limit the maximum working memory when generating a preview.
     """
-    if not soup:
-        return
-
     from bs4.element import NavigableString, Tag
 
     # This is basically a stack that we extend using itertools.chain.
     # This will either consist of an element to iterate over *or* a string
     # to be returned.
-    elements: Iterator["PageElement"] = iter([soup])
-    while True:
-        el = next(elements, None)
-        if el is None:
-            return
+    elements: list["PageElement"] = [soup]
+    while elements:
+        el = elements.pop()
 
         # Do not consider sub-classes of NavigableString since those represent
-        # comments, etc.
+        # stylesheets, etc.
         if type(el) == NavigableString:  # noqa: E721
             yield str(el)
         elif isinstance(el, Tag) and el.name not in tags_to_ignore:
-            # We add to the stack all the elements children.
-            elements = itertools.chain(el.contents, elements)
+            # We add to the stack all the element's children.
+            #
+            # We iterate in reverse order so that earlier pieces of text appear
+            # closer to the top of the stack.
+            for child in reversed(el.contents):
+                if len(elements) > stack_limit:
+                    # We've hit our limit for working memory
+                    break
+
+                elements.append(child)
 
 
 def summarize_paragraphs(

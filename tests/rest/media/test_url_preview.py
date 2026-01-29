@@ -39,14 +39,14 @@ from tests.server import FakeTransport
 from tests.test_utils import SMALL_PNG
 
 try:
-    import lxml
+    import bs4
 except ImportError:
-    lxml = None  # type: ignore[assignment]
+    bs4 = None  # type: ignore[assignment]
 
 
 class URLPreviewTests(unittest.HomeserverTestCase):
-    if not lxml:
-        skip = "url preview feature requires lxml"
+    if not bs4:
+        skip = "url preview feature requires beautifulsoup4"
 
     hijack_auth = True
     user_id = "@test:user"
