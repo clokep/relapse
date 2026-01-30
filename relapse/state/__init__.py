@@ -16,7 +16,7 @@ import heapq
 import logging
 from collections import ChainMap, defaultdict
 from collections.abc import Awaitable, Mapping, Sequence
-from typing import TYPE_CHECKING, Any, Callable, DefaultDict, Optional
+from typing import TYPE_CHECKING, Any, Callable, Optional
 
 import attr
 from immutabledict import immutabledict
@@ -600,7 +600,7 @@ class StateResolutionHandler:
         #
 
         # tracks the amount of work done on state res per room
-        self._state_res_metrics: DefaultDict[str, _StateResMetrics] = defaultdict(
+        self._state_res_metrics: defaultdict[str, _StateResMetrics] = defaultdict(
             _StateResMetrics
         )
 

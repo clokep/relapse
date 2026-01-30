@@ -18,7 +18,7 @@ import weakref
 from collections.abc import Collection, Iterable, Mapping, MutableMapping
 from enum import Enum, auto
 from itertools import chain
-from typing import TYPE_CHECKING, Any, Dict, Optional, cast, overload
+from typing import TYPE_CHECKING, Any, Optional, cast, overload
 
 import attr
 from prometheus_client import Gauge
@@ -266,7 +266,7 @@ class EventsWorkerStore(SQLBaseStore):
 
         self._event_fetch_lock = threading.Condition()
         self._event_fetch_list: list[
-            tuple[Iterable[str], "defer.Deferred[Dict[str, _EventRow]]"]
+            tuple[Iterable[str], defer.Deferred[dict[str, _EventRow]]]
         ] = []
         self._event_fetch_ongoing = 0
         event_fetch_ongoing_gauge.set(self._event_fetch_ongoing)
@@ -1157,7 +1157,7 @@ class EventsWorkerStore(SQLBaseStore):
     def _fetch_event_list(
         self,
         conn: LoggingDatabaseConnection,
-        event_list: list[tuple[Iterable[str], "defer.Deferred[Dict[str, _EventRow]]"]],
+        event_list: list[tuple[Iterable[str], "defer.Deferred[dict[str, _EventRow]]"]],
     ) -> None:
         """Handle a load of requests from the _event_fetch_list queue
 
@@ -1412,7 +1412,7 @@ class EventsWorkerStore(SQLBaseStore):
             that weren't requested.
         """
 
-        events_d: "defer.Deferred[Dict[str, _EventRow]]" = defer.Deferred()
+        events_d: defer.Deferred[dict[str, _EventRow]] = defer.Deferred()
         with self._event_fetch_lock:
             self._event_fetch_list.append((events, events_d))
             self._event_fetch_lock.notify()

@@ -97,7 +97,7 @@ class KeyringTestCase(unittest.HomeserverTestCase):
 
         # start off a first set of lookups. We make the mock fetcher block until this
         # deferred completes.
-        first_lookup_deferred: "Deferred[None]" = Deferred()
+        first_lookup_deferred: Deferred[None] = Deferred()
 
         async def first_lookup_fetch(
             server_name: str, key_ids: list[str], minimum_valid_until_ts: int

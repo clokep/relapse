@@ -67,7 +67,7 @@ async def _sendmail(
         force_tls: True to enable Implicit TLS.
     """
     msg = BytesIO(msg_bytes)
-    d: "Deferred[object]" = Deferred()
+    d: Deferred[object] = Deferred()
 
     def build_sender_factory(**kwargs: Any) -> ESMTPSenderFactory:
         return ESMTPSenderFactory(

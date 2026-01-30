@@ -15,7 +15,7 @@
 
 import logging
 from collections.abc import Collection, Mapping, Sequence
-from typing import TYPE_CHECKING, Any, Dict, Optional, Tuple, Union, cast
+from typing import TYPE_CHECKING, Any, Optional, Union, cast
 
 from prometheus_client import Counter
 
@@ -351,7 +351,7 @@ class BulkPushRuleEvaluator:
             profiles,
         ) = await make_deferred_yieldable(
             cast(
-                "Deferred[Tuple[int, Tuple[dict, Optional[int]], Dict[str, Dict[str, JsonValue]], Mapping[str, ProfileInfo]]]",
+                "Deferred[tuple[int, tuple[dict, Optional[int]], dict[str, dict[str, JsonValue]], Mapping[str, ProfileInfo]]]",
                 gather_results(
                     (  # type: ignore[arg-type]
                         run_in_background(  # type: ignore[call-overload]

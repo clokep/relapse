@@ -232,7 +232,7 @@ class CancellationTestCase(unittest.HomeserverTestCase):
 
     def test_after_callback(self) -> None:
         """Test that the after callback is called when a transaction succeeds."""
-        d: "Deferred[None]"
+        d: Deferred[None]
         after_callback = Mock()
         exception_callback = Mock()
 
@@ -251,7 +251,7 @@ class CancellationTestCase(unittest.HomeserverTestCase):
 
     def test_exception_callback(self) -> None:
         """Test that the exception callback is called when a transaction fails."""
-        d: "Deferred[None]"
+        d: Deferred[None]
         after_callback = Mock()
         exception_callback = Mock()
 

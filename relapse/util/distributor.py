@@ -13,7 +13,7 @@
 # limitations under the License.
 import logging
 from collections.abc import Awaitable
-from typing import Any, Callable, Generic, List, Optional, TypeVar, Union
+from typing import Any, Callable, Generic, Optional, TypeVar, Union
 
 from typing_extensions import ParamSpec
 
@@ -103,7 +103,7 @@ class Signal(Generic[P]):
         Each observer callable may return a Deferred."""
         self.observers.append(observer)
 
-    def fire(self, *args: P.args, **kwargs: P.kwargs) -> "defer.Deferred[List[Any]]":
+    def fire(self, *args: P.args, **kwargs: P.kwargs) -> "defer.Deferred[list[Any]]":
         """Invokes every callable in the observer list, passing in the args and
         kwargs. Exceptions thrown by observers are logged but ignored. It is
         not an error to fire a signal with no observers.

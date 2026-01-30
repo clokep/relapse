@@ -14,7 +14,7 @@
 
 from collections.abc import Generator
 from http import HTTPStatus
-from typing import Any, Tuple, cast
+from typing import Any, cast
 from unittest.mock import AsyncMock, Mock, call
 
 from twisted.internet import defer, reactor as _reactor
@@ -111,7 +111,7 @@ class HttpTransactionCacheTestCase(unittest.TestCase):
         """
         called = [False]
 
-        def cb() -> "defer.Deferred[Tuple[int, JsonDict]]":
+        def cb() -> "defer.Deferred[tuple[int, JsonDict]]":
             if called[0]:
                 # return a valid result the second time
                 return defer.succeed(self.mock_http_response)
@@ -143,7 +143,7 @@ class HttpTransactionCacheTestCase(unittest.TestCase):
         """
         called = [False]
 
-        def cb() -> "defer.Deferred[Tuple[int, JsonDict]]":
+        def cb() -> "defer.Deferred[tuple[int, JsonDict]]":
             if called[0]:
                 # return a valid result the second time
                 return defer.succeed(self.mock_http_response)

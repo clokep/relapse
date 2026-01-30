@@ -63,7 +63,7 @@ class ExternalCache:
 
     def __init__(self, hs: "HomeServer"):
         if hs.config.redis.redis_enabled:
-            self._redis_connection: Optional["ConnectionHandler"] = (
+            self._redis_connection: Optional[ConnectionHandler] = (
                 hs.get_outbound_redis_connection()
             )
         else:

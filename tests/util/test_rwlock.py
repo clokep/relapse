@@ -47,8 +47,8 @@ class ReadWriteLockTestCase(unittest.TestCase):
              * A `Deferred` that blocks the reader or writer. Must be resolved by the
                caller to allow the reader or writer to release the lock and complete.
         """
-        acquired_d: "Deferred[None]" = Deferred()
-        unblock_d: "Deferred[None]" = Deferred()
+        acquired_d: Deferred[None] = Deferred()
+        unblock_d: Deferred[None] = Deferred()
 
         async def reader_or_writer() -> str:
             async with read_or_write(key):

@@ -123,7 +123,7 @@ class FileConsumerTests(unittest.TestCase):
 class DummyPullProducer:
     def __init__(self) -> None:
         self.consumer: Optional[BackgroundFileConsumer] = None
-        self.deferred: "defer.Deferred[object]" = defer.Deferred()
+        self.deferred: defer.Deferred[object] = defer.Deferred()
 
     def resumeProducing(self) -> None:
         d = self.deferred

@@ -362,7 +362,7 @@ class FederationSender(AbstractFederationSender):
         self.is_mine_id = hs.is_mine_id
         self.is_mine_server_name = hs.is_mine_server_name
 
-        self._presence_router: Optional["PresenceRouter"] = None
+        self._presence_router: Optional[PresenceRouter] = None
         self._transaction_manager = TransactionManager(hs)
 
         self._instance_name = hs.get_instance_name()

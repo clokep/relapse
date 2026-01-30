@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from collections.abc import Sequence
-from typing import List, Optional, Tuple, cast
+from typing import Optional, cast
 from unittest.mock import AsyncMock, Mock
 
 from typing_extensions import TypeAlias
@@ -232,11 +232,11 @@ class ApplicationServiceSchedulerRecovererTestCase(unittest.TestCase):
 # Corresponds to relapse.appservice.scheduler._TransactionController.send
 TxnCtrlArgs: TypeAlias = """
 defer.Deferred[
-    Tuple[
+    tuple[
         ApplicationService,
         Sequence[EventBase],
-        Optional[List[JsonDict]],
-        Optional[List[JsonDict]],
+        Optional[list[JsonDict]],
+        Optional[list[JsonDict]],
         Optional[TransactionOneTimeKeysCount],
         Optional[TransactionUnusedFallbackKeys],
         Optional[DeviceListUpdates],
@@ -292,12 +292,12 @@ class ApplicationServiceSchedulerQueuerTestCase(unittest.HomeserverTestCase):
         # Tests that each service has its own queue, and that they don't block
         # on each other.
         srv1 = Mock(id=4)
-        srv_1_defer: "defer.Deferred[EventBase]" = defer.Deferred()
+        srv_1_defer: defer.Deferred[EventBase] = defer.Deferred()
         srv_1_event = Mock(event_id="srv1a")
         srv_1_event2 = Mock(event_id="srv1b")
 
         srv2 = Mock(id=6)
-        srv_2_defer: "defer.Deferred[EventBase]" = defer.Deferred()
+        srv_2_defer: defer.Deferred[EventBase] = defer.Deferred()
         srv_2_event = Mock(event_id="srv2a")
         srv_2_event2 = Mock(event_id="srv2b")
 
@@ -329,8 +329,8 @@ class ApplicationServiceSchedulerQueuerTestCase(unittest.HomeserverTestCase):
         self.assertEqual(3, self.txn_ctrl.send.call_count)
 
     def test_send_large_txns(self) -> None:
-        srv_1_defer: "defer.Deferred[EventBase]" = defer.Deferred()
-        srv_2_defer: "defer.Deferred[EventBase]" = defer.Deferred()
+        srv_1_defer: defer.Deferred[EventBase] = defer.Deferred()
+        srv_2_defer: defer.Deferred[EventBase] = defer.Deferred()
         send_return_list = [srv_1_defer, srv_2_defer]
 
         def do_send(*args: object, **kwargs: object) -> "defer.Deferred[EventBase]":

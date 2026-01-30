@@ -24,7 +24,7 @@ import warnings
 from collections import deque
 from collections.abc import Awaitable, Iterable, MutableMapping, Sequence
 from io import SEEK_END, BytesIO
-from typing import Any, Callable, Deque, Optional, TypeVar, Union, cast
+from typing import Any, Callable, Optional, TypeVar, Union, cast
 from unittest.mock import Mock
 
 import attr
@@ -440,7 +440,7 @@ class ThreadedMemoryReactorClock(MemoryReactorClock):
         self._tcp_callbacks: dict[tuple[str, int], Callable] = {}
         self._udp: list[udp.Port] = []
         self.lookups: dict[str, str] = {}
-        self._thread_callbacks: Deque[Callable[..., R]] = deque()
+        self._thread_callbacks: deque[Callable[..., R]] = deque()
 
         lookups = self.lookups
 
@@ -668,7 +668,7 @@ class ThreadPool:
             else:
                 onResult(True, res)
 
-        d: "Deferred[None]" = Deferred()
+        d: Deferred[None] = Deferred()
         d.addCallback(lambda x: function(*args, **kwargs))
         d.addBoth(_)
         self._reactor.callLater(0, d.callback, True)

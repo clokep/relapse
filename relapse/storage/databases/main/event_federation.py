@@ -16,7 +16,7 @@ import itertools
 import logging
 from collections.abc import Collection, Iterable, Sequence
 from queue import Empty, PriorityQueue
-from typing import TYPE_CHECKING, Optional, Tuple, cast
+from typing import TYPE_CHECKING, Optional, cast
 
 import attr
 from prometheus_client import Counter, Gauge
@@ -1415,7 +1415,7 @@ class EventFederationWorkerStore(SignatureWorkerStore, EventsWorkerStore, SQLBas
         # highest and newest-in-time message. We add events to the queue with a
         # negative depth so that we process the newest-in-time messages first
         # going backwards in time. stream_ordering follows the same pattern.
-        queue: "PriorityQueue[Tuple[int, int, str, str]]" = PriorityQueue()
+        queue: PriorityQueue[tuple[int, int, str, str]] = PriorityQueue()
 
         for seed_event_id in seed_event_id_list:
             event_lookup_result = self.db_pool.simple_select_one_txn(

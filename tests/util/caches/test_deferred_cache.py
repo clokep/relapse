@@ -35,7 +35,7 @@ class DeferredCacheTestCase(TestCase):
 
     def test_hit_deferred(self) -> None:
         cache: DeferredCache[str, int] = DeferredCache("test")
-        origin_d: "defer.Deferred[int]" = defer.Deferred()
+        origin_d: defer.Deferred[int] = defer.Deferred()
         set_d = cache.set("k1", origin_d)
 
         # get should return an incomplete deferred
@@ -64,7 +64,7 @@ class DeferredCacheTestCase(TestCase):
         cache.prefill("k1", 10, callback=lambda: callbacks.add("prefill"))
 
         # now replace that entry with a pending result
-        origin_d: "defer.Deferred[int]" = defer.Deferred()
+        origin_d: defer.Deferred[int] = defer.Deferred()
         set_d = cache.set("k1", origin_d, callback=lambda: callbacks.add("set"))
 
         # ... and also make a get request
@@ -128,7 +128,7 @@ class DeferredCacheTestCase(TestCase):
 
     def test_get_immediate(self) -> None:
         cache: DeferredCache[str, int] = DeferredCache("test")
-        d1: "defer.Deferred[int]" = defer.Deferred()
+        d1: defer.Deferred[int] = defer.Deferred()
         cache.set("key1", d1)
 
         # get_immediate should return default
@@ -159,10 +159,10 @@ class DeferredCacheTestCase(TestCase):
             callback_record[idx] = True
 
         # add a couple of pending entries
-        d1: "defer.Deferred[str]" = defer.Deferred()
+        d1: defer.Deferred[str] = defer.Deferred()
         cache.set("key1", d1, partial(record_callback, 0))
 
-        d2: "defer.Deferred[str]" = defer.Deferred()
+        d2: defer.Deferred[str] = defer.Deferred()
         cache.set("key2", d2, partial(record_callback, 1))
 
         # lookup should return pending deferreds

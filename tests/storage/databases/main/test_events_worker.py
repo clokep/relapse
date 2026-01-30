@@ -459,7 +459,7 @@ class GetEventCancellationTestCase(unittest.HomeserverTestCase):
              * A cancellable `Deferred` for the second `get_event` call.
         """
         # Patch `DatabasePool.runWithConnection` to block.
-        unblock: "Deferred[None]" = Deferred()
+        unblock: Deferred[None] = Deferred()
         original_runWithConnection = self.store.db_pool.runWithConnection
 
         # Don't bother with the types here, we just pass into the original function.

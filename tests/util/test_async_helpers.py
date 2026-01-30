@@ -46,7 +46,7 @@ from tests.unittest import TestCase
 
 class ObservableDeferredTest(TestCase):
     def test_succeed(self) -> None:
-        origin_d: "Deferred[int]" = Deferred()
+        origin_d: Deferred[int] = Deferred()
         observable = ObservableDeferred(origin_d)
 
         observer1 = observable.observe()
@@ -114,7 +114,7 @@ class ObservableDeferredTest(TestCase):
 
     def test_cancellation(self) -> None:
         """Test that cancelling an observer does not affect other observers."""
-        origin_d: "Deferred[int]" = Deferred()
+        origin_d: Deferred[int] = Deferred()
         observable = ObservableDeferred(origin_d, consumeErrors=True)
 
         observer1 = observable.observe()
@@ -244,7 +244,7 @@ class ConcurrentlyExecuteTest(TestCase):
             processed.append(v)
 
             # wait for the goahead before returning
-            d2: "Deferred[int]" = Deferred()
+            d2: Deferred[int] = Deferred()
             waiters.append(d2)
             await d2
 
@@ -276,7 +276,7 @@ class ConcurrentlyExecuteTest(TestCase):
 
     def test_preserves_stacktraces(self) -> None:
         """Test that the stacktrace from an exception thrown in the callback is preserved"""
-        d1: "Deferred[int]" = Deferred()
+        d1: Deferred[int] = Deferred()
 
         async def callback(v: int) -> None:
             # alas, this doesn't work at all without an await here
@@ -301,7 +301,7 @@ class ConcurrentlyExecuteTest(TestCase):
 
     def test_preserves_stacktraces_on_preformed_failure(self) -> None:
         """Test that the stacktrace on a Failure returned by the callback is preserved"""
-        d1: "Deferred[int]" = Deferred()
+        d1: Deferred[int] = Deferred()
         f = Failure(_TestException("bah"))
 
         async def callback(v: int) -> None:
@@ -350,7 +350,7 @@ class CancellationWrapperTests(TestCase):
 
     def test_succeed(self) -> None:
         """Test that the new `Deferred` receives the result."""
-        deferred: "Deferred[str]" = Deferred()
+        deferred: Deferred[str] = Deferred()
         wrapper_deferred = self.wrap_deferred(deferred)
 
         # Success should propagate through.
@@ -360,7 +360,7 @@ class CancellationWrapperTests(TestCase):
 
     def test_failure(self) -> None:
         """Test that the new `Deferred` receives the `Failure`."""
-        deferred: "Deferred[str]" = Deferred()
+        deferred: Deferred[str] = Deferred()
         wrapper_deferred = self.wrap_deferred(deferred)
 
         # Failure should propagate through.
@@ -375,7 +375,7 @@ class StopCancellationTests(TestCase):
 
     def test_cancellation(self) -> None:
         """Test that cancellation of the new `Deferred` leaves the original running."""
-        deferred: "Deferred[str]" = Deferred()
+        deferred: Deferred[str] = Deferred()
         wrapper_deferred = stop_cancellation(deferred)
 
         # Cancel the new `Deferred`.
@@ -398,7 +398,7 @@ class DelayCancellationTests(TestCase):
 
     def test_deferred_cancellation(self) -> None:
         """Test that cancellation of the new `Deferred` waits for the original."""
-        deferred: "Deferred[str]" = Deferred()
+        deferred: Deferred[str] = Deferred()
         wrapper_deferred = delay_cancellation(deferred)
 
         # Cancel the new `Deferred`.
@@ -419,8 +419,8 @@ class DelayCancellationTests(TestCase):
 
     def test_coroutine_cancellation(self) -> None:
         """Test that cancellation of the new `Deferred` waits for the original."""
-        blocking_deferred: "Deferred[None]" = Deferred()
-        completion_deferred: "Deferred[None]" = Deferred()
+        blocking_deferred: Deferred[None] = Deferred()
+        completion_deferred: Deferred[None] = Deferred()
 
         async def task() -> NoReturn:
             await blocking_deferred
@@ -451,7 +451,7 @@ class DelayCancellationTests(TestCase):
 
         Identical to `test_cancellation` except the new `Deferred` is cancelled twice.
         """
-        deferred: "Deferred[str]" = Deferred()
+        deferred: Deferred[str] = Deferred()
         wrapper_deferred = delay_cancellation(deferred)
 
         # Cancel the new `Deferred`, twice.
@@ -473,7 +473,7 @@ class DelayCancellationTests(TestCase):
 
     def test_propagates_cancelled_error(self) -> None:
         """Test that a `CancelledError` from the original `Deferred` gets propagated."""
-        deferred: "Deferred[str]" = Deferred()
+        deferred: Deferred[str] = Deferred()
         wrapper_deferred = delay_cancellation(deferred)
 
         # Fail the original `Deferred` with a `CancelledError`.
@@ -486,7 +486,7 @@ class DelayCancellationTests(TestCase):
 
     def test_preserves_logcontext(self) -> None:
         """Test that logging contexts are preserved."""
-        blocking_d: "Deferred[None]" = Deferred()
+        blocking_d: Deferred[None] = Deferred()
 
         async def inner() -> None:
             await make_deferred_yieldable(blocking_d)

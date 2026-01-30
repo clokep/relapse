@@ -24,7 +24,6 @@ from typing import (
     Any,
     Callable,
     ClassVar,
-    Deque,
     Generic,
     Optional,
     TypeVar,
@@ -182,7 +181,7 @@ class _EventPeristenceQueue(Generic[_PersistResult]):
         The per_item_callback will be called for each item added via add_to_queue,
         and its result will be returned via the Deferreds returned from add_to_queue.
         """
-        self._event_persist_queues: dict[str, Deque[_EventPersistQueueItem]] = {}
+        self._event_persist_queues: dict[str, deque[_EventPersistQueueItem]] = {}
         self._currently_persisting_rooms: set[str] = set()
         self._per_item_callback = per_item_callback
 

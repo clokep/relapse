@@ -1055,7 +1055,7 @@ def read_body_with_max_size(
     Returns:
         A Deferred which resolves to the length of the read body.
     """
-    d: "defer.Deferred[int]" = defer.Deferred()
+    d: defer.Deferred[int] = defer.Deferred()
 
     # If the Content-Length header gives a size larger than the maximum allowed
     # size, do not bother downloading the body.

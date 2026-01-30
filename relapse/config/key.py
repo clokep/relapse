@@ -214,7 +214,7 @@ class KeyConfig(Config):
             if is_signing_algorithm_supported(key_id):
                 key_base64 = key_data["key"]
                 key_bytes = decode_base64(key_base64)
-                verify_key: "VerifyKeyWithExpiry" = decode_verify_key_bytes(
+                verify_key: VerifyKeyWithExpiry = decode_verify_key_bytes(
                     key_id, key_bytes
                 )  # type: ignore[assignment]
                 verify_key.expired = key_data["expired_ts"]

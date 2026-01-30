@@ -471,7 +471,7 @@ class FakeRedisPubSubServer:
     """A fake Redis server for pub/sub."""
 
     def __init__(self) -> None:
-        self._subscribers_by_channel: dict[bytes, set["FakeRedisPubSubProtocol"]] = (
+        self._subscribers_by_channel: dict[bytes, set[FakeRedisPubSubProtocol]] = (
             defaultdict(set)
         )
 

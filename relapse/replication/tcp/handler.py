@@ -13,8 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
+from collections import deque
 from collections.abc import Awaitable, Iterable, Iterator
-from typing import TYPE_CHECKING, Any, Deque, Optional, TypeVar, Union
+from typing import TYPE_CHECKING, Any, Optional, TypeVar, Union
 
 from prometheus_client import Counter
 
@@ -70,7 +71,7 @@ user_ip_cache_counter = Counter("relapse_replication_tcp_resource_user_ip_cache"
 
 
 # the type of the entries in _command_queues_by_stream
-_StreamCommandQueue = Deque[
+_StreamCommandQueue = deque[
     tuple[Union[RdataCommand, PositionCommand], IReplicationConnection]
 ]
 

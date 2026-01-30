@@ -115,7 +115,7 @@ class OidcHandler:
         assert provider_confs
 
         self._macaroon_generator = hs.get_macaroon_generator()
-        self._providers: dict[str, "OidcProvider"] = {
+        self._providers: dict[str, OidcProvider] = {
             p.idp_id: OidcProvider(hs, self._macaroon_generator, p)
             for p in provider_confs
         }

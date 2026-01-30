@@ -22,7 +22,7 @@ import logging
 import struct
 from collections.abc import Collection
 from inspect import isawaitable
-from typing import TYPE_CHECKING, Any, List, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 from prometheus_client import Counter
 from zope.interface import Interface, implementer
@@ -75,7 +75,7 @@ tcp_outbound_commands_counter = Counter(
 
 # A list of all connected protocols. This allows us to send metrics about the
 # connections.
-connected_connections: "List[BaseReplicationStreamProtocol]" = []
+connected_connections: "list[BaseReplicationStreamProtocol]" = []
 
 
 logger = logging.getLogger(__name__)

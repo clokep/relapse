@@ -45,7 +45,7 @@ def make_test(
 
         file_out = StringIO()
         with redirect_stderr(file_out):
-            d: "Deferred[float]" = Deferred()
+            d: Deferred[float] = Deferred()
             d.addCallback(lambda _: ensureDeferred(main(reactor, loops)))
 
             def on_done(res: T) -> T:

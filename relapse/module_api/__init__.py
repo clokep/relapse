@@ -15,7 +15,7 @@
 import email.utils
 import logging
 from collections.abc import Collection, Generator, Iterable, Mapping
-from typing import TYPE_CHECKING, Any, Callable, Optional, Tuple, TypeVar, Union
+from typing import TYPE_CHECKING, Any, Callable, Optional, TypeVar, Union
 
 import attr
 import jinja2
@@ -229,7 +229,7 @@ class ModuleApi:
 
         # TODO: Fix this type hint once the types for the data stores have been ironed
         #       out.
-        self._store: Union[DataStore, "GenericWorkerStore"] = hs.get_datastores().main
+        self._store: Union[DataStore, GenericWorkerStore] = hs.get_datastores().main
         self._storage_controllers = hs.get_storage_controllers()
         self._auth = hs.get_auth()
         self._auth_handler = auth_handler
@@ -770,7 +770,7 @@ class ModuleApi:
         user_id: str,
         device_id: Optional[str] = None,
         initial_display_name: Optional[str] = None,
-    ) -> "defer.Deferred[Tuple[str, str, Optional[int], Optional[str]]]":
+    ) -> "defer.Deferred[tuple[str, str, Optional[int], Optional[str]]]":
         """Register a device for a user and generate an access token.
 
         Added in Relapse v1.2.0.

@@ -18,7 +18,7 @@ import logging
 import threading
 import typing
 from collections.abc import Iterator, Mapping, MutableSet
-from typing import Any, Callable, ContextManager, DefaultDict, Optional
+from typing import Any, Callable, ContextManager, Optional
 from weakref import WeakSet
 
 from prometheus_client.core import Counter
@@ -158,7 +158,7 @@ class FederationRateLimiter:
                 clock=clock, config=config, metrics_name=metrics_name
             )
 
-        self.ratelimiters: DefaultDict[str, "_PerHostRatelimiter"] = (
+        self.ratelimiters: collections.defaultdict[str, _PerHostRatelimiter] = (
             collections.defaultdict(new_limiter)
         )
 

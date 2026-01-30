@@ -14,7 +14,7 @@
 
 """Contains *incomplete* type hints for txredisapi."""
 
-from typing import Any, List, Optional, Type, Union
+from typing import Any, Optional, Union
 
 from twisted.internet import protocol
 from twisted.internet.defer import Deferred
@@ -22,8 +22,8 @@ from twisted.internet.interfaces import IAddress
 from twisted.python.failure import Failure
 
 class RedisProtocol(protocol.Protocol):
-    def publish(self, channel: str, message: bytes) -> "Deferred[None]": ...
-    def ping(self) -> "Deferred[None]": ...
+    def publish(self, channel: str, message: bytes) -> Deferred[None]: ...
+    def ping(self) -> Deferred[None]: ...
     def set(
         self,
         key: str,
@@ -32,13 +32,13 @@ class RedisProtocol(protocol.Protocol):
         pexpire: Optional[int] = None,
         only_if_not_exists: bool = False,
         only_if_exists: bool = False,
-    ) -> "Deferred[None]": ...
-    def get(self, key: str) -> "Deferred[Any]": ...
+    ) -> Deferred[None]: ...
+    def get(self, key: str) -> Deferred[Any]: ...
 
 class SubscriberProtocol(RedisProtocol):
     def __init__(self, *args: object, **kwargs: object): ...
     password: Optional[str]
-    def subscribe(self, channels: Union[str, List[str]]) -> "Deferred[None]": ...
+    def subscribe(self, channels: Union[str, list[str]]) -> Deferred[None]: ...
     def connectionMade(self) -> None: ...
     # type-ignore: twisted.internet.protocol.Protocol provides a default argument for
     # `reason`. txredisapi's LineReceiver Protocol doesn't. But that's fine: it's what's
@@ -60,7 +60,7 @@ def lazyConnection(
 # ConnectionHandler doesn't actually inherit from RedisProtocol, but it proxies
 # most methods to it via ConnectionHandler.__getattr__.
 class ConnectionHandler(RedisProtocol):
-    def disconnect(self) -> "Deferred[None]": ...
+    def disconnect(self) -> Deferred[None]: ...
     def __repr__(self) -> str: ...
 
 class UnixConnectionHandler(ConnectionHandler): ...
@@ -68,7 +68,7 @@ class UnixConnectionHandler(ConnectionHandler): ...
 class RedisFactory(protocol.ReconnectingClientFactory):
     continueTrying: bool
     handler: ConnectionHandler
-    pool: List[RedisProtocol]
+    pool: list[RedisProtocol]
     replyTimeout: Optional[int]
     def __init__(
         self,
@@ -76,7 +76,7 @@ class RedisFactory(protocol.ReconnectingClientFactory):
         dbid: Optional[int],
         poolsize: int,
         isLazy: bool = False,
-        handler: Type = ConnectionHandler,
+        handler: type = ConnectionHandler,
         charset: str = "utf-8",
         password: Optional[str] = None,
         replyTimeout: Optional[int] = None,

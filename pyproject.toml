@@ -50,6 +50,11 @@ ignore = [
     "B023",
     "E501",
     "E731",
+    "UP007",
+    "UP031",
+    "UP032",
+    "UP035",
+    "UP045",
 ]
 select = [
     # pycodestyle
@@ -73,6 +78,8 @@ select = [
     "EXE",
     # isort
     "I",
+    # pyupgrade
+    "UP",
 ]
 
 [tool.ruff.lint.isort]

@@ -14,7 +14,7 @@
 # limitations under the License.
 import logging
 from collections.abc import Collection, Iterable, Mapping, Sequence
-from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Union, cast
+from typing import TYPE_CHECKING, Any, Optional, Union, cast
 
 from twisted.internet import defer
 
@@ -246,7 +246,7 @@ class PushRulesWorkerStore(
             gather_results(
                 (
                     cast(
-                        "defer.Deferred[List[Tuple[str, str, int, int, str, str]]]",
+                        "defer.Deferred[list[tuple[str, str, int, int, str, str]]]",
                         run_in_background(
                             self.db_pool.simple_select_many_batch,
                             table="push_rules",

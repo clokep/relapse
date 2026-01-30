@@ -16,7 +16,7 @@ import functools
 import inspect
 import logging
 from collections.abc import Awaitable, Collection, Hashable, Iterable, Mapping, Sequence
-from typing import Any, Callable, Dict, Generic, Optional, Tuple, TypeVar, Union, cast
+from typing import Any, Callable, Generic, Optional, TypeVar, Union, cast
 from weakref import WeakValueDictionary
 
 import attr
@@ -309,7 +309,7 @@ class DeferredCacheListDescriptor(_CacheDescriptorBase):
 
     def __get__(
         self, obj: Optional[Any], objtype: Optional[type] = None
-    ) -> Callable[..., "defer.Deferred[Dict[Hashable, Any]]"]:
+    ) -> Callable[..., "defer.Deferred[dict[Hashable, Any]]"]:
         cached_method = getattr(obj, self.cached_method_name)
         cache: DeferredCache[CacheKey, Any] = cached_method.cache
         num_args = cached_method.num_args
@@ -321,7 +321,7 @@ class DeferredCacheListDescriptor(_CacheDescriptorBase):
             )
 
         @functools.wraps(self.orig)
-        def wrapped(*args: Any, **kwargs: Any) -> "defer.Deferred[Dict]":
+        def wrapped(*args: Any, **kwargs: Any) -> "defer.Deferred[dict]":
             # If we're passed a cache_context then we'll want to call its
             # invalidate() whenever we are invalidated
             invalidate_callback = kwargs.pop("on_invalidate", None)
@@ -357,7 +357,7 @@ class DeferredCacheListDescriptor(_CacheDescriptorBase):
 
             results = {cache_key_to_arg(key): v for key, v in immediate_results.items()}
 
-            cached_defers: list["defer.Deferred[Any]"] = []
+            cached_defers: list[defer.Deferred[Any]] = []
             if pending_deferred:
 
                 def update_results(r: dict) -> None:
@@ -423,7 +423,7 @@ class _CacheContext:
     Cache = Union[DeferredCache, LruCache]
 
     _cache_context_objects: """WeakValueDictionary[
-        Tuple["_CacheContext.Cache", CacheKey], "_CacheContext"
+        tuple["_CacheContext.Cache", CacheKey], "_CacheContext"
     ]""" = WeakValueDictionary()
 
     def __init__(self, cache: "_CacheContext.Cache", cache_key: CacheKey) -> None:

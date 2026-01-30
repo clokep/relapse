@@ -95,14 +95,14 @@ class RelapseRequest(Request):
 
         # An opentracing span for this request. Will be closed when the request is
         # completely processed.
-        self._opentracing_span: "Optional[opentracing.Span]" = None
+        self._opentracing_span: Optional[opentracing.Span] = None
 
         # we can't yet create the logcontext, as we don't know the method.
         self.logcontext: Optional[LoggingContext] = None
 
         # The `Deferred` to cancel if the client disconnects early and
         # `is_render_cancellable` is set. Expected to be set by `Resource.render`.
-        self.render_deferred: Optional["Deferred[None]"] = None
+        self.render_deferred: Optional[Deferred[None]] = None
         # A boolean indicating whether `render_deferred` should be cancelled if the
         # client disconnects early. Expected to be set by the coroutine started by
         # `Resource.render`, if rendering is asynchronous.

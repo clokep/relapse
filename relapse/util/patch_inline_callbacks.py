@@ -51,12 +51,12 @@ def do_patch() -> None:
         def wrapped(*args: P.args, **kwargs: P.kwargs) -> "Deferred[T]":
             start_context = current_context()
             changes: list[str] = []
-            orig: Callable[P, "Deferred[T]"] = orig_inline_callbacks(
+            orig: Callable[P, Deferred[T]] = orig_inline_callbacks(
                 _check_yield_points(f, changes)
             )
 
             try:
-                res: "Deferred[T]" = orig(*args, **kwargs)
+                res: Deferred[T] = orig(*args, **kwargs)
             except Exception:
                 if current_context() != start_context:
                     for err in changes:

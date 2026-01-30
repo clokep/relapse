@@ -299,7 +299,7 @@ class LoggingContext:
         self.main_thread = get_thread_id()
         self.request = None
         self.tag = ""
-        self.scope: Optional["_LogContextScope"] = None
+        self.scope: Optional[_LogContextScope] = None
 
         # keep track of whether we have hit the __exit__ block for this context
         # (suggesting that the the thing that created the context thinks it should
@@ -757,7 +757,7 @@ def run_in_background(
 
     # `res` may be a coroutine, `Deferred`, some other kind of awaitable, or a plain
     # value. Convert it to a `Deferred`.
-    d: "defer.Deferred[R]"
+    d: defer.Deferred[R]
     if isinstance(res, typing.Coroutine):
         # Wrap the coroutine in a `Deferred`.
         d = defer.ensureDeferred(res)

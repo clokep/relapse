@@ -686,7 +686,7 @@ class PartialJoinTestCase(unittest.FederatingHomeserverTestCase):
         Tests that concurrent partial state syncs are not started for the same room.
         """
         is_partial_state = True
-        end_sync: "Deferred[None]" = Deferred()
+        end_sync: Deferred[None] = Deferred()
 
         async def is_partial_state_room(room_id: str) -> bool:
             return is_partial_state
@@ -741,7 +741,7 @@ class PartialJoinTestCase(unittest.FederatingHomeserverTestCase):
         was deduplicated and the first partial state sync fails.
         """
         is_partial_state = True
-        end_sync: "Deferred[None]" = Deferred()
+        end_sync: Deferred[None] = Deferred()
 
         async def is_partial_state_room(room_id: str) -> bool:
             return is_partial_state

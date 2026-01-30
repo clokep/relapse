@@ -43,7 +43,7 @@ class UnpersistedEventContextBase(ABC):
     """
 
     def __init__(self, storage_controller: "StorageControllers"):
-        self._storage: "StorageControllers" = storage_controller
+        self._storage: StorageControllers = storage_controller
         self.app_service: Optional[ApplicationService] = None
 
     @abstractmethod

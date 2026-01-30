@@ -1049,7 +1049,7 @@ class E2eKeysHandler:
         Raises:
             RelapseError: if the input is malformed
         """
-        signature_list: list["SignatureListItem"] = []
+        signature_list: list[SignatureListItem] = []
         failures: dict[str, dict[str, JsonDict]] = {}
         if not signatures:
             return signature_list, failures
@@ -1211,7 +1211,7 @@ class E2eKeysHandler:
         Raises:
             RelapseError: if the input is malformed
         """
-        signature_list: list["SignatureListItem"] = []
+        signature_list: list[SignatureListItem] = []
         failures: dict[str, dict[str, JsonDict]] = {}
         if not signatures:
             return signature_list, failures
