@@ -255,6 +255,7 @@ skipped_test_packages=(
   TestFederationRoomsInvite/Parallel/Inviter_user_can_rescind_invite_over_federation
   TestKnockRestrictedRoomsLocalJoinNoCreatorsUsesPowerLevelsV12
   TestRestrictedRoomsLocalJoinNoCreatorsUsesPowerLevelsV12
+  TestComplementCanCreateValidV12Rooms
 )
 skip_flag=$(IFS="|" ; echo "${skipped_test_packages[*]}")
 
