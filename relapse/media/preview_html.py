@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import itertools
 import logging
 import re
 from typing import (
@@ -20,7 +19,6 @@ from typing import (
     Dict,
     Generator,
     Iterable,
-    Iterator,
     Optional,
     Union,
     cast,
@@ -50,7 +48,7 @@ def decode_body(body: Union[bytes, str], uri: str) -> Optional["BeautifulSoup"]:
         content_type: The Content-Type header.
 
     Returns:
-        The parsed HTML body, or None if an error occurred during processed.
+        The parsed HTML body, or None if an error occurred during processing.
     """
     # If there's no body, nothing useful is going to be found.
     if not body:
@@ -60,7 +58,7 @@ def decode_body(body: Union[bytes, str], uri: str) -> Optional["BeautifulSoup"]:
     from bs4.builder import ParserRejectedMarkup
 
     try:
-        soup = BeautifulSoup(body, "lxml")
+        soup = BeautifulSoup(body, "html.parser")
         # If an empty document is returned, convert to None.
         if not len(soup):
             return None
@@ -80,7 +78,7 @@ def _get_meta_tags(
     Search for meta tags prefixed with a particular string.
 
     Args:
-        tree: The parsed HTML document.
+        soup: The parsed HTML document.
         property: The name of the property which contains the tag name, e.g.
             "property" for Open Graph.
         prefix: The prefix on the property to search for, e.g. "og" for Open Graph.
@@ -103,15 +101,16 @@ def _get_meta_tags(
             )
             return {}
 
-        key = tag[property]
+        key = cast(str, tag[property])
         if property_mapper:
-            key = property_mapper(key)
+            mapped_key = property_mapper(key)
             # None is a special value used to ignore a value.
-            if key is None:
+            if mapped_key is None:
                 continue
+            key = mapped_key
 
         if key not in results:
-            results[key] = tag["content"]
+            results[key] = cast(str, tag["content"])
 
     return results
 
@@ -249,9 +248,10 @@ def parse_html_to_open_graph(soup: "BeautifulSoup") -> Dict[str, Optional[str]]:
 
     if "og:title" not in og:
         # Attempt to find a title from the title tag, or the biggest header on the page.
-        title = cast(
-            Optional["Tag"], soup.find(("title", "h1", "h2", "h3"), string=True)
-        )
+        #
+        # mypy doesn't like passing both name and string, but it is used to ignore
+        # empty elements.
+        title = soup.find(("title", "h1", "h2", "h3"), string=True)  # type: ignore[call-overload]
         if title and title.string:
             og["og:title"] = title.string.strip()
         else:
@@ -261,15 +261,14 @@ def parse_html_to_open_graph(soup: "BeautifulSoup") -> Dict[str, Optional[str]]:
         # Try to find images which are larger than 10px by 10px.
         #
         # TODO: consider inlined CSS styles as well as width & height attribs
-        images = cast(
-            list["Tag"],
-            soup.find_all("img", src=NON_BLANK, width=NON_BLANK, height=NON_BLANK),
+        raw_images = soup.find_all(
+            "img", src=NON_BLANK, width=NON_BLANK, height=NON_BLANK
         )
         images = sorted(
             filter(
                 lambda tag: int(cast(str, tag["width"])) > 10
                 and int(cast(str, tag["height"])) > 10,
-                images,
+                raw_images,
             ),
             key=lambda i: (
                 float(cast(str, i["width"])) * float(cast(str, i["height"]))
@@ -283,12 +282,11 @@ def parse_html_to_open_graph(soup: "BeautifulSoup") -> Dict[str, Optional[str]]:
 
         # Finally, fallback to the favicon if nothing else.
         else:
-            favicons = cast(
-                list["Tag"],
-                soup.find_all("link", href=NON_BLANK, rel=("icon", "apple-touch-icon")),
+            raw_favicons = soup.find_all(
+                "link", href=NON_BLANK, rel=("icon", "apple-touch-icon")
             )
             favicons = sorted(
-                favicons,
+                raw_favicons,
                 # The "sizes" property can be "any" or a list of MxN sizes.
                 # If the "sizes" property does not exist, then prioritize last.
                 key=_favicon_sort,
@@ -298,13 +296,10 @@ def parse_html_to_open_graph(soup: "BeautifulSoup") -> Dict[str, Optional[str]]:
 
     if "og:description" not in og:
         # Check the first meta description tag for content.
-        meta_description = cast(
-            Optional["Tag"],
-            soup.find(
-                "meta",
-                attrs={"name": re.compile("description", re.I)},
-                content=NON_BLANK,
-            ),
+        meta_description = soup.find(
+            "meta",
+            attrs={"name": re.compile("description", re.I)},
+            content=NON_BLANK,
         )
 
         # If a meta description is found with content, use it.
@@ -342,6 +337,7 @@ def parse_html_description(soup: "BeautifulSoup") -> Optional[str]:
     """
 
     TAGS_TO_REMOVE = {
+        "head",
         "header",
         "nav",
         "aside",
@@ -355,26 +351,19 @@ def parse_html_description(soup: "BeautifulSoup") -> Optional[str]:
         "canvas",
         "img",
         "picture",
-        # etree.Comment is a function which creates an etree._Comment element.
-        # The "tag" attribute of an etree._Comment instance is confusingly the
-        # etree.Comment function instead of a string.
-        # etree.Comment,
-        # XXX
     }
 
     # Split all the text nodes into paragraphs (by splitting on new
     # lines)
     text_nodes = (
         re.sub(r"\s+", "\n", el).strip()
-        for el in _iterate_over_text(
-            cast(Optional["Tag"], soup.find("body")), TAGS_TO_REMOVE
-        )
+        for el in _iterate_over_text(soup, TAGS_TO_REMOVE)
     )
     return summarize_paragraphs(text_nodes)
 
 
 def _iterate_over_text(
-    soup: Optional["Tag"],
+    soup: "Tag",
     tags_to_ignore: Iterable[str],
     stack_limit: int = 1024,
 ) -> Generator[str, None, None]:
@@ -382,34 +371,37 @@ def _iterate_over_text(
     skipping text nodes inside certain tags.
 
     Args:
-        tree: The parent element to iterate. Can be None if there isn't one.
+        soup: The parent element to iterate.
         tags_to_ignore: Set of tags to ignore
         stack_limit: Maximum stack size limit for depth-first traversal.
             Nodes will be dropped if this limit is hit, which may truncate the
             textual result.
             Intended to limit the maximum working memory when generating a preview.
     """
-    if not soup:
-        return
-
     from bs4.element import NavigableString, Tag
 
     # This is basically a stack that we extend using itertools.chain.
     # This will either consist of an element to iterate over *or* a string
     # to be returned.
-    elements: Iterator["PageElement"] = iter([soup])
-    while True:
-        el = next(elements, None)
-        if el is None:
-            return
+    elements: list["PageElement"] = [soup]
+    while elements:
+        el = elements.pop()
 
         # Do not consider sub-classes of NavigableString since those represent
-        # comments, etc.
+        # stylesheets, etc.
         if type(el) == NavigableString:  # noqa: E721
             yield str(el)
         elif isinstance(el, Tag) and el.name not in tags_to_ignore:
-            # We add to the stack all the elements children.
-            elements = itertools.chain(el.contents, elements)
+            # We add to the stack all the element's children.
+            #
+            # We iterate in reverse order so that earlier pieces of text appear
+            # closer to the top of the stack.
+            for child in reversed(el.contents):
+                if len(elements) > stack_limit:
+                    # We've hit our limit for working memory
+                    break
+
+                elements.append(child)
 
 
 def summarize_paragraphs(

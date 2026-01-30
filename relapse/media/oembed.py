@@ -24,7 +24,6 @@ from relapse.util import json_decoder
 
 if TYPE_CHECKING:
     from bs4 import BeautifulSoup
-    from bs4.element import Tag
 
     from relapse.server import HomeServer
 
@@ -110,14 +109,14 @@ class OEmbedProvider:
             The URL to use for oEmbed information, or None if no URL was found.
         """
         # Search for link elements with the proper rel and type attributes.
-        # Some providers (e.g. Flickr) use alternative instead of alternate.
+        # Some providers (e.g. Flickr) use `alternative` instead of `alternate`.
         tag = soup.find(
             "link",
             rel=("alternate", "alternative"),
             type="application/json+oembed",
             href=NON_BLANK,
         )
-        return cast(str, cast("Tag", tag)["href"]) if tag else None
+        return cast(str, tag["href"]) if tag else None
 
     def parse_oembed_response(self, url: str, raw_body: bytes) -> OEmbedResult:
         """
@@ -209,7 +208,7 @@ class OEmbedProvider:
 
 def _fetch_url(soup: "BeautifulSoup", tag_name: str) -> Optional[str]:
     tag = soup.find(tag_name, src=NON_BLANK)
-    return cast(str, cast("Tag", tag)["src"]) if tag else None
+    return cast(str, tag["src"]) if tag else None
 
 
 def calc_description_and_urls(
