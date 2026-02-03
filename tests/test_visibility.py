@@ -52,12 +52,13 @@ class FilterEventsForServerTestCase(unittest.HomeserverTestCase):
         # before we do that, we persist some other events to act as state.
         self._inject_visibility("@admin:hs", "joined")
         for i in range(10):
-            self._inject_room_member("@resident%i:hs" % i)
+            self._inject_room_member(f"@resident{i}:hs")
 
         events_to_filter = []
 
         for i in range(10):
-            user = "@user%i:%s" % (i, "test_server" if i == 5 else "other_server")
+            server_name = "test_server" if i == 5 else "other_server"
+            user = f"@user{i}:{server_name}"
             evt = self._inject_room_member(user, extra_content={"a": "b"})
             events_to_filter.append(evt)
 
@@ -181,14 +182,14 @@ class FilterEventsForServerTestCase(unittest.HomeserverTestCase):
             self.assertEqual(
                 events_to_filter[i].event_id,
                 filtered[i].event_id,
-                "Unexpected event at result position %i" % (i,),
+                f"Unexpected event at result position {i}",
             )
 
         for i in (0, 3):
             self.assertEqual(
                 events_to_filter[i].content["body"],
                 filtered[i].content["body"],
-                "Unexpected event content at result position %i" % (i,),
+                f"Unexpected event content at result position {i}",
             )
 
         for i in (1, 4):

@@ -85,7 +85,7 @@ class RedactionsTestCase(HomeserverTestCase):
 
         Returns the json body.
         """
-        path = "/_matrix/client/r0/rooms/%s/redact/%s" % (room_id, event_id)
+        path = f"/_matrix/client/r0/rooms/{room_id}/redact/{event_id}"
 
         request_content = content or {}
         if with_relations:

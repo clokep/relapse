@@ -124,7 +124,7 @@ class RelapseRequest(Request):
 
     def __repr__(self) -> str:
         # We overwrite this so that we don't log ``access_token``
-        return "<%s at 0x%x method=%r uri=%r clientproto=%r site=%r>" % (
+        return "<{} at 0x{:x} method={!r} uri={!r} clientproto={!r} site={!r}>".format(
             self.__class__.__name__,
             id(self),
             self.get_method(),
@@ -187,7 +187,7 @@ class RelapseRequest(Request):
         if request_id_value is None:
             request_id_value = str(self.request_seq)
 
-        return "%s-%s" % (self.get_method(), request_id_value)
+        return f"{self.get_method()}-{request_id_value}"
 
     def get_redacted_uri(self) -> str:
         """Gets the redacted URI associated with the request (or placeholder if the URI

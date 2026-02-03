@@ -67,7 +67,7 @@ POWER_KEY = (EventTypes.PowerLevels, "")
 
 def _gen_state_id() -> str:
     global _NEXT_STATE_ID
-    s = "X%d" % (_NEXT_STATE_ID,)
+    s = f"X{_NEXT_STATE_ID}"
     _NEXT_STATE_ID += 1
     return s
 
@@ -788,7 +788,7 @@ class StateResolutionHandler:
             "%i biggest rooms for state-res by %s: %s",
             len(biggest),
             metric_name,
-            ["%s (%gs)" % (r, extract_key(m)) for (r, m) in biggest],
+            [f"{r} ({extract_key(m):g}s)" for (r, m) in biggest],
         )
 
         # report info on the single biggest to prometheus

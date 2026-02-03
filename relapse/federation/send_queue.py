@@ -97,7 +97,7 @@ class FederationRemoteSendQueue(AbstractFederationSender):
         # changes. ARGH.
         def register(name: str, queue: Sized) -> None:
             LaterGauge(
-                "relapse_federation_send_queue_%s_size" % (queue_name,),
+                f"relapse_federation_send_queue_{queue_name}_size",
                 "",
                 [],
                 lambda: len(queue),

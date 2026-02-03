@@ -178,7 +178,7 @@ class RedisSubscriber(SubscriberProtocol):
             cmd: received command
         """
 
-        cmd_func = getattr(self.relapse_handler, "on_%s" % (cmd.NAME,), None)
+        cmd_func = getattr(self.relapse_handler, f"on_{cmd.NAME}", None)
         if not cmd_func:
             logger.warning("Unhandled command: %r", cmd)
             return
@@ -217,7 +217,7 @@ class RedisSubscriber(SubscriberProtocol):
 
     async def _async_send_command(self, cmd: Command) -> None:
         """Encode a replication command and send it over our outbound connection"""
-        string = "%s %s" % (cmd.NAME, cmd.to_line())
+        string = f"{cmd.NAME} {cmd.to_line()}"
         if "\n" in string:
             raise Exception("Unexpected newline in command: %r", string)
 
@@ -306,7 +306,7 @@ class RelapseRedisFactory(RedisFactory):
 
 def format_address(address: IAddress) -> str:
     if isinstance(address, (IPv4Address, IPv6Address)):
-        return "%s:%i" % (address.host, address.port)
+        return f"{address.host}:{address.port}"
     return str(address)
 
 
@@ -378,7 +378,7 @@ def lazyConnection(
     connections is lost.
     """
 
-    uuid = "%s:%d" % (host, port)
+    uuid = f"{host}:{port}"
     factory = RelapseRedisFactory(
         hs,
         uuid=uuid,

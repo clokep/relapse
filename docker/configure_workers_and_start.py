@@ -837,7 +837,7 @@ def generate_worker_files(
                 f"--unix-socket /run/worker.{worker_port} http://localhost/health"
             )
         else:
-            healthcheck_urls.append("http://localhost:%d/health" % (worker_port,))
+            healthcheck_urls.append(f"http://localhost:{worker_port}/health")
 
         # Update the shared config with sharding-related options if necessary
         add_worker_roles_to_shared_config(
@@ -1051,12 +1051,12 @@ def main(args: list[str], environ: MutableMapping[str, str]) -> None:
         log("Worker config exists—not regenerating")
 
     # Lifted right out of start.py
-    jemallocpath = "/usr/lib/%s-linux-gnu/libjemalloc.so.2" % (platform.machine(),)
+    jemallocpath = f"/usr/lib/{platform.machine()}-linux-gnu/libjemalloc.so.2"
 
     if os.path.isfile(jemallocpath):
         environ["LD_PRELOAD"] = jemallocpath
     else:
-        log("Could not find %s, will not use" % (jemallocpath,))
+        log(f"Could not find {jemallocpath}, will not use")
 
     # Start supervisord, which will start Relapse, all of the configured worker
     # processes, redis, nginx etc. according to the config we created above.

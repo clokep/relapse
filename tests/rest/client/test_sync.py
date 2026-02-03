@@ -179,7 +179,7 @@ class SyncFilterTestCase(unittest.HomeserverTestCase):
         )
 
         channel = self.make_request(
-            "GET", "/sync?filter=%s" % sync_filter, access_token=tok
+            "GET", f"/sync?filter={sync_filter}", access_token=tok
         )
         self.assertEqual(channel.code, 200, channel.result)
 
@@ -235,7 +235,7 @@ class SyncTypingTests(unittest.HomeserverTestCase):
         )
         self.assertEqual(200, channel.code)
 
-        channel = self.make_request("GET", "/sync?access_token=%s" % (access_token,))
+        channel = self.make_request("GET", f"/sync?access_token={access_token}")
         self.assertEqual(200, channel.code)
         next_batch = channel.json_body["next_batch"]
 

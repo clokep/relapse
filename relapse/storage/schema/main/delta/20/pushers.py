@@ -75,9 +75,8 @@ def run_create(cur: LoggingTransaction, database_engine: BaseDatabaseEngine) -> 
                 app_id, app_display_name, device_display_name,
                 pushkey, ts, lang, data, last_token, last_success,
                 failing_since
-                ) values (%s)
-            """
-            % (",".join(["?" for _ in range(len(row))])),
+                ) values ({})
+            """.format(",".join(["?" for _ in range(len(row))])),
             row,
         )
         count += 1

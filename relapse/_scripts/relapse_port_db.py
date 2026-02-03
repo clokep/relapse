@@ -246,7 +246,7 @@ class Store(
     def insert_many_txn(
         self, txn: LoggingTransaction, table: str, headers: list[str], rows: list[tuple]
     ) -> None:
-        sql = "INSERT INTO %s (%s) VALUES (%s)" % (
+        sql = "INSERT INTO {} ({}) VALUES ({})".format(
             table,
             ", ".join(k for k in headers),
             ", ".join("%s" for _ in headers),
@@ -346,7 +346,7 @@ class Porter:
                 txn.execute(
                     "DELETE FROM port_from_sqlite3 WHERE table_name = %s", (table,)
                 )
-                txn.execute("TRUNCATE %s CASCADE" % (table,))
+                txn.execute(f"TRUNCATE {table} CASCADE")
 
             await self.postgres_store.execute(delete_all)
 
@@ -436,12 +436,11 @@ class Porter:
         # We sweep over rowids in two directions: one forwards (rowids 1, 2, 3, ...)
         # and another backwards (rowids 0, -1, -2, ...).
         forward_select = (
-            "SELECT rowid, * FROM %s WHERE rowid >= ? ORDER BY rowid LIMIT ?" % (table,)
+            f"SELECT rowid, * FROM {table} WHERE rowid >= ? ORDER BY rowid LIMIT ?"
         )
 
         backward_select = (
-            "SELECT rowid, * FROM %s WHERE rowid <= ? ORDER BY rowid DESC LIMIT ?"
-            % (table,)
+            f"SELECT rowid, * FROM {table} WHERE rowid <= ? ORDER BY rowid DESC LIMIT ?"
         )
 
         do_forward = [True]
@@ -609,7 +608,7 @@ class Porter:
         Returns:
             The built Store object.
         """
-        self.progress.set_state("Preparing %s" % db_config.config["name"])
+        self.progress.set_state("Preparing {}".format(db_config.config["name"]))
 
         engine = create_engine(db_config.config)
 
@@ -975,23 +974,21 @@ class Porter:
         frows = cast(
             list[tuple[int]],
             await self.sqlite_store.execute_sql(
-                "SELECT count(*) FROM %s WHERE rowid >= ?" % (table,), forward_chunk
+                f"SELECT count(*) FROM {table} WHERE rowid >= ?", forward_chunk
             ),
         )
 
         brows = cast(
             list[tuple[int]],
             await self.sqlite_store.execute_sql(
-                "SELECT count(*) FROM %s WHERE rowid <= ?" % (table,), backward_chunk
+                f"SELECT count(*) FROM {table} WHERE rowid <= ?", backward_chunk
             ),
         )
 
         return frows[0][0] + brows[0][0]
 
     async def _get_already_ported_count(self, table: str) -> int:
-        rows = await self.postgres_store.execute_sql(
-            "SELECT count(*) FROM %s" % (table,)
-        )
+        rows = await self.postgres_store.execute_sql(f"SELECT count(*) FROM {table}")
 
         return rows[0][0]
 
@@ -1102,12 +1099,10 @@ class Porter:
         next_id = max(current_stream_ids) + 1
 
         def r(txn: LoggingTransaction) -> None:
-            sql = "ALTER SEQUENCE %s RESTART WITH" % (sequence_name,)
-            txn.execute(sql + " %s", (next_id,))
+            sql = f"ALTER SEQUENCE {sequence_name} RESTART WITH %s"
+            txn.execute(sql, (next_id,))
 
-        await self.postgres_store.db_pool.runInteraction(
-            "_setup_%s" % (sequence_name,), r
-        )
+        await self.postgres_store.db_pool.runInteraction(f"_setup_{sequence_name}", r)
 
     async def _setup_auth_chain_sequence(self) -> None:
         curr_chain_id: Optional[
@@ -1220,22 +1215,22 @@ class CursesProgress(Progress):
         duration = int(now) - int(self.start_time)
 
         minutes, seconds = divmod(duration, 60)
-        duration_str = "%02dm %02ds" % (minutes, seconds)
+        duration_str = f"{minutes:02d}m {seconds:02d}s"
 
         if self.finished:
-            status = "Time spent: %s (Done!)" % (duration_str,)
+            status = f"Time spent: {duration_str} (Done!)"
         else:
             if self.total_processed > 0:
                 left = float(self.total_remaining) / self.total_processed
 
                 est_remaining = (int(now) - self.start_time) * left
-                est_remaining_str = "%02dm %02ds remaining" % divmod(est_remaining, 60)
+                min_remaining, sec_remaining = divmod(est_remaining, 60)
+                est_remaining_str = (
+                    f"{min_remaining:02d}m {sec_remaining:02d}s remaining"
+                )
             else:
                 est_remaining_str = "Unknown"
-            status = "Time spent: %s (est. remaining: %s)" % (
-                duration_str,
-                est_remaining_str,
-            )
+            status = f"Time spent: {duration_str} (est. remaining: {est_remaining_str})"
 
         self.stdscr.addstr(0, 0, status, curses.A_BOLD)
 
@@ -1260,7 +1255,7 @@ class CursesProgress(Progress):
 
             size = 20
 
-            progress = "[%s%s]" % (
+            progress = "[{}{}]".format(
                 "#" * int(perc * size / 100),
                 " " * (size - int(perc * size / 100)),
             )
@@ -1268,7 +1263,7 @@ class CursesProgress(Progress):
             self.stdscr.addstr(
                 i + 2,
                 left_margin + max_len + middle_space,
-                "%s %3d%% (%d/%d)" % (progress, perc, data["num_done"], data["total"]),
+                f"{progress} {perc:3d}% ({data['num_done']}/{data['total']})",
             )
 
         if self.finished:
@@ -1296,9 +1291,7 @@ class TerminalProgress(Progress):
 
         data = self.tables[table]
 
-        print(
-            "%s: %d%% (%d/%d)" % (table, data["perc"], data["num_done"], data["total"])
-        )
+        print(f"{table}: {data['perc']}% ({data['num_done']}/{data['total']})")
 
     def set_state(self, state: str) -> None:
         print(state + "...")

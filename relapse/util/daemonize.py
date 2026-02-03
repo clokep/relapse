@@ -117,7 +117,7 @@ def daemonize_process(pid_file: str, logger: logging.Logger, chdir: str = "/") -
     os.chdir(chdir)
 
     try:
-        lock_fh.write("%s" % (os.getpid()))
+        lock_fh.write(f"{os.getpid()}")
         lock_fh.flush()
     except OSError:
         logger.error("Unable to write pid to the pidfile.")
@@ -126,7 +126,7 @@ def daemonize_process(pid_file: str, logger: logging.Logger, chdir: str = "/") -
 
     # write a log line on SIGTERM.
     def sigterm(signum: int, frame: Optional[FrameType]) -> NoReturn:
-        logger.warning("Caught signal %s. Stopping daemon." % signum)
+        logger.warning(f"Caught signal {signum}. Stopping daemon.")
         sys.exit(0)
 
     signal.signal(signal.SIGTERM, sigterm)

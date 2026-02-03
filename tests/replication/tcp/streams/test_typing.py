@@ -120,7 +120,7 @@ class TypingStreamTestCase(BaseStreamTestCase):
         # Push the stream forward a bunch so it can be reset.
         for i in range(100):
             typing._push_update(
-                member=RoomMember(ROOM_ID, "@test%s:blue" % i), typing=True
+                member=RoomMember(ROOM_ID, f"@test{i}:blue"), typing=True
             )
         self.reactor.advance(0)
 

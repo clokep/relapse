@@ -223,7 +223,7 @@ class ReplicationEndpoint(metaclass=abc.ABCMeta):
                     raise Exception("Trying to send HTTP request to self")
                 if instance_name not in instance_map:
                     raise Exception(
-                        "Instance %r not in 'instance_map' config" % (instance_name,)
+                        f"Instance {instance_name!r} not in 'instance_map' config"
                     )
 
                 data = await cls._serialize_payload(**kwargs)
@@ -266,13 +266,13 @@ class ReplicationEndpoint(metaclass=abc.ABCMeta):
                     # We have already asserted in the constructor that a
                     # compatible was picked, but lets be paranoid.
                     raise Exception(
-                        "Unknown METHOD on %s replication endpoint" % (cls.NAME,)
+                        f"Unknown METHOD on {cls.NAME} replication endpoint"
                     )
 
                 # Hard code a special scheme to show this only used for replication. The
                 # instance_name will be passed into the ReplicationEndpointFactory to
                 # determine connection details from the instance_map.
-                uri = "relapse-replication://%s/_relapse/replication/%s/%s" % (
+                uri = "relapse-replication://{}/_relapse/replication/{}/{}".format(
                     instance_name,
                     cls.NAME,
                     "/".join(url_args),
@@ -365,8 +365,8 @@ class ReplicationEndpoint(metaclass=abc.ABCMeta):
         if self.CACHE:
             url_args.append("txn_id")
 
-        args = "/".join("(?P<%s>[^/]+)" % (arg,) for arg in url_args)
-        pattern = re.compile("^/_relapse/replication/%s/%s$" % (self.NAME, args))
+        args = "/".join(f"(?P<{arg}>[^/]+)" for arg in url_args)
+        pattern = re.compile(f"^/_relapse/replication/{self.NAME}/{args}$")
 
         http_server.register_paths(
             method,

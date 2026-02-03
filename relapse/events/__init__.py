@@ -105,7 +105,7 @@ class DictProperty(Generic[T]):
             # because that would omit any *earlier* exceptions).
             #
             raise AttributeError(
-                "'%s' has no '%s' property" % (type(instance), self.key)
+                f"'{type(instance)}' has no '{self.key}' property"
             ) from e1.__context__
 
     def __set__(self, instance: _DictPropertyInstance, v: T) -> None:
@@ -118,7 +118,7 @@ class DictProperty(Generic[T]):
             del instance._dict[self.key]
         except KeyError as e1:
             raise AttributeError(
-                "'%s' has no '%s' property" % (type(instance), self.key)
+                f"'{type(instance)}' has no '{self.key}' property"
             ) from e1.__context__
 
 
@@ -594,7 +594,7 @@ def _event_type_from_format_version(
     elif format_version == EventFormatVersions.ROOM_V4_PLUS:
         return FrozenEventV3
     else:
-        raise Exception("No event format %r" % (format_version,))
+        raise Exception(f"No event format {format_version!r}")
 
 
 def make_event_from_dict(

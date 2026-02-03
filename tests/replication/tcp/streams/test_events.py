@@ -306,7 +306,7 @@ class EventsStreamTestCase(BaseStreamTestCase):
         NUM_USERS = 4
         STATES_PER_USER = _STREAM_UPDATE_TARGET_ROW_COUNT // 4 + 1
 
-        user_ids = ["@user%i:localhost" % (i,) for i in range(NUM_USERS)]
+        user_ids = [f"@user{i}:localhost" for i in range(NUM_USERS)]
 
         # have the users join
         for u in user_ids:
@@ -480,7 +480,7 @@ class EventsStreamTestCase(BaseStreamTestCase):
             sender = self.user_id
 
         if body is None:
-            body = "event %i" % (self.event_count,)
+            body = f"event {self.event_count}"
             self.event_count += 1
 
         return self.get_success(
@@ -504,11 +504,11 @@ class EventsStreamTestCase(BaseStreamTestCase):
             sender = self.user_id
 
         if state_key is None:
-            state_key = "state_%i" % (self.event_count,)
+            state_key = f"state_{self.event_count}"
             self.event_count += 1
 
         if body is None:
-            body = "state event %s" % (state_key,)
+            body = f"state event {state_key}"
 
         return self.get_success(
             inject_event(

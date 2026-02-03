@@ -127,7 +127,7 @@ class DirectoryWorkerStore(CacheInvalidationWorkerStore):
             )
         except self.database_engine.module.IntegrityError:
             raise RelapseError(
-                409, "Room alias %s already exists" % room_alias.to_string()
+                409, f"Room alias {room_alias.to_string()} already exists"
             )
 
     async def delete_room_alias(self, room_alias: RoomAlias) -> Optional[str]:
@@ -186,9 +186,7 @@ class DirectoryWorkerStore(CacheInvalidationWorkerStore):
                 update_creator_sql = ", creator = ?"
                 sql_params = (new_room_id, creator, old_room_id)
 
-            sql = "UPDATE room_aliases SET room_id = ? %s WHERE room_id = ?" % (
-                update_creator_sql,
-            )
+            sql = f"UPDATE room_aliases SET room_id = ? {update_creator_sql} WHERE room_id = ?"
             txn.execute(sql, sql_params)
             self._invalidate_cache_and_stream(
                 txn, self.get_aliases_for_room, (old_room_id,)

@@ -298,7 +298,7 @@ class RoomMemberHandler(metaclass=abc.ABCMeta):
             Membership.LEAVE,
             Membership.BAN,
         ]:
-            raise RelapseError(400, "User %s in room %s" % (user_id, room_id))
+            raise RelapseError(400, f"User {user_id} in room {room_id}")
 
         # In normal case this call is only required if `membership` is not `None`.
         # But: After the last member had left the room, the background update
@@ -888,13 +888,13 @@ class RoomMemberHandler(metaclass=abc.ABCMeta):
                     raise RelapseError(
                         403,
                         "Cannot unban user who was not banned"
-                        " (membership=%s)" % old_membership,
+                        f" (membership={old_membership})",
                         errcode=Codes.BAD_STATE,
                     )
                 if old_membership == "ban" and action not in ["ban", "unban", "leave"]:
                     raise RelapseError(
                         403,
-                        "Cannot %s user who was banned" % (action,),
+                        f"Cannot {action} user who was banned",
                         errcode=Codes.BAD_STATE,
                     )
 
@@ -1336,9 +1336,9 @@ class RoomMemberHandler(metaclass=abc.ABCMeta):
         if requester is not None:
             sender = UserID.from_string(event.sender)
             assert sender == requester.user, (
-                "Sender (%s) must be same as requester (%s)" % (sender, requester.user)
+                f"Sender ({sender}) must be same as requester ({requester.user})"
             )
-            assert self.hs.is_mine(sender), "Sender must be our own: %s" % (sender,)
+            assert self.hs.is_mine(sender), f"Sender must be our own: {sender}"
         else:
             requester = types.create_requester(target_user)
 
@@ -1451,7 +1451,7 @@ class RoomMemberHandler(metaclass=abc.ABCMeta):
                     require_consent=False,
                 )
             except Exception as e:
-                logger.exception("Error kicking guest user: %s" % (e,))
+                logger.exception(f"Error kicking guest user: {e}")
 
     async def lookup_room_alias(
         self, room_alias: RoomAlias

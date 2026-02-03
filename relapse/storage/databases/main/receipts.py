@@ -786,18 +786,18 @@ class ReceiptsWorkerStore(SQLBaseStore):
             self.database_engine, "event_id", event_ids
         )
 
-        sql = """
+        sql = f"""
             SELECT event_id WHERE room_id = ? AND stream_ordering IN (
-                SELECT max(stream_ordering) WHERE %s
+                SELECT max(stream_ordering) WHERE {clause}
             )
-        """ % (clause,)
+        """
 
         txn.execute(sql, [room_id] + list(args))
         rows = txn.fetchall()
         if rows:
             return rows[0][0]
         else:
-            raise RuntimeError("Unrecognized event_ids: %r" % (event_ids,))
+            raise RuntimeError(f"Unrecognized event_ids: {event_ids!r}")
 
     async def insert_receipt(
         self,

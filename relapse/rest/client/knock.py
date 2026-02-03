@@ -74,7 +74,7 @@ class KnockRoomAliasServlet(RestServlet):
             room_id = room_id_obj.to_string()
         else:
             raise RelapseError(
-                400, "%s was not legal room ID or room alias" % (room_identifier,)
+                400, f"{room_identifier} was not legal room ID or room alias"
             )
 
         await self.room_member_handler.update_membership(

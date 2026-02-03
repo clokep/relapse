@@ -28,9 +28,7 @@ FORTY_DAYS = 40 * 24 * 60 * 60
 
 def gen_3pids(count: int) -> list[dict[str, Any]]:
     """Generate `count` threepids as a list."""
-    return [
-        {"medium": "email", "address": "user%i@matrix.org" % i} for i in range(count)
-    ]
+    return [{"medium": "email", "address": f"user{i}@matrix.org"} for i in range(count)]
 
 
 class MonthlyActiveUsersTestCase(unittest.HomeserverTestCase):
@@ -179,9 +177,7 @@ class MonthlyActiveUsersTestCase(unittest.HomeserverTestCase):
     def test_reap_monthly_active_users(self) -> None:
         initial_users = 10
         for i in range(initial_users):
-            self.get_success(
-                self.store.upsert_monthly_active_user("@user%d:server" % i)
-            )
+            self.get_success(self.store.upsert_monthly_active_user(f"@user{i}:server"))
 
         count = self.get_success(self.store.get_monthly_active_count())
         self.assertEqual(count, initial_users)
@@ -210,8 +206,8 @@ class MonthlyActiveUsersTestCase(unittest.HomeserverTestCase):
         initial_users = len(threepids)
         reserved_user_number = initial_users - 1
         for i in range(initial_users):
-            user = "@user%d:server" % i
-            email = "user%d@matrix.org" % i
+            user = f"@user{i}:server"
+            email = f"user{i}@matrix.org"
 
             self.get_success(self.store.upsert_monthly_active_user(user))
 

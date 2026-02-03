@@ -150,9 +150,7 @@ class CacheConfig(Config):
 
         for cache, factor in individual_factors.items():
             if type(factor) not in (int, float):
-                raise ConfigError(
-                    "caches.per_cache_factors.%s must be a number" % (cache,)
-                )
+                raise ConfigError(f"caches.per_cache_factors.{cache} must be a number")
             self.cache_factors[cache] = factor
 
         self.track_memory_usage = cache_config.get("track_memory_usage", False)

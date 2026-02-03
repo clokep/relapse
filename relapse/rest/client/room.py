@@ -520,7 +520,7 @@ class PublicRoomListRestServlet(RestServlet):
             except ValueError:
                 raise RelapseError(
                     400,
-                    "Invalid server name: %s" % (server,),
+                    f"Invalid server name: {server}",
                     Codes.INVALID_PARAM,
                 )
 
@@ -570,7 +570,7 @@ class PublicRoomListRestServlet(RestServlet):
             except ValueError:
                 raise RelapseError(
                     400,
-                    "Invalid server name: %s" % (server,),
+                    f"Invalid server name: {server}",
                     Codes.INVALID_PARAM,
                 )
 

@@ -1799,7 +1799,7 @@ class TestCachePeriodFromHeaders(unittest.TestCase):
 def _check_logcontext(context: LoggingContextOrSentinel) -> None:
     current = current_context()
     if current is not context:
-        raise AssertionError("Expected logcontext %s but was %s" % (context, current))
+        raise AssertionError(f"Expected logcontext {context} but was {current}")
 
 
 def _get_test_protocol_factory() -> IProtocolFactory:

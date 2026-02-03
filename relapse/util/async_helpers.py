@@ -194,11 +194,7 @@ class ObservableDeferred(Generic[_T], AbstractObservableDeferred[_T]):
         setattr(self._deferred, name, value)
 
     def __repr__(self) -> str:
-        return "<ObservableDeferred object at %s, result=%r, _deferred=%r>" % (
-            id(self),
-            self._result,
-            self._deferred,
-        )
+        return f"<ObservableDeferred object at {id(self)}, result={self._result!r}, _deferred={self._deferred!r}>"
 
 
 T = TypeVar("T")
@@ -690,7 +686,7 @@ def timeout_deferred(
         # will have errbacked new_d, but in case it hasn't, errback it now.
 
         if not new_d.called:
-            new_d.errback(defer.TimeoutError("Timed out after %gs" % (timeout,)))
+            new_d.errback(defer.TimeoutError(f"Timed out after {timeout:g}s"))
 
     delayed_call = reactor.callLater(timeout, time_it_out)
 
@@ -699,7 +695,7 @@ def timeout_deferred(
         # the reason it was cancelled was due to our timeout. Turn the CancelledError
         # into a TimeoutError.
         if timed_out[0] and value.check(CancelledError):
-            raise defer.TimeoutError("Timed out after %gs" % (timeout,))
+            raise defer.TimeoutError(f"Timed out after {timeout:g}s")
         return value
 
     deferred.addErrback(convert_cancelled)

@@ -80,9 +80,4 @@ class PaginationConfig:
             raise RelapseError(400, "Invalid request.")
 
     def __repr__(self) -> str:
-        return "PaginationConfig(from_tok=%r, to_tok=%r, direction=%r, limit=%r)" % (
-            self.from_token,
-            self.to_token,
-            self.direction,
-            self.limit,
-        )
+        return f"PaginationConfig(from_tok={self.from_token!r}, to_tok={self.to_token!r}, direction={self.direction!r}, limit={self.limit!r})"

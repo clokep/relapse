@@ -43,7 +43,7 @@ class ConfigLoadingFileTestCase(ConfigFileTestCase):
         if len(config.key.macaroon_secret_key) < 5:
             self.fail(
                 "Want macaroon secret key to be string of at least length 5,"
-                "was: %r" % (config.key.macaroon_secret_key,)
+                f"was: {config.key.macaroon_secret_key!r}"
             )
 
         config2 = HomeServerConfig.load_or_generate_config("", ["-c", self.config_file])
@@ -55,7 +55,7 @@ class ConfigLoadingFileTestCase(ConfigFileTestCase):
         if len(config2.key.macaroon_secret_key) < 5:
             self.fail(
                 "Want macaroon secret key to be string of at least length 5,"
-                "was: %r" % (config2.key.macaroon_secret_key,)
+                f"was: {config2.key.macaroon_secret_key!r}"
             )
 
     def test_load_succeeds_if_macaroon_secret_key_missing(self) -> None:

@@ -98,7 +98,7 @@ class EphemeralMessageTestCase(unittest.HomeserverTestCase):
     def get_event(
         self, room_id: str, event_id: str, expected_code: int = HTTPStatus.OK
     ) -> JsonDict:
-        url = "/_matrix/client/r0/rooms/%s/event/%s" % (room_id, event_id)
+        url = f"/_matrix/client/r0/rooms/{room_id}/event/{event_id}"
 
         channel = self.make_request("GET", url)
 

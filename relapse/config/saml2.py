@@ -124,7 +124,7 @@ class SAML2Config(Config):
             raise ConfigError(
                 "Class specified by saml2_config."
                 "user_mapping_provider.module is missing required "
-                "methods: %s" % (", ".join(missing_methods),)
+                "methods: {}".format(", ".join(missing_methods))
             )
 
         # Get the desired saml auth response attributes from the module

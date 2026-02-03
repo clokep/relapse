@@ -123,8 +123,7 @@ class KeyConfig(Config):
 
         if not isinstance(key_servers, list):
             raise ConfigError(
-                "trusted_key_servers, if given, must be a list, not a %s"
-                % (type(key_servers).__name__,)
+                f"trusted_key_servers, if given, must be a list, not a {type(key_servers).__name__}"
             )
 
         # list of TrustedKeyServer objects
@@ -163,18 +162,18 @@ class KeyConfig(Config):
         form_secret = ""
 
         if generate_secrets:
-            macaroon_secret_key = 'macaroon_secret_key: "%s"' % (
-                random_string_with_symbols(50),
+            macaroon_secret_key = (
+                f'macaroon_secret_key: "{random_string_with_symbols(50)}"'
             )
-            form_secret = 'form_secret: "%s"' % random_string_with_symbols(50)
+            form_secret = f'form_secret: "{random_string_with_symbols(50)}"'
 
         return """\
-        %(macaroon_secret_key)s
-        %(form_secret)s
-        signing_key_path: "%(base_key_name)s.signing.key"
+        {macaroon_secret_key}
+        {form_secret}
+        signing_key_path: "{base_key_name}.signing.key"
         trusted_key_servers:
           - server_name: "matrix.org"
-        """ % locals()
+        """.format(**locals())
 
     def read_signing_keys(self, signing_key_path: str, name: str) -> list[SigningKey]:
         """Read the signing keys in the given path.
@@ -202,7 +201,7 @@ class KeyConfig(Config):
 
             return loaded_signing_keys
         except Exception as e:
-            raise ConfigError("Error reading %s: %s" % (name, str(e)))
+            raise ConfigError(f"Error reading {name}: {str(e)}")
 
     def read_old_signing_keys(
         self, old_signing_keys: Optional[JsonDict]
@@ -221,7 +220,7 @@ class KeyConfig(Config):
                 keys[key_id] = verify_key
             else:
                 raise ConfigError(
-                    "Unsupported signing algorithm for old key: %r" % (key_id,)
+                    f"Unsupported signing algorithm for old key: {key_id!r}"
                 )
         return keys
 
@@ -236,7 +235,7 @@ class KeyConfig(Config):
             )
 
         if not self.path_exists(signing_key_path):
-            print("Generating signing key file %s" % (signing_key_path,))
+            print(f"Generating signing key file {signing_key_path}")
             with open(
                 signing_key_path, "w", opener=lambda p, f: os.open(p, f, mode=0o640)
             ) as signing_key_file:
@@ -282,9 +281,7 @@ def _parse_key_servers(
         jsonschema.validate(key_servers, TRUSTED_KEY_SERVERS_SCHEMA)
     except jsonschema.ValidationError as e:
         raise ConfigError(
-            "Unable to parse 'trusted_key_servers': {}".format(
-                e.message  # noqa: B306, jsonschema.ValidationError.message is a valid attribute
-            )
+            f"Unable to parse 'trusted_key_servers': {e.message}"  # noqa: B306, jsonschema.ValidationError.message is a valid attribute
         )
 
     for server in key_servers:
@@ -297,16 +294,16 @@ def _parse_key_servers(
             for key_id, key_base64 in verify_keys.items():
                 if not is_signing_algorithm_supported(key_id):
                     raise ConfigError(
-                        "Unsupported signing algorithm on key %s for server %s in "
-                        "trusted_key_servers" % (key_id, server_name)
+                        f"Unsupported signing algorithm on key {key_id} for server {server_name} in "
+                        "trusted_key_servers"
                     )
                 try:
                     key_bytes = decode_base64(key_base64)
                     verify_key = decode_verify_key_bytes(key_id, key_bytes)
                 except Exception as e:
                     raise ConfigError(
-                        "Unable to parse key %s for server %s in "
-                        "trusted_key_servers: %s" % (key_id, server_name, e)
+                        f"Unable to parse key {key_id} for server {server_name} in "
+                        f"trusted_key_servers: {e}"
                     )
 
                 result.verify_keys[key_id] = verify_key

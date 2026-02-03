@@ -599,7 +599,7 @@ class DestinationMembershipTestCase(unittest.HomeserverTestCase):
         # invalid destination
         channel = self.make_request(
             "GET",
-            "/_relapse/admin/v1/federation/destinations/%s/rooms" % ("invalid",),
+            "/_relapse/admin/v1/federation/destinations/{}/rooms".format("invalid"),
             access_token=self.admin_user_tok,
         )
 

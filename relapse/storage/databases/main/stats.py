@@ -296,7 +296,7 @@ class StatsStore(StateDeltasStore):
         table, id_col = TYPE_TO_TABLE[stats_type]
 
         return await self.db_pool.simple_select_one_onecol(
-            "%s_current" % (table,),
+            f"{table}_current",
             keyvalues={id_col: id},
             retcol="completed_delta_stream_id",
             allow_none=True,
@@ -400,8 +400,7 @@ class StatsStore(StateDeltasStore):
             if field not in abs_field_names:
                 # guard against potential SQL injection dodginess
                 raise ValueError(
-                    "%s is not a recognised field"
-                    " for stats type %s" % (field, stats_type)
+                    f"{field} is not a recognised field for stats type {stats_type}"
                 )
 
         # Per slice fields do not get added to the _current table
@@ -449,14 +448,10 @@ class StatsStore(StateDeltasStore):
             absolutes: Absolute (set) fields
             additive_relatives: Fields that will be added onto if existing row present.
         """
-        absolute_updates = [
-            "%(field)s = EXCLUDED.%(field)s" % {"field": field}
-            for field in absolutes.keys()
-        ]
+        absolute_updates = [f"{field} = EXCLUDED.{field}" for field in absolutes.keys()]
 
         relative_updates = [
-            "%(field)s = EXCLUDED.%(field)s + COALESCE(%(table)s.%(field)s, 0)"
-            % {"table": table, "field": field}
+            f"{field} = EXCLUDED.{field} + COALESCE({table}.{field}, 0)"
             for field in additive_relatives.keys()
         ]
 
@@ -470,18 +465,18 @@ class StatsStore(StateDeltasStore):
             qargs.append(val)
 
         sql = """
-            INSERT INTO %(table)s (%(insert_cols_cs)s)
-            VALUES (%(insert_vals_qs)s)
-            ON CONFLICT (%(key_columns)s) DO UPDATE SET %(updates)s
-        """ % {
-            "table": table,
-            "insert_cols_cs": ", ".join(insert_cols),
-            "insert_vals_qs": ", ".join(
+            INSERT INTO {table} ({insert_cols_cs})
+            VALUES ({insert_vals_qs})
+            ON CONFLICT ({key_columns}) DO UPDATE SET {updates}
+        """.format(
+            table=table,
+            insert_cols_cs=", ".join(insert_cols),
+            insert_vals_qs=", ".join(
                 ["?"] * (len(keyvalues) + len(absolutes) + len(additive_relatives))
             ),
-            "key_columns": ", ".join(keyvalues),
-            "updates": ", ".join(chain(absolute_updates, relative_updates)),
-        }
+            key_columns=", ".join(keyvalues),
+            updates=", ".join(chain(absolute_updates, relative_updates)),
+        )
 
         txn.execute(sql, qargs)
 
@@ -721,7 +716,7 @@ class StatsStore(StateDeltasStore):
                 order_by_column = "displayname"
             else:
                 raise StoreError(
-                    500, "Incorrect value for order_by provided: %s" % order_by
+                    500, f"Incorrect value for order_by provided: {order_by}"
                 )
 
             if direction == Direction.BACKWARDS:
@@ -731,26 +726,24 @@ class StatsStore(StateDeltasStore):
 
             where_clause = "WHERE " + " AND ".join(filters) if len(filters) > 0 else ""
 
-            sql_base = """
+            sql_base = f"""
                 FROM local_media_repository as lmr
                 LEFT JOIN profiles AS p ON lmr.user_id = p.full_user_id
-                {}
+                {where_clause}
                 GROUP BY lmr.user_id, displayname
-            """.format(where_clause)
+            """
 
             # SQLite does not support SELECT COUNT(*) OVER()
-            sql = """
+            sql = f"""
                 SELECT COUNT(*) FROM (
                     SELECT lmr.user_id
                     {sql_base}
                 ) AS count_user_ids
-            """.format(
-                sql_base=sql_base,
-            )
+            """
             txn.execute(sql, args)
             count = cast(tuple[int], txn.fetchone())[0]
 
-            sql = """
+            sql = f"""
                 SELECT
                     lmr.user_id,
                     displayname,
@@ -759,11 +752,7 @@ class StatsStore(StateDeltasStore):
                     {sql_base}
                 ORDER BY {order_by_column} {order}
                 LIMIT ? OFFSET ?
-            """.format(
-                sql_base=sql_base,
-                order_by_column=order_by_column,
-                order=order,
-            )
+            """
 
             args += [limit, start]
             txn.execute(sql, args)

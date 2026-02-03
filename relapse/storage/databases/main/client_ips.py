@@ -220,19 +220,19 @@ class ClientIpBackgroundUpdateStore(SQLBaseStore):
             # the COUNT(*) is accurate, otherwise double counting may happen due
             # to the join effectively being a cross product)
             txn.execute(
-                """
+                f"""
                 SELECT user_id, access_token, ip,
                        MAX(device_id), MAX(user_agent), MAX(last_seen),
                        COUNT(*)
                 FROM (
                     SELECT DISTINCT user_id, access_token, ip
                     FROM user_ips
-                    WHERE {}
+                    WHERE {clause}
                 ) c
                 INNER JOIN user_ips USING (user_id, access_token, ip)
                 GROUP BY user_id, access_token, ip
                 HAVING count(*) > 1
-                """.format(clause),
+                """,
                 args,
             )
             res = cast(
@@ -351,7 +351,7 @@ class ClientIpBackgroundUpdateStore(SQLBaseStore):
                 [("user_id", last_user_id), ("device_id", last_device_id)],
             )
 
-            sql = """
+            sql = f"""
                 SELECT
                     last_seen, ip, user_agent, user_id, device_id
                 FROM (
@@ -359,13 +359,13 @@ class ClientIpBackgroundUpdateStore(SQLBaseStore):
                         user_id, device_id, MAX(u.last_seen) AS last_seen
                     FROM devices
                     INNER JOIN user_ips AS u USING (user_id, device_id)
-                    WHERE %(where_clause)s
+                    WHERE {where_clause}
                     GROUP BY user_id, device_id
                     ORDER BY user_id ASC, device_id ASC
                     LIMIT ?
                 ) c
                 INNER JOIN user_ips AS u USING (user_id, device_id, last_seen)
-            """ % {"where_clause": where_clause}
+            """
             txn.execute(sql, where_args + [batch_size])
 
             rows = cast(list[tuple[int, str, str, str, str]], txn.fetchall())

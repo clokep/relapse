@@ -84,7 +84,7 @@ class PushRuleRestServlet(RestServlet):
             try:
                 await self._push_rules_handler.set_rule_attr(user_id, spec, content)
             except InvalidRuleException as e:
-                raise RelapseError(400, "Invalid actions: %s" % e)
+                raise RelapseError(400, f"Invalid actions: {e}")
             except RuleNotFoundException:
                 raise NotFoundError("Unknown rule")
 
@@ -248,7 +248,7 @@ def _rule_tuple_from_request_object(
 
         conditions = [{"kind": "event_match", "key": "content.body", "pattern": pat}]
     else:
-        raise InvalidRuleException("Unknown rule template: %s" % (rule_template,))
+        raise InvalidRuleException(f"Unknown rule template: {rule_template}")
 
     if "actions" not in req_obj:
         raise InvalidRuleException("No actions found")
@@ -301,7 +301,7 @@ def _filter_ruleset_with_path(ruleset: JsonDict, path: list[str]) -> JsonDict:
 
 def _priority_class_from_spec(spec: RuleSpec) -> int:
     if spec.template not in PRIORITY_CLASS_MAP.keys():
-        raise InvalidRuleException("Unknown template: %s" % (spec.template))
+        raise InvalidRuleException(f"Unknown template: {spec.template}")
     pc = PRIORITY_CLASS_MAP[spec.template]
 
     return pc

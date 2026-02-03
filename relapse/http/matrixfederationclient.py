@@ -165,7 +165,7 @@ class MatrixFederationRequest:
 
     def __attrs_post_init__(self) -> None:
         global _next_id
-        txn_id = "%s-O-%s" % (self.method, _next_id)
+        txn_id = f"{self.method}-O-{_next_id}"
         _next_id = (_next_id + 1) % (MAXINT - 1)
 
         object.__setattr__(self, "txn_id", txn_id)
@@ -396,7 +396,7 @@ class MatrixFederationHttpClient:
 
         user_agent = hs.version_string
         if hs.config.server.user_agent_suffix:
-            user_agent = "%s %s" % (user_agent, hs.config.server.user_agent_suffix)
+            user_agent = f"{user_agent} {hs.config.server.user_agent_suffix}"
 
         outbound_federation_restricted_to = (
             hs.config.worker.outbound_federation_restricted_to
@@ -894,8 +894,7 @@ class MatrixFederationHttpClient:
         for key, sig in request["signatures"][self.server_name].items():
             auth_headers.append(
                 (
-                    'X-Matrix origin="%s",key="%s",sig="%s",destination="%s"'
-                    % (
+                    'X-Matrix origin="{}",key="{}",sig="{}",destination="{}"'.format(
                         self.server_name,
                         key,
                         sig,
@@ -1449,7 +1448,7 @@ class MatrixFederationHttpClient:
             d.addTimeout(self.default_timeout_seconds, self.reactor)
             length = await make_deferred_yieldable(d)
         except BodyExceededMaxSize:
-            msg = "Requested file is too large > %r bytes" % (max_size,)
+            msg = f"Requested file is too large > {max_size!r} bytes"
             logger.warning(
                 "{%s} [%s] %s",
                 request.txn_id,
@@ -1502,7 +1501,7 @@ def _flatten_response_never_received(e: BaseException) -> str:
             _flatten_response_never_received(f.value) for f in e.reasons
         )
 
-        return "%s:[%s]" % (type(e).__name__, reasons)
+        return f"{type(e).__name__}:[{reasons}]"
     else:
         return repr(e)
 

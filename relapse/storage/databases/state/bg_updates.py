@@ -187,7 +187,7 @@ class StateGroupBackgroundUpdateStore(SQLBaseStore):
                 # Unless the filter clause is empty, we're going to append it after an
                 # existing where clause
                 if where_clause:
-                    where_clause = " AND (%s)" % (where_clause,)
+                    where_clause = f" AND ({where_clause})"
 
                 overall_select_query_args.extend(where_args)
 
@@ -217,7 +217,7 @@ class StateGroupBackgroundUpdateStore(SQLBaseStore):
             # Unless the filter clause is empty, we're going to append it after an
             # existing where clause
             if where_clause:
-                where_clause = " AND (%s)" % (where_clause,)
+                where_clause = f" AND ({where_clause})"
 
             # XXX: We could `WITH RECURSIVE` here since it's supported on SQLite 3.8.3
             # or higher and our minimum supported version is greater than that.

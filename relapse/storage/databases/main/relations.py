@@ -236,15 +236,15 @@ class RelationsWorkerStore(SQLBaseStore):
                     UNION SELECT e.event_id, e.relation_type, e.relates_to_id, depth + 1
                     FROM event_relations e
                     INNER JOIN related_events r ON r.event_id = e.relates_to_id
-                    WHERE depth <= %s
+                    WHERE depth <= {}
                 )
                 SELECT event_id, relation_type, sender, topological_ordering, stream_ordering
                 FROM related_events
                 INNER JOIN events USING (event_id)
-                WHERE %s
-                ORDER BY topological_ordering %s, stream_ordering %s
+                WHERE {}
+                ORDER BY topological_ordering {}, stream_ordering {}
                 LIMIT ?;
-            """ % (
+            """.format(
                 MAX_RECURSION_DEPTH,
                 " AND ".join(where_clause),
                 order,
@@ -255,10 +255,10 @@ class RelationsWorkerStore(SQLBaseStore):
                 SELECT event_id, relation_type, sender, topological_ordering, stream_ordering
                 FROM event_relations
                 INNER JOIN events USING (event_id)
-                WHERE relates_to_id = ? AND %s
-                ORDER BY topological_ordering %s, stream_ordering %s
+                WHERE relates_to_id = ? AND {}
+                ORDER BY topological_ordering {}, stream_ordering {}
                 LIMIT ?
-            """ % (
+            """.format(
                 " AND ".join(where_clause),
                 order,
                 order,

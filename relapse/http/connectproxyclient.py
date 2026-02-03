@@ -107,7 +107,7 @@ class HTTPConnectProxyEndpoint:
         self._proxy_creds = proxy_creds
 
     def __repr__(self) -> str:
-        return "<HTTPConnectProxyEndpoint %s>" % (self._proxy_endpoint,)
+        return f"<HTTPConnectProxyEndpoint {self._proxy_endpoint}>"
 
     # Mypy encounters a false positive here: it complains that ClientFactory
     # is incompatible with IProtocolFactory. But ClientFactory inherits from

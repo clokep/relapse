@@ -84,23 +84,23 @@ def make_graph(db_name: str, room_id: str, file_prefix: str, limit: int) -> None
 
         label = (
             "<"
-            "<b>%(name)s </b><br/>"
-            "Type: <b>%(type)s </b><br/>"
-            "State key: <b>%(state_key)s </b><br/>"
-            "Content: <b>%(content)s </b><br/>"
-            "Time: <b>%(time)s </b><br/>"
-            "Depth: <b>%(depth)s </b><br/>"
-            "State group: %(state_group)s<br/>"
+            "<b>{name} </b><br/>"
+            "Type: <b>{type} </b><br/>"
+            "State key: <b>{state_key} </b><br/>"
+            "Content: <b>{content} </b><br/>"
+            "Time: <b>{time} </b><br/>"
+            "Depth: <b>{depth} </b><br/>"
+            "State group: {state_group}<br/>"
             ">"
-        ) % {
-            "name": event.event_id,
-            "type": event.type,
-            "state_key": event.get("state_key", None),
-            "content": html.escape(content, quote=True),
-            "time": t,
-            "depth": event.depth,
-            "state_group": state_group,
-        }
+        ).format(
+            name=event.event_id,
+            type=event.type,
+            state_key=event.get("state_key", None),
+            content=html.escape(content, quote=True),
+            time=t,
+            depth=event.depth,
+            state_group=state_group,
+        )
 
         node = pydot.Node(name=event.event_id, label=label)
 
@@ -131,8 +131,8 @@ def make_graph(db_name: str, room_id: str, file_prefix: str, limit: int) -> None
 
         graph.add_subgraph(cluster)
 
-    graph.write("%s.dot" % file_prefix, format="raw", prog="dot")
-    graph.write_svg("%s.svg" % file_prefix, prog="dot")
+    graph.write(f"{file_prefix}.dot", format="raw", prog="dot")
+    graph.write_svg(f"{file_prefix}.svg", prog="dot")
 
 
 if __name__ == "__main__":

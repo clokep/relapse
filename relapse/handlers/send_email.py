@@ -181,7 +181,7 @@ class SendEmailHandler:
         multipart_msg.attach(text_part)
         multipart_msg.attach(html_part)
 
-        logger.info("Sending email to %s" % email_address)
+        logger.info(f"Sending email to {email_address}")
 
         await self._sendmail(
             self._reactor,

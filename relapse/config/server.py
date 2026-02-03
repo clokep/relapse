@@ -61,12 +61,7 @@ def _6to4(network: IPNetwork) -> IPNetwork:
     hex_network = hex(network.first)[2:]
     hex_network = ("0" * (8 - len(hex_network))) + hex_network
     return IPNetwork(
-        "2002:%s:%s::/%d"
-        % (
-            hex_network[:4],
-            hex_network[4:],
-            16 + network.prefixlen,
-        )
+        f"2002:{hex_network[:4]}:{hex_network[4:]}::/{16 + network.prefixlen}"
     )
 
 
@@ -100,9 +95,7 @@ def generate_ip_set(
         try:
             network = IPNetwork(ip)
         except AddrFormatError as e:
-            raise ConfigError(
-                "Invalid IP range provided: %s." % (ip,), config_path
-            ) from e
+            raise ConfigError(f"Invalid IP range provided: {ip}.", config_path) from e
         result.add(network)
 
         # It is possible that these already exist in the set, but that's OK.
@@ -410,8 +403,7 @@ class ServerConfig(Config):
 
         if default_room_version not in KNOWN_ROOM_VERSIONS:
             raise ConfigError(
-                "Unknown default_room_version: %s, known room versions: %s"
-                % (default_room_version, list(KNOWN_ROOM_VERSIONS.keys()))
+                f"Unknown default_room_version: {default_room_version}, known room versions: {list(KNOWN_ROOM_VERSIONS.keys())}"
             )
 
         # Get the actual room version object rather than just the identifier
@@ -753,10 +745,10 @@ class ServerConfig(Config):
             ).lstrip()
 
         if not unsecure_listeners:
-            unsecure_http_bindings = """- port: %(unsecure_port)s
+            unsecure_http_bindings = """- port: {unsecure_port}
             tls: false
             type: http
-            x_forwarded: true""" % locals()
+            x_forwarded: true""".format(**locals())
 
             if not open_private_ports:
                 unsecure_http_bindings += (
@@ -776,12 +768,12 @@ class ServerConfig(Config):
             secure_http_bindings = ""
 
         return """\
-        server_name: "%(server_name)s"
-        pid_file: %(pid_file)s
+        server_name: "{server_name}"
+        pid_file: {pid_file}
         listeners:
-          %(secure_http_bindings)s
-          %(unsecure_http_bindings)s
-        """ % locals()
+          {secure_http_bindings}
+          {unsecure_http_bindings}
+        """.format(**locals())
 
     def read_arguments(self, args: argparse.Namespace) -> None:
         if args.manhole is not None:

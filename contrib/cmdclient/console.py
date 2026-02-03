@@ -123,7 +123,7 @@ class RelapseCmd(cmd.Cmd):
             ]
             for key, valid_vals in config_rules:
                 if key == args["key"] and args["val"] not in valid_vals:
-                    print("%s value must be one of %s" % (args["key"], valid_vals))
+                    print("{} value must be one of {}".format(args["key"], valid_vals))
                     return
 
             # toggle the http client verbosity
@@ -245,7 +245,7 @@ class RelapseCmd(cmd.Cmd):
             fallback_url = self._url() + "/login/fallback"
             print(
                 "Unable to login via the command line client. Please visit "
-                "%s to login." % fallback_url
+                f"{fallback_url} to login."
             )
             defer.returnValue(False)
         defer.returnValue(True)
@@ -283,7 +283,7 @@ class RelapseCmd(cmd.Cmd):
         )
         print(json_res)
         if "sid" in json_res:
-            print("Token sent. Your session ID is %s" % (json_res["sid"]))
+            print("Token sent. Your session ID is {}".format(json_res["sid"]))
 
     def do_emailvalidate(self, line):
         """Validate and associate a third party ID
@@ -355,7 +355,7 @@ class RelapseCmd(cmd.Cmd):
     def do_joinalias(self, line):
         try:
             args = self._parse(line, ["roomname"], force_keys=True)
-            path = "/join/%s" % urllib.quote(args["roomname"])
+            path = "/join/{}".format(urllib.quote(args["roomname"]))
             reactor.callFromThread(self._run_and_pprint, "POST", path, {})
         except Exception as e:
             print(e)
@@ -371,10 +371,10 @@ class RelapseCmd(cmd.Cmd):
                 print("Must specify set|get and a room ID.")
                 return
             if args["action"].lower() not in ["set", "get"]:
-                print("Must specify set|get, not %s" % args["action"])
+                print("Must specify set|get, not {}".format(args["action"]))
                 return
 
-            path = "/rooms/%s/topic" % urllib.quote(args["roomid"])
+            path = "/rooms/{}/topic".format(urllib.quote(args["roomid"]))
 
             if args["action"].lower() == "set":
                 if "topic" not in args:
@@ -431,30 +431,27 @@ class RelapseCmd(cmd.Cmd):
                 if pubKey:
                     for signame in json_res["signatures"]:
                         if signame not in TRUSTED_ID_SERVERS:
-                            print(
-                                "Ignoring signature from untrusted server %s"
-                                % (signame)
-                            )
+                            print(f"Ignoring signature from untrusted server {signame}")
                         else:
                             try:
                                 verify_signed_json(json_res, signame, pubKey)
                                 sigValid = True
                                 print(
-                                    "Mapping %s -> %s correctly signed by %s"
-                                    % (userstring, json_res["mxid"], signame)
+                                    "Mapping {} -> {} correctly signed by {}".format(
+                                        userstring, json_res["mxid"], signame
+                                    )
                                 )
                                 break
                             except SignatureVerifyException as e:
-                                print("Invalid signature from %s" % (signame))
+                                print(f"Invalid signature from {signame}")
                                 print(e)
 
                 if sigValid:
-                    print("Resolved 3pid %s to %s" % (userstring, json_res["mxid"]))
+                    print("Resolved 3pid {} to {}".format(userstring, json_res["mxid"]))
                     mxid = json_res["mxid"]
                 else:
                     print(
-                        "Got association for %s but couldn't verify signature"
-                        % (userstring)
+                        f"Got association for {userstring} but couldn't verify signature"
                     )
 
             if not mxid:
@@ -473,8 +470,8 @@ class RelapseCmd(cmd.Cmd):
     def do_send(self, line):
         """Sends a message. "send <roomid> <body>" """
         args = self._parse(line, ["roomid", "body"])
-        txn_id = "txn%s" % int(time.time())
-        path = "/rooms/%s/send/m.room.message/%s" % (
+        txn_id = f"txn{int(time.time())}"
+        path = "/rooms/{}/send/m.room.message/{}".format(
             urllib.quote(args["roomid"]),
             txn_id,
         )
@@ -495,10 +492,10 @@ class RelapseCmd(cmd.Cmd):
             print("Must specify type and room ID.")
             return
         if args["type"] not in ["members", "messages"]:
-            print("Unrecognised type: %s" % args["type"])
+            print("Unrecognised type: {}".format(args["type"]))
             return
         room_id = args["roomid"]
-        path = "/rooms/%s/%s" % (urllib.quote(room_id), args["type"])
+        path = "/rooms/{}/{}".format(urllib.quote(room_id), args["type"])
 
         qp = {"access_token": self._tok()}
         if "qp" in args:
@@ -507,7 +504,7 @@ class RelapseCmd(cmd.Cmd):
                     key_value = key_value_str.split("=")
                     qp[key_value[0]] = key_value[1]
                 except Exception:
-                    print("Bad query param: %s" % key_value)
+                    print(f"Bad query param: {key_value}")
                     return
 
         reactor.callFromThread(self._run_and_pprint, "GET", path, query_params=qp)
@@ -561,7 +558,7 @@ class RelapseCmd(cmd.Cmd):
             "XDELETE",
         ]
         if args["method"] not in valid_methods:
-            print("Unsupported method: %s" % args["method"])
+            print("Unsupported method: {}".format(args["method"]))
             return
 
         if "data" not in args:
@@ -570,7 +567,7 @@ class RelapseCmd(cmd.Cmd):
             try:
                 args["data"] = json.loads(args["data"])
             except Exception as e:
-                print("Data is not valid JSON. %s" % e)
+                print(f"Data is not valid JSON. {e}")
                 return
 
         qp = {"access_token": self._tok()}
@@ -634,7 +631,7 @@ class RelapseCmd(cmd.Cmd):
             self.event_stream_token = res["end"]
 
     def _send_receipt(self, event, feedback_type):
-        path = "/rooms/%s/messages/%s/%s/feedback/%s/%s" % (
+        path = "/rooms/{}/messages/{}/{}/feedback/{}/{}".format(
             urllib.quote(event["room_id"]),
             event["user_id"],
             event["msg_id"],
@@ -647,13 +644,12 @@ class RelapseCmd(cmd.Cmd):
             "PUT",
             path,
             data=data,
-            alt_text="Sent receipt for %s" % event["msg_id"],
+            alt_text="Sent receipt for {}".format(event["msg_id"]),
         )
 
     def _do_membership_change(self, roomid, membership, userid):
-        path = "/rooms/%s/state/m.room.member/%s" % (
-            urllib.quote(roomid),
-            urllib.quote(userid),
+        path = (
+            f"/rooms/{urllib.quote(roomid)}/state/m.room.member/{urllib.quote(userid)}"
         )
         data = {"membership": membership}
         reactor.callFromThread(self._run_and_pprint, "PUT", path, data=data)
@@ -661,7 +657,7 @@ class RelapseCmd(cmd.Cmd):
     def do_displayname(self, line):
         """Get or set my displayname: "displayname [new_name]" """
         args = self._parse(line, ["name"])
-        path = "/profile/%s/displayname" % (self.config["user"])
+        path = "/profile/{}/displayname".format(self.config["user"])
 
         if "name" in args:
             data = {"displayname": args["name"]}
@@ -671,7 +667,7 @@ class RelapseCmd(cmd.Cmd):
 
     def _do_presence_state(self, state, line):
         args = self._parse(line, ["msgstring"])
-        path = "/presence/%s/status" % (self.config["user"])
+        path = "/presence/{}/status".format(self.config["user"])
         data = {"state": state}
         if "msgstring" in args:
             data["status_msg"] = args["msgstring"]
@@ -702,7 +698,7 @@ class RelapseCmd(cmd.Cmd):
         """
         line_args = shlex.split(line)
         if force_keys and len(line_args) != len(keys):
-            raise IndexError("Must specify all args: %s" % keys)
+            raise IndexError(f"Must specify all args: {keys}")
 
         # do $ substitutions
         for i, arg in enumerate(line_args):
@@ -753,7 +749,7 @@ def save_config(config):
 def main(server_url, identity_server_url, username, token, config_path):
     print("Relapse command line client")
     print("===========================")
-    print("Server: %s" % server_url)
+    print(f"Server: {server_url}")
     print("Type 'help' to get started.")
     print("Close this console with CTRL+C then CTRL+D.")
     if not username or not token:
@@ -776,7 +772,7 @@ def main(server_url, identity_server_url, username, token, config_path):
                 http_client.verbose = "on" == syn_cmd.config["verbose"]
             except Exception:
                 pass
-            print("Loaded config from %s" % config_path)
+            print(f"Loaded config from {config_path}")
     except Exception:
         pass
 

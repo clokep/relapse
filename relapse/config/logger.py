@@ -151,8 +151,8 @@ class LoggingConfig(Config):
     ) -> str:
         log_config = os.path.join(config_dir_path, server_name + ".log.config")
         return """\
-        log_config: "%(log_config)s"
-        """ % locals()
+        log_config: "{log_config}"
+        """.format(**locals())
 
     def read_arguments(self, args: argparse.Namespace) -> None:
         if args.no_redirect_stdio is not None:
@@ -183,8 +183,7 @@ class LoggingConfig(Config):
         if log_config and not os.path.exists(log_config):
             log_file = self.abspath("homeserver.log")
             print(
-                "Generating log config file %s which will log to %s"
-                % (log_config, log_file)
+                f"Generating log config file {log_config} which will log to {log_file}"
             )
             with open(log_config, "w") as log_config_file:
                 log_config_file.write(DEFAULT_LOG_CONFIG.substitute(log_file=log_file))
@@ -261,7 +260,7 @@ def _setup_stdlib_logging(
             # be redirected to /dev/null, but there's not much we can do)
             try:
                 event_text = eventAsText(event)
-                print("logging during logging: %s" % event_text, file=sys.__stderr__)
+                print(f"logging during logging: {event_text}", file=sys.__stderr__)
             except Exception:
                 # gah.
                 pass

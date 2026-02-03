@@ -193,7 +193,7 @@ class E2eRoomKeysHandler:
                 version_info = await self.store.get_e2e_room_keys_version_info(user_id)
             except StoreError as e:
                 if e.code == 404:
-                    raise NotFoundError("Version '%s' not found" % (version,))
+                    raise NotFoundError(f"Version '{version}' not found")
                 else:
                     raise
 
@@ -207,7 +207,7 @@ class E2eRoomKeysHandler:
                     raise RoomKeysVersionError(current_version=version_info["version"])
                 except StoreError as e:
                     if e.code == 404:
-                        raise NotFoundError("Version '%s' not found" % (version,))
+                        raise NotFoundError(f"Version '{version}' not found")
                     else:
                         raise
 
@@ -224,8 +224,8 @@ class E2eRoomKeysHandler:
                 for session_id, room_key in room["sessions"].items():
                     if not isinstance(room_key["is_verified"], bool):
                         msg = (
-                            "is_verified must be a boolean in keys for session %s in"
-                            "room %s" % (session_id, room_id)
+                            f"is_verified must be a boolean in keys for session {session_id} in"
+                            f"room {room_id}"
                         )
                         raise RelapseError(400, msg, Codes.INVALID_PARAM)
 

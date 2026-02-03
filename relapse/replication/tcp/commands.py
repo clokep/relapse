@@ -300,7 +300,7 @@ class UserSyncCommand(Command):
             device_id = None
 
         if state not in ("start", "end"):
-            raise Exception("Invalid USER_SYNC state %r" % (state,))
+            raise Exception(f"Invalid USER_SYNC state {state!r}")
 
         return cls(instance_id, user_id, device_id, state == "start", int(last_sync_ms))
 
@@ -372,7 +372,7 @@ class FederationAckCommand(Command):
         return cls(instance_name, int(token))
 
     def to_line(self) -> str:
-        return "%s %s" % (self.instance_name, self.token)
+        return f"{self.instance_name} {self.token}"
 
 
 class UserIpCommand(Command):

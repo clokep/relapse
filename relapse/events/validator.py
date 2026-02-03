@@ -68,14 +68,14 @@ class EventValidator:
 
         for k in required:
             if k not in event:
-                raise RelapseError(400, "Event does not have key %s" % (k,))
+                raise RelapseError(400, f"Event does not have key {k}")
 
         # Check that the following keys have string values
         event_strings = ["origin"]
 
         for s in event_strings:
             if not isinstance(getattr(event, s), str):
-                raise RelapseError(400, "'%s' not a string type" % (s,))
+                raise RelapseError(400, f"'{s}' not a string type")
 
         # Depending on the room version, ensure the data is spec compliant JSON.
         if event.room_version.strict_canonicaljson:
@@ -89,10 +89,7 @@ class EventValidator:
                     if len(alias) > MAX_ALIAS_LENGTH:
                         raise RelapseError(
                             400,
-                            (
-                                "Can't create aliases longer than"
-                                " %d characters" % (MAX_ALIAS_LENGTH,)
-                            ),
+                            f"Can't create aliases longer than {MAX_ALIAS_LENGTH} characters",
                             Codes.INVALID_PARAM,
                         )
 
@@ -193,7 +190,7 @@ class EventValidator:
 
         for s in strings:
             if not isinstance(getattr(event, s), str):
-                raise RelapseError(400, "Not '%s' a string type" % (s,))
+                raise RelapseError(400, f"Not '{s}' a string type")
 
         RoomID.from_string(event.room_id)
         UserID.from_string(event.sender)
@@ -231,13 +228,13 @@ class EventValidator:
     def _ensure_strings(self, d: JsonDict, keys: StrCollection) -> None:
         for s in keys:
             if s not in d:
-                raise RelapseError(400, "'%s' not in content" % (s,))
+                raise RelapseError(400, f"'{s}' not in content")
             if not isinstance(d[s], str):
-                raise RelapseError(400, "'%s' not a string type" % (s,))
+                raise RelapseError(400, f"'{s}' not a string type")
 
     def _ensure_state_event(self, event: Union[EventBase, EventBuilder]) -> None:
         if not event.is_state():
-            raise RelapseError(400, "'%s' must be state events" % (event.type,))
+            raise RelapseError(400, f"'{event.type}' must be state events")
 
 
 POWER_LEVELS_SCHEMA = {

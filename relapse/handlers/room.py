@@ -202,7 +202,7 @@ class RoomCreationHandler:
         # We could go straight for the auth check, but that will raise a 403 instead.
         old_room = await self.store.get_room(old_room_id)
         if old_room is None:
-            raise NotFoundError("Unknown room id %s" % (old_room_id,))
+            raise NotFoundError(f"Unknown room id {old_room_id}")
 
         new_room_id = self._generate_room_id()
 
@@ -292,7 +292,7 @@ class RoomCreationHandler:
             ShadowBanError if the requester is shadow-banned.
         """
         user_id = requester.user.to_string()
-        assert self.hs.is_mine_id(user_id), "User must be our own: %s" % (user_id,)
+        assert self.hs.is_mine_id(user_id), f"User must be our own: {user_id}"
 
         logger.info("Creating new room %s to replace %s", new_room_id, old_room_id)
 
@@ -834,7 +834,7 @@ class RoomCreationHandler:
                 uid = UserID.from_string(i)
                 parse_and_validate_server_name(uid.domain)
             except Exception:
-                raise RelapseError(400, "Invalid user_id: %s" % (i,))
+                raise RelapseError(400, f"Invalid user_id: {i}")
 
         if (invite_list or invite_3pid_list) and requester.shadow_banned:
             # We randomly sleep a bit just to annoy the requester.
@@ -867,8 +867,7 @@ class RoomCreationHandler:
         ):
             raise RelapseError(
                 400,
-                "Not a valid power_level_content_override: 'users' did not contain %s"
-                % (user_id,),
+                f"Not a valid power_level_content_override: 'users' did not contain {user_id}",
             )
 
         # The spec says rooms should default to private visibility if
@@ -1687,7 +1686,7 @@ class TimestampLookupHandler:
         if not local_event_id or not local_event:
             raise RelapseError(
                 404,
-                "Unable to find event from %s in direction %s" % (timestamp, direction),
+                f"Unable to find event from {timestamp} in direction {direction}",
                 errcode=Codes.NOT_FOUND,
             )
 
@@ -1871,7 +1870,7 @@ class RoomShutdownHandler:
         message = params["message"] if params["message"] else self.DEFAULT_MESSAGE
 
         if not RoomID.is_valid(room_id):
-            raise RelapseError(400, "%s is not a legal room ID" % (room_id,))
+            raise RelapseError(400, f"{room_id} is not a legal room ID")
 
         if not await self._third_party_rules.check_can_shutdown_room(
             requester_user_id, room_id
@@ -1908,9 +1907,7 @@ class RoomShutdownHandler:
         new_room_id = result.get("new_room_id")
         if new_room_user_id is not None and new_room_id is None:
             if not self.hs.is_mine_id(new_room_user_id):
-                raise RelapseError(
-                    400, "User must be our own: %s" % (new_room_user_id,)
-                )
+                raise RelapseError(400, f"User must be our own: {new_room_user_id}")
 
             room_creator_requester = create_requester(
                 new_room_user_id, authenticated_entity=requester_user_id

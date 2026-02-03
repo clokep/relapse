@@ -78,7 +78,7 @@ class LocalKey(RestServlet):
         verify_keys = {}
         for signing_key in self.config.key.signing_key:
             verify_key_bytes = signing_key.verify_key.encode()
-            key_id = "%s:%s" % (signing_key.alg, signing_key.version)
+            key_id = f"{signing_key.alg}:{signing_key.version}"
             verify_keys[key_id] = {"key": encode_base64(verify_key_bytes)}
 
         old_verify_keys = {}

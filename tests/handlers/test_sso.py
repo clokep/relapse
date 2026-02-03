@@ -126,7 +126,7 @@ async def mock_get_file(
     if max_size is not None and max_size < len(SMALL_PNG):
         raise RelapseError(
             HTTPStatus.BAD_GATEWAY,
-            "Requested file is too large > %r bytes" % (max_size,),
+            f"Requested file is too large > {max_size!r} bytes",
             Codes.TOO_LARGE,
         )
 
@@ -134,8 +134,9 @@ async def mock_get_file(
         raise RelapseError(
             HTTPStatus.BAD_GATEWAY,
             (
-                "Requested file's content type not allowed for this operation: %s"
-                % "image/png"
+                "Requested file's content type not allowed for this operation: {}".format(
+                    "image/png"
+                )
             ),
         )
 

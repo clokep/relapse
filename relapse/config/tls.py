@@ -85,7 +85,7 @@ class TlsConfig(Config):
             except UnicodeEncodeError:
                 raise ConfigError(
                     "IDNA domain names are not allowed in the "
-                    "federation_certificate_verification_whitelist: %s" % (entry,)
+                    f"federation_certificate_verification_whitelist: {entry}"
                 )
 
             # Convert globs to regex
@@ -116,7 +116,7 @@ class TlsConfig(Config):
                     certs.append(cert_base)
                 except Exception as e:
                     raise ConfigError(
-                        "Error parsing custom CA certificate file %s: %s" % (ca_file, e)
+                        f"Error parsing custom CA certificate file {ca_file}: {e}"
                     )
 
             self.federation_ca_trust_root = trustRootFromCertificates(certs)

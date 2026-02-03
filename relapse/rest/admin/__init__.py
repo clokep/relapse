@@ -178,7 +178,7 @@ class PurgeHistoryRestServlet(RestServlet):
                     errcode=Codes.NOT_FOUND,
                 )
             (stream, topo, _event_id) = r
-            token = "t%d-%d" % (topo, stream)
+            token = f"t{topo}-{stream}"
             logger.info(
                 "[purge] purging up to token %s (received_ts %i => stream_ordering %i)",
                 token,
@@ -213,7 +213,7 @@ class PurgeHistoryStatusRestServlet(RestServlet):
 
         purge_task = await self.pagination_handler.get_delete_task(purge_id)
         if purge_task is None or purge_task.action != PURGE_HISTORY_ACTION_NAME:
-            raise NotFoundError("purge id '%s' not found" % purge_id)
+            raise NotFoundError(f"purge id '{purge_id}' not found")
 
         result: JsonDict = {
             "status": purge_task.status

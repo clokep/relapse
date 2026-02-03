@@ -488,7 +488,7 @@ class EventsWorkerStore(SQLBaseStore):
             The event, or None if the event was not found and allow_none is `True`.
         """
         if not isinstance(event_id, str):
-            raise TypeError("Invalid event event_id %r" % (event_id,))
+            raise TypeError(f"Invalid event event_id {event_id!r}")
 
         events = await self.get_events_as_list(
             [event_id],
@@ -504,7 +504,7 @@ class EventsWorkerStore(SQLBaseStore):
                 event = None
 
         if event is None and not allow_none:
-            raise NotFoundError("Could not find event %s" % (event_id,))
+            raise NotFoundError(f"Could not find event {event_id}")
 
         return event
 
@@ -1306,7 +1306,7 @@ class EventsWorkerStore(SQLBaseStore):
                 #
                 if d["type"] != EventTypes.Member:
                     raise InvalidEventError(
-                        "Room %s for event %s is unknown" % (d["room_id"], event_id)
+                        "Room {} for event {} is unknown".format(d["room_id"], event_id)
                     )
 
                 # so, assuming this is an out-of-band-invite that arrived before
@@ -1983,7 +1983,7 @@ class EventsWorkerStore(SQLBaseStore):
         )
 
         if not res:
-            raise RelapseError(404, "Could not find event %s" % (event_id,))
+            raise RelapseError(404, f"Could not find event {event_id}")
 
         return int(res[0]), int(res[1])
 

@@ -96,7 +96,7 @@ def respond_404(request: RelapseRequest) -> None:
     respond_with_json(
         request,
         404,
-        cs_error("Not found '%s'" % (request.path.decode(),), code=Codes.NOT_FOUND),
+        cs_error(f"Not found '{request.path.decode()}'", code=Codes.NOT_FOUND),
         send_cors=True,
     )
 
@@ -183,15 +183,9 @@ def add_file_headers(
         # correctly interpret those as of 0.99.2 and (b) they are a bit of a pain and we
         # may as well just do the filename* version.
         if _can_encode_filename_as_token(upload_name):
-            disposition = "%s; filename=%s" % (
-                disposition,
-                upload_name,
-            )
+            disposition = f"{disposition}; filename={upload_name}"
         else:
-            disposition = "%s; filename*=utf-8''%s" % (
-                disposition,
-                _quote(upload_name),
-            )
+            disposition = f"{disposition}; filename*=utf-8''{_quote(upload_name)}"
 
     request.setHeader(b"Content-Disposition", disposition.encode("ascii"))
 

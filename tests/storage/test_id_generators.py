@@ -908,7 +908,7 @@ class MultiTableMultiWriterIdGeneratorTestCase(HomeserverTestCase):
         def _insert(txn: LoggingTransaction) -> None:
             for _ in range(number):
                 txn.execute(
-                    "INSERT INTO %s VALUES (nextval('foobar_seq'), ?)" % (table,),
+                    f"INSERT INTO {table} VALUES (nextval('foobar_seq'), ?)",
                     (instance_name,),
                 )
                 if update_stream_table:

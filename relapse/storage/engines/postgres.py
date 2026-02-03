@@ -100,8 +100,8 @@ class PostgresEngine(
             rows = txn.fetchall()
             if rows and rows[0][0] != "UTF8":
                 raise IncorrectDatabaseSetup(
-                    "Database has incorrect encoding: '%s' instead of 'UTF8'\n"
-                    "See docs/postgres.md for more information." % (rows[0][0],)
+                    f"Database has incorrect encoding: '{rows[0][0]}' instead of 'UTF8'\n"
+                    "See docs/postgres.md for more information."
                 )
 
             collation, ctype = self.get_db_locale(txn)
@@ -141,15 +141,15 @@ class PostgresEngine(
         errors = []
 
         if collation != "C":
-            errors.append("    - 'COLLATE' is set to %r. Should be 'C'" % (collation,))
+            errors.append(f"    - 'COLLATE' is set to {collation!r}. Should be 'C'")
 
         if ctype != "C":
-            errors.append("    - 'CTYPE' is set to %r. Should be 'C'" % (ctype,))
+            errors.append(f"    - 'CTYPE' is set to {ctype!r}. Should be 'C'")
 
         if errors:
             raise IncorrectDatabaseSetup(
-                "Database is incorrectly configured:\n\n%s\n\n"
-                "See docs/postgres.md for more information." % ("\n".join(errors))
+                "Database is incorrectly configured:\n\n{}\n\n"
+                "See docs/postgres.md for more information.".format("\n".join(errors))
             )
 
     def convert_param_style(self, sql: str) -> str:
@@ -197,7 +197,7 @@ class PostgresEngine(
         return bool(conn.closed)
 
     def lock_table(self, txn: Cursor, table: str) -> None:
-        txn.execute("LOCK TABLE %s in EXCLUSIVE MODE" % (table,))
+        txn.execute(f"LOCK TABLE {table} in EXCLUSIVE MODE")
 
     @property
     def server_version(self) -> str:
@@ -209,9 +209,9 @@ class PostgresEngine(
 
         # https://www.postgresql.org/docs/current/libpq-status.html#LIBPQ-PQSERVERVERSION
         if numver >= 100000:
-            return "%i.%i" % (numver / 10000, numver % 10000)
+            return f"{numver / 10000}.{numver % 10000}"
         else:
-            return "%i.%i.%i" % (numver / 10000, (numver % 10000) / 100, numver % 100)
+            return f"{numver / 10000}.{(numver % 10000) / 100}.{numver % 100}"
 
     @property
     def row_id_name(self) -> str:

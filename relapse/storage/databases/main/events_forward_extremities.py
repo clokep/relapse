@@ -55,7 +55,7 @@ class EventForwardExtremitiesStore(
                     room_id,
                 )
             except KeyError:
-                msg = "No forward extremity event found for room %s" % room_id
+                msg = f"No forward extremity event found for room {room_id}"
                 logger.warning(msg)
                 raise RelapseError(400, msg)
 

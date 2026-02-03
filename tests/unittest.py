@@ -178,8 +178,7 @@ class TestCase(unittest.TestCase):
             # all future bets are off.
             if current_context():
                 self.fail(
-                    "Test starting with non-sentinel logging context %s"
-                    % (current_context(),)
+                    f"Test starting with non-sentinel logging context {current_context()}"
                 )
 
             # Disable GC for duration of test. See below for why.
@@ -231,7 +230,7 @@ class TestCase(unittest.TestCase):
         that the value of each matches according to assertEqual."""
         for key in attrs.keys():
             if not hasattr(obj, key):
-                raise AssertionError("Expected obj to have a '.%s'" % key)
+                raise AssertionError(f"Expected obj to have a '.{key}'")
             try:
                 self.assertEqual(attrs[key], getattr(obj, key))
             except AssertionError as e:
@@ -246,7 +245,7 @@ class TestCase(unittest.TestCase):
         """
         for key in required:
             self.assertEqual(
-                required[key], actual[key], msg="%s mismatch. %s" % (key, actual)
+                required[key], actual[key], msg=f"{key} mismatch. {actual}"
             )
 
 
@@ -271,7 +270,7 @@ def logcontext_clean(target: TV) -> TV:
     """
 
     def logcontext_error(msg: str) -> NoReturn:
-        raise AssertionError("logcontext error: %s" % (msg))
+        raise AssertionError(f"logcontext error: {msg}")
 
     patcher = patch("relapse.logging.context.logcontext_error", new=logcontext_error)
     return patcher(target)  # type: ignore[call-overload]
@@ -333,7 +332,7 @@ class HomeserverTestCase(TestCase):
             raise Exception("No homeserver returned from make_homeserver.")
 
         if not isinstance(self.hs, HomeServer):
-            raise Exception("A homeserver wasn't returned, but %r" % (self.hs,))
+            raise Exception(f"A homeserver wasn't returned, but {self.hs!r}")
 
         # create the root resource, and a site to wrap it.
         self.resource = self.create_test_resource()
@@ -641,9 +640,7 @@ class HomeserverTestCase(TestCase):
 
         if not results:
             self.fail(
-                "Success result expected on {!r}, found no result instead".format(
-                    deferred
-                )
+                f"Success result expected on {deferred!r}, found no result instead"
             )
 
         result = results[0]
@@ -849,7 +846,7 @@ class FederatingHomeserverTestCase(HomeserverTestCase):
         # poke the other server's signing key into the key store, so that we don't
         # make requests for it
         verify_key = signedjson.key.get_verify_key(self.OTHER_SERVER_SIGNATURE_KEY)
-        verify_key_id = "%s:%s" % (verify_key.alg, verify_key.version)
+        verify_key_id = f"{verify_key.alg}:{verify_key.version}"
 
         self.get_success(
             hs.get_datastores().main.store_server_keys_response(

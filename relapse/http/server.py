@@ -339,7 +339,7 @@ class _AsyncResource(resource.Resource, metaclass=abc.ABCMeta):
         if request_method == "HEAD":
             request_method = "GET"
 
-        method_handler = getattr(self, "_async_render_%s" % (request_method,), None)
+        method_handler = getattr(self, f"_async_render_{request_method}", None)
         if method_handler:
             request.is_render_cancellable = is_function_cancellable(method_handler)
 

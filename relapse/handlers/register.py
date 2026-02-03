@@ -176,7 +176,7 @@ class RegistrationHandler:
         if len(user_id) > MAX_USERID_LENGTH:
             raise RelapseError(
                 400,
-                "User ID may not be longer than %s characters" % (MAX_USERID_LENGTH,),
+                f"User ID may not be longer than {MAX_USERID_LENGTH} characters",
                 Codes.INVALID_USERNAME,
             )
 
@@ -518,9 +518,7 @@ class RegistrationHandler:
                     ) = await room_member_handler.lookup_room_alias(room_alias)
                     room_id = room.to_string()
                 else:
-                    raise RelapseError(
-                        400, "%s was not legal room ID or room alias" % (r,)
-                    )
+                    raise RelapseError(400, f"{r} was not legal room ID or room alias")
 
                 # Calculate whether the room requires an invite or can be
                 # joined directly. By default, we consider the room as requiring an

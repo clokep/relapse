@@ -979,7 +979,7 @@ class AccountValidityRenewalByEmailTestCase(unittest.HomeserverTestCase):
         # Retrieving the URL from the email is too much pain for now, so we
         # retrieve the token from the DB.
         renewal_token = self.get_success(self.store.get_renewal_token_for_user(user_id))
-        url = "/_matrix/client/unstable/account_validity/renew?token=%s" % renewal_token
+        url = f"/_matrix/client/unstable/account_validity/renew?token={renewal_token}"
         channel = self.make_request(b"GET", url)
         self.assertEqual(channel.code, 200, msg=channel.result)
 
@@ -997,7 +997,7 @@ class AccountValidityRenewalByEmailTestCase(unittest.HomeserverTestCase):
         )
 
         # Move 1 day forward. Try to renew with the same token again.
-        url = "/_matrix/client/unstable/account_validity/renew?token=%s" % renewal_token
+        url = f"/_matrix/client/unstable/account_validity/renew?token={renewal_token}"
         channel = self.make_request(b"GET", url)
         self.assertEqual(channel.code, 200, msg=channel.result)
 

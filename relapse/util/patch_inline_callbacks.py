@@ -62,11 +62,7 @@ def do_patch() -> None:
                     for err in changes:
                         print(err, file=sys.stderr)
 
-                    err = "%s changed context from %s to %s on exception" % (
-                        f,
-                        start_context,
-                        current_context(),
-                    )
+                    err = f"{f} changed context from {start_context} to {current_context()} on exception"
                     print(err, file=sys.stderr)
                     raise Exception(err)
                 raise
@@ -76,11 +72,7 @@ def do_patch() -> None:
                     for err in changes:
                         print(err, file=sys.stderr)
 
-                    err = "Completed %s changed context from %s to %s" % (
-                        f,
-                        start_context,
-                        current_context(),
-                    )
+                    err = f"Completed {f} changed context from {start_context} to {current_context()}"
                     # print the error to stderr because otherwise all we
                     # see in travis-ci is the 500 error
                     print(err, file=sys.stderr)
@@ -89,9 +81,9 @@ def do_patch() -> None:
 
             if current_context():
                 err = (
-                    "%s returned incomplete deferred in non-sentinel context "
-                    "%s (start was %s)"
-                ) % (f, current_context(), start_context)
+                    f"{f} returned incomplete deferred in non-sentinel context "
+                    f"{current_context()} (start was {start_context})"
+                )
                 print(err, file=sys.stderr)
                 raise Exception(err)
 
@@ -99,7 +91,7 @@ def do_patch() -> None:
                 if current_context() != start_context:
                     for err in changes:
                         print(err, file=sys.stderr)
-                    err = "%s completion of %s changed context from %s to %s" % (
+                    err = "{} completion of {} changed context from {} to {}".format(
                         "Failure" if isinstance(r, Failure) else "Success",
                         f,
                         start_context,
@@ -167,15 +159,8 @@ def _check_yield_points(
                     # change in a function, as long as it sets the correct context
                     # on resolving (which is checked separately).
                     err = (
-                        "Function %r returned and changed context from %s to %s,"
-                        " in %s between %d and end of func"
-                        % (
-                            f.__qualname__,
-                            expected_context,
-                            current_context(),
-                            f.__code__.co_filename,
-                            last_yield_line_no,
-                        )
+                        f"Function {f.__qualname__} returned and changed context from {expected_context} to {current_context()},"
+                        " in {f.__code__.co_filename} between {last_yield_line_no} and end of func"
                     )
                     changes.append(err)
                 # The `StopIteration` or `_DefGen_Return` contains the return value from the
@@ -190,14 +175,8 @@ def _check_yield_points(
                 # We raise here as this should never happen.
                 if current_context():
                     err = (
-                        "%s yielded with context %s rather than sentinel,"
-                        " yielded on line %d in %s"
-                        % (
-                            frame.f_code.co_name,
-                            current_context(),
-                            frame.f_lineno,
-                            frame.f_code.co_filename,
-                        )
+                        f"{frame.f_code.co_name} yielded with context {current_context()} rather than sentinel,"
+                        f" yielded on line {frame.f_lineno} in {frame.f_code.co_filename}"
                     )
                     raise Exception(err)
 
@@ -221,15 +200,8 @@ def _check_yield_points(
                 # change in a function, as long as it sets the correct context
                 # on resolving (which is checked separately).
                 err = (
-                    "%s changed context from %s to %s, happened between lines %d and %d in %s"
-                    % (
-                        frame.f_code.co_name,
-                        expected_context,
-                        current_context(),
-                        last_yield_line_no,
-                        frame.f_lineno,
-                        frame.f_code.co_filename,
-                    )
+                    f"{frame.f_code.co_name} changed context from {expected_context} to {current_context()},"
+                    f" happened between lines {last_yield_line_no} and {last_yield_line_no} in {frame.f_code.co_filename}"
                 )
                 changes.append(err)
 

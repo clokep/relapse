@@ -138,7 +138,7 @@ class CodeMessageException(RuntimeError):
         msg: str,
         headers: Optional[dict[str, str]] = None,
     ):
-        super().__init__("%d: %s" % (code, msg))
+        super().__init__(f"{code}: {msg}")
 
         # Some calls to this method pass instances of http.HTTPStatus for `code`.
         # While HTTPStatus is a subclass of int, it has magic __str__ methods
@@ -167,7 +167,7 @@ class RedirectException(CodeMessageException):
             location: the URI to redirect to
             http_code: the HTTP response code
         """
-        msg = "Redirect to %s" % (location.decode("utf-8"),)
+        msg = "Redirect to {}".format(location.decode("utf-8"))
         super().__init__(code=http_code, msg=msg)
         self.location = location
 
@@ -309,7 +309,7 @@ class FederationDeniedError(RelapseError):
 
         super().__init__(
             code=403,
-            msg="Federation denied with %s." % (self.destination,),
+            msg=f"Federation denied with {self.destination}.",
             errcode=Codes.FORBIDDEN,
         )
 
@@ -368,8 +368,9 @@ class OAuthInsufficientScopeError(RelapseError):
         required_scopes: list[str],
     ):
         headers = {
-            "WWW-Authenticate": 'Bearer error="insufficient_scope", scope="%s"'
-            % (" ".join(required_scopes))
+            "WWW-Authenticate": 'Bearer error="insufficient_scope", scope="{}"'.format(
+                " ".join(required_scopes)
+            )
         }
         super().__init__(401, "Insufficient scope", Codes.FORBIDDEN, None, headers)
 
@@ -616,8 +617,7 @@ class RequestSendFailed(RuntimeError):
 
     def __init__(self, inner_exception: BaseException, can_retry: bool):
         super().__init__(
-            "Failed to send request: %s: %s"
-            % (type(inner_exception).__name__, inner_exception)
+            f"Failed to send request: {type(inner_exception).__name__}: {inner_exception}"
         )
         self.inner_exception = inner_exception
         self.can_retry = can_retry
@@ -703,14 +703,14 @@ class FederationError(RuntimeError):
         source: Optional[str] = None,
     ):
         if level not in ["FATAL", "ERROR", "WARN"]:
-            raise ValueError("Level is not valid: %s" % (level,))
+            raise ValueError(f"Level is not valid: {level}")
         self.level = level
         self.code = code
         self.reason = reason
         self.affected = affected
         self.source = source
 
-        msg = "%s %s: %s" % (level, code, reason)
+        msg = f"{level} {code}: {reason}"
         super().__init__(msg)
 
     def get_dict(self) -> "JsonDict":

@@ -230,8 +230,9 @@ class EmailConfig(Config):
 
             if missing:
                 raise ConfigError(
-                    "email.enable_notifs is True but required keys are missing: %s"
-                    % (", ".join(missing),)
+                    "email.enable_notifs is True but required keys are missing: {}".format(
+                        ", ".join(missing)
+                    )
                 )
 
             notif_template_html = email_config.get(

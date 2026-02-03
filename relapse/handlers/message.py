@@ -203,15 +203,14 @@ class MessageHandler:
             )
 
             if not last_event_id:
-                raise NotFoundError("Can't find event for token %s" % (at_token,))
+                raise NotFoundError(f"Can't find event for token {at_token}")
 
             if not await self._user_can_see_state_at_event(
                 user_id, room_id, last_event_id
             ):
                 raise AuthError(
                     403,
-                    "User %s not allowed to view events in room %s at token %s"
-                    % (user_id, room_id, at_token),
+                    f"User {user_id} not allowed to view events in room {room_id} at token {at_token}",
                 )
 
             room_state_events = (
@@ -1096,8 +1095,8 @@ class EventCreationHandler:
                 )
                 context = await unpersisted_context.persist(event)
 
-                assert self.hs.is_mine_id(event.sender), "User must be our own: %s" % (
-                    event.sender,
+                assert self.hs.is_mine_id(event.sender), (
+                    f"User must be our own: {event.sender}"
                 )
 
                 spam_check_result = (
@@ -1242,8 +1241,7 @@ class EventCreationHandler:
 
         if prev_event_ids is not None:
             assert len(prev_event_ids) <= 10, (
-                "Attempting to create an event with %i prev_events"
-                % (len(prev_event_ids),)
+                f"Attempting to create an event with {len(prev_event_ids)} prev_events"
             )
         else:
             prev_event_ids = await self.store.get_prev_events_for_room(builder.room_id)
@@ -1677,7 +1675,7 @@ class EventCreationHandler:
             if e.errcode == Codes.NOT_FOUND:
                 raise RelapseError(
                     400,
-                    "Room alias %s does not point to the room" % (room_alias_str,),
+                    f"Room alias {room_alias_str} does not point to the room",
                     Codes.BAD_ALIAS,
                 )
             raise
@@ -1685,7 +1683,7 @@ class EventCreationHandler:
         if mapping["room_id"] != expected_room_id:
             raise RelapseError(
                 400,
-                "Room alias %s does not point to the room" % (room_alias_str,),
+                f"Room alias {room_alias_str} does not point to the room",
                 Codes.BAD_ALIAS,
             )
 
@@ -1890,9 +1888,7 @@ class EventCreationHandler:
                     # checks on the original event. Let's start by checking the original
                     # event exists.
                     if not original_event:
-                        raise NotFoundError(
-                            "Could not find event %s" % (event.redacts,)
-                        )
+                        raise NotFoundError(f"Could not find event {event.redacts}")
 
                     if event.user_id != original_event.user_id:
                         raise AuthError(
@@ -2020,8 +2016,8 @@ class EventCreationHandler:
                 # Exclusion is time limited, so the room will be rechecked in the future
                 # dependent on _DUMMY_EVENT_ROOM_EXCLUSION_EXPIRY
                 logger.info(
-                    "Failed to send dummy event into room %s. Will exclude it from "
-                    "future attempts until cache expires" % (room_id,)
+                    f"Failed to send dummy event into room {room_id}. Will exclude it from "
+                    "future attempts until cache expires"
                 )
                 now = self.clock.time_msec()
                 self._rooms_to_exclude_from_dummy_event_insertion[room_id] = now
@@ -2079,8 +2075,8 @@ class EventCreationHandler:
                 return True
             except AuthError:
                 logger.info(
-                    "Failed to send dummy event into room %s for user %s due to "
-                    "lack of power. Will try another user" % (room_id, user_id)
+                    f"Failed to send dummy event into room {room_id} for user {user_id} due to "
+                    "lack of power. Will try another user"
                 )
         return False
 

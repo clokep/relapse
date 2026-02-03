@@ -70,7 +70,7 @@ class ExternalCache:
             self._redis_connection = None
 
     def _get_redis_key(self, cache_name: str, key: str) -> str:
-        return "cache_v1:%s:%s" % (cache_name, key)
+        return f"cache_v1:{cache_name}:{key}"
 
     def is_enabled(self) -> bool:
         """Whether the external cache is used or not.

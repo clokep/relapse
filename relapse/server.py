@@ -204,7 +204,7 @@ def cache_in_self(builder: F) -> F:
 
         # Prevent cyclic dependencies from deadlocking
         if building[0]:
-            raise ValueError("Cyclic dependency while building %s" % (depname,))
+            raise ValueError(f"Cyclic dependency while building {depname}")
 
         building[0] = True
         try:

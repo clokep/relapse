@@ -71,7 +71,8 @@ class MetricsConfig(Config):
         self, report_stats: Optional[bool] = None, **kwargs: Any
     ) -> str:
         if report_stats is not None:
-            res = "report_stats: %s\n" % ("true" if report_stats else "false")
+            report_stats_str = "true" if report_stats else "false"
+            res = f"report_stats: {report_stats_str}\n"
         else:
             res = "\n"
         return res

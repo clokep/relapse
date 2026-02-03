@@ -369,8 +369,9 @@ class EndToEndRoomKeyStore(EndToEndRoomKeyBackgroundStore):
             params.append(room_id)
             params.extend(sessions)
             where_clauses.append(
-                "(room_id = ? AND session_id IN (%s))"
-                % (",".join(["?" for _ in sessions]),)
+                "(room_id = ? AND session_id IN ({}))".format(
+                    ",".join(["?" for _ in sessions])
+                )
             )
 
         # check if we're actually querying something
@@ -381,8 +382,8 @@ class EndToEndRoomKeyStore(EndToEndRoomKeyBackgroundStore):
         SELECT room_id, session_id, first_message_index, forwarded_count,
                is_verified, session_data
         FROM e2e_room_keys
-        WHERE user_id = ? AND version = ? AND (%s)
-        """ % (" OR ".join(where_clauses))
+        WHERE user_id = ? AND version = ? AND ({})
+        """.format(" OR ".join(where_clauses))
 
         txn.execute(sql, params)
 

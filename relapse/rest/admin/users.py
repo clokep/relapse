@@ -1168,14 +1168,14 @@ class RateLimitRestServlet(RestServlet):
         ):
             raise RelapseError(
                 HTTPStatus.BAD_REQUEST,
-                "%r parameter must be a positive int" % (messages_per_second,),
+                f"{messages_per_second!r} parameter must be a positive int",
                 errcode=Codes.INVALID_PARAM,
             )
 
         if type(burst_count) is not int or burst_count < 0:  # noqa: E721
             raise RelapseError(
                 HTTPStatus.BAD_REQUEST,
-                "%r parameter must be a positive int" % (burst_count,),
+                f"{burst_count!r} parameter must be a positive int",
                 errcode=Codes.INVALID_PARAM,
             )
 

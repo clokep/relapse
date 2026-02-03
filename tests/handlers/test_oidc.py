@@ -563,7 +563,7 @@ class OidcHandlerTestCase(HomeserverTestCase):
             "sub": "foo",
             "username": username,
         }
-        expected_user_id = "@%s:%s" % (username, self.hs.hostname)
+        expected_user_id = f"@{username}:{self.hs.hostname}"
 
         client_redirect_url = "http://client/redirect"
         request, _ = self.start_authorization(
@@ -1169,7 +1169,7 @@ class OidcHandlerTestCase(HomeserverTestCase):
         )
         for i in range(1, 3):
             self.get_success(
-                store.register_user(user_id="@tester%d:test" % i, password_hash=None)
+                store.register_user(user_id=f"@tester{i}:test", password_hash=None)
             )
 
         # Now attempt to map to a username, this will fail since all potential usernames are taken.

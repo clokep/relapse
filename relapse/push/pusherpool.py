@@ -401,7 +401,7 @@ class PusherPool:
         if not pusher:
             return None
 
-        appid_pushkey = "%s:%s" % (pusher.app_id, pusher.pushkey)
+        appid_pushkey = f"{pusher.app_id}:{pusher.pushkey}"
 
         byuser = self.pushers.setdefault(pusher.user_id, {})
         if appid_pushkey in byuser:
@@ -456,7 +456,7 @@ class PusherPool:
             pushkey: the pusher's push key.
             user_id: the user the pusher belongs to. Only used for logging.
         """
-        appid_pushkey = "%s:%s" % (app_id, pushkey)
+        appid_pushkey = f"{app_id}:{pushkey}"
 
         byuser = self.pushers.get(user_id, {})
 

@@ -1635,7 +1635,7 @@ class ModuleApi:
 
         if scope != "global":
             raise RuntimeError(
-                "invalid scope %s, only 'global' is currently allowed" % scope
+                f"invalid scope {scope}, only 'global' is currently allowed"
             )
 
         spec = RuleSpec(scope, kind, rule_id, "actions")

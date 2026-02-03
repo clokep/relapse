@@ -101,7 +101,7 @@ class BackfillQueueNavigationItem:
 
 class _NoChainCoverIndex(Exception):
     def __init__(self, room_id: str):
-        super().__init__("Unexpectedly no chain cover for events in %s" % (room_id,))
+        super().__init__(f"Unexpectedly no chain cover for events in {room_id}")
 
 
 class EventFederationWorkerStore(SignatureWorkerStore, EventsWorkerStore, SQLBaseStore):
@@ -1158,18 +1158,18 @@ class EventFederationWorkerStore(SignatureWorkerStore, EventsWorkerStore, SQLBas
         def _get_rooms_with_many_extremities_txn(txn: LoggingTransaction) -> list[str]:
             where_clause = "1=1"
             if room_id_filter:
-                where_clause = "room_id NOT IN (%s)" % (
+                where_clause = "room_id NOT IN ({})".format(
                     ",".join("?" for _ in room_id_filter),
                 )
 
-            sql = """
+            sql = f"""
                 SELECT room_id FROM event_forward_extremities
-                WHERE %s
+                WHERE {where_clause}
                 GROUP BY room_id
                 HAVING count(*) > ?
                 ORDER BY count(*) DESC
                 LIMIT ?
-            """ % (where_clause,)
+            """
 
             query_args = list(itertools.chain(room_id_filter, [min_count, limit]))
             txn.execute(sql, query_args)
@@ -1286,7 +1286,7 @@ class EventFederationWorkerStore(SignatureWorkerStore, EventsWorkerStore, SQLBas
         """
         assert self.stream_ordering_month_ago is not None
         if stream_ordering <= self.stream_ordering_month_ago:
-            raise StoreError(400, "stream_ordering too old %s" % (stream_ordering,))
+            raise StoreError(400, f"stream_ordering too old {stream_ordering}")
 
         sql = """
                 SELECT event_id FROM stream_ordering_to_exterm
@@ -1309,7 +1309,7 @@ class EventFederationWorkerStore(SignatureWorkerStore, EventsWorkerStore, SQLBas
         # If we didn't find any IDs, then we must have cleared out the
         # associated `stream_ordering_to_exterm`.
         if not event_ids:
-            raise StoreError(400, "stream_ordering too old %s" % (stream_ordering,))
+            raise StoreError(400, f"stream_ordering too old {stream_ordering}")
 
         return event_ids
 

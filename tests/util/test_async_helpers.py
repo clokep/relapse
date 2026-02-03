@@ -203,8 +203,7 @@ class TimeoutDeferredTest(TestCase):
                 self.assertIs(
                     current_context(),
                     context_one,
-                    "errback %s run in unexpected logcontext %s"
-                    % (deferred_name, current_context()),
+                    f"errback {deferred_name} run in unexpected logcontext {current_context()}",
                 )
                 return res
 

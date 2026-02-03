@@ -228,7 +228,7 @@ class BaseReplicationStreamProtocol(LineOnlyReceiver):
             cmd = parse_command_from_line(linestr)
         except Exception as e:
             logger.exception("[%s] failed to parse line: %r", self.id(), linestr)
-            self.send_error("failed to parse line: %r (%r):" % (e, linestr))
+            self.send_error(f"failed to parse line: {e!r} ({linestr!r}):")
             return
 
         if cmd.NAME not in self.VALID_INBOUND_COMMANDS:
@@ -259,13 +259,13 @@ class BaseReplicationStreamProtocol(LineOnlyReceiver):
 
         # First call any command handlers on this instance. These are for TCP
         # specific handling.
-        cmd_func = getattr(self, "on_%s" % (cmd.NAME,), None)
+        cmd_func = getattr(self, f"on_{cmd.NAME}", None)
         if cmd_func:
             cmd_func(cmd)
             handled = True
 
         # Then call out to the handler.
-        cmd_func = getattr(self.command_handler, "on_%s" % (cmd.NAME,), None)
+        cmd_func = getattr(self.command_handler, f"on_{cmd.NAME}", None)
         if cmd_func:
             res = cmd_func(self, cmd)
 
@@ -314,16 +314,15 @@ class BaseReplicationStreamProtocol(LineOnlyReceiver):
 
         tcp_outbound_commands_counter.labels(cmd.NAME, self.name).inc()
 
-        string = "%s %s" % (cmd.NAME, cmd.to_line())
+        string = f"{cmd.NAME} {cmd.to_line()}"
         if "\n" in string:
-            raise Exception("Unexpected newline in command: %r", string)
+            raise Exception(f"Unexpected newline in command: {string:r}")
 
         encoded_string = string.encode("utf-8")
 
         if len(encoded_string) > self.MAX_LENGTH:
             raise Exception(
-                "Failed to send command %s as too long (%d > %d)"
-                % (cmd.NAME, len(encoded_string), self.MAX_LENGTH)
+                f"Failed to send command {cmd.NAME} as too long ({len(encoded_string)} > {self.MAX_LENGTH})"
             )
 
         self.sendLine(encoded_string)
@@ -422,14 +421,10 @@ class BaseReplicationStreamProtocol(LineOnlyReceiver):
         addr = None
         if self.transport:
             addr = str(self.transport.getPeer())
-        return "ReplicationConnection<name=%s,conn_id=%s,addr=%s>" % (
-            self.name,
-            self.conn_id,
-            addr,
-        )
+        return f"ReplicationConnection<name={self.name},conn_id={self.conn_id},addr={addr}>"
 
     def id(self) -> str:
-        return "%s-%s" % (self.name, self.conn_id)
+        return f"{self.name}-{self.conn_id}"
 
     def lineLengthExceeded(self, line: str) -> None:
         """Called when we receive a line that is above the maximum line length"""

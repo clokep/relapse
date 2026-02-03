@@ -52,8 +52,7 @@ class CasConfig(Config):
                 and self.cas_protocol_version not in [1, 2, 3]
             ):
                 raise ConfigError(
-                    "Unsupported CAS protocol version %s (only versions 1, 2, 3 are supported)"
-                    % (self.cas_protocol_version,),
+                    f"Unsupported CAS protocol version {self.cas_protocol_version} (only versions 1, 2, 3 are supported)",
                     ("cas_config", "protocol_version"),
                 )
             self.cas_displayname_attribute = cas_config.get("displayname_attribute")

@@ -47,8 +47,7 @@ class ConsentConfig(Config):
             self.user_consent_template_dir
         ):
             raise ConfigError(
-                "Could not find template directory '%s'"
-                % (self.user_consent_template_dir,)
+                f"Could not find template directory '{self.user_consent_template_dir}'"
             )
         self.user_consent_server_notice_content = consent_config.get(
             "server_notice_content"

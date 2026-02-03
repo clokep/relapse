@@ -625,7 +625,7 @@ class CacheDecoratorTestCase(unittest.HomeserverTestCase):
             yield a.func(k)
 
         self.assertTrue(
-            callcount[0] >= 14, msg="Expected callcount >= 14, got %d" % (callcount[0])
+            callcount[0] >= 14, msg=f"Expected callcount >= 14, got {callcount[0]}"
         )
 
     def test_prefill(self) -> None:

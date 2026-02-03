@@ -62,20 +62,14 @@ class AuthRestServlet(RestServlet):
         if stagetype == LoginType.RECAPTCHA:
             html = self.recaptcha_template.render(
                 session=session,
-                myurl="%s/v3/auth/%s/fallback/web"
-                % (CLIENT_API_PREFIX, LoginType.RECAPTCHA),
+                myurl=f"{CLIENT_API_PREFIX}/v3/auth/{LoginType.RECAPTCHA}/fallback/web",
                 sitekey=self.hs.config.captcha.recaptcha_public_key,
             )
         elif stagetype == LoginType.TERMS:
             html = self.terms_template.render(
                 session=session,
-                terms_url="%s_matrix/consent?v=%s"
-                % (
-                    self.hs.config.server.public_baseurl,
-                    self.hs.config.consent.user_consent_version,
-                ),
-                myurl="%s/v3/auth/%s/fallback/web"
-                % (CLIENT_API_PREFIX, LoginType.TERMS),
+                terms_url=f"{self.hs.config.server.public_baseurl}_matrix/consent?v={self.hs.config.consent.user_consent_version}",
+                myurl=f"{CLIENT_API_PREFIX}/v3/auth/{LoginType.TERMS}/fallback/web",
             )
 
         elif stagetype == LoginType.SSO:
@@ -117,8 +111,7 @@ class AuthRestServlet(RestServlet):
                 # Authentication failed, let user try again
                 html = self.recaptcha_template.render(
                     session=session,
-                    myurl="%s/v3/auth/%s/fallback/web"
-                    % (CLIENT_API_PREFIX, LoginType.RECAPTCHA),
+                    myurl=f"{CLIENT_API_PREFIX}/v3/auth/{LoginType.RECAPTCHA}/fallback/web",
                     sitekey=self.hs.config.captcha.recaptcha_public_key,
                     error=e.msg,
                 )
@@ -137,13 +130,8 @@ class AuthRestServlet(RestServlet):
                 # Authentication failed, let user try again
                 html = self.terms_template.render(
                     session=session,
-                    terms_url="%s_matrix/consent?v=%s"
-                    % (
-                        self.hs.config.server.public_baseurl,
-                        self.hs.config.consent.user_consent_version,
-                    ),
-                    myurl="%s/v3/auth/%s/fallback/web"
-                    % (CLIENT_API_PREFIX, LoginType.TERMS),
+                    terms_url=f"{self.hs.config.server.public_baseurl}_matrix/consent?v={self.hs.config.consent.user_consent_version}",
+                    myurl=f"{CLIENT_API_PREFIX}/v3/auth/{LoginType.TERMS}/fallback/web",
                     error=e.msg,
                 )
             else:

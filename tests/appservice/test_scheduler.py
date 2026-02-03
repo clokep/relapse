@@ -339,7 +339,7 @@ class ApplicationServiceSchedulerQueuerTestCase(unittest.HomeserverTestCase):
         self.txn_ctrl.send = Mock(side_effect=do_send)
 
         service = Mock(id=4, name="service")
-        event_list = [Mock(name="event%i" % (i + 1)) for i in range(200)]
+        event_list = [Mock(name=f"event{i + 1}") for i in range(200)]
         for event in event_list:
             self.scheduler.enqueue_for_appservice(service, [event], [])
 
@@ -413,8 +413,8 @@ class ApplicationServiceSchedulerQueuerTestCase(unittest.HomeserverTestCase):
         self.txn_ctrl.send = Mock(return_value=make_deferred_yieldable(d))
         # Expect the event to be sent immediately.
         service = Mock(id=4, name="service")
-        first_chunk = [Mock(name="event%i" % (i + 1)) for i in range(100)]
-        second_chunk = [Mock(name="event%i" % (i + 101)) for i in range(50)]
+        first_chunk = [Mock(name=f"event{i + 1}") for i in range(100)]
+        second_chunk = [Mock(name=f"event{i + 101}") for i in range(50)]
         event_list = first_chunk + second_chunk
         self.scheduler.enqueue_for_appservice(service, ephemeral=event_list)
         self.txn_ctrl.send.assert_called_once_with(

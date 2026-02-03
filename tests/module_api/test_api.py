@@ -466,7 +466,7 @@ class ModuleApiTestCase(BaseModuleApiTestCase):
         # Set a profile for lesley.
         channel = self.make_request(
             method="PUT",
-            path="/_matrix/client/r0/profile/%s/displayname" % lesley,
+            path=f"/_matrix/client/r0/profile/{lesley}/displayname",
             content={"displayname": "Lesley May"},
             access_token=lesley_tok,
         )
@@ -475,7 +475,7 @@ class ModuleApiTestCase(BaseModuleApiTestCase):
 
         channel = self.make_request(
             method="PUT",
-            path="/_matrix/client/r0/profile/%s/avatar_url" % lesley,
+            path=f"/_matrix/client/r0/profile/{lesley}/avatar_url",
             content={"avatar_url": "some_url"},
             access_token=lesley_tok,
         )

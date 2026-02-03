@@ -698,7 +698,7 @@ def copy_and_fixup_power_levels_contents(
         TypeError if the input does not look like a valid power levels event content
     """
     if not isinstance(old_power_levels, collections.abc.Mapping):
-        raise TypeError("Not a valid power-levels content: %r" % (old_power_levels,))
+        raise TypeError(f"Not a valid power-levels content: {old_power_levels!r}")
 
     power_levels: dict[str, Union[int, dict[str, int]]] = {}
 

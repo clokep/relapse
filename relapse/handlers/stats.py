@@ -231,7 +231,7 @@ class StatsHandler:
                     room_stats_delta["knocked_members"] -= 1
                 else:
                     raise ValueError(
-                        "%r is not a valid prev_membership" % (prev_membership,)
+                        f"{prev_membership!r} is not a valid prev_membership"
                     )
 
                 if membership == prev_membership:
@@ -247,7 +247,7 @@ class StatsHandler:
                 elif membership == Membership.KNOCK:
                     room_stats_delta["knocked_members"] += 1
                 else:
-                    raise ValueError("%r is not a valid membership" % (membership,))
+                    raise ValueError(f"{membership!r} is not a valid membership")
 
                 user_id = delta.state_key
                 if self.is_mine_id(user_id):

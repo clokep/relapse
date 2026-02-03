@@ -96,7 +96,7 @@ def parse_server_name(server_name: str) -> tuple[str, Optional[int]]:
         port = int(domain_port[1]) if domain_port[1:] else None
         return domain, port
     except Exception:
-        raise ValueError("Invalid server name '%s'" % server_name)
+        raise ValueError(f"Invalid server name '{server_name}'")
 
 
 # An approximation of the domain name syntax in RFC 1035, section 2.3.1.
@@ -126,16 +126,14 @@ def parse_and_validate_server_name(server_name: str) -> tuple[str, Optional[int]
     # look for ipv6 literals
     if host and host[0] == "[":
         if host[-1] != "]":
-            raise ValueError("Mismatched [...] in server name '%s'" % (server_name,))
+            raise ValueError(f"Mismatched [...] in server name '{server_name}'")
 
         # valid_ipv6 raises when given an empty string
         ipv6_address = host[1:-1]
         if not ipv6_address or not valid_ipv6(ipv6_address):
-            raise ValueError(
-                "Server name '%s' is not a valid IPv6 address" % (server_name,)
-            )
+            raise ValueError(f"Server name '{server_name}' is not a valid IPv6 address")
     elif not VALID_HOST_REGEX.match(host):
-        raise ValueError("Server name '%s' has an invalid format" % (server_name,))
+        raise ValueError(f"Server name '{server_name}' has an invalid format")
 
     return host, port
 
@@ -186,7 +184,7 @@ def parse_and_validate_mxc_uri(mxc: str) -> tuple[str, Optional[int], str]:
     """
     m = MXC_REGEX.match(mxc)
     if not m:
-        raise ValueError("mxc URI %r did not match expected format" % (mxc,))
+        raise ValueError(f"mxc URI {mxc!r} did not match expected format")
     server_name = m.group(1)
     media_id = m.group(2)
     host, port = parse_and_validate_server_name(server_name)
@@ -227,7 +225,7 @@ def strtobool(val: str) -> bool:
     elif val in ("n", "no", "f", "false", "off", "0"):
         return False
     else:
-        raise ValueError("invalid truth value %r" % (val,))
+        raise ValueError(f"invalid truth value {val!r}")
 
 
 _BASE62 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"

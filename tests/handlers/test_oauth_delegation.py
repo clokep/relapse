@@ -273,7 +273,7 @@ class MSC3861OAuthDelegation(HomeserverTestCase):
             method="POST", uri=INTROSPECTION_ENDPOINT, data=ANY, headers=ANY
         )
         self._assertParams()
-        self.assertEqual(requester.user.to_string(), "@%s:%s" % (USERNAME, SERVER_NAME))
+        self.assertEqual(requester.user.to_string(), f"@{USERNAME}:{SERVER_NAME}")
         self.assertEqual(requester.is_guest, False)
         self.assertEqual(requester.device_id, None)
         self.assertEqual(
@@ -305,7 +305,7 @@ class MSC3861OAuthDelegation(HomeserverTestCase):
             method="POST", uri=INTROSPECTION_ENDPOINT, data=ANY, headers=ANY
         )
         self._assertParams()
-        self.assertEqual(requester.user.to_string(), "@%s:%s" % (USERNAME, SERVER_NAME))
+        self.assertEqual(requester.user.to_string(), f"@{USERNAME}:{SERVER_NAME}")
         self.assertEqual(requester.is_guest, False)
         self.assertEqual(requester.device_id, None)
         self.assertEqual(
@@ -335,7 +335,7 @@ class MSC3861OAuthDelegation(HomeserverTestCase):
             method="POST", uri=INTROSPECTION_ENDPOINT, data=ANY, headers=ANY
         )
         self._assertParams()
-        self.assertEqual(requester.user.to_string(), "@%s:%s" % (USERNAME, SERVER_NAME))
+        self.assertEqual(requester.user.to_string(), f"@{USERNAME}:{SERVER_NAME}")
         self.assertEqual(requester.is_guest, False)
         self.assertEqual(requester.device_id, None)
         self.assertEqual(
@@ -365,7 +365,7 @@ class MSC3861OAuthDelegation(HomeserverTestCase):
             method="POST", uri=INTROSPECTION_ENDPOINT, data=ANY, headers=ANY
         )
         self._assertParams()
-        self.assertEqual(requester.user.to_string(), "@%s:%s" % (USERNAME, SERVER_NAME))
+        self.assertEqual(requester.user.to_string(), f"@{USERNAME}:{SERVER_NAME}")
         self.assertEqual(requester.is_guest, False)
         self.assertEqual(
             get_awaitable_result(self.auth.is_server_admin(requester)), False
@@ -452,7 +452,7 @@ class MSC3861OAuthDelegation(HomeserverTestCase):
             method="POST", uri=INTROSPECTION_ENDPOINT, data=ANY, headers=ANY
         )
         self._assertParams()
-        self.assertEqual(requester.user.to_string(), "@%s:%s" % (USERNAME, SERVER_NAME))
+        self.assertEqual(requester.user.to_string(), f"@{USERNAME}:{SERVER_NAME}")
         self.assertEqual(requester.is_guest, True)
         self.assertEqual(
             get_awaitable_result(self.auth.is_server_admin(requester)), False

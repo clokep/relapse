@@ -261,7 +261,7 @@ class StateFilter:
             if where_clause:
                 where_clause += " OR "
 
-            where_clause += "type NOT IN (%s)" % (",".join(["?"] * len(self.types)),)
+            where_clause += "type NOT IN ({})".format(",".join(["?"] * len(self.types)))
             where_args.extend(self.types)
 
         return where_clause, where_args

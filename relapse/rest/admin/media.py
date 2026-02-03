@@ -334,8 +334,7 @@ class DeleteMediaByDateSize(RestServlet):
             raise RelapseError(HTTPStatus.BAD_REQUEST, "Can only delete local media")
 
         logging.info(
-            "Deleting local media by timestamp: %s, size larger than: %s, keep profile media: %s"
-            % (before_ts, size_gt, keep_profiles)
+            f"Deleting local media by timestamp: {before_ts}, size larger than: {size_gt}, keep profile media: {keep_profiles}"
         )
 
         deleted_media, total = await self.media_repository.delete_old_local_media(

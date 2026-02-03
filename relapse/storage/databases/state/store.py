@@ -459,8 +459,7 @@ class StateGroupDataStore(StateBackgroundUpdateStore, SQLBaseStore):
             )
             if not is_in_db:
                 raise Exception(
-                    "Trying to persist state with unpersisted prev_group: %r"
-                    % (prev_group,)
+                    f"Trying to persist state with unpersisted prev_group: {prev_group!r}"
                 )
 
             num_state_groups = sum(
@@ -593,8 +592,7 @@ class StateGroupDataStore(StateBackgroundUpdateStore, SQLBaseStore):
             )
             if not is_in_db:
                 raise Exception(
-                    "Trying to persist state with unpersisted prev_group: %r"
-                    % (prev_group,)
+                    f"Trying to persist state with unpersisted prev_group: {prev_group!r}"
                 )
 
             # if the chain of state group deltas is going too long, we fall back to

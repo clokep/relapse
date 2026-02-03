@@ -121,10 +121,8 @@ class HttpPusher(Pusher):
         if self.data is None:
             raise PusherConfigException("'data' key can not be null for HTTP pusher")
 
-        self.name = "%s/%s/%s" % (
-            pusher_config.user_name,
-            pusher_config.app_id,
-            pusher_config.pushkey,
+        self.name = (
+            f"{pusher_config.user_name}/{pusher_config.app_id}/{pusher_config.pushkey}"
         )
 
         # Validate that there's a URL and it is of the proper form.

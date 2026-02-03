@@ -261,7 +261,7 @@ class SamlHandlerTestCase(HomeserverTestCase):
         )
         for i in range(1, 3):
             self.get_success(
-                store.register_user(user_id="@tester%d:test" % i, password_hash=None)
+                store.register_user(user_id=f"@tester{i}:test", password_hash=None)
             )
 
         # Now attempt to map to a username, this will fail since all potential usernames are taken.

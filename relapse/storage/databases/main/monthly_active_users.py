@@ -228,8 +228,7 @@ class MonthlyActiveUsersWorkerStore(RegistrationWorkerStore):
             )
 
             txn.execute(
-                "DELETE FROM monthly_active_users WHERE timestamp < ? AND NOT %s"
-                % (in_clause,),
+                f"DELETE FROM monthly_active_users WHERE timestamp < ? AND NOT {in_clause}",
                 [thirty_days_ago] + in_clause_args,
             )
 
@@ -251,19 +250,16 @@ class MonthlyActiveUsersWorkerStore(RegistrationWorkerStore):
                 # It is important to filter reserved users twice to guard
                 # against the case where the reserved user is present in the
                 # SELECT, meaning that a legitimate mau is deleted.
-                sql = """
+                sql = f"""
                     DELETE FROM monthly_active_users
                     WHERE user_id NOT IN (
                         SELECT user_id FROM monthly_active_users
-                        WHERE NOT %s
+                        WHERE NOT {in_clause}
                         ORDER BY timestamp DESC
                         LIMIT ?
                     )
-                    AND NOT %s
-                """ % (
-                    in_clause,
-                    in_clause,
-                )
+                    AND NOT {in_clause}
+                """
 
                 query_args = (
                     in_clause_args
@@ -326,7 +322,7 @@ class MonthlyActiveUsersWorkerStore(RegistrationWorkerStore):
                         values={"timestamp": int(self._clock.time_msec())},
                     )
             else:
-                logger.warning("mau limit reserved threepid %s not found in db" % tp)
+                logger.warning(f"mau limit reserved threepid {tp} not found in db")
 
     async def upsert_monthly_active_user(self, user_id: str) -> None:
         """Updates or inserts the user into the monthly active user table, which

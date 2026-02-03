@@ -48,7 +48,7 @@ class Distributor:
 
     def declare(self, name: str) -> None:
         if name in self.signals:
-            raise KeyError("%r already has a signal named %s" % (self, name))
+            raise KeyError(f"{self!r} already has a signal named {name}")
 
         self.signals[name] = Signal(name)
 
@@ -73,7 +73,7 @@ class Distributor:
         Runs the observers as a background process. Does not return a deferred.
         """
         if name not in self.signals:
-            raise KeyError("%r does not have a signal named %s" % (self, name))
+            raise KeyError(f"{self!r} does not have a signal named {name}")
 
         run_as_background_process(name, self.signals[name].fire, *args, **kwargs)
 
@@ -130,4 +130,4 @@ class Signal(Generic[P]):
         )
 
     def __repr__(self) -> str:
-        return "<Signal name=%r>" % (self.name,)
+        return f"<Signal name={self.name!r}>"

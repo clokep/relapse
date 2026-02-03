@@ -313,7 +313,7 @@ class BackgroundProcessLoggingContext(LoggingContext):
         """
         if instance_id is None:
             instance_id = id(self)
-        super().__init__("%s-%s" % (name, instance_id))
+        super().__init__(f"{name}-{instance_id}")
         self._proc: Optional[_BackgroundProcess] = _BackgroundProcess(name, self)
 
     def start(self, rusage: "Optional[resource.struct_rusage]") -> None:

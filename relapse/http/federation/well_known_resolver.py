@@ -184,7 +184,7 @@ class WellKnownResolver:
 
         try:
             if response.code != 200:
-                raise Exception("Non-200 response %s" % (response.code,))
+                raise Exception(f"Non-200 response {response.code}")
 
             parsed_body = json_decoder.decode(body.decode("utf-8"))
             logger.info("Response from .well-known: %s", parsed_body)
@@ -264,7 +264,7 @@ class WellKnownResolver:
                 body = body_stream.getvalue()
 
                 if 500 <= response.code < 600:
-                    raise Exception("Non-200 response %s" % (response.code,))
+                    raise Exception(f"Non-200 response {response.code}")
 
                 return response, body
             except defer.CancelledError:

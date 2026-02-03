@@ -51,7 +51,7 @@ from tests.unittest import HomeserverTestCase, override_config
 def check_logcontext(context: LoggingContextOrSentinel) -> None:
     current = current_context()
     if current is not context:
-        raise AssertionError("Expected logcontext %s but was %s" % (context, current))
+        raise AssertionError(f"Expected logcontext {context} but was {current}")
 
 
 class FederationClientTests(HomeserverTestCase):

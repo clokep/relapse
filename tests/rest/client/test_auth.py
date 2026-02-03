@@ -1308,7 +1308,7 @@ class OidcBackchannelLogoutTests(unittest.HomeserverTestCase):
 
         # fish the matrix login token out of the body of the confirmation page
         m = re.search(
-            'a href="%s.*loginToken=([^"]*)"' % (client_redirect_url,),
+            f'a href="{client_redirect_url}.*loginToken=([^"]*)"',
             channel.text_body,
         )
         assert m, channel.text_body

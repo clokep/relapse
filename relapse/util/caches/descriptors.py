@@ -95,9 +95,9 @@ class _CacheDescriptorBase:
 
         if len(all_args) < num_args + 1:
             raise Exception(
-                "Not enough explicit positional arguments to key off for %r: "
-                "got %i args, but wanted %i. (@cached cannot key off *args or "
-                "**kwargs)" % (orig.__name__, len(all_args), num_args)
+                f"Not enough explicit positional arguments to key off for {orig.__name__:r}: "
+                f"got {len(all_args)} args, but wanted {num_args}. (@cached cannot key off *args or "
+                "**kwargs)"
             )
 
         self.num_args = num_args
@@ -303,8 +303,7 @@ class DeferredCacheListDescriptor(_CacheDescriptorBase):
 
         if self.list_name not in self.arg_names:
             raise Exception(
-                "Couldn't see arguments %r for %r."
-                % (self.list_name, cached_method_name)
+                f"Couldn't see arguments {self.list_name!r} for {cached_method_name!r}."
             )
 
     def __get__(
@@ -316,8 +315,7 @@ class DeferredCacheListDescriptor(_CacheDescriptorBase):
 
         if num_args != self.num_args:
             raise TypeError(
-                "Number of args (%s) does not match underlying cache_method_name=%s (%s)."
-                % (self.num_args, self.cached_method_name, num_args)
+                f"Number of args ({self.num_args}) does not match underlying cache_method_name={self.cached_method_name} ({num_args})."
             )
 
         @functools.wraps(self.orig)

@@ -5,7 +5,7 @@ import sys
 import pymacaroons
 
 if len(sys.argv) == 1:
-    sys.stderr.write("usage: %s macaroon [key]\n" % (sys.argv[0],))
+    sys.stderr.write(f"usage: {sys.argv[0]} macaroon [key]\n")
     sys.exit(1)
 
 macaroon_string = sys.argv[1]

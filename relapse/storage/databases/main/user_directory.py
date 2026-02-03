@@ -196,10 +196,10 @@ class UserDirectoryBackgroundUpdateStore(StateDeltasStore):
             # Only fetch 250 rooms, so we don't fetch too many at once, even
             # if those 250 rooms have less than batch_size state events.
             sql = """
-                SELECT room_id, events FROM %s
+                SELECT room_id, events FROM {}
                 ORDER BY events DESC
                 LIMIT 250
-            """ % (TEMP_TABLE + "_rooms",)
+            """.format(TEMP_TABLE + "_rooms")
             txn.execute(sql)
             rooms_to_work_on = cast(list[tuple[str, int]], txn.fetchall())
 
@@ -228,8 +228,7 @@ class UserDirectoryBackgroundUpdateStore(StateDeltasStore):
             return 1
 
         logger.debug(
-            "Processing the next %d rooms of %d remaining"
-            % (len(rooms_to_work_on), progress["remaining"])
+            f"Processing the next {len(rooms_to_work_on)} rooms of {progress['remaining']} remaining"
         )
 
         processed_event_count = 0
@@ -353,7 +352,7 @@ class UserDirectoryBackgroundUpdateStore(StateDeltasStore):
                 txn.execute(sql, (batch_size,))
                 user_result = cast(list[tuple[str]], txn.fetchall())
             else:
-                sql = "SELECT user_id FROM %s ORDER BY user_id LIMIT %s" % (
+                sql = "SELECT user_id FROM {} ORDER BY user_id LIMIT {}".format(
                     TEMP_TABLE + "_users",
                     str(batch_size),
                 )
@@ -1062,34 +1061,34 @@ class UserDirectoryStore(UserDirectoryBackgroundUpdateStore):
                 INNER JOIN user_directory AS d USING (user_id)
                 LEFT JOIN users AS u ON t.user_id = u.name
                 WHERE
-                    %(where_clause)s
+                    {where_clause}
                 ORDER BY
                     (CASE WHEN d.user_id IS NOT NULL THEN 4.0 ELSE 1.0 END)
                     * (CASE WHEN display_name IS NOT NULL THEN 1.2 ELSE 1.0 END)
                     * (CASE WHEN avatar_url IS NOT NULL THEN 1.2 ELSE 1.0 END)
                     * (
                         3 * ts_rank_cd(
-                            '{0.1, 0.1, 0.9, 1.0}',
+                            '{{0.1, 0.1, 0.9, 1.0}}',
                             vector,
                             to_tsquery('simple', ?),
                             8
                         )
                         + ts_rank_cd(
-                            '{0.1, 0.1, 0.9, 1.0}',
+                            '{{0.1, 0.1, 0.9, 1.0}}',
                             vector,
                             to_tsquery('simple', ?),
                             8
                         )
                     )
-                    %(order_case_statements)s
+                    {order_case_statements}
                     DESC,
                     display_name IS NULL,
                     avatar_url IS NULL
                 LIMIT ?
-            """ % {
-                "where_clause": where_clause,
-                "order_case_statements": " ".join(additional_ordering_statements),
-            }
+            """.format(
+                where_clause=where_clause,
+                order_case_statements=" ".join(additional_ordering_statements),
+            )
             args = (
                 (full_query,)
                 + join_args
@@ -1118,18 +1117,18 @@ class UserDirectoryStore(UserDirectoryBackgroundUpdateStore):
                 INNER JOIN user_directory AS d USING (user_id)
                 LEFT JOIN users AS u ON t.user_id = u.name
                 WHERE
-                    %(where_clause)s
+                    {where_clause}
                     AND value MATCH ?
                 ORDER BY
                     rank(matchinfo(user_directory_search)) DESC,
-                    %(order_statements)s
+                    {order_statements}
                     display_name IS NULL,
                     avatar_url IS NULL
                 LIMIT ?
-            """ % {
-                "where_clause": where_clause,
-                "order_statements": " ".join(additional_ordering_statements),
-            }
+            """.format(
+                where_clause=where_clause,
+                order_statements=" ".join(additional_ordering_statements),
+            )
             args = join_args + (search_query,) + ordering_arguments + (limit + 1,)
         else:
             # This should be unreachable.
@@ -1199,7 +1198,7 @@ def _parse_query_sqlite(search_term: str) -> str:
 
     # Pull out the individual words, discarding any non-word characters.
     results = _parse_words(search_term)
-    return " & ".join("(%s* OR %s)" % (result, result) for result in results)
+    return " & ".join(f"({result}* OR {result})" for result in results)
 
 
 def _parse_query_postgres(search_term: str) -> tuple[str, str, str]:
@@ -1220,9 +1219,9 @@ def _parse_query_postgres(search_term: str) -> tuple[str, str, str]:
         quoted_word = word.replace("'", "''").replace("\\", "\\\\")
         escaped_words.append(f"'{quoted_word}'")
 
-    both = " & ".join("(%s:* | %s)" % (word, word) for word in escaped_words)
-    exact = " & ".join("%s" % (word,) for word in escaped_words)
-    prefix = " & ".join("%s:*" % (word,) for word in escaped_words)
+    both = " & ".join(f"({word}:* | {word})" for word in escaped_words)
+    exact = " & ".join(f"{word}" for word in escaped_words)
+    prefix = " & ".join(f"{word}:*" for word in escaped_words)
 
     return both, exact, prefix
 

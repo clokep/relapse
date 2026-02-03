@@ -34,16 +34,14 @@ class UpdateUpsertManyTests(unittest.HomeserverTestCase):
             self.storage.db_pool.runInteraction(
                 "create",
                 lambda x, *a: x.execute(*a),
-                "CREATE TABLE %s (id INTEGER, username TEXT, value TEXT)"
-                % (self.table_name,),
+                f"CREATE TABLE {self.table_name} (id INTEGER, username TEXT, value TEXT)",
             )
         )
         self.get_success(
             self.storage.db_pool.runInteraction(
                 "index",
                 lambda x, *a: x.execute(*a),
-                "CREATE UNIQUE INDEX %sindex ON %s(id, username)"
-                % (self.table_name, self.table_name),
+                f"CREATE UNIQUE INDEX {self.table_name}index ON {self.table_name}(id, username)",
             )
         )
 

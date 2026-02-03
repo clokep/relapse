@@ -52,7 +52,7 @@ def create_engine(database_config: Mapping[str, Any]) -> BaseDatabaseEngine:
     if name == "psycopg2":
         return PostgresEngine(database_config)
 
-    raise RuntimeError("Unsupported database engine '%s'" % (name,))
+    raise RuntimeError(f"Unsupported database engine '{name}'")
 
 
 __all__ = [

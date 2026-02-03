@@ -52,7 +52,7 @@ POSTGRES_PORT = (
     if "RELAPSE_POSTGRES_PORT" in os.environ
     else None
 )
-POSTGRES_BASE_DB = "_relapse_unit_tests_base_%s" % (os.getpid(),)
+POSTGRES_BASE_DB = f"_relapse_unit_tests_base_{os.getpid()}"
 
 # When debugging a specific test, it's occasionally useful to write the
 # DB to disk and query it with the sqlite CLI.
@@ -77,10 +77,10 @@ def setupdb() -> None:
         )
         db_engine.attempt_to_set_autocommit(db_conn, autocommit=True)
         cur = db_conn.cursor()
-        cur.execute("DROP DATABASE IF EXISTS %s;" % (POSTGRES_BASE_DB,))
+        cur.execute(f"DROP DATABASE IF EXISTS {POSTGRES_BASE_DB};")
         cur.execute(
-            "CREATE DATABASE %s ENCODING 'UTF8' LC_COLLATE='C' LC_CTYPE='C' "
-            "template=template0;" % (POSTGRES_BASE_DB,)
+            f"CREATE DATABASE {POSTGRES_BASE_DB} ENCODING 'UTF8' LC_COLLATE='C' LC_CTYPE='C' "
+            "template=template0;"
         )
         cur.close()
         db_conn.close()
@@ -107,7 +107,7 @@ def setupdb() -> None:
             )
             db_engine.attempt_to_set_autocommit(db_conn, autocommit=True)
             cur = db_conn.cursor()
-            cur.execute("DROP DATABASE IF EXISTS %s;" % (POSTGRES_BASE_DB,))
+            cur.execute(f"DROP DATABASE IF EXISTS {POSTGRES_BASE_DB};")
             cur.close()
             db_conn.close()
 

@@ -1027,8 +1027,9 @@ class FederationClient(FederationBase):
 
         if membership not in valid_memberships:
             raise RuntimeError(
-                "make_membership_event called with membership='%s', must be one of %s"
-                % (membership, ",".join(valid_memberships))
+                "make_membership_event called with membership='{}', must be one of {}".format(
+                    membership, ",".join(valid_memberships)
+                )
             )
 
         async def send_request(destination: str) -> tuple[str, EventBase, RoomVersion]:
@@ -1183,8 +1184,7 @@ class FederationClient(FederationBase):
                 # either the server that fulfilled the make_join, or the server that is
                 # handling the send_join, is lying.
                 raise InvalidResponseError(
-                    "Unexpected room version %s in create event"
-                    % (create_room_version,)
+                    f"Unexpected room version {create_room_version} in create event"
                 )
 
             logger.info(
@@ -1239,8 +1239,7 @@ class FederationClient(FederationBase):
                 create_event.event_id
             ]:
                 raise InvalidResponseError(
-                    "Unexpected create event(s) in auth chain: %s"
-                    % (auth_chain_create_events,)
+                    f"Unexpected create event(s) in auth chain: {auth_chain_create_events}"
                 )
 
             servers_in_room = None
@@ -1589,8 +1588,7 @@ class FederationClient(FederationBase):
                 if e.code == 403:
                     raise RelapseError(
                         403,
-                        "You are not allowed to view the public rooms list of %s"
-                        % (remote_server,),
+                        f"You are not allowed to view the public rooms list of {remote_server}",
                         errcode=Codes.FORBIDDEN,
                     )
                 raise
@@ -1613,8 +1611,7 @@ class FederationClient(FederationBase):
                 if e.code == 403:
                     raise RelapseError(
                         403,
-                        "You are not allowed to view the public rooms list of %s"
-                        % (remote_server,),
+                        f"You are not allowed to view the public rooms list of {remote_server}",
                         errcode=Codes.FORBIDDEN,
                     )
                 raise
@@ -1953,7 +1950,7 @@ class FederationClient(FederationBase):
 
         if not isinstance(remote_response, dict):
             raise InvalidResponseError(
-                "Response must be a JSON dictionary but received %r" % remote_response
+                f"Response must be a JSON dictionary but received {remote_response!r}"
             )
 
         try:

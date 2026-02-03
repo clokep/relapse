@@ -71,8 +71,7 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
             404,
             channel.code,
             msg=(
-                "Expected to receive a 404 on accessing quarantined media: %s"
-                % server_and_media_id
+                f"Expected to receive a 404 on accessing quarantined media: {server_and_media_id}"
             ),
         )
 
@@ -127,10 +126,7 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
         self.assertEqual(200, channel.code)
 
         # Quarantine the media
-        url = "/_relapse/admin/v1/media/quarantine/%s/%s" % (
-            urllib.parse.quote(server_name),
-            urllib.parse.quote(media_id),
-        )
+        url = f"/_relapse/admin/v1/media/quarantine/{urllib.parse.quote(server_name)}/{urllib.parse.quote(media_id)}"
         channel = self.make_request(
             "POST",
             url,
@@ -219,9 +215,7 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
         server_and_media_id_2 = response_2["content_uri"][6:]
 
         # Quarantine all media by this user
-        url = "/_relapse/admin/v1/user/%s/media/quarantine" % urllib.parse.quote(
-            non_admin_user
-        )
+        url = f"/_relapse/admin/v1/user/{urllib.parse.quote(non_admin_user)}/media/quarantine"
         channel = self.make_request(
             "POST",
             url.encode("ascii"),
@@ -255,15 +249,13 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
         # Mark the second item as safe from quarantine.
         _, media_id_2 = server_and_media_id_2.split("/")
         # Quarantine the media
-        url = "/_relapse/admin/v1/media/protect/%s" % (urllib.parse.quote(media_id_2),)
+        url = f"/_relapse/admin/v1/media/protect/{urllib.parse.quote(media_id_2)}"
         channel = self.make_request("POST", url, access_token=admin_user_tok)
         self.pump(1.0)
         self.assertEqual(200, channel.code, msg=channel.json_body)
 
         # Quarantine all media by this user
-        url = "/_relapse/admin/v1/user/%s/media/quarantine" % urllib.parse.quote(
-            non_admin_user
-        )
+        url = f"/_relapse/admin/v1/user/{urllib.parse.quote(non_admin_user)}/media/quarantine"
         channel = self.make_request(
             "POST",
             url.encode("ascii"),
@@ -292,8 +284,7 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
             200,
             channel.code,
             msg=(
-                "Expected to receive a 200 on accessing not-quarantined media: %s"
-                % server_and_media_id_2
+                f"Expected to receive a 200 on accessing not-quarantined media: {server_and_media_id_2}"
             ),
         )
 

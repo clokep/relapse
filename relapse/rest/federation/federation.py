@@ -632,7 +632,7 @@ class On3pidBindServlet(BaseFederationServerServlet):
                     if "signed" not in invite or "token" not in invite["signed"]:
                         message = (
                             "Rejecting received notification of third-"
-                            "party invite without signed: %s" % (invite,)
+                            f"party invite without signed: {invite}"
                         )
                         logger.info(message)
                         raise RelapseError(400, message)

@@ -415,16 +415,14 @@ class ApplicationServiceTransactionWorkerStore(
     ) -> int:
         if type not in ("read_receipt", "presence", "to_device", "device_list"):
             raise ValueError(
-                "Expected type to be a valid application stream id type, got %s"
-                % (type,)
+                f"Expected type to be a valid application stream id type, got {type}"
             )
 
         def get_type_stream_id_for_appservice_txn(txn: LoggingTransaction) -> int:
-            stream_id_type = "%s_stream_id" % type
+            stream_id_type = f"{type}_stream_id"
             txn.execute(
                 # We do NOT want to escape `stream_id_type`.
-                "SELECT %s FROM application_services_state WHERE as_id=?"
-                % stream_id_type,
+                f"SELECT {stream_id_type} FROM application_services_state WHERE as_id=?",
                 (service.id,),
             )
             last_stream_id = txn.fetchone()
@@ -443,8 +441,7 @@ class ApplicationServiceTransactionWorkerStore(
     ) -> None:
         if stream_type not in ("read_receipt", "presence", "to_device", "device_list"):
             raise ValueError(
-                "Expected type to be a valid application stream id type, got %s"
-                % (stream_type,)
+                f"Expected type to be a valid application stream id type, got {stream_type}"
             )
 
         # this may be the first time that we're recording any state for this AS, so

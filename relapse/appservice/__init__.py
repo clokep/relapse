@@ -128,17 +128,17 @@ class ApplicationService:
                 continue
 
             if not isinstance(namespaces[ns], list):
-                raise ValueError("Bad namespace value for '%s'" % ns)
+                raise ValueError(f"Bad namespace value for '{ns}'")
             for regex_obj in namespaces[ns]:
                 if not isinstance(regex_obj, dict):
-                    raise ValueError("Expected dict regex for ns '%s'" % ns)
+                    raise ValueError(f"Expected dict regex for ns '{ns}'")
                 exclusive = regex_obj.get("exclusive")
                 if not isinstance(exclusive, bool):
-                    raise ValueError("Expected bool for 'exclusive' in ns '%s'" % ns)
+                    raise ValueError(f"Expected bool for 'exclusive' in ns '{ns}'")
 
                 regex = regex_obj.get("regex")
                 if not isinstance(regex, str):
-                    raise ValueError("Expected string for 'regex' in ns '%s'" % ns)
+                    raise ValueError(f"Expected string for 'regex' in ns '{ns}'")
 
                 # Pre-compile regex.
                 result[ns].append(Namespace(exclusive, re.compile(regex)))
@@ -370,7 +370,7 @@ class ApplicationService:
         dict_copy = self.__dict__.copy()
         dict_copy["token"] = "<redacted>"
         dict_copy["hs_token"] = "<redacted>"
-        return "ApplicationService: %s" % (dict_copy,)
+        return f"ApplicationService: {dict_copy}"
 
 
 class AppServiceTransaction:

@@ -390,9 +390,9 @@ class EndToEndKeyWorkerStore(EndToEndKeyBackgroundStore, CacheInvalidationWorker
                 "    d.display_name, "
                 "    k.key_json"
                 " FROM devices d"
-                "    %s JOIN e2e_device_keys_json k USING (user_id, device_id)"
-                " WHERE %s AND NOT d.hidden"
-            ) % (
+                "    {} JOIN e2e_device_keys_json k USING (user_id, device_id)"
+                " WHERE {} AND NOT d.hidden"
+            ).format(
                 "LEFT" if include_all_devices else "INNER",
                 query_clause,
             )
@@ -444,8 +444,8 @@ class EndToEndKeyWorkerStore(EndToEndKeyBackgroundStore, CacheInvalidationWorker
 
         signature_sql = """
             SELECT user_id, key_id, target_device_id, signature
-            FROM e2e_cross_signing_signatures WHERE %s
-            """ % (" OR ".join("(" + q + ")" for q in signature_query_clauses))
+            FROM e2e_cross_signing_signatures WHERE {}
+            """.format(" OR ".join("(" + q + ")" for q in signature_query_clauses))
 
         txn.execute(signature_sql, signature_query_params)
         return cast(
@@ -883,22 +883,22 @@ class EndToEndKeyWorkerStore(EndToEndKeyBackgroundStore, CacheInvalidationWorker
                 # The `DISTINCT ON` clause will pick the *first* row it
                 # encounters, so ordering by stream ID desc will ensure we get
                 # the latest key.
-                sql = """
+                sql = f"""
                     SELECT DISTINCT ON (user_id, keytype) user_id, keytype, keydata, stream_id
                         FROM e2e_cross_signing_keys
-                        WHERE %(clause)s
+                        WHERE {clause}
                         ORDER BY user_id, keytype, stream_id DESC
-                """ % {"clause": clause}
+                """
             else:
                 # SQLite has special handling for bare columns when using
                 # MIN/MAX with a `GROUP BY` clause where it picks the value from
                 # a row that matches the MIN/MAX.
-                sql = """
+                sql = f"""
                     SELECT user_id, keytype, keydata, MAX(stream_id)
                         FROM e2e_cross_signing_keys
-                        WHERE %(clause)s
+                        WHERE {clause}
                         GROUP BY user_id, keytype
-                """ % {"clause": clause}
+                """
 
             txn.execute(sql, params)
 
@@ -952,8 +952,8 @@ class EndToEndKeyWorkerStore(EndToEndKeyBackgroundStore, CacheInvalidationWorker
                 SELECT target_user_id, target_device_id, key_id, signature
                   FROM e2e_cross_signing_signatures
                  WHERE user_id = ?
-                   AND (%s)
-            """ % (
+                   AND ({})
+            """.format(
                 " OR ".join(
                     "(target_user_id = ? AND target_device_id = ?)" for _ in batch
                 )

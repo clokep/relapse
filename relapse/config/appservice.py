@@ -37,8 +37,7 @@ class AppServiceConfig(Config):
             isinstance(x, str) for x in self.app_service_config_files
         ):
             raise ConfigError(
-                "Expected '%s' to be a list of AS config files:"
-                % (self.app_service_config_files),
+                f"Expected '{self.app_service_config_files}' to be a list of AS config files:",
                 ("app_service_config_files",),
             )
 
@@ -71,19 +70,13 @@ def load_appservices(
                 if appservice.id in seen_ids:
                     raise ConfigError(
                         "Cannot reuse ID across application services: "
-                        "%s (files: %s, %s)"
-                        % (appservice.id, config_file, seen_ids[appservice.id])
+                        f"{appservice.id} (files: {config_file}, {seen_ids[appservice.id]})"
                     )
                 seen_ids[appservice.id] = config_file
                 if appservice.token in seen_as_tokens:
                     raise ConfigError(
                         "Cannot reuse as_token across application services: "
-                        "%s (files: %s, %s)"
-                        % (
-                            appservice.token,
-                            config_file,
-                            seen_as_tokens[appservice.token],
-                        )
+                        f"{appservice.token} (files: {config_file}, {seen_as_tokens[appservice.token]})"
                     )
                 seen_as_tokens[appservice.token] = config_file
                 logger.info("Loaded application service: %s", appservice)
@@ -101,15 +94,13 @@ def _load_appservice(
     required_string_fields = ["id", "as_token", "hs_token", "sender_localpart"]
     for field in required_string_fields:
         if not isinstance(as_info.get(field), str):
-            raise KeyError(
-                "Required string field: '%s' (%s)" % (field, config_filename)
-            )
+            raise KeyError(f"Required string field: '{field}' ({config_filename})")
 
     # 'url' must either be a string or explicitly null, not missing
     # to avoid accidentally turning off push for ASes.
     if not isinstance(as_info.get("url"), str) and as_info.get("url", "") is not None:
         raise KeyError(
-            "Required string field or explicit null: 'url' (%s)" % (config_filename,)
+            f"Required string field or explicit null: 'url' ({config_filename})"
         )
 
     localpart = as_info["sender_localpart"]

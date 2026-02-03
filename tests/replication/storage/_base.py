@@ -63,18 +63,15 @@ class BaseWorkerStoreTestCase(BaseStreamTestCase):
             asserter(
                 master_result,
                 expected_result,
-                "Expected master result to be %r but was %r"
-                % (expected_result, master_result),
+                f"Expected master result to be {expected_result!r} but was {master_result!r}",
             )
             asserter(
                 worker_result,
                 expected_result,
-                "Expected worker result to be %r but was %r"
-                % (expected_result, worker_result),
+                f"Expected worker result to be {expected_result!r} but was {worker_result!r}",
             )
         asserter(
             master_result,
             worker_result,
-            "Worker result %r does not match master result %r"
-            % (worker_result, master_result),
+            f"Worker result {worker_result!r} does not match master result {master_result!r}",
         )

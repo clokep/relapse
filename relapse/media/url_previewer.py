@@ -281,7 +281,7 @@ class UrlPreviewer:
                 og["og:image:width"] = dims["width"]
                 og["og:image:height"] = dims["height"]
             else:
-                logger.warning("Couldn't get dims for %s" % url)
+                logger.warning(f"Couldn't get dims for {url}")
 
             # define our OG response for this media
         elif _is_html(media_info.media_type):
@@ -484,8 +484,7 @@ class UrlPreviewer:
 
             raise RelapseError(
                 500,
-                "Failed to download content: %s"
-                % (traceback.format_exception_only(sys.exc_info()[0], e),),
+                f"Failed to download content: {traceback.format_exception_only(sys.exc_info()[0], e)}",
                 Codes.UNKNOWN,
             )
 
@@ -532,8 +531,7 @@ class UrlPreviewer:
 
             raise RelapseError(
                 500,
-                "Failed to parse data URL: %s"
-                % (traceback.format_exception_only(sys.exc_info()[0], e),),
+                f"Failed to parse data URL: {traceback.format_exception_only(sys.exc_info()[0], e)}",
                 Codes.UNKNOWN,
             )
 

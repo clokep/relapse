@@ -504,7 +504,7 @@ class ReplicationCommandHandler:
             row = STREAMS_MAP[stream_name].parse_row(cmd.row)
         except Exception as e:
             raise Exception(
-                "Failed to parse RDATA: %r %r" % (stream_name, cmd.row)
+                f"Failed to parse RDATA: {stream_name!r} {cmd.row!r}"
             ) from e
 
         # make sure that we've processed a POSITION for this stream *on this

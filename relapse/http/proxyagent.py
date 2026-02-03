@@ -333,7 +333,7 @@ class ProxyAgent(_AgentBase):
         else:
             return defer.fail(
                 Failure(
-                    SchemeNotSupported("Unsupported scheme: %r" % (parsed_uri.scheme,))
+                    SchemeNotSupported(f"Unsupported scheme: {parsed_uri.scheme!r}")
                 )
             )
 

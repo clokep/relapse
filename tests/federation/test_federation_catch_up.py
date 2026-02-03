@@ -361,7 +361,7 @@ class FederationCatchUpTestCases(FederatingHomeserverTestCase):
 
         # list of sorted server names (note that there are more servers than the batch
         # size used in get_catch_up_outstanding_destinations).
-        server_names = ["server%02d" % number for number in range(42)] + ["zzzerver"]
+        server_names = [f"server{number:02}" for number in range(42)] + ["zzzerver"]
 
         # ARRANGE:
         #  - a local user (u1)
@@ -378,7 +378,7 @@ class FederationCatchUpTestCases(FederatingHomeserverTestCase):
         for server_name in server_names:
             self.get_success(
                 event_injection.inject_member_event(
-                    self.hs, room_id, "@user:%s" % server_name, "join"
+                    self.hs, room_id, f"@user:{server_name}", "join"
                 )
             )
 

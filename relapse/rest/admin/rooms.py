@@ -112,7 +112,7 @@ class RoomRestV2Servlet(RestServlet):
 
         if not RoomID.is_valid(room_id):
             raise RelapseError(
-                HTTPStatus.BAD_REQUEST, "%s is not a legal room ID" % (room_id,)
+                HTTPStatus.BAD_REQUEST, f"{room_id} is not a legal room ID"
             )
 
         # Check this here, as otherwise we'll only fail after the background job has been started.
@@ -163,7 +163,7 @@ class DeleteRoomStatusByRoomIdRestServlet(RestServlet):
 
         if not RoomID.is_valid(room_id):
             raise RelapseError(
-                HTTPStatus.BAD_REQUEST, "%s is not a legal room ID" % (room_id,)
+                HTTPStatus.BAD_REQUEST, f"{room_id} is not a legal room ID"
             )
 
         delete_tasks = await self._pagination_handler.get_delete_tasks_by_room(room_id)
@@ -175,7 +175,7 @@ class DeleteRoomStatusByRoomIdRestServlet(RestServlet):
                 ],
             }
         else:
-            raise NotFoundError("No delete task for room_id '%s' found" % room_id)
+            raise NotFoundError(f"No delete task for room_id '{room_id}' found")
 
 
 class DeleteRoomStatusByDeleteIdRestServlet(RestServlet):
@@ -197,7 +197,7 @@ class DeleteRoomStatusByDeleteIdRestServlet(RestServlet):
             delete_task.action != PURGE_ROOM_ACTION_NAME
             and delete_task.action != SHUTDOWN_AND_PURGE_ROOM_ACTION_NAME
         ):
-            raise NotFoundError("delete id '%s' not found" % delete_id)
+            raise NotFoundError(f"delete id '{delete_id}' not found")
 
         return HTTPStatus.OK, _convert_delete_task_to_response(delete_task)
 
@@ -839,7 +839,7 @@ class BlockRoomRestServlet(RestServlet):
 
         if not RoomID.is_valid(room_id):
             raise RelapseError(
-                HTTPStatus.BAD_REQUEST, "%s is not a legal room ID" % (room_id,)
+                HTTPStatus.BAD_REQUEST, f"{room_id} is not a legal room ID"
             )
 
         blocked_by = await self._store.room_is_blocked_by(room_id)
@@ -862,7 +862,7 @@ class BlockRoomRestServlet(RestServlet):
 
         if not RoomID.is_valid(room_id):
             raise RelapseError(
-                HTTPStatus.BAD_REQUEST, "%s is not a legal room ID" % (room_id,)
+                HTTPStatus.BAD_REQUEST, f"{room_id} is not a legal room ID"
             )
 
         assert_params_in_dict(content, ["block"])

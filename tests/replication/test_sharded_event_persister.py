@@ -273,9 +273,7 @@ class EventPersisterShardTestCase(BaseMultiWorkerStreamTestCase):
             self.reactor,
             sync_hs_site,
             "GET",
-            "/rooms/{}/messages?from={}&to={}&dir=b".format(
-                room_id1, prev_batch1, vector_clock_token
-            ),
+            f"/rooms/{room_id1}/messages?from={prev_batch1}&to={vector_clock_token}&dir=b",
             access_token=access_token,
         )
         self.assertListEqual([], channel.json_body["chunk"])
@@ -286,9 +284,7 @@ class EventPersisterShardTestCase(BaseMultiWorkerStreamTestCase):
             self.reactor,
             sync_hs_site,
             "GET",
-            "/rooms/{}/messages?from={}&to={}&dir=b".format(
-                room_id2, prev_batch2, vector_clock_token
-            ),
+            f"/rooms/{room_id2}/messages?from={prev_batch2}&to={vector_clock_token}&dir=b",
             access_token=access_token,
         )
         self.assertEqual(len(channel.json_body["chunk"]), 1)
@@ -301,9 +297,7 @@ class EventPersisterShardTestCase(BaseMultiWorkerStreamTestCase):
             self.reactor,
             sync_hs_site,
             "GET",
-            "/rooms/{}/messages?from={}&to={}&dir=f".format(
-                room_id1, vector_clock_token, prev_batch1
-            ),
+            f"/rooms/{room_id1}/messages?from={vector_clock_token}&to={prev_batch1}&dir=f",
             access_token=access_token,
         )
         self.assertListEqual([], channel.json_body["chunk"])
@@ -312,11 +306,7 @@ class EventPersisterShardTestCase(BaseMultiWorkerStreamTestCase):
             self.reactor,
             sync_hs_site,
             "GET",
-            "/rooms/{}/messages?from={}&to={}&dir=f".format(
-                room_id2,
-                vector_clock_token,
-                prev_batch2,
-            ),
+            f"/rooms/{room_id2}/messages?from={vector_clock_token}&to={prev_batch2}&dir=f",
             access_token=access_token,
         )
         self.assertEqual(len(channel.json_body["chunk"]), 1)

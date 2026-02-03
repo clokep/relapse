@@ -85,12 +85,7 @@ async def resolve_events_with_store(
     for event in state_map.values():
         if event.room_id != room_id:
             raise Exception(
-                "Attempting to state-resolve for room %s with event %s which is in %s"
-                % (
-                    room_id,
-                    event.event_id,
-                    event.room_id,
-                )
+                f"Attempting to state-resolve for room {room_id} with event {event.event_id} which is in {event.room_id}"
             )
 
     # get the ids of the auth events which allow us to authenticate the
@@ -113,12 +108,7 @@ async def resolve_events_with_store(
     for event in state_map_new.values():
         if event.room_id != room_id:
             raise Exception(
-                "Attempting to state-resolve for room %s with event %s which is in %s"
-                % (
-                    room_id,
-                    event.event_id,
-                    event.room_id,
-                )
+                f"Attempting to state-resolve for room {room_id} with event {event.event_id} which is in {event.room_id}"
             )
 
     state_map.update(state_map_new)

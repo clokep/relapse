@@ -135,7 +135,7 @@ class ConsentResource(DirectServeHtmlResource):
         try:
             self._render_template(
                 request,
-                "%s.html" % (version,),
+                f"{version}.html",
                 user=username,
                 userhmac=userhmac,
                 version=version,

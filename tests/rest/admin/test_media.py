@@ -54,7 +54,7 @@ class DeleteMediaByIDTestCase(_AdminMediaTests):
         """
         Try to delete media without authentication.
         """
-        url = "/_relapse/admin/v1/media/%s/%s" % (self.server_name, "12345")
+        url = "/_relapse/admin/v1/media/{}/{}".format(self.server_name, "12345")
 
         channel = self.make_request("DELETE", url, b"{}")
 
@@ -72,7 +72,7 @@ class DeleteMediaByIDTestCase(_AdminMediaTests):
         self.other_user = self.register_user("user", "pass")
         self.other_user_token = self.login("user", "pass")
 
-        url = "/_relapse/admin/v1/media/%s/%s" % (self.server_name, "12345")
+        url = "/_relapse/admin/v1/media/{}/{}".format(self.server_name, "12345")
 
         channel = self.make_request(
             "DELETE",
@@ -87,7 +87,7 @@ class DeleteMediaByIDTestCase(_AdminMediaTests):
         """
         Tests that a lookup for a media that does not exist returns a 404
         """
-        url = "/_relapse/admin/v1/media/%s/%s" % (self.server_name, "12345")
+        url = "/_relapse/admin/v1/media/{}/{}".format(self.server_name, "12345")
 
         channel = self.make_request(
             "DELETE",
@@ -102,7 +102,7 @@ class DeleteMediaByIDTestCase(_AdminMediaTests):
         """
         Tests that a lookup for a media that is not a local returns a 400
         """
-        url = "/_relapse/admin/v1/media/%s/%s" % ("unknown_domain", "12345")
+        url = "/_relapse/admin/v1/media/{}/{}".format("unknown_domain", "12345")
 
         channel = self.make_request(
             "DELETE",
@@ -143,7 +143,7 @@ class DeleteMediaByIDTestCase(_AdminMediaTests):
             200,
             channel.code,
             msg=(
-                "Expected to receive a 200 on accessing media: %s" % server_and_media_id
+                f"Expected to receive a 200 on accessing media: {server_and_media_id}"
             ),
         )
 
@@ -151,7 +151,7 @@ class DeleteMediaByIDTestCase(_AdminMediaTests):
         local_path = self.filepaths.local_media_filepath(media_id)
         self.assertTrue(os.path.exists(local_path))
 
-        url = "/_relapse/admin/v1/media/%s/%s" % (self.server_name, media_id)
+        url = f"/_relapse/admin/v1/media/{self.server_name}/{media_id}"
 
         # Delete media
         channel = self.make_request(
@@ -178,8 +178,7 @@ class DeleteMediaByIDTestCase(_AdminMediaTests):
             404,
             channel.code,
             msg=(
-                "Expected to receive a 404 on accessing deleted media: %s"
-                % server_and_media_id
+                f"Expected to receive a 404 on accessing deleted media: {server_and_media_id}"
             ),
         )
 
@@ -201,7 +200,7 @@ class DeleteMediaByDateSizeTestCase(_AdminMediaTests):
 
         self.filepaths = MediaFilePaths(hs.config.media.media_store_path)
         self.url = "/_relapse/admin/v1/media/delete"
-        self.legacy_url = "/_relapse/admin/v1/media/%s/delete" % self.server_name
+        self.legacy_url = f"/_relapse/admin/v1/media/{self.server_name}/delete"
 
         # Move clock up to somewhat realistic time
         self.reactor.advance(1000000000)
@@ -236,7 +235,7 @@ class DeleteMediaByDateSizeTestCase(_AdminMediaTests):
         """
         Tests that a lookup for media that is not local returns a 400
         """
-        url = "/_relapse/admin/v1/media/%s/delete" % "unknown_domain"
+        url = "/_relapse/admin/v1/media/{}/delete".format("unknown_domain")
 
         channel = self.make_request(
             "POST",
@@ -437,8 +436,8 @@ class DeleteMediaByDateSizeTestCase(_AdminMediaTests):
         # set media as avatar
         channel = self.make_request(
             "PUT",
-            "/profile/%s/avatar_url" % (self.admin_user,),
-            content={"avatar_url": "mxc://%s" % (server_and_media_id,)},
+            f"/profile/{self.admin_user}/avatar_url",
+            content={"avatar_url": f"mxc://{server_and_media_id}"},
             access_token=self.admin_user_tok,
         )
         self.assertEqual(200, channel.code, msg=channel.json_body)
@@ -482,8 +481,8 @@ class DeleteMediaByDateSizeTestCase(_AdminMediaTests):
         room_id = self.helper.create_room_as(self.admin_user, tok=self.admin_user_tok)
         channel = self.make_request(
             "PUT",
-            "/rooms/%s/state/m.room.avatar" % (room_id,),
-            content={"url": "mxc://%s" % (server_and_media_id,)},
+            f"/rooms/{room_id}/state/m.room.avatar",
+            content={"url": f"mxc://{server_and_media_id}"},
             access_token=self.admin_user_tok,
         )
         self.assertEqual(200, channel.code, msg=channel.json_body)
@@ -554,8 +553,7 @@ class DeleteMediaByDateSizeTestCase(_AdminMediaTests):
                 200,
                 channel.code,
                 msg=(
-                    "Expected to receive a 200 on accessing media: %s"
-                    % server_and_media_id
+                    f"Expected to receive a 200 on accessing media: {server_and_media_id}"
                 ),
             )
             # Test that the file exists
@@ -565,8 +563,7 @@ class DeleteMediaByDateSizeTestCase(_AdminMediaTests):
                 404,
                 channel.code,
                 msg=(
-                    "Expected to receive a 404 on accessing deleted media: %s"
-                    % (server_and_media_id)
+                    f"Expected to receive a 404 on accessing deleted media: {server_and_media_id}"
                 ),
             )
             # Test that the file is deleted

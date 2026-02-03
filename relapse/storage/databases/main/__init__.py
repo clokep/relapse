@@ -266,13 +266,14 @@ class DataStore(
                     if not_user_types_has_empty:
                         # NULL values should be excluded.
                         # They evaluate to false > nothing to do here.
-                        filters.append("NOT %s" % (not_user_type_clause))
+                        filters.append(f"NOT {not_user_type_clause}")
                     else:
                         # NULL values should *not* be excluded.
                         # Add a special predicate to the query.
                         filters.append(
-                            "(NOT %s OR %s IS NULL)"
-                            % (not_user_type_clause, "u.user_type")
+                            "(NOT {} OR {} IS NULL)".format(
+                                not_user_type_clause, "u.user_type"
+                            )
                         )
 
                     args.extend(not_user_type_args)
@@ -394,9 +395,8 @@ def check_database_before_upgrade(
         return
 
     raise Exception(
-        "Found users in database not native to %s!\n"
+        f"Found users in database not native to {config.server.server_name}!\n"
         "You cannot change a relapse server_name after it's been configured"
-        % (config.server.server_name,)
     )
 
 

@@ -143,10 +143,9 @@ class PurgeEventsStore(StateGroupWorkerStore, CacheInvalidationWorkerStore):
         # deleted, as nothing will happen to them.
         txn.execute(
             "INSERT INTO events_to_purge"
-            " SELECT event_id, %s"
+            f" SELECT event_id, {should_delete_expr}"
             " FROM events AS e LEFT JOIN state_events USING (event_id)"
-            " WHERE (NOT outlier OR (%s)) AND e.room_id = ? AND topological_ordering < ?"
-            % (should_delete_expr, should_delete_expr),
+            f" WHERE (NOT outlier OR ({should_delete_expr})) AND e.room_id = ? AND topological_ordering < ?",
             should_delete_params,
         )
 
@@ -233,9 +232,9 @@ class PurgeEventsStore(StateGroupWorkerStore, CacheInvalidationWorkerStore):
             logger.info("[purge] removing events from %s", table)
 
             txn.execute(
-                "DELETE FROM %s WHERE event_id IN ("
+                f"DELETE FROM {table} WHERE event_id IN ("
                 "    SELECT event_id FROM events_to_purge WHERE should_delete"
-                ")" % (table,)
+                ")"
             )
 
         # event_push_actions lacks an index on event_id, and has one on
@@ -244,9 +243,9 @@ class PurgeEventsStore(StateGroupWorkerStore, CacheInvalidationWorkerStore):
             logger.info("[purge] removing events from %s", table)
 
             txn.execute(
-                "DELETE FROM %s WHERE room_id = ? AND event_id IN ("
+                f"DELETE FROM {table} WHERE room_id = ? AND event_id IN ("
                 "    SELECT event_id FROM events_to_purge WHERE should_delete"
-                ")" % (table,),
+                ")",
                 (room_id,),
             )
 
@@ -419,12 +418,11 @@ class PurgeEventsStore(StateGroupWorkerStore, CacheInvalidationWorkerStore):
             logger.info("[purge] removing from %s", table)
 
             txn.execute(
-                """
-                DELETE FROM %s WHERE event_id IN (
+                f"""
+                DELETE FROM {table} WHERE event_id IN (
                   SELECT event_id FROM events WHERE room_id=?
                 )
-                """
-                % (table,),
+                """,
                 (room_id,),
             )
 
@@ -470,7 +468,7 @@ class PurgeEventsStore(StateGroupWorkerStore, CacheInvalidationWorkerStore):
             "rooms",
         ):
             logger.info("[purge] removing from %s", table)
-            txn.execute("DELETE FROM %s WHERE room_id=?" % (table,), (room_id,))
+            txn.execute(f"DELETE FROM {table} WHERE room_id=?", (room_id,))
 
         # Other tables we do NOT need to clear out:
         #

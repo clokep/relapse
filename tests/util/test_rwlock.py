@@ -128,11 +128,11 @@ class ReadWriteLockTestCase(unittest.TestCase):
                 resolved.
         """
         for i, d in enumerate(deferreds[:n]):
-            self.assertTrue(d.called, msg="deferred %d was unexpectedly unresolved" % i)
+            self.assertTrue(d.called, msg=f"deferred {i} was unexpectedly unresolved")
 
         for i, d in enumerate(deferreds[n:]):
             self.assertFalse(
-                d.called, msg="deferred %d was unexpectedly resolved" % (i + n)
+                d.called, msg=f"deferred {i + n} was unexpectedly resolved"
             )
 
     def test_rwlock(self) -> None:

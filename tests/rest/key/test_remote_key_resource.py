@@ -58,7 +58,7 @@ class BaseRemoteKeyResourceTestCase(unittest.HomeserverTestCase):
         ) -> Union[JsonDict, list]:
             self.assertTrue(ignore_backoff)
             self.assertEqual(destination, server_name)
-            key_id = "%s:%s" % (signing_key.alg, signing_key.version)
+            key_id = f"{signing_key.alg}:{signing_key.version}"
             self.assertEqual(path, "/_matrix/key/v2/server")
 
             response = {
@@ -163,10 +163,7 @@ class EndToEndPerspectivesTests(BaseRemoteKeyResourceTestCase):
             {
                 "server_name": self.hs.hostname,
                 "verify_keys": {
-                    "ed25519:%s"
-                    % (
-                        self.hs_signing_key.version,
-                    ): signedjson.key.encode_verify_key_base64(
+                    f"ed25519:{self.hs_signing_key.version}": signedjson.key.encode_verify_key_base64(
                         signedjson.key.get_verify_key(self.hs_signing_key)
                     )
                 },
@@ -211,7 +208,7 @@ class EndToEndPerspectivesTests(BaseRemoteKeyResourceTestCase):
 
         # we expect hs1 to make a regular key request to the target server
         self.expect_outgoing_key_request("targetserver", testkey)
-        keyid = "ed25519:%s" % (testkey.version,)
+        keyid = f"ed25519:{testkey.version}"
 
         fetcher = PerspectivesKeyFetcher(self.hs2)
         d = fetcher.get_keys("targetserver", [keyid], 1000)
@@ -235,7 +232,7 @@ class EndToEndPerspectivesTests(BaseRemoteKeyResourceTestCase):
 
         # we expect hs1 to make a regular key request to itself
         self.expect_outgoing_key_request(self.hs.hostname, testkey)
-        keyid = "ed25519:%s" % (testkey.version,)
+        keyid = f"ed25519:{testkey.version}"
 
         fetcher = PerspectivesKeyFetcher(self.hs2)
         d = fetcher.get_keys(self.hs.hostname, [keyid], 1000)
@@ -254,7 +251,7 @@ class EndToEndPerspectivesTests(BaseRemoteKeyResourceTestCase):
         """Fetch the notary's keyserver key"""
         # we expect hs1 to make a regular key request to itself
         self.expect_outgoing_key_request(self.hs.hostname, self.hs_signing_key)
-        keyid = "ed25519:%s" % (self.hs_signing_key.version,)
+        keyid = f"ed25519:{self.hs_signing_key.version}"
 
         fetcher = PerspectivesKeyFetcher(self.hs2)
         d = fetcher.get_keys(self.hs.hostname, [keyid], 1000)

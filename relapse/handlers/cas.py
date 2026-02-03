@@ -101,10 +101,7 @@ class CasHandler:
         Returns:
             The URL to use as a "service" parameter.
         """
-        return "%s?%s" % (
-            self._cas_service_url,
-            urllib.parse.urlencode(args),
-        )
+        return f"{self._cas_service_url}?{urllib.parse.urlencode(args)}"
 
     async def _validate_ticket(
         self, ticket: str, service_args: dict[str, str]
@@ -142,9 +139,9 @@ class CasHandler:
             body = pde.response
         except HttpResponseException as e:
             description = (
-                'Authorization server responded with a "{status}" error '
+                f'Authorization server responded with a "{e.code}" error '
                 "while exchanging the authorization code."
-            ).format(status=e.code)
+            )
             raise CasError("server_error", description) from e
 
         return self._parse_cas_response(body)
@@ -227,7 +224,7 @@ class CasHandler:
             {"service": self._build_service_param(service_args)}
         )
 
-        return "%s/login?%s" % (self._cas_server_url, args)
+        return f"{self._cas_server_url}/login?{args}"
 
     async def handle_ticket(
         self,

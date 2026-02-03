@@ -191,13 +191,14 @@ class SearchHandler:
             raise RelapseError(400, "Invalid search query")
 
         if order_by not in ("rank", "recent"):
-            raise RelapseError(400, "Invalid order by: %r" % (order_by,))
+            raise RelapseError(400, f"Invalid order by: {order_by!r}")
 
         if set(group_keys) - {"room_id", "sender"}:
             raise RelapseError(
                 400,
-                "Invalid group by keys: %r"
-                % (set(group_keys) - {"room_id", "sender"},),
+                "Invalid group by keys: {!r}".format(
+                    set(group_keys) - {"room_id", "sender"}
+                ),
             )
 
         return await self._search(
@@ -598,18 +599,18 @@ class SearchHandler:
             # than reverting to searching all results again.
             if batch_group and batch_group_key:
                 global_next_batch = encode_base64(
-                    (
-                        "%s\n%s\n%s" % (batch_group, batch_group_key, pagination_token)
-                    ).encode("ascii")
+                    (f"{batch_group}\n{batch_group_key}\n{pagination_token}").encode(
+                        "ascii"
+                    )
                 )
             else:
                 global_next_batch = encode_base64(
-                    ("%s\n%s\n%s" % ("all", "", pagination_token)).encode("ascii")
+                    ("{}\n{}\n{}".format("all", "", pagination_token)).encode("ascii")
                 )
 
             for room_id, group in room_groups.items():
                 group["next_batch"] = encode_base64(
-                    ("%s\n%s\n%s" % ("room_id", room_id, pagination_token)).encode(
+                    ("{}\n{}\n{}".format("room_id", room_id, pagination_token)).encode(
                         "ascii"
                     )
                 )

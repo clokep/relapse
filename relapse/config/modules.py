@@ -26,7 +26,7 @@ class ModulesConfig(Config):
 
         configured_modules = config.get("modules") or []
         for i, module in enumerate(configured_modules):
-            config_path = ("modules", "<item %i>" % i)
+            config_path = ("modules", f"<item {i}>")
             if not isinstance(module, dict):
                 raise ConfigError("expected a mapping", config_path)
 

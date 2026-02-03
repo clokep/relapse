@@ -376,7 +376,7 @@ class BaseFederationServlet:
         pattern = re.compile("^" + self.PREFIX + self.PATH + "$")
 
         for method in ("GET", "PUT", "POST"):
-            code = getattr(self, "on_%s" % (method), None)
+            code = getattr(self, f"on_{method}", None)
             if code is None:
                 continue
 

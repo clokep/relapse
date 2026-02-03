@@ -182,7 +182,7 @@ class MediaFilePaths:
         self, media_id: str, width: int, height: int, content_type: str, method: str
     ) -> str:
         top_level_type, sub_type = content_type.split("/")
-        file_name = "%i-%i-%s-%s-%s" % (width, height, top_level_type, sub_type, method)
+        file_name = f"{width}-{height}-{top_level_type}-{sub_type}-{method}"
         return os.path.join(
             "local_thumbnails",
             _validate_path_component(media_id[0:2]),
@@ -234,7 +234,7 @@ class MediaFilePaths:
         method: str,
     ) -> str:
         top_level_type, sub_type = content_type.split("/")
-        file_name = "%i-%i-%s-%s-%s" % (width, height, top_level_type, sub_type, method)
+        file_name = f"{width}-{height}-{top_level_type}-{sub_type}-{method}"
         return os.path.join(
             "remote_thumbnail",
             _validate_path_component(server_name),
@@ -254,7 +254,7 @@ class MediaFilePaths:
         self, server_name: str, file_id: str, width: int, height: int, content_type: str
     ) -> str:
         top_level_type, sub_type = content_type.split("/")
-        file_name = "%i-%i-%s-%s" % (width, height, top_level_type, sub_type)
+        file_name = f"{width}-{height}-{top_level_type}-{sub_type}"
         return os.path.join(
             "remote_thumbnail",
             _validate_path_component(server_name),
@@ -325,7 +325,7 @@ class MediaFilePaths:
         # E.g.: 2017-09-28-fsdRDt24DS234dsf
 
         top_level_type, sub_type = content_type.split("/")
-        file_name = "%i-%i-%s-%s-%s" % (width, height, top_level_type, sub_type, method)
+        file_name = f"{width}-{height}-{top_level_type}-{sub_type}-{method}"
 
         if NEW_FORMAT_ID_RE.match(media_id):
             return os.path.join(

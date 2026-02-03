@@ -117,7 +117,7 @@ class SamlHandler:
         )
 
         # Since SAML sessions timeout it is useful to log when they were created.
-        logger.info("Initiating a new SAML session: %s" % (reqid,))
+        logger.info(f"Initiating a new SAML session: {reqid}")
 
         now = self.clock.time_msec()
         self._outstanding_requests_dict[reqid] = Saml2SessionData(
@@ -169,7 +169,7 @@ class SamlHandler:
             self._sso_handler.render_error(
                 request,
                 "invalid_response",
-                "Unable to parse SAML2 response: %s." % (e,),
+                f"Unable to parse SAML2 response: {e}.",
             )
             return
 
@@ -209,7 +209,7 @@ class SamlHandler:
             count = 0
             for part in chunk_seq(str(assertion), 10000):
                 logger.info(
-                    "SAML2 assertion: %s%s", "(%i)..." % (count,) if count else "", part
+                    "SAML2 assertion: %s%s", f"({count})..." if count else "", part
                 )
                 count += 1
 
@@ -372,7 +372,7 @@ class SamlHandler:
 
 
 DOT_REPLACE_PATTERN = re.compile(
-    "[^%s]" % (re.escape("".join(MXID_LOCALPART_ALLOWED_CHARACTERS)),)
+    "[^{}]".format(re.escape("".join(MXID_LOCALPART_ALLOWED_CHARACTERS)))
 )
 
 
@@ -455,7 +455,7 @@ class DefaultSamlMappingProvider:
                 self._mxid_source_attribute,
             )
             raise RelapseError(
-                400, "%s not in SAML2 response" % (self._mxid_source_attribute,)
+                400, f"{self._mxid_source_attribute} not in SAML2 response"
             )
 
         # Use the configured mapper for this mxid_source
@@ -495,8 +495,8 @@ class DefaultSamlMappingProvider:
             mxid_mapper = MXID_MAPPER_MAP[mapping_type]
         except KeyError:
             raise ConfigError(
-                "saml2_config.user_mapping_provider.config: '%s' is not a valid "
-                "mxid_mapping value" % (mapping_type,)
+                f"saml2_config.user_mapping_provider.config: '{mapping_type}' is not a valid "
+                "mxid_mapping value"
             )
 
         return SamlConfig(mxid_source_attribute, mxid_mapper)

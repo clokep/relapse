@@ -352,7 +352,7 @@ class DeviceMessageHandler:
             if not since_token.startswith("d"):
                 raise RelapseError(
                     HTTPStatus.BAD_REQUEST,
-                    "from parameter %r has an invalid format" % (since_token,),
+                    f"from parameter {since_token!r} has an invalid format",
                     errcode=Codes.INVALID_PARAM,
                 )
 
@@ -361,7 +361,7 @@ class DeviceMessageHandler:
             except Exception:
                 raise RelapseError(
                     HTTPStatus.BAD_REQUEST,
-                    "from parameter %r has an invalid format" % (since_token,),
+                    f"from parameter {since_token!r} has an invalid format",
                     errcode=Codes.INVALID_PARAM,
                 )
 

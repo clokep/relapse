@@ -253,7 +253,7 @@ class FederationServer(FederationBase):
 
         raise RelapseError(
             404,
-            "Unable to find event from %s in direction %s" % (timestamp, direction),
+            f"Unable to find event from {timestamp} in direction {direction}",
             errcode=Codes.NOT_FOUND,
         )
 
@@ -903,7 +903,7 @@ class FederationServer(FederationBase):
             raise RelapseError(400, "Not an m.room.member event", Codes.BAD_JSON)
 
         if event.content.get("membership") != membership_type:
-            raise RelapseError(400, "Not a %s event" % membership_type, Codes.BAD_JSON)
+            raise RelapseError(400, f"Not a {membership_type} event", Codes.BAD_JSON)
 
         origin_host, _ = parse_server_name(origin)
         await self.check_server_matches_acl(origin_host, event.room_id)
@@ -1011,7 +1011,7 @@ class FederationServer(FederationBase):
             "Claimed one-time-keys: %s",
             ",".join(
                 (
-                    "%s for %s:%s" % (key_id, user_id, device_id)
+                    f"{key_id} for {user_id}:{device_id}"
                     for user_id, user_keys in json_result.items()
                     for device_id, device_keys in user_keys.items()
                     for key_id, _ in device_keys.items()
@@ -1356,7 +1356,7 @@ class FederationHandlerRegistry:
                 the EDU contents.
         """
         if edu_type in self.edu_handlers:
-            raise KeyError("Already have an EDU handler for %s" % (edu_type,))
+            raise KeyError(f"Already have an EDU handler for {edu_type}")
 
         logger.info("Registering federation EDU handler for %r", edu_type)
 
@@ -1376,7 +1376,7 @@ class FederationHandlerRegistry:
                 on and the result used as the response to the query request.
         """
         if query_type in self.query_handlers:
-            raise KeyError("Already have a Query handler for %s" % (query_type,))
+            raise KeyError(f"Already have a Query handler for {query_type}")
 
         logger.info("Registering federation query handler for %r", query_type)
 
@@ -1438,7 +1438,7 @@ class FederationHandlerRegistry:
         # Uh oh, no handler! Let's raise an exception so the request returns an
         # error.
         logger.warning("No handler registered for query type %s", query_type)
-        raise NotFoundError("No handler for Query type '%s'" % (query_type,))
+        raise NotFoundError(f"No handler for Query type '{query_type}'")
 
 
 def _get_event_ids_for_partial_state_join(

@@ -337,7 +337,7 @@ class AuthTestCase(unittest.HomeserverTestCase):
         # "Legacy" macaroons should not work for regular users not in the database
         macaroon.add_first_party_caveat("gen = 1")
         macaroon.add_first_party_caveat("type = access")
-        macaroon.add_first_party_caveat("user_id = %s" % (user_id,))
+        macaroon.add_first_party_caveat(f"user_id = {user_id}")
         serialized = macaroon.serialize()
         self.get_failure(
             self.auth.get_user_by_access_token(serialized), InvalidClientTokenError
@@ -358,7 +358,7 @@ class AuthTestCase(unittest.HomeserverTestCase):
         )
         macaroon.add_first_party_caveat("gen = 1")
         macaroon.add_first_party_caveat("type = access")
-        macaroon.add_first_party_caveat("user_id = %s" % (user_id,))
+        macaroon.add_first_party_caveat(f"user_id = {user_id}")
         macaroon.add_first_party_caveat("guest = true")
         serialized = macaroon.serialize()
 

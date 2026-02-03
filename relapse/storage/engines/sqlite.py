@@ -122,7 +122,7 @@ class Sqlite3Engine(BaseDatabaseEngine[sqlite3.Connection, sqlite3.Cursor]):
     @property
     def server_version(self) -> str:
         """Gets a string giving the server version. For example: '3.22.0'."""
-        return "%i.%i.%i" % sqlite3.sqlite_version_info
+        return ".".join(map(str, sqlite3.sqlite_version_info))
 
     @property
     def row_id_name(self) -> str:

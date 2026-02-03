@@ -737,7 +737,7 @@ def generate_self_id_key() -> SigningKey:
 
 
 def key_id(k: BaseKey) -> str:
-    return "%s:%s" % (k.alg, k.version)
+    return f"{k.alg}:{k.version}"
 
 
 def encode_pubkey(sk: SigningKey) -> str:

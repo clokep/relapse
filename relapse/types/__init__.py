@@ -237,14 +237,14 @@ def create_requester(
 def get_domain_from_id(string: str) -> str:
     idx = string.find(":")
     if idx == -1:
-        raise RelapseError(400, "Invalid ID: %r" % (string,))
+        raise RelapseError(400, f"Invalid ID: {string!r}")
     return string[idx + 1 :]
 
 
 def get_localpart_from_id(string: str) -> str:
     idx = string.find(":")
     if idx == -1:
-        raise RelapseError(400, "Invalid ID: %r" % (string,))
+        raise RelapseError(400, f"Invalid ID: {string!r}")
     return string[1:idx]
 
 
@@ -280,7 +280,7 @@ class DomainSpecificString(metaclass=abc.ABCMeta):
         if len(s) < 1 or s[0:1] != cls.SIGIL:
             raise RelapseError(
                 400,
-                "Expected %s string to start with '%s'" % (cls.__name__, cls.SIGIL),
+                f"Expected {cls.__name__} string to start with '{cls.SIGIL}'",
                 Codes.INVALID_PARAM,
             )
 
@@ -288,8 +288,7 @@ class DomainSpecificString(metaclass=abc.ABCMeta):
         if len(parts) != 2:
             raise RelapseError(
                 400,
-                "Expected %s of the form '%slocalname:domain'"
-                % (cls.__name__, cls.SIGIL),
+                f"Expected {cls.__name__} of the form '{cls.SIGIL}localname:domain'",
                 Codes.INVALID_PARAM,
             )
 
@@ -300,7 +299,7 @@ class DomainSpecificString(metaclass=abc.ABCMeta):
 
     def to_string(self) -> str:
         """Return a string encoding the fields of the structure object."""
-        return "%s%s:%s" % (self.SIGIL, self.localpart, self.domain)
+        return f"{self.SIGIL}{self.localpart}:{self.domain}"
 
     @classmethod
     def is_valid(cls: type[DS], s: str) -> bool:
@@ -384,9 +383,9 @@ UPPER_CASE_PATTERN = re.compile(b"[A-Z_]")
 #    bytes rather than strings
 #
 NON_MXID_CHARACTER_PATTERN = re.compile(
-    ("[^%s]" % (re.escape("".join(MXID_LOCALPART_ALLOWED_CHARACTERS - {"="})),)).encode(
-        "ascii"
-    )
+    (
+        "[^{}]".format(re.escape("".join(MXID_LOCALPART_ALLOWED_CHARACTERS - {"="})))
+    ).encode("ascii")
 )
 
 
@@ -623,7 +622,7 @@ class RoomStreamToken(AbstractMultiWriterStreamToken):
             raise
         except Exception:
             pass
-        raise RelapseError(400, "Invalid room stream token %r" % (string,))
+        raise RelapseError(400, f"Invalid room stream token {string!r}")
 
     @classmethod
     def parse_stream_token(cls, string: str) -> "RoomStreamToken":
@@ -632,7 +631,7 @@ class RoomStreamToken(AbstractMultiWriterStreamToken):
                 return cls(topological=None, stream=int(string[1:]))
         except Exception:
             pass
-        raise RelapseError(400, "Invalid room stream token %r" % (string,))
+        raise RelapseError(400, f"Invalid room stream token {string!r}")
 
     def copy_and_advance(self, other: "RoomStreamToken") -> "RoomStreamToken":
         """Return a new token such that if an event is after both this token and
@@ -670,7 +669,7 @@ class RoomStreamToken(AbstractMultiWriterStreamToken):
 
     async def to_string(self, store: "DataStore") -> str:
         if self.topological is not None:
-            return "t%d-%d" % (self.topological, self.stream)
+            return f"t{self.topological}-{self.stream}"
         elif self.instance_map:
             entries = []
             for name, pos in self.instance_map.items():
@@ -686,7 +685,7 @@ class RoomStreamToken(AbstractMultiWriterStreamToken):
             encoded_map = "~".join(entries)
             return f"m{self.stream}~{encoded_map}"
         else:
-            return "s%d" % (self.stream,)
+            return f"s{self.stream}"
 
 
 @attr.s(frozen=True, slots=True, order=False)
@@ -719,7 +718,7 @@ class MultiWriterStreamToken(AbstractMultiWriterStreamToken):
             raise
         except Exception:
             pass
-        raise RelapseError(400, "Invalid stream token %r" % (string,))
+        raise RelapseError(400, f"Invalid stream token {string!r}")
 
     async def to_string(self, store: "DataStore") -> str:
         if self.instance_map:
@@ -1042,7 +1041,7 @@ class ThirdPartyInstanceID:
     # set by:
     #    users = set(user)
     def __iter__(self) -> NoReturn:
-        raise ValueError("Attempted to iterate a %s" % (type(self).__name__,))
+        raise ValueError(f"Attempted to iterate a {type(self).__name__}")
 
     # Because this class is a frozen class, it is deeply immutable.
     def __copy__(self) -> "ThirdPartyInstanceID":
@@ -1055,12 +1054,12 @@ class ThirdPartyInstanceID:
     def from_string(cls, s: str) -> "ThirdPartyInstanceID":
         bits = s.split("|", 2)
         if len(bits) != 2:
-            raise RelapseError(400, "Invalid ID %r" % (s,))
+            raise RelapseError(400, f"Invalid ID {s!r}")
 
         return cls(appservice_id=bits[0], network_id=bits[1])
 
     def to_string(self) -> str:
-        return "%s|%s" % (self.appservice_id, self.network_id)
+        return f"{self.appservice_id}|{self.network_id}"
 
     __str__ = to_string
 
