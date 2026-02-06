@@ -15,8 +15,8 @@
 import heapq
 import logging
 from collections import ChainMap, defaultdict
-from collections.abc import Awaitable, Mapping, Sequence
-from typing import TYPE_CHECKING, Any, Callable, Optional
+from collections.abc import Awaitable, Callable, Mapping, Sequence
+from typing import TYPE_CHECKING, Any, Optional
 
 import attr
 from immutabledict import immutabledict

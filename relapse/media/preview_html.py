@@ -13,11 +13,9 @@
 # limitations under the License.
 import logging
 import re
+from collections.abc import Callable, Generator, Iterable
 from typing import (
     TYPE_CHECKING,
-    Callable,
-    Generator,
-    Iterable,
     Optional,
     Union,
     cast,

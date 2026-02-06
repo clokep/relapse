@@ -17,14 +17,15 @@ import logging
 import random
 import sys
 import urllib.parse
+from collections.abc import Callable
 from http import HTTPStatus
 from io import BytesIO, StringIO
 from typing import (
     TYPE_CHECKING,
     Any,
     BinaryIO,
-    Callable,
     Generic,
+    Literal,
     Optional,
     TextIO,
     TypeVar,
@@ -38,7 +39,6 @@ import treq
 from canonicaljson import encode_canonical_json
 from prometheus_client import Counter
 from signedjson.sign import sign_json
-from typing_extensions import Literal
 
 from twisted.internet import defer
 from twisted.internet.error import DNSLookupError

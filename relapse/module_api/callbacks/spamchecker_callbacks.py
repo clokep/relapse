@@ -14,8 +14,8 @@
 # limitations under the License.
 
 import logging
-from collections.abc import Awaitable, Collection
-from typing import TYPE_CHECKING, Callable, Literal, Optional, Union
+from collections.abc import Awaitable, Callable, Collection
+from typing import TYPE_CHECKING, Literal, Optional, Union
 
 import relapse
 from relapse.api.errors import Codes

@@ -21,9 +21,8 @@
 import abc
 import functools
 import logging
-from typing import TYPE_CHECKING, Any, Callable, Iterable, Optional, TypeVar, cast
-
-from typing_extensions import TypeAlias
+from collections.abc import Callable, Iterable
+from typing import TYPE_CHECKING, Any, Optional, TypeAlias, TypeVar, cast
 
 from twisted.internet.interfaces import IOpenSSLContextFactory
 from twisted.internet.tcp import Port

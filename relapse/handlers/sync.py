@@ -13,8 +13,8 @@
 # limitations under the License.
 import itertools
 import logging
-from collections.abc import Mapping, Sequence
-from typing import TYPE_CHECKING, AbstractSet, Any, Optional
+from collections.abc import Mapping, Sequence, Set
+from typing import TYPE_CHECKING, Any, Optional
 
 import attr
 from prometheus_client import Counter
@@ -1608,10 +1608,10 @@ class SyncHandler:
     async def _generate_sync_entry_for_device_list(
         self,
         sync_result_builder: "SyncResultBuilder",
-        newly_joined_rooms: AbstractSet[str],
-        newly_joined_or_invited_or_knocked_users: AbstractSet[str],
-        newly_left_rooms: AbstractSet[str],
-        newly_left_users: AbstractSet[str],
+        newly_joined_rooms: Set[str],
+        newly_joined_or_invited_or_knocked_users: Set[str],
+        newly_left_rooms: Set[str],
+        newly_left_users: Set[str],
     ) -> DeviceListUpdates:
         """Generate the DeviceListUpdates section of sync
 
@@ -1830,8 +1830,8 @@ class SyncHandler:
     async def _generate_sync_entry_for_presence(
         self,
         sync_result_builder: "SyncResultBuilder",
-        newly_joined_rooms: AbstractSet[str],
-        newly_joined_or_invited_users: AbstractSet[str],
+        newly_joined_rooms: Set[str],
+        newly_joined_or_invited_users: Set[str],
     ) -> None:
         """Generates the presence portion of the sync response. Populates the
         `sync_result_builder` with the result.
@@ -1887,7 +1887,7 @@ class SyncHandler:
 
     async def _generate_sync_entry_for_rooms(
         self, sync_result_builder: "SyncResultBuilder"
-    ) -> tuple[AbstractSet[str], AbstractSet[str]]:
+    ) -> tuple[Set[str], Set[str]]:
         """Generates the rooms portion of the sync response. Populates the
         `sync_result_builder` with the result.
 
@@ -2707,7 +2707,7 @@ class SyncResultBuilder:
     archived: list[ArchivedSyncResult] = attr.Factory(list)
     to_device: list[JsonDict] = attr.Factory(list)
 
-    def calculate_user_changes(self) -> tuple[AbstractSet[str], AbstractSet[str]]:
+    def calculate_user_changes(self) -> tuple[Set[str], Set[str]]:
         """Work out which other users have joined or left rooms we are joined to.
 
         This data only is only useful for an incremental sync.

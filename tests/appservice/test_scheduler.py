@@ -12,10 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from collections.abc import Sequence
-from typing import Optional, cast
+from typing import Optional, TypeAlias, cast
 from unittest.mock import AsyncMock, Mock
-
-from typing_extensions import TypeAlias
 
 from twisted.internet import defer
 from twisted.internet.testing import MemoryReactor

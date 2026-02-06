@@ -19,12 +19,12 @@ import logging
 import types
 import urllib
 import urllib.parse
-from collections.abc import Awaitable, Iterable, Iterator
+from collections.abc import Awaitable, Callable, Iterable, Iterator
 from http import HTTPStatus
 from http.client import FOUND
 from inspect import isawaitable
 from re import Pattern
-from typing import TYPE_CHECKING, Any, Callable, Optional, Union, cast
+from typing import TYPE_CHECKING, Any, Optional, Union, cast
 
 import attr
 import jinja2

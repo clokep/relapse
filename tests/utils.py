@@ -15,10 +15,11 @@
 
 import atexit
 import os
-from typing import Any, Callable, TypeVar, Union, overload
+from collections.abc import Callable
+from typing import Any, Literal, TypeVar, Union, overload
 
 import attr
-from typing_extensions import Literal, ParamSpec
+from typing_extensions import ParamSpec
 
 from relapse.api.constants import EventTypes
 from relapse.api.room_versions import RoomVersions

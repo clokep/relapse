@@ -13,10 +13,11 @@
 # limitations under the License.
 import abc
 import logging
-from collections.abc import Awaitable, Iterable, Sequence
+from collections.abc import Awaitable, Callable, Iterable, Sequence
+from contextlib import AbstractAsyncContextManager
 from enum import Enum, IntEnum
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, AsyncContextManager, Callable, Optional, cast
+from typing import TYPE_CHECKING, Any, Optional, cast
 
 import attr
 from pydantic import BaseModel
@@ -40,7 +41,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-ON_UPDATE_CALLBACK = Callable[[str, str, bool], AsyncContextManager[int]]
+ON_UPDATE_CALLBACK = Callable[[str, str, bool], AbstractAsyncContextManager[int]]
 DEFAULT_BATCH_SIZE_CALLBACK = Callable[[str, str], Awaitable[int]]
 MIN_BATCH_SIZE_CALLBACK = Callable[[str, str], Awaitable[int]]
 
@@ -308,7 +309,7 @@ class BackgroundUpdater:
         update_name: str,
         database_name: str,
         oneshot: bool,
-    ) -> AsyncContextManager[int]:
+    ) -> AbstractAsyncContextManager[int]:
         """Get a context manager to run a background update with.
 
         If a module has registered a `update_handler` callback, use the context manager

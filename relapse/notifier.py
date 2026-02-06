@@ -13,8 +13,8 @@
 # limitations under the License.
 
 import logging
-from collections.abc import Awaitable, Collection, Iterable
-from typing import TYPE_CHECKING, Callable, Literal, Optional, TypeVar, Union, overload
+from collections.abc import Awaitable, Callable, Collection, Iterable
+from typing import TYPE_CHECKING, Literal, Optional, TypeVar, Union, overload
 
 import attr
 from prometheus_client import Counter

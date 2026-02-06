@@ -16,7 +16,8 @@
 can crop up, e.g the cache descriptors.
 """
 
-from typing import Callable, Optional, Union
+from collections.abc import Callable
+from typing import Optional, Union
 
 import mypy.types
 from mypy.erasetype import remove_instance_last_known_values

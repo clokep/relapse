@@ -17,7 +17,8 @@ import functools
 import os
 import re
 import string
-from typing import Any, Callable, TypeVar, Union, cast
+from collections.abc import Callable
+from typing import Any, TypeVar, Union, cast
 
 NEW_FORMAT_ID_RE = re.compile(r"^\d\d\d\d-\d\d-\d\d")
 

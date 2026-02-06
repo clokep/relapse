@@ -37,11 +37,10 @@ what sort order was used:
 
 import logging
 from collections.abc import Collection, Iterable
-from typing import TYPE_CHECKING, Any, Optional, cast, overload
+from typing import TYPE_CHECKING, Any, Literal, Optional, cast, overload
 
 import attr
 from immutabledict import immutabledict
-from typing_extensions import Literal
 
 from twisted.internet import defer
 

@@ -22,18 +22,19 @@ import typing
 from collections.abc import (
     AsyncIterator,
     Awaitable,
+    Callable,
     Collection,
     Coroutine,
     Generator,
     Hashable,
     Iterable,
 )
-from contextlib import asynccontextmanager
+from contextlib import AbstractAsyncContextManager, asynccontextmanager
 from typing import (
     Any,
-    AsyncContextManager,
-    Callable,
+    Concatenate,
     Generic,
+    Literal,
     Optional,
     TypeVar,
     Union,
@@ -42,7 +43,7 @@ from typing import (
 )
 
 import attr
-from typing_extensions import Concatenate, Literal, ParamSpec
+from typing_extensions import ParamSpec
 
 from twisted.internet import defer
 from twisted.internet.defer import CancelledError
@@ -452,7 +453,7 @@ class Linearizer:
         # non-empty.
         return bool(entry.deferreds)
 
-    def queue(self, key: Hashable) -> AsyncContextManager[None]:
+    def queue(self, key: Hashable) -> AbstractAsyncContextManager[None]:
         @asynccontextmanager
         async def _ctx_manager() -> AsyncIterator[None]:
             entry = await self._acquire_lock(key)
@@ -579,7 +580,7 @@ class ReadWriteLock:
         # Latest writer queued
         self.key_to_current_writer: dict[str, defer.Deferred] = {}
 
-    def read(self, key: str) -> AsyncContextManager:
+    def read(self, key: str) -> AbstractAsyncContextManager:
         @asynccontextmanager
         async def _ctx_manager() -> AsyncIterator[None]:
             new_defer: defer.Deferred[None] = defer.Deferred()
@@ -605,7 +606,7 @@ class ReadWriteLock:
 
         return _ctx_manager()
 
-    def write(self, key: str) -> AsyncContextManager:
+    def write(self, key: str) -> AbstractAsyncContextManager:
         @asynccontextmanager
         async def _ctx_manager() -> AsyncIterator[None]:
             new_defer: defer.Deferred[None] = defer.Deferred()

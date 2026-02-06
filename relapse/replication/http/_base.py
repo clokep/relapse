@@ -16,9 +16,9 @@ import abc
 import logging
 import re
 import urllib.parse
-from collections.abc import Awaitable
+from collections.abc import Awaitable, Callable
 from inspect import signature
-from typing import TYPE_CHECKING, Any, Callable, ClassVar
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from prometheus_client import Counter, Gauge
 

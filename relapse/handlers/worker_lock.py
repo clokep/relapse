@@ -14,8 +14,9 @@
 
 import random
 from collections.abc import Collection
+from contextlib import AbstractAsyncContextManager
 from types import TracebackType
-from typing import TYPE_CHECKING, AsyncContextManager, Optional, Union
+from typing import TYPE_CHECKING, Optional, Union
 from weakref import WeakSet
 
 import attr
@@ -266,7 +267,7 @@ class WaitingMultiLock:
 
     deferred: "defer.Deferred[None]" = attr.Factory(defer.Deferred)
 
-    _inner_lock_cm: Optional[AsyncContextManager] = None
+    _inner_lock_cm: Optional[AbstractAsyncContextManager] = None
     _retry_interval: float = 0.1
     _lock_span: "opentracing.Scope" = attr.Factory(
         lambda: start_active_span("WaitingLock.lock")

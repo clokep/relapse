@@ -15,10 +15,9 @@ import enum
 import logging
 import threading
 from collections.abc import Iterable
-from typing import Generic, Optional, TypeVar, Union
+from typing import Generic, Literal, Optional, TypeVar, Union
 
 import attr
-from typing_extensions import Literal
 
 from relapse.util.caches.lrucache import LruCache
 from relapse.util.caches.treecache import TreeCache

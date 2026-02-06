@@ -14,9 +14,9 @@
 # limitations under the License.
 
 from collections.abc import Iterable, Mapping
-from typing import TYPE_CHECKING, Optional, cast
+from typing import TYPE_CHECKING, Literal, Optional, cast
 
-from typing_extensions import Literal, TypedDict
+from typing_extensions import TypedDict
 
 from relapse.api.errors import StoreError
 from relapse.logging.opentracing import log_kv, trace

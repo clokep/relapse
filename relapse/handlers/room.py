@@ -20,9 +20,9 @@ import math
 import random
 import string
 from collections import OrderedDict
-from collections.abc import Awaitable
+from collections.abc import Awaitable, Callable
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Any, Callable, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 import attr
 from typing_extensions import TypedDict

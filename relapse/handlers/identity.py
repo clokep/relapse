@@ -18,8 +18,8 @@
 
 import logging
 import urllib.parse
-from collections.abc import Awaitable
-from typing import TYPE_CHECKING, Callable, Optional
+from collections.abc import Awaitable, Callable
+from typing import TYPE_CHECKING, Optional
 
 import attr
 

@@ -14,8 +14,8 @@
 
 import functools
 import sys
-from collections.abc import Generator
-from typing import Any, Callable, TypeVar, cast
+from collections.abc import Callable, Generator
+from typing import Any, TypeVar, cast
 
 from typing_extensions import ParamSpec
 

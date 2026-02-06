@@ -16,7 +16,8 @@ import abc
 import logging
 import os
 import shutil
-from typing import TYPE_CHECKING, Callable, Optional
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Optional
 
 from relapse.config._base import Config
 from relapse.logging.context import defer_to_thread, run_in_background

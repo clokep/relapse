@@ -20,9 +20,9 @@ import signal
 import socket
 import sys
 import traceback
-from collections.abc import Awaitable
+from collections.abc import Awaitable, Callable
 from textwrap import indent
-from typing import TYPE_CHECKING, Any, Callable, NoReturn, Optional, cast
+from typing import TYPE_CHECKING, Any, NoReturn, Optional, cast
 
 from typing_extensions import ParamSpec
 

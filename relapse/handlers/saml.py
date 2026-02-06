@@ -13,7 +13,8 @@
 # limitations under the License.
 import logging
 import re
-from typing import TYPE_CHECKING, Callable, Optional
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Optional
 
 import attr
 import saml2

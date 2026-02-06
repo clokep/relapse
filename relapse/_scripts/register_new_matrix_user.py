@@ -20,7 +20,8 @@ import hashlib
 import hmac
 import logging
 import sys
-from typing import Any, Callable, Optional
+from collections.abc import Callable
+from typing import Any, Optional
 
 import requests
 import yaml

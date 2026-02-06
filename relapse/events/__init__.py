@@ -18,10 +18,18 @@ import abc
 import collections.abc
 import os
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, Any, Generic, Optional, TypeVar, Union, overload
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Generic,
+    Literal,
+    Optional,
+    TypeVar,
+    Union,
+    overload,
+)
 
 import attr
-from typing_extensions import Literal
 from unpaddedbase64 import encode_base64
 
 from relapse.api.constants import RelationTypes

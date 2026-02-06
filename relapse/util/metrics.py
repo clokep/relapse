@@ -13,13 +13,13 @@
 # limitations under the License.
 
 import logging
-from collections.abc import Awaitable, Generator
+from collections.abc import Awaitable, Callable, Generator
 from functools import wraps
 from types import TracebackType
-from typing import Callable, Optional, TypeVar
+from typing import Concatenate, Optional, TypeVar
 
 from prometheus_client import CollectorRegistry, Counter, Metric
-from typing_extensions import Concatenate, ParamSpec, Protocol
+from typing_extensions import ParamSpec, Protocol
 
 from relapse.logging.context import (
     ContextResourceUsage,

@@ -21,14 +21,23 @@ import json
 import logging
 import secrets
 import time
-from collections.abc import Awaitable, Iterable, Mapping
-from typing import Any, Callable, ClassVar, Generic, NoReturn, Optional, TypeVar, Union
+from collections.abc import Awaitable, Callable, Iterable, Mapping
+from typing import (
+    Any,
+    ClassVar,
+    Concatenate,
+    Generic,
+    NoReturn,
+    Optional,
+    TypeVar,
+    Union,
+)
 from unittest.mock import Mock, patch
 
 import canonicaljson
 import signedjson.key
 import unpaddedbase64
-from typing_extensions import Concatenate, ParamSpec, Protocol
+from typing_extensions import ParamSpec, Protocol
 
 from twisted.internet.defer import Deferred, ensureDeferred
 from twisted.internet.testing import MemoryReactor, MemoryReactorClock

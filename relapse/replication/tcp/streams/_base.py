@@ -15,8 +15,8 @@
 
 import heapq
 import logging
-from collections.abc import Awaitable
-from typing import TYPE_CHECKING, Any, Callable, Optional, TypeVar
+from collections.abc import Awaitable, Callable
+from typing import TYPE_CHECKING, Any, Optional, TypeVar
 
 import attr
 

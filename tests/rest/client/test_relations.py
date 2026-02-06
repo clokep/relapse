@@ -14,7 +14,8 @@
 # limitations under the License.
 
 import urllib.parse
-from typing import Any, Callable, Optional
+from collections.abc import Callable
+from typing import Any, Optional
 from unittest.mock import AsyncMock, patch
 
 from twisted.internet.testing import MemoryReactor

@@ -15,8 +15,8 @@
 import json
 import logging
 import typing
-from collections.abc import Generator, Sequence
-from typing import Any, Callable, Optional
+from collections.abc import Callable, Generator, Sequence
+from typing import Any, Optional
 
 import attr
 from immutabledict import immutabledict

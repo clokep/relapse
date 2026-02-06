@@ -22,9 +22,9 @@ import os
 import sys
 import time
 import traceback
-from collections.abc import Awaitable, Generator, Iterable
+from collections.abc import Awaitable, Callable, Generator, Iterable
 from types import TracebackType
-from typing import Any, Callable, NoReturn, Optional, TypeVar, cast
+from typing import Any, NoReturn, Optional, TypeVar, cast
 
 import yaml
 from typing_extensions import TypedDict

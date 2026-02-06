@@ -13,9 +13,9 @@
 # limitations under the License.
 
 import re
-from collections.abc import Awaitable
+from collections.abc import Awaitable, Callable
 from http import HTTPStatus
-from typing import Callable, NoReturn, Optional
+from typing import NoReturn, Optional
 
 from twisted.internet.defer import Deferred
 from twisted.web.resource import Resource

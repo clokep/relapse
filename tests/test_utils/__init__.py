@@ -20,8 +20,8 @@ import json
 import sys
 import warnings
 from binascii import unhexlify
-from collections.abc import Awaitable
-from typing import TYPE_CHECKING, Callable, TypeVar
+from collections.abc import Awaitable, Callable
+from typing import TYPE_CHECKING, TypeVar
 
 import attr
 import zope.interface

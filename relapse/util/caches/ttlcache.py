@@ -14,7 +14,8 @@
 
 import logging
 import time
-from typing import Any, Callable, Generic, TypeVar, Union
+from collections.abc import Callable
+from typing import Any, Generic, TypeVar, Union
 
 import attr
 from sortedcontainers import SortedList

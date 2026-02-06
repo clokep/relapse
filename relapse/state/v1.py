@@ -14,8 +14,8 @@
 
 import hashlib
 import logging
-from collections.abc import Awaitable, Iterable, Sequence
-from typing import Callable, Optional
+from collections.abc import Awaitable, Callable, Iterable, Sequence
+from typing import Optional
 
 from relapse import event_auth
 from relapse.api.constants import EventTypes

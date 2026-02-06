@@ -15,12 +15,11 @@
 # limitations under the License.
 import logging
 import random
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Annotated, Literal, Optional
 from urllib.parse import urlparse
 
 import attr
 from pydantic import StringConstraints
-from typing_extensions import Annotated, Literal
 
 from twisted.web.server import Request
 

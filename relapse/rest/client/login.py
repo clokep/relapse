@@ -14,8 +14,8 @@
 
 import logging
 import re
-from collections.abc import Awaitable
-from typing import TYPE_CHECKING, Any, Callable, Optional, Union
+from collections.abc import Awaitable, Callable
+from typing import TYPE_CHECKING, Any, Optional, Union
 
 from typing_extensions import TypedDict
 

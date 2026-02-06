@@ -14,9 +14,7 @@
 # limitations under the License.
 import logging
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, Optional
-
-from typing_extensions import Literal
+from typing import TYPE_CHECKING, Literal, Optional
 
 from relapse.api.errors import FederationDeniedError, RelapseError
 from relapse.http.server import HttpServer

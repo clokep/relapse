@@ -14,8 +14,9 @@
 import logging
 import random
 import time
+from collections.abc import Callable
 from io import BytesIO
-from typing import Callable, Optional
+from typing import Optional
 
 import attr
 

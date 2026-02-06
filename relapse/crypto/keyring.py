@@ -14,8 +14,8 @@
 
 import abc
 import logging
-from collections.abc import Iterable
-from typing import TYPE_CHECKING, Callable, Optional
+from collections.abc import Callable, Iterable
+from typing import TYPE_CHECKING, Optional
 
 import attr
 from signedjson.key import (

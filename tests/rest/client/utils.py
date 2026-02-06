@@ -21,11 +21,10 @@ import time
 import urllib.parse
 from collections.abc import Iterable, Mapping, MutableMapping
 from http import HTTPStatus
-from typing import Any, AnyStr, Optional, overload
+from typing import Any, AnyStr, Literal, Optional, overload
 from urllib.parse import urlencode
 
 import attr
-from typing_extensions import Literal
 
 from twisted.internet.testing import MemoryReactorClock
 from twisted.web.server import Site

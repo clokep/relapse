@@ -15,8 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import json
-from collections.abc import Awaitable, Collection, Iterable, Mapping
-from typing import TYPE_CHECKING, Callable, Optional, TypeVar, Union
+from collections.abc import Awaitable, Callable, Collection, Iterable, Mapping
+from typing import TYPE_CHECKING, Optional, TypeVar, Union
 
 import jsonschema
 from jsonschema import FormatChecker

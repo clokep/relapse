@@ -15,10 +15,10 @@
 import logging
 import urllib.parse
 from collections.abc import Iterable, Mapping, Sequence
-from typing import TYPE_CHECKING, Optional, TypeVar, Union
+from typing import TYPE_CHECKING, Optional, TypeGuard, TypeVar, Union
 
 from prometheus_client import Counter
-from typing_extensions import ParamSpec, TypeGuard
+from typing_extensions import ParamSpec
 
 from relapse.api.constants import EventTypes, Membership, ThirdPartyEntityKind
 from relapse.api.errors import CodeMessageException, HttpResponseException

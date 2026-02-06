@@ -4,14 +4,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable, Iterable, Iterator, MutableSequence, Sequence
 from typing import (
     Any,
-    Callable,
-    Iterable,
-    Iterator,
-    MutableSequence,
     Optional,
-    Sequence,
     TypeVar,
     Union,
     overload,

@@ -17,18 +17,8 @@
 import itertools
 import logging
 from collections import deque
-from collections.abc import Awaitable, Collection, Generator, Iterable
-from typing import (
-    TYPE_CHECKING,
-    AbstractSet,
-    Any,
-    Callable,
-    ClassVar,
-    Generic,
-    Optional,
-    TypeVar,
-    Union,
-)
+from collections.abc import Awaitable, Callable, Collection, Generator, Iterable, Set
+from typing import TYPE_CHECKING, Any, ClassVar, Generic, Optional, TypeVar, Union
 
 import attr
 from prometheus_client import Counter, Histogram
@@ -729,7 +719,7 @@ class EventsPersistenceStorageController:
         self,
         room_id: str,
         event_contexts: list[tuple[EventBase, EventContext]],
-        latest_event_ids: AbstractSet[str],
+        latest_event_ids: Set[str],
     ) -> set[str]:
         """Calculates the new forward extremities for a room given events to
         persist.
@@ -785,7 +775,7 @@ class EventsPersistenceStorageController:
         self,
         room_id: str,
         events_context: list[tuple[EventBase, EventContext]],
-        old_latest_event_ids: AbstractSet[str],
+        old_latest_event_ids: Set[str],
         new_latest_event_ids: set[str],
     ) -> tuple[Optional[StateMap[str]], Optional[StateMap[str]], set[str]]:
         """Calculate the current state dict after adding some new events to

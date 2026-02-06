@@ -14,7 +14,8 @@
 import abc
 import logging
 import threading
-from typing import TYPE_CHECKING, Callable, Optional
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Optional
 
 from relapse.storage.engines import (
     BaseDatabaseEngine,

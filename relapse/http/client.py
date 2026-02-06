@@ -14,10 +14,10 @@
 # limitations under the License.
 import logging
 import urllib.parse
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from http import HTTPStatus
 from io import BytesIO
-from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Optional, Union
+from typing import TYPE_CHECKING, Any, BinaryIO, Optional, Union
 
 import treq
 from canonicaljson import encode_canonical_json

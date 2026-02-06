@@ -15,10 +15,10 @@
 import collections
 import logging
 import typing
-from collections.abc import Sized
+from collections.abc import Callable, Sized
 from enum import Enum, auto
 from sys import intern
-from typing import Any, Callable, Optional, TypeVar
+from typing import Any, Optional, TypeVar
 
 import attr
 from prometheus_client import REGISTRY

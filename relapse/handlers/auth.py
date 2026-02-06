@@ -18,9 +18,9 @@ import time
 import unicodedata
 import urllib.parse
 from binascii import crc32
-from collections.abc import Awaitable, Iterable, Mapping
+from collections.abc import Awaitable, Callable, Iterable, Mapping
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Any, Callable, Optional, Union, cast
+from typing import TYPE_CHECKING, Any, Optional, Union, cast
 
 import attr
 import bcrypt

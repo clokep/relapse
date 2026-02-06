@@ -38,7 +38,8 @@ import argparse
 import base64
 import json
 import sys
-from typing import Any, Mapping, Optional, Union
+from collections.abc import Mapping
+from typing import Any, Optional, Union
 from urllib import parse as urlparse
 
 import requests

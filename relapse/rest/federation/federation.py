@@ -14,9 +14,7 @@
 import logging
 from collections import Counter
 from collections.abc import Mapping, Sequence
-from typing import TYPE_CHECKING, Optional, Union
-
-from typing_extensions import Literal
+from typing import TYPE_CHECKING, Literal, Optional, Union
 
 from relapse.api.constants import Direction, EduTypes
 from relapse.api.errors import Codes, RelapseError

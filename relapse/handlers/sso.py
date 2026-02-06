@@ -15,8 +15,8 @@ import abc
 import hashlib
 import io
 import logging
-from collections.abc import Awaitable, Iterable, Mapping
-from typing import TYPE_CHECKING, Any, Callable, NoReturn, Optional
+from collections.abc import Awaitable, Callable, Iterable, Mapping
+from typing import TYPE_CHECKING, Any, NoReturn, Optional
 from urllib.parse import urlencode
 
 import attr

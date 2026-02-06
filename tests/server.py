@@ -22,9 +22,9 @@ import time
 import uuid
 import warnings
 from collections import deque
-from collections.abc import Awaitable, Iterable, MutableMapping, Sequence
+from collections.abc import Awaitable, Callable, Iterable, MutableMapping, Sequence
 from io import SEEK_END, BytesIO
-from typing import Any, Callable, Optional, TypeVar, Union, cast
+from typing import Any, Optional, TypeVar, Union, cast
 from unittest.mock import Mock
 
 import attr

@@ -15,8 +15,16 @@
 import functools
 import inspect
 import logging
-from collections.abc import Awaitable, Collection, Hashable, Iterable, Mapping, Sequence
-from typing import Any, Callable, Generic, Optional, TypeVar, Union, cast
+from collections.abc import (
+    Awaitable,
+    Callable,
+    Collection,
+    Hashable,
+    Iterable,
+    Mapping,
+    Sequence,
+)
+from typing import Any, Generic, Optional, TypeVar, Union, cast
 from weakref import WeakValueDictionary
 
 import attr

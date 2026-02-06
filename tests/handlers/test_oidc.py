@@ -13,7 +13,8 @@
 # limitations under the License.
 import os
 from collections.abc import Awaitable
-from typing import Any, ContextManager, Optional
+from contextlib import AbstractContextManager
+from typing import Any, Optional
 from unittest.mock import ANY, AsyncMock, Mock, patch
 from urllib.parse import parse_qs, urlparse
 
@@ -181,7 +182,7 @@ class OidcHandlerTestCase(HomeserverTestCase):
         self.render_error.reset_mock()
         self.complete_sso_login.reset_mock()
 
-    def metadata_edit(self, values: dict) -> ContextManager[Mock]:
+    def metadata_edit(self, values: dict) -> AbstractContextManager[Mock]:
         """Modify the result that will be returned by the well-known query"""
 
         metadata = self.fake_server.get_metadata()

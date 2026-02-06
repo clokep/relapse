@@ -15,10 +15,9 @@
 # limitations under the License.
 import logging
 from collections.abc import Collection, Iterable, Mapping
-from typing import TYPE_CHECKING, Any, Optional, cast
+from typing import TYPE_CHECKING, Any, Literal, Optional, cast
 
 from canonicaljson import encode_canonical_json
-from typing_extensions import Literal
 
 from relapse.api.constants import EduTypes
 from relapse.api.errors import Codes, StoreError

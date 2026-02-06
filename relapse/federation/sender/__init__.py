@@ -127,11 +127,10 @@ import abc
 import logging
 from collections import OrderedDict
 from collections.abc import Collection, Hashable, Iterable
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Literal, Optional
 
 import attr
 from prometheus_client import Counter
-from typing_extensions import Literal
 
 from twisted.internet import defer
 

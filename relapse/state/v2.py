@@ -15,10 +15,10 @@
 import heapq
 import itertools
 import logging
-from collections.abc import Awaitable, Generator, Iterable, Sequence
-from typing import Any, Callable, Optional, overload
+from collections.abc import Awaitable, Callable, Generator, Iterable, Sequence
+from typing import Any, Literal, Optional, overload
 
-from typing_extensions import Literal, Protocol
+from typing_extensions import Protocol
 
 from relapse import event_auth
 from relapse.api.constants import EventTypes

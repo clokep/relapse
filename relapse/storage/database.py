@@ -18,13 +18,29 @@ import logging
 import time
 import types
 from collections import defaultdict
-from collections.abc import Awaitable, Collection, Iterable, Iterator, Sequence
+from collections.abc import (
+    Awaitable,
+    Callable,
+    Collection,
+    Iterable,
+    Iterator,
+    Sequence,
+)
 from time import monotonic as monotonic_time
-from typing import TYPE_CHECKING, Any, Callable, Optional, TypeVar, cast, overload
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Concatenate,
+    Literal,
+    Optional,
+    TypeVar,
+    cast,
+    overload,
+)
 
 import attr
 from prometheus_client import Counter, Histogram
-from typing_extensions import Concatenate, Literal, ParamSpec
+from typing_extensions import ParamSpec
 
 from twisted.enterprise import adbapi
 from twisted.internet.interfaces import IReactorCore

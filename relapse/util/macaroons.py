@@ -15,12 +15,12 @@
 
 """Utilities for manipulating macaroons"""
 
-from typing import Callable, Optional
+from collections.abc import Callable
+from typing import Literal, Optional
 
 import attr
 import pymacaroons
 from pymacaroons.exceptions import MacaroonVerificationFailedException
-from typing_extensions import Literal
 
 from relapse.util import Clock, stringutils
 

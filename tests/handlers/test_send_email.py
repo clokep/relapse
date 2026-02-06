@@ -13,7 +13,8 @@
 # limitations under the License.
 
 
-from typing import Callable, Union
+from collections.abc import Callable
+from typing import Union
 from unittest.mock import patch
 
 from zope.interface import implementer

@@ -16,8 +16,8 @@
 to ensure idempotency when performing PUTs using the REST API."""
 
 import logging
-from collections.abc import Awaitable, Hashable
-from typing import TYPE_CHECKING, Callable
+from collections.abc import Awaitable, Callable, Hashable
+from typing import TYPE_CHECKING
 
 from typing_extensions import ParamSpec
 

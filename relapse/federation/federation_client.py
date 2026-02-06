@@ -19,22 +19,15 @@ import itertools
 import logging
 from collections.abc import (
     Awaitable,
+    Callable,
     Collection,
     Container,
     Iterable,
     Mapping,
     Sequence,
+    Set,
 )
-from typing import (
-    TYPE_CHECKING,
-    AbstractSet,
-    Any,
-    BinaryIO,
-    Callable,
-    Optional,
-    TypeVar,
-    Union,
-)
+from typing import TYPE_CHECKING, Any, BinaryIO, Optional, TypeVar, Union
 
 import attr
 from prometheus_client import Counter
@@ -127,7 +120,7 @@ class SendJoinResult:
 
     # If 'partial_state' is set, a set of the servers in the room (otherwise empty).
     # Always contains the server we joined off.
-    servers_in_room: AbstractSet[str]
+    servers_in_room: Set[str]
 
 
 class FederationClient(FederationBase):

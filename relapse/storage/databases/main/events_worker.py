@@ -18,11 +18,10 @@ import weakref
 from collections.abc import Collection, Iterable, Mapping, MutableMapping
 from enum import Enum, auto
 from itertools import chain
-from typing import TYPE_CHECKING, Any, Optional, cast, overload
+from typing import TYPE_CHECKING, Any, Literal, Optional, cast, overload
 
 import attr
 from prometheus_client import Gauge
-from typing_extensions import Literal
 
 from twisted.internet import defer
 

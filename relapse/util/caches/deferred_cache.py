@@ -17,8 +17,8 @@
 import abc
 import enum
 import threading
-from collections.abc import Collection, MutableMapping, Sized
-from typing import Callable, Generic, Optional, TypeVar, Union, cast
+from collections.abc import Callable, Collection, MutableMapping, Sized
+from typing import Generic, Optional, TypeVar, Union, cast
 
 from prometheus_client import Gauge
 

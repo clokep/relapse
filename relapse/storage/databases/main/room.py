@@ -15,9 +15,9 @@
 
 import logging
 from abc import abstractmethod
-from collections.abc import Awaitable, Collection, Mapping
+from collections.abc import Awaitable, Collection, Mapping, Set
 from enum import Enum
-from typing import TYPE_CHECKING, AbstractSet, Any, Optional, Union, cast
+from typing import TYPE_CHECKING, Any, Optional, Union, cast
 
 import attr
 
@@ -1233,7 +1233,7 @@ class RoomWorkerStore(CacheInvalidationWorkerStore):
 
     async def get_partial_state_servers_at_join(
         self, room_id: str
-    ) -> Optional[AbstractSet[str]]:
+    ) -> Optional[Set[str]]:
         """Gets the set of servers in a partial state room at the time we joined it.
 
         Returns:
@@ -1250,9 +1250,7 @@ class RoomWorkerStore(CacheInvalidationWorkerStore):
         return servers_in_room
 
     @cached(iterable=True)
-    async def _get_partial_state_servers_at_join(
-        self, room_id: str
-    ) -> AbstractSet[str]:
+    async def _get_partial_state_servers_at_join(self, room_id: str) -> Set[str]:
         return frozenset(
             await self.db_pool.simple_select_onecol(
                 "partial_state_rooms_servers",
@@ -2199,7 +2197,7 @@ class RoomStore(RoomBackgroundUpdateStore, RoomWorkerStore):
     async def store_partial_state_room(
         self,
         room_id: str,
-        servers: AbstractSet[str],
+        servers: Set[str],
         device_lists_stream_id: int,
         joined_via: str,
     ) -> None:
@@ -2234,7 +2232,7 @@ class RoomStore(RoomBackgroundUpdateStore, RoomWorkerStore):
         self,
         txn: LoggingTransaction,
         room_id: str,
-        servers: AbstractSet[str],
+        servers: Set[str],
         device_lists_stream_id: int,
         joined_via: str,
     ) -> None:

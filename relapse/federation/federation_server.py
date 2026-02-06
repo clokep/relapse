@@ -15,8 +15,8 @@
 # limitations under the License.
 import logging
 import random
-from collections.abc import Awaitable, Collection, Mapping
-from typing import TYPE_CHECKING, Any, Callable, Optional, Union
+from collections.abc import Awaitable, Callable, Collection, Mapping
+from typing import TYPE_CHECKING, Any, Optional, Union
 
 from prometheus_client import Counter, Gauge, Histogram
 

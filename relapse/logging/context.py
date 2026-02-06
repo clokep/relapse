@@ -26,11 +26,11 @@ See doc/log_contexts.rst for details on how this works.
 import logging
 import threading
 import typing
-from collections.abc import Awaitable
+from collections.abc import Awaitable, Callable
 from types import TracebackType
 from typing import (
     TYPE_CHECKING,
-    Callable,
+    Literal,
     Optional,
     TypeVar,
     Union,
@@ -38,7 +38,7 @@ from typing import (
 )
 
 import attr
-from typing_extensions import Literal, ParamSpec
+from typing_extensions import ParamSpec
 
 from twisted.internet import defer, threads
 from twisted.python.threadpool import ThreadPool

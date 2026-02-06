@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Collection, Mapping, Optional, Sequence, Union
+from collections.abc import Collection, Mapping, Sequence
+from typing import Any, Optional, Union
 
 from relapse.types import JsonDict, JsonValue
 

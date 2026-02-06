@@ -70,18 +70,10 @@ import contextlib
 import itertools
 import logging
 from bisect import bisect
-from collections.abc import Collection, Generator, Iterable
-from contextlib import contextmanager
+from collections.abc import Callable, Collection, Generator, Iterable, Set
+from contextlib import AbstractContextManager, contextmanager
 from types import TracebackType
-from typing import (
-    TYPE_CHECKING,
-    AbstractSet,
-    Any,
-    Callable,
-    ContextManager,
-    Optional,
-    Union,
-)
+from typing import TYPE_CHECKING, Any, Optional, Union
 
 from prometheus_client import Counter
 
@@ -216,7 +208,7 @@ class BasePresenceHandler(abc.ABC):
         device_id: Optional[str],
         affect_presence: bool,
         presence_state: str,
-    ) -> ContextManager[None]:
+    ) -> AbstractContextManager[None]:
         """Returns a context manager that should surround any stream requests
         from the user.
 
@@ -456,7 +448,7 @@ class BasePresenceHandler(abc.ABC):
         )
 
 
-class _NullContextManager(ContextManager[None]):
+class _NullContextManager(AbstractContextManager[None]):
     """A context manager which does nothing."""
 
     def __exit__(
@@ -561,7 +553,7 @@ class WorkerPresenceHandler(BasePresenceHandler):
         device_id: Optional[str],
         affect_presence: bool,
         presence_state: str,
-    ) -> ContextManager[None]:
+    ) -> AbstractContextManager[None]:
         """Record that a user is syncing.
 
         Called by the sync and events servlets to record that a user has connected to
@@ -1112,7 +1104,7 @@ class PresenceHandler(BasePresenceHandler):
         device_id: Optional[str],
         affect_presence: bool = True,
         presence_state: str = PresenceState.ONLINE,
-    ) -> ContextManager[None]:
+    ) -> AbstractContextManager[None]:
         """Returns a context manager that should surround any stream requests
         from the user.
 
@@ -1987,7 +1979,7 @@ class PresenceEventSource(EventSource[int, UserPresenceState]):
 def handle_timeouts(
     user_states: list[UserPresenceState],
     is_mine_fn: Callable[[str], bool],
-    syncing_user_devices: AbstractSet[tuple[str, Optional[str]]],
+    syncing_user_devices: Set[tuple[str, Optional[str]]],
     user_to_devices: dict[str, dict[Optional[str], UserDevicePresenceState]],
     now: int,
 ) -> list[UserPresenceState]:
@@ -2026,7 +2018,7 @@ def handle_timeouts(
 def handle_timeout(
     state: UserPresenceState,
     is_mine: bool,
-    syncing_device_ids: AbstractSet[tuple[str, Optional[str]]],
+    syncing_device_ids: Set[tuple[str, Optional[str]]],
     user_devices: dict[Optional[str], UserDevicePresenceState],
     now: int,
 ) -> Optional[UserPresenceState]:

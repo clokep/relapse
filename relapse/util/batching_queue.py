@@ -13,8 +13,8 @@
 # limitations under the License.
 
 import logging
-from collections.abc import Awaitable, Hashable
-from typing import Callable, Generic, TypeVar
+from collections.abc import Awaitable, Callable, Hashable
+from typing import Generic, TypeVar
 
 from prometheus_client import Gauge
 

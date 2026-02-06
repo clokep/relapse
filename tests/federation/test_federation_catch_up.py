@@ -1,5 +1,5 @@
-from collections.abc import Collection
-from typing import Callable, Optional
+from collections.abc import Callable, Collection
+from typing import Optional
 from unittest import mock
 from unittest.mock import AsyncMock, Mock
 

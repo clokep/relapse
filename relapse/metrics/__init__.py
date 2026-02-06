@@ -18,8 +18,8 @@ import logging
 import os
 import platform
 import threading
-from collections.abc import Iterable, Mapping
-from typing import Callable, Generic, Optional, TypeVar, Union, cast
+from collections.abc import Callable, Iterable, Mapping
+from typing import Generic, Optional, TypeVar, Union, cast
 
 import attr
 from prometheus_client import CollectorRegistry, Counter, Gauge, Histogram, Metric

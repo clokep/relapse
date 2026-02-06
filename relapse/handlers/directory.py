@@ -15,9 +15,7 @@
 import logging
 import string
 from collections.abc import Iterable, Sequence
-from typing import TYPE_CHECKING, Optional
-
-from typing_extensions import Literal
+from typing import TYPE_CHECKING, Literal, Optional
 
 from relapse.api.constants import MAX_ALIAS_LENGTH, EventTypes
 from relapse.api.errors import (

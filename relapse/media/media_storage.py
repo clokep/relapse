@@ -15,9 +15,9 @@ import contextlib
 import logging
 import os
 import shutil
-from collections.abc import Awaitable, Generator, Sequence
+from collections.abc import Awaitable, Callable, Generator, Sequence
 from types import TracebackType
-from typing import IO, TYPE_CHECKING, Any, BinaryIO, Callable, Optional
+from typing import IO, TYPE_CHECKING, Any, BinaryIO, Optional
 
 import attr
 

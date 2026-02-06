@@ -13,8 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-from collections.abc import Collection, Iterable, Mapping, Sequence
-from typing import TYPE_CHECKING, AbstractSet, Optional, Union, cast
+from collections.abc import Collection, Iterable, Mapping, Sequence, Set
+from typing import TYPE_CHECKING, Optional, Union, cast
 
 import attr
 
@@ -396,7 +396,7 @@ class RoomMemberWorkerStore(EventsWorkerStore, CacheInvalidationWorkerStore):
         )
 
         # Now we filter out forgotten and excluded rooms
-        rooms_to_exclude: AbstractSet[str] = set()
+        rooms_to_exclude: Set[str] = set()
 
         # Users can't forget joined/invited rooms, so we skip the check for such look ups.
         if any(m not in (Membership.JOIN, Membership.INVITE) for m in membership_list):
@@ -953,7 +953,7 @@ class RoomMemberWorkerStore(EventsWorkerStore, CacheInvalidationWorkerStore):
         return True
 
     @cached(iterable=True, max_entries=10000)
-    async def get_current_hosts_in_room(self, room_id: str) -> AbstractSet[str]:
+    async def get_current_hosts_in_room(self, room_id: str) -> Set[str]:
         """Get current hosts in room based on current state."""
 
         # First we check if we already have `get_users_in_room` in the cache, as
@@ -1112,7 +1112,7 @@ class RoomMemberWorkerStore(EventsWorkerStore, CacheInvalidationWorkerStore):
         return count == 0
 
     @cached()
-    async def get_forgotten_rooms_for_user(self, user_id: str) -> AbstractSet[str]:
+    async def get_forgotten_rooms_for_user(self, user_id: str) -> Set[str]:
         """Gets all rooms the user has forgotten.
 
         Args:

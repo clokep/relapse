@@ -14,12 +14,12 @@
 # limitations under the License.
 import email.utils
 import logging
-from collections.abc import Collection, Generator, Iterable, Mapping
-from typing import TYPE_CHECKING, Any, Callable, Optional, TypeVar, Union
+from collections.abc import Callable, Collection, Generator, Iterable, Mapping
+from typing import TYPE_CHECKING, Any, Concatenate, Optional, TypeVar, Union
 
 import attr
 import jinja2
-from typing_extensions import Concatenate, ParamSpec
+from typing_extensions import ParamSpec
 
 from twisted.internet import defer
 from twisted.internet.interfaces import IDelayedCall

@@ -16,22 +16,20 @@ import logging
 import math
 import threading
 import weakref
-from collections.abc import Collection, Iterable
+from collections.abc import Callable, Collection, Iterable
 from enum import Enum
 from functools import wraps
 from typing import (
     TYPE_CHECKING,
     Any,
-    Callable,
     Generic,
+    Literal,
     Optional,
     TypeVar,
     Union,
     cast,
     overload,
 )
-
-from typing_extensions import Literal
 
 from twisted.internet import reactor
 from twisted.internet.interfaces import IReactorTime

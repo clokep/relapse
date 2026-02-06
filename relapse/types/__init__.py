@@ -15,12 +15,11 @@
 import abc
 import re
 import string
-from collections.abc import Mapping, MutableMapping
+from collections.abc import Mapping, MutableMapping, Set
 from enum import Enum
 from re import Match
 from typing import (
     TYPE_CHECKING,
-    AbstractSet,
     Any,
     ClassVar,
     Literal,
@@ -86,7 +85,7 @@ JsonSerializable = object
 #
 # StrCollection is an unordered collection of strings. If ordering is important,
 # StrSequence can be used instead.
-StrCollection = Union[tuple[str, ...], list[str], AbstractSet[str]]
+StrCollection = Union[tuple[str, ...], list[str], Set[str]]
 # Sequence[str] that does not include str itself; str being a Sequence[str]
 # is very misleading and results in bugs.
 #

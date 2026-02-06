@@ -15,7 +15,9 @@
 import inspect
 import itertools
 import logging
-from typing import Any, Callable, ContextManager, Optional, TypeVar, Union
+from collections.abc import Callable
+from contextlib import AbstractContextManager
+from typing import Any, Optional, TypeVar, Union
 from unittest import mock
 from unittest.mock import Mock
 
@@ -346,7 +348,7 @@ class Deferred__next__Patch:
         # The last stack we logged.
         self._previous_stack: list[inspect.FrameInfo] = []
 
-    def patch(self) -> ContextManager[Mock]:
+    def patch(self) -> AbstractContextManager[Mock]:
         """Returns a context manager which patches `Deferred.__next__`."""
 
         def Deferred___next__(

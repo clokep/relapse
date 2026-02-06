@@ -13,8 +13,8 @@
 # limitations under the License.
 
 import logging
-from collections.abc import Awaitable
-from typing import TYPE_CHECKING, Callable, Optional
+from collections.abc import Awaitable, Callable
+from typing import TYPE_CHECKING, Optional
 
 from twisted.python.failure import Failure
 

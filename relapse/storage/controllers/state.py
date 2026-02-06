@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-from collections.abc import Collection, Iterable, Mapping
+from collections.abc import Callable, Collection, Iterable, Mapping, Set
 from itertools import chain
-from typing import TYPE_CHECKING, AbstractSet, Callable, Optional, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 from relapse.api.constants import EventTypes, Membership
 from relapse.events import EventBase
@@ -573,7 +573,7 @@ class StateStorageController:
 
     @trace
     @tag_args
-    async def get_current_hosts_in_room(self, room_id: str) -> AbstractSet[str]:
+    async def get_current_hosts_in_room(self, room_id: str) -> Set[str]:
         """Get current hosts in room based on current state.
 
         Blocks until we have full state for the given room. This only happens for rooms

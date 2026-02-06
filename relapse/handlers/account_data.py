@@ -14,8 +14,8 @@
 # limitations under the License.
 import logging
 import random
-from collections.abc import Awaitable
-from typing import TYPE_CHECKING, Callable, Optional
+from collections.abc import Awaitable, Callable
+from typing import TYPE_CHECKING, Optional
 
 from relapse.api.constants import AccountDataTypes
 from relapse.replication.http.account_data import (

@@ -14,12 +14,11 @@
 import time
 import urllib.parse
 from collections.abc import Collection
-from typing import Any, Optional, Union
+from typing import Any, Literal, Optional, Union
 from unittest.mock import Mock
 from urllib.parse import urlencode
 
 import pymacaroons
-from typing_extensions import Literal
 
 from twisted.internet.testing import MemoryReactor
 from twisted.web.resource import Resource

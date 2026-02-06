@@ -13,8 +13,8 @@
 # limitations under the License.
 
 import logging
-from collections.abc import Awaitable
-from typing import Callable, Optional
+from collections.abc import Awaitable, Callable
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 

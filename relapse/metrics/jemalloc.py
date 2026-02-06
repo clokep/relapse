@@ -17,11 +17,10 @@ import logging
 import os
 import re
 from collections.abc import Iterable
-from typing import Optional, overload
+from typing import Literal, Optional, overload
 
 import attr
 from prometheus_client import REGISTRY, Metric
-from typing_extensions import Literal
 
 from relapse.metrics import GaugeMetricFamily
 from relapse.metrics._types import Collector

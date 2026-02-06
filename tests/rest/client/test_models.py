@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import unittest as stdlib_unittest
+from typing import Literal
 
 from pydantic import BaseModel, ValidationError
-from typing_extensions import Literal
 
 from relapse.rest.client.models import EmailRequestTokenBody
 

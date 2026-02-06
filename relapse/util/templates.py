@@ -16,8 +16,8 @@
 
 import time
 import urllib.parse
-from collections.abc import Sequence
-from typing import TYPE_CHECKING, Callable, Optional, Union
+from collections.abc import Callable, Sequence
+from typing import TYPE_CHECKING, Optional, Union
 
 import jinja2
 

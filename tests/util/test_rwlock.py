@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections.abc import Sequence
-from typing import AsyncContextManager, Callable
+from collections.abc import Callable, Sequence
+from contextlib import AbstractAsyncContextManager
 
 from twisted.internet import defer
 from twisted.internet.defer import CancelledError, Deferred
@@ -26,7 +26,7 @@ from tests import unittest
 class ReadWriteLockTestCase(unittest.TestCase):
     def _start_reader_or_writer(
         self,
-        read_or_write: Callable[[str], AsyncContextManager],
+        read_or_write: Callable[[str], AbstractAsyncContextManager],
         key: str,
         return_value: str,
     ) -> tuple["Deferred[str]", "Deferred[None]", "Deferred[None]"]:

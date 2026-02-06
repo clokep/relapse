@@ -1,11 +1,8 @@
 import argparse
+from collections.abc import Collection, Iterable, Iterator, MutableMapping
 from typing import (
     Any,
-    Collection,
-    Iterable,
-    Iterator,
     Literal,
-    MutableMapping,
     Optional,
     TypeVar,
     Union,

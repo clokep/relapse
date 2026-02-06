@@ -49,8 +49,8 @@ components.
 """
 
 import logging
-from collections.abc import Awaitable, Collection, Iterable, Sequence
-from typing import TYPE_CHECKING, Callable, Optional
+from collections.abc import Awaitable, Callable, Collection, Iterable, Sequence
+from typing import TYPE_CHECKING, Optional
 
 from relapse.appservice import (
     ApplicationService,

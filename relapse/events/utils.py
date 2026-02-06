@@ -14,9 +14,9 @@
 # limitations under the License.
 import collections.abc
 import re
-from collections.abc import Awaitable, Iterable, Mapping, MutableMapping
+from collections.abc import Awaitable, Callable, Iterable, Mapping, MutableMapping
 from re import Match
-from typing import TYPE_CHECKING, Any, Callable, Optional, Union
+from typing import TYPE_CHECKING, Any, Optional, Union
 
 import attr
 from canonicaljson import encode_canonical_json

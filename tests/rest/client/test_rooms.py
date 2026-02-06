@@ -20,12 +20,11 @@
 import json
 from collections.abc import Iterable
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any, Literal, Optional, Union
 from unittest.mock import AsyncMock, Mock, call, patch
 from urllib import parse as urlparse
 
 from parameterized import param, parameterized
-from typing_extensions import Literal
 
 from twisted.internet.testing import MemoryReactor
 

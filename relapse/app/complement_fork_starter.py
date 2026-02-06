@@ -54,8 +54,9 @@ import multiprocessing
 import os
 import signal
 import sys
+from collections.abc import Callable
 from types import FrameType
-from typing import Any, Callable, Optional
+from typing import Any, Optional
 
 # a list of the original signal handlers, before we installed our custom ones.
 # We restore these in our child processes.

@@ -14,9 +14,7 @@
 # limitations under the License.
 
 import logging
-from typing import TYPE_CHECKING, Optional, cast
-
-from typing_extensions import Literal
+from typing import TYPE_CHECKING, Literal, Optional, cast
 
 from relapse.api.errors import (
     Codes,

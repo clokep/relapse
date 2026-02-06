@@ -3,7 +3,7 @@
 # We copy it here as we need to instantiate `GAIResolver` manually, but it is a
 # private class.
 
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from socket import (
     AF_INET,
     AF_INET6,
@@ -15,7 +15,7 @@ from socket import (
     gaierror,
     getaddrinfo,
 )
-from typing import TYPE_CHECKING, Callable, NoReturn, Optional, Union
+from typing import TYPE_CHECKING, NoReturn, Optional, Union
 
 from zope.interface import implementer
 

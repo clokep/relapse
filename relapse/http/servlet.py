@@ -18,10 +18,9 @@ import enum
 import logging
 from collections.abc import Mapping, Sequence
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Optional, TypeVar, overload
+from typing import TYPE_CHECKING, Literal, Optional, TypeVar, overload
 
 from pydantic import BaseModel, ValidationError
-from typing_extensions import Literal
 
 from twisted.web.server import Request
 

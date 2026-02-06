@@ -4,8 +4,7 @@
 
 from __future__ import annotations
 
-from typing import (
-    Any,
+from collections.abc import (
     Callable,
     Hashable,
     ItemsView,
@@ -13,11 +12,14 @@ from typing import (
     Iterator,
     KeysView,
     Mapping,
-    Optional,
     Sequence,
+    ValuesView,
+)
+from typing import (
+    Any,
+    Optional,
     TypeVar,
     Union,
-    ValuesView,
     overload,
 )
 

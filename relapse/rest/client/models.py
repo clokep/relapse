@@ -11,10 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Annotated, Optional
 
 from pydantic import ConfigDict, StringConstraints, field_validator, model_validator
-from typing_extensions import Annotated, Self
+from typing_extensions import Self
 
 from relapse.rest.models import RequestBodyModel
 from relapse.util.threepids import validate_email

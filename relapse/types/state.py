@@ -13,8 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-from collections.abc import Collection, Iterable, Mapping
-from typing import TYPE_CHECKING, Callable, Optional, TypeVar
+from collections.abc import Callable, Collection, Iterable, Mapping
+from typing import TYPE_CHECKING, Optional, TypeVar
 
 import attr
 from immutabledict import immutabledict

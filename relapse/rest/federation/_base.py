@@ -16,9 +16,9 @@ import functools
 import logging
 import re
 import time
-from collections.abc import Awaitable
+from collections.abc import Awaitable, Callable
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Any, Callable, Optional, cast
+from typing import TYPE_CHECKING, Any, Optional, cast
 
 from relapse.api.errors import Codes, FederationDeniedError, RelapseError
 from relapse.api.urls import FEDERATION_V1_PREFIX

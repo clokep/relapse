@@ -14,11 +14,11 @@
 
 import logging
 import threading
-from collections.abc import Awaitable, Iterable
+from collections.abc import Awaitable, Callable, Iterable
 from contextlib import nullcontext
 from functools import wraps
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, Callable, Optional, TypeVar, Union
+from typing import TYPE_CHECKING, Any, Optional, TypeVar, Union
 
 from prometheus_client import Metric
 from prometheus_client.core import REGISTRY, Counter, Gauge

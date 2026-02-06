@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-from collections.abc import Awaitable, Iterable
-from typing import TYPE_CHECKING, Callable, Optional, TypeVar, Union
+from collections.abc import Awaitable, Callable, Iterable
+from typing import TYPE_CHECKING, Optional, TypeVar, Union
 
 from typing_extensions import ParamSpec
 

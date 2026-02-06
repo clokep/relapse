@@ -168,14 +168,14 @@ import enum
 import inspect
 import logging
 import re
-from collections.abc import Awaitable, Collection, Generator, Iterable
+from collections.abc import Awaitable, Callable, Collection, Generator, Iterable
+from contextlib import AbstractContextManager
 from functools import wraps
 from re import Pattern
 from typing import (
     TYPE_CHECKING,
     Any,
-    Callable,
-    ContextManager,
+    Concatenate,
     Optional,
     TypeVar,
     Union,
@@ -184,7 +184,7 @@ from typing import (
 )
 
 import attr
-from typing_extensions import Concatenate, ParamSpec
+from typing_extensions import ParamSpec
 
 from twisted.internet import defer
 from twisted.web.http import Request
@@ -867,7 +867,9 @@ def extract_text_map(carrier: dict[str, str]) -> Optional["opentracing.SpanConte
 
 def _custom_sync_async_decorator(
     func: Callable[P, R],
-    wrapping_logic: Callable[Concatenate[Callable[P, R], P], ContextManager[None]],
+    wrapping_logic: Callable[
+        Concatenate[Callable[P, R], P], AbstractContextManager[None]
+    ],
 ) -> Callable[P, R]:
     """
     Decorates a function that is sync or async (coroutines), or that returns a Twisted
@@ -892,7 +894,7 @@ def _custom_sync_async_decorator(
     Args:
         func: The function to be decorated
         wrapping_logic: The business logic of your custom decorator.
-            This should be a ContextManager so you are able to run your logic
+            This should be a AbstractContextManager so you are able to run your logic
             before/after the function as desired.
     """
 

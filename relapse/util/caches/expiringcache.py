@@ -15,10 +15,9 @@
 import logging
 from collections import OrderedDict
 from collections.abc import Iterable
-from typing import Any, Generic, Optional, TypeVar, Union, overload
+from typing import Any, Generic, Literal, Optional, TypeVar, Union, overload
 
 import attr
-from typing_extensions import Literal
 
 from twisted.internet import defer
 

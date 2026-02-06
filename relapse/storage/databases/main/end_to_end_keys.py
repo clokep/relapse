@@ -15,11 +15,10 @@
 # limitations under the License.
 import abc
 from collections.abc import Collection, Iterable, Mapping, Sequence
-from typing import TYPE_CHECKING, Any, Optional, Union, cast, overload
+from typing import TYPE_CHECKING, Any, Literal, Optional, Union, cast, overload
 
 import attr
 from canonicaljson import encode_canonical_json
-from typing_extensions import Literal
 
 from relapse.api.constants import DeviceKeyAlgorithms
 from relapse.appservice import (
