@@ -47,7 +47,7 @@ class RoomTypingTestCase(unittest.HomeserverTestCase):
     def test_set_typing(self) -> None:
         channel = self.make_request(
             "PUT",
-            "/rooms/%s/typing/%s" % (self.room_id, self.user_id),
+            f"/rooms/{self.room_id}/typing/{self.user_id}",
             b'{"typing": true, "timeout": 30000}',
         )
         self.assertEqual(200, channel.code)
@@ -77,7 +77,7 @@ class RoomTypingTestCase(unittest.HomeserverTestCase):
     def test_set_not_typing(self) -> None:
         channel = self.make_request(
             "PUT",
-            "/rooms/%s/typing/%s" % (self.room_id, self.user_id),
+            f"/rooms/{self.room_id}/typing/{self.user_id}",
             b'{"typing": false}',
         )
         self.assertEqual(200, channel.code)
@@ -85,7 +85,7 @@ class RoomTypingTestCase(unittest.HomeserverTestCase):
     def test_typing_timeout(self) -> None:
         channel = self.make_request(
             "PUT",
-            "/rooms/%s/typing/%s" % (self.room_id, self.user_id),
+            f"/rooms/{self.room_id}/typing/{self.user_id}",
             b'{"typing": true, "timeout": 30000}',
         )
         self.assertEqual(200, channel.code)
@@ -98,7 +98,7 @@ class RoomTypingTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "PUT",
-            "/rooms/%s/typing/%s" % (self.room_id, self.user_id),
+            f"/rooms/{self.room_id}/typing/{self.user_id}",
             b'{"typing": true, "timeout": 30000}',
         )
         self.assertEqual(200, channel.code)

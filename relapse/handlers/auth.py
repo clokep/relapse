@@ -491,7 +491,7 @@ class AuthHandler:
             try:
                 session = await self.store.get_ui_auth_session(sid)
             except StoreError:
-                raise RelapseError(400, "Unknown session ID: %s" % (sid,))
+                raise RelapseError(400, f"Unknown session ID: {sid}")
 
             # If the client provides parameters, update what is persisted,
             # otherwise use whatever was last provided.
@@ -650,7 +650,7 @@ class AuthHandler:
         try:
             await self.store.set_ui_auth_session_data(session_id, key, value)
         except StoreError:
-            raise RelapseError(400, "Unknown session ID: %s" % (session_id,))
+            raise RelapseError(400, f"Unknown session ID: {session_id}")
 
     async def get_session_data(
         self, session_id: str, key: str, default: Optional[Any] = None
@@ -667,7 +667,7 @@ class AuthHandler:
         try:
             return await self.store.get_ui_auth_session_data(session_id, key, default)
         except StoreError:
-            raise RelapseError(400, "Unknown session ID: %s" % (session_id,))
+            raise RelapseError(400, f"Unknown session ID: {session_id}")
 
     async def _expire_old_sessions(self) -> None:
         """
@@ -714,11 +714,7 @@ class AuthHandler:
                     "version": self.hs.config.consent.user_consent_version,
                     "en": {
                         "name": self.hs.config.consent.user_consent_policy_name,
-                        "url": "%s_matrix/consent?v=%s"
-                        % (
-                            self.hs.config.server.public_baseurl,
-                            self.hs.config.consent.user_consent_version,
-                        ),
+                        "url": f"{self.hs.config.server.public_baseurl}_matrix/consent?v={self.hs.config.consent.user_consent_version}",
                     },
                 }
             }
@@ -1330,8 +1326,7 @@ class AuthHandler:
             if missing_fields:
                 raise RelapseError(
                     400,
-                    "Missing parameters for login type %s: %s"
-                    % (login_type, missing_fields),
+                    f"Missing parameters for login type {login_type}: {missing_fields}",
                 )
 
             # call all of the check_auth hooks for that login_type
@@ -1358,7 +1353,7 @@ class AuthHandler:
                 return canonical_user_id, None
 
         if not known_login_type:
-            raise RelapseError(400, "Unknown login type %s" % login_type)
+            raise RelapseError(400, f"Unknown login type {login_type}")
 
         # We raise a 403 here, but note that if we're doing user-interactive
         # login, it turns all LoginErrors into a 401 anyway.
@@ -1546,7 +1541,7 @@ class AuthHandler:
         if medium not in ["email", "msisdn"]:
             raise RelapseError(
                 code=400,
-                msg=("'%s' is not a valid value for 'medium'" % (medium,)),
+                msg=(f"'{medium}' is not a valid value for 'medium'"),
                 errcode=Codes.INVALID_PARAM,
             )
 
@@ -1672,7 +1667,7 @@ class AuthHandler:
         try:
             session = await self.store.get_ui_auth_session(session_id)
         except StoreError:
-            raise RelapseError(400, "Unknown session ID: %s" % (session_id,))
+            raise RelapseError(400, f"Unknown session ID: {session_id}")
 
         user_id_to_verify: str = await self.get_session_data(
             session_id, UIAuthSessionDataConstants.REQUEST_USER_ID
@@ -1936,9 +1931,8 @@ class PasswordAuthProvider:
                 for f in fields:
                     if not isinstance(f, str):
                         raise RuntimeError(
-                            "A module tried to register support for login type: %s with parameters %s"
+                            f"A module tried to register support for login type: {login_type} with parameters {fields}"
                             " but all parameter names must be strings"
-                            % (login_type, fields)
                         )
 
                 # 2 modules supporting the same login type must expect the same fields
@@ -1952,9 +1946,8 @@ class PasswordAuthProvider:
                     )
                     if fields_currently_supported != fields:
                         raise RuntimeError(
-                            "A module tried to register support for login type: %s with parameters %s"
-                            " but another module had already registered support for that type with parameters %s"
-                            % (login_type, fields, fields_currently_supported)
+                            f"A module tried to register support for login type: {login_type} with parameters {fields}"
+                            f" but another module had already registered support for that type with parameters {fields_currently_supported}"
                         )
 
                 # Add the new method to the list of auth_checker_callbacks for this login type

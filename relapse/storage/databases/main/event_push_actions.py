@@ -1761,17 +1761,17 @@ class EventPushActionsWorkerStore(ReceiptsWorkerStore, StreamWorkerStore, SQLBas
 
             # NB. This assumes event_ids are globally unique since
             # it makes the query easier to index
-            sql = """
+            sql = f"""
                 SELECT epa.event_id, epa.room_id,
                     epa.stream_ordering, epa.topological_ordering,
                     epa.actions, epa.highlight, epa.profile_tag, e.received_ts
                 FROM event_push_actions epa, events e
                 WHERE epa.event_id = e.event_id
-                    AND epa.user_id = ? %s
+                    AND epa.user_id = ? {before_clause}
                     AND epa.notif = 1
                 ORDER BY epa.stream_ordering DESC
                 LIMIT ?
-            """ % (before_clause,)
+            """
             txn.execute(sql, args)
             return cast(
                 list[tuple[str, str, int, int, str, bool, str, int]], txn.fetchall()

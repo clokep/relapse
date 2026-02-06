@@ -222,8 +222,7 @@ class ProxyResource(_AsyncResource):
             error_response_code = 502
             error_response_json = {
                 "errcode": Codes.UNKNOWN,
-                "err": "ProxyResource: Error when proxying request: %s %s -> %s"
-                % (
+                "err": "ProxyResource: Error when proxying request: {} {} -> {}".format(
                     request.method.decode("ascii"),
                     request.uri.decode("ascii"),
                     f,

@@ -264,7 +264,7 @@ class MediaRepositoryStore(MediaRepositoryBackgroundUpdateStore):
             txn.execute(sql, args)
             count = cast(tuple[int], txn.fetchone())[0]
 
-            sql = """
+            sql = f"""
                 SELECT
                     media_id,
                     media_type,
@@ -280,10 +280,7 @@ class MediaRepositoryStore(MediaRepositoryBackgroundUpdateStore):
                 WHERE user_id = ?
                 ORDER BY {order_by_column} {order}, media_id ASC
                 LIMIT ? OFFSET ?
-            """.format(
-                order_by_column=order_by_column,
-                order=order,
-            )
+            """
 
             args += [limit, start]
             txn.execute(sql, args)
@@ -371,7 +368,7 @@ class MediaRepositoryStore(MediaRepositoryBackgroundUpdateStore):
                          WHERE room_stats_state.avatar = '{media_prefix}' || lmr.media_id)
                 )
             """.format(
-                media_prefix="mxc://%s/" % (self.server_name,),
+                media_prefix=f"mxc://{self.server_name}/",
             )
             sql += sql_keep
 

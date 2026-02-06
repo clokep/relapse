@@ -201,7 +201,7 @@ class _BaseThreepidAuthChecker:
                 )
         else:
             # this can't happen!
-            raise AssertionError("Unrecognized threepid medium: %s" % (medium,))
+            raise AssertionError(f"Unrecognized threepid medium: {medium}")
 
         if not threepid:
             raise LoginError(
@@ -211,8 +211,9 @@ class _BaseThreepidAuthChecker:
         if threepid["medium"] != medium:
             raise LoginError(
                 401,
-                "Expecting threepid of type '%s', got '%s'"
-                % (medium, threepid["medium"]),
+                "Expecting threepid of type '{}', got '{}'".format(
+                    medium, threepid["medium"]
+                ),
                 errcode=Codes.UNAUTHORIZED,
             )
 

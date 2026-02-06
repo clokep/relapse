@@ -104,8 +104,7 @@ def parse_thumbnail_requirements(
                 )
             else:
                 raise Exception(
-                    "Unknown thumbnail mapping from %s to %s. This is a Relapse problem, please report!"
-                    % (format, thumbnail_format)
+                    f"Unknown thumbnail mapping from {format} to {thumbnail_format}. This is a Relapse problem, please report!"
                 )
     return {
         media_type: tuple(thumbnails) for media_type, thumbnails in requirements.items()
@@ -190,7 +189,7 @@ class ContentRepositoryConfig(Config):
                 )
 
             provider_class, parsed_config = load_module(
-                provider_config, ("media_storage_providers", "<item %i>" % i)
+                provider_config, ("media_storage_providers", f"<item {i}>")
             )
 
             wrapper_config = MediaStorageProviderConfig(

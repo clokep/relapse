@@ -85,7 +85,7 @@ class StorageProviderWrapper(StorageProvider):
         self.store_remote = store_remote
 
     def __str__(self) -> str:
-        return "StorageProviderWrapper[%s]" % (self.backend,)
+        return f"StorageProviderWrapper[{self.backend}]"
 
     @trace_with_opname("StorageProviderWrapper.store_file")
     async def store_file(self, path: str, file_info: FileInfo) -> None:
@@ -142,7 +142,7 @@ class FileStorageProviderBackend(StorageProvider):
         self.base_directory = config
 
     def __str__(self) -> str:
-        return "FileStorageProviderBackend[%s]" % (self.base_directory,)
+        return f"FileStorageProviderBackend[{self.base_directory}]"
 
     @trace_with_opname("FileStorageProviderBackend.store_file")
     async def store_file(self, path: str, file_info: FileInfo) -> None:

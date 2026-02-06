@@ -48,13 +48,13 @@ def create_event(
 
     if not event_id:
         _next_event_id += 1
-        event_id = "$%s:test" % (_next_event_id,)
+        event_id = f"${_next_event_id}:test"
 
     if not name:
         if state_key is not None:
-            name = "<%s-%s, %s>" % (type, state_key, event_id)
+            name = f"<{type}-{state_key}, {event_id}>"
         else:
-            name = "<%s, %s>" % (type, event_id)
+            name = f"<{type}, {event_id}>"
 
     d = {
         "event_id": event_id,

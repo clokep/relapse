@@ -17,7 +17,7 @@ to ensure idempotency when performing PUTs using the REST API."""
 
 import logging
 from collections.abc import Awaitable, Hashable
-from typing import TYPE_CHECKING, Callable, Tuple
+from typing import TYPE_CHECKING, Callable
 
 from typing_extensions import ParamSpec
 
@@ -100,7 +100,7 @@ class HttpTransactionCache:
         fn: Callable[P, Awaitable[tuple[int, JsonDict]]],
         *args: P.args,
         **kwargs: P.kwargs,
-    ) -> "Deferred[Tuple[int, JsonDict]]":
+    ) -> "Deferred[tuple[int, JsonDict]]":
         """Fetches the response for this transaction, or executes the given function
         to produce a response for this transaction.
 

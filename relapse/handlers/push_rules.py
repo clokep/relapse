@@ -73,7 +73,7 @@ class PushRulesHandler:
         is_default_rule = rule_id.startswith(".")
         if is_default_rule:
             if namespaced_rule_id not in BASE_RULE_IDS:
-                raise RuleNotFoundException("Unknown rule %r" % (namespaced_rule_id,))
+                raise RuleNotFoundException(f"Unknown rule {namespaced_rule_id!r}")
         if spec.attr == "enabled":
             if isinstance(val, dict) and "enabled" in val:
                 val = val["enabled"]
@@ -96,9 +96,7 @@ class PushRulesHandler:
             is_default_rule = rule_id.startswith(".")
             if is_default_rule:
                 if namespaced_rule_id not in BASE_RULE_IDS:
-                    raise RuleNotFoundException(
-                        "Unknown rule %r" % (namespaced_rule_id,)
-                    )
+                    raise RuleNotFoundException(f"Unknown rule {namespaced_rule_id!r}")
             await self._main_store.set_push_rule_actions(
                 user_id, namespaced_rule_id, actions, is_default_rule
             )
@@ -150,7 +148,7 @@ def check_actions(actions: list[Union[str, JsonDict]]) -> None:
         elif isinstance(a, dict) and "set_tweak" in a:
             pass
         else:
-            raise InvalidRuleException("Unrecognised action %s" % a)
+            raise InvalidRuleException(f"Unrecognised action {a}")
 
 
 class InvalidRuleException(Exception):

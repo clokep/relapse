@@ -102,7 +102,7 @@ def _create_mxc_to_http_filter(
             fragment = "#" + fragment
 
         params = {"width": width, "height": height, "method": resize_method}
-        return "%s_matrix/media/v1/thumbnail/%s?%s%s" % (
+        return "{}_matrix/media/v1/thumbnail/{}?{}{}".format(
             public_baseurl,
             server_and_media_id,
             urllib.parse.urlencode(params),

@@ -434,8 +434,7 @@ class ThumbnailServlet(RestServlet):
                 request,
                 400,
                 cs_error(
-                    "Cannot find any thumbnails for the requested media ('%s'). This might mean the media is not a supported_media_format=(%s) or that thumbnailing failed for some other reason. (Dynamic thumbnails are disabled on this server.)"
-                    % (
+                    "Cannot find any thumbnails for the requested media ('{}'). This might mean the media is not a supported_media_format=({}) or that thumbnailing failed for some other reason. (Dynamic thumbnails are disabled on this server.)".format(
                         request.path.decode(),
                         ", ".join(THUMBNAIL_SUPPORTED_MEDIA_FORMAT_MAP.keys()),
                     ),

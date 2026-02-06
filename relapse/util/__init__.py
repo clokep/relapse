@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 
 def _reject_invalid_json(val: Any) -> None:
     """Do not allow Infinity, -Infinity, or NaN values in JSON."""
-    raise ValueError("Invalid JSON value: '%s'" % val)
+    raise ValueError(f"Invalid JSON value: '{val}'")
 
 
 def _handle_immutabledict(obj: Any) -> dict[Any, Any]:
@@ -55,9 +55,7 @@ def _handle_immutabledict(obj: Any) -> dict[Any, Any]:
         except AttributeError:
             # If all else fails, resort to making a copy of the immutabledict
             return dict(obj)
-    raise TypeError(
-        "Object of type %s is not JSON serializable" % obj.__class__.__name__
-    )
+    raise TypeError(f"Object of type {obj.__class__.__name__} is not JSON serializable")
 
 
 # A custom JSON encoder which:

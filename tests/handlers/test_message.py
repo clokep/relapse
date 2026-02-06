@@ -324,7 +324,7 @@ class ServerAclValidationTestCase(unittest.HomeserverTestCase):
         event_id = body["event_id"]
 
         # Redaction of event should fail.
-        path = "/_matrix/client/r0/rooms/%s/redact/%s" % (self.room_id, event_id)
+        path = f"/_matrix/client/r0/rooms/{self.room_id}/redact/{event_id}"
         channel = self.make_request(
             "POST", path, content={}, access_token=self.access_token
         )

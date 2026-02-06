@@ -89,8 +89,8 @@ def create_test_cert_file(sanlist: list[bytes]) -> str:
     """
     global cert_file_count
     csr_filename = "server.csr"
-    cnf_filename = "server.%i.cnf" % (cert_file_count,)
-    cert_filename = "server.%i.crt" % (cert_file_count,)
+    cnf_filename = f"server.{cert_file_count}.cnf"
+    cert_filename = f"server.{cert_file_count}.crt"
     cert_file_count += 1
 
     # first build a CSR

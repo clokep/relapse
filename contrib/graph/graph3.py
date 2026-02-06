@@ -74,8 +74,7 @@ def make_graph(file_name: str, file_prefix: str, limit: int) -> None:
                 value = json.dumps(value)
 
             content.append(
-                "<b>%s</b>: %s,"
-                % (
+                "<b>{}</b>: {},".format(
                     html.escape(key, quote=True).encode("ascii", "xmlcharrefreplace"),
                     html.escape(value, quote=True).encode("ascii", "xmlcharrefreplace"),
                 )
@@ -87,21 +86,21 @@ def make_graph(file_name: str, file_prefix: str, limit: int) -> None:
 
         label = (
             "<"
-            "<b>%(name)s </b><br/>"
-            "Type: <b>%(type)s </b><br/>"
-            "State key: <b>%(state_key)s </b><br/>"
-            "Content: <b>%(content)s </b><br/>"
-            "Time: <b>%(time)s </b><br/>"
-            "Depth: <b>%(depth)s </b><br/>"
+            "<b>{name} </b><br/>"
+            "Type: <b>{type} </b><br/>"
+            "State key: <b>{state_key} </b><br/>"
+            "Content: <b>{content} </b><br/>"
+            "Time: <b>{time} </b><br/>"
+            "Depth: <b>{depth} </b><br/>"
             ">"
-        ) % {
-            "name": event.event_id,
-            "type": event.type,
-            "state_key": event.get("state_key", None),
-            "content": content,
-            "time": t,
-            "depth": event.depth,
-        }
+        ).format(
+            name=event.event_id,
+            type=event.type,
+            state_key=event.get("state_key", None),
+            content=content,
+            time=t,
+            depth=event.depth,
+        )
 
         node = pydot.Node(name=event.event_id, label=label)
 
@@ -125,11 +124,11 @@ def make_graph(file_name: str, file_prefix: str, limit: int) -> None:
 
     print("Created edges")
 
-    graph.write("%s.dot" % file_prefix, format="raw", prog="dot")
+    graph.write(f"{file_prefix}.dot", format="raw", prog="dot")
 
     print("Created Dot")
 
-    graph.write_svg("%s.svg" % file_prefix, prog="dot")
+    graph.write_svg(f"{file_prefix}.svg", prog="dot")
 
     print("Created svg")
 

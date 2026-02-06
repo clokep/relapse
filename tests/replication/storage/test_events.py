@@ -377,7 +377,7 @@ class EventsWorkerStoreTestCase(BaseWorkerStoreTestCase):
             "sender": sender,
             "type": type,
             "content": content,
-            "event_id": "$%d:blue" % (self.event_id,),
+            "event_id": f"${self.event_id}:blue",
             "room_id": room_id,
             "depth": depth,
             "origin_server_ts": self.event_id,

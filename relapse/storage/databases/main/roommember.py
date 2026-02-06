@@ -202,14 +202,14 @@ class RoomMemberWorkerStore(EventsWorkerStore, CacheInvalidationWorkerStore):
                 self.database_engine, "c.state_key", user_ids
             )
 
-            sql = """
+            sql = f"""
                 SELECT state_key, display_name, avatar_url FROM room_memberships as m
                 INNER JOIN current_state_events as c
                 ON m.event_id = c.event_id
                 AND m.room_id = c.room_id
                 AND m.user_id = c.state_key
-                WHERE c.type = 'm.room.member' AND c.room_id = ? AND m.membership = ? AND %s
-            """ % (clause,)
+                WHERE c.type = 'm.room.member' AND c.room_id = ? AND m.membership = ? AND {clause}
+            """
             txn.execute(sql, (room_id, Membership.JOIN, *ids))
 
             return {r[0]: ProfileInfo(display_name=r[1], avatar_url=r[2]) for r in txn}
@@ -429,23 +429,22 @@ class RoomMemberWorkerStore(EventsWorkerStore, CacheInvalidationWorkerStore):
         # Paranoia check.
         if not self.hs.is_mine_id(user_id):
             raise Exception(
-                "Cannot call 'get_rooms_for_local_user_where_membership_is' on non-local user %r"
-                % (user_id,),
+                f"Cannot call 'get_rooms_for_local_user_where_membership_is' on non-local user {user_id!r}",
             )
 
         clause, args = make_in_list_sql_clause(
             self.database_engine, "c.membership", membership_list
         )
 
-        sql = """
+        sql = f"""
             SELECT room_id, e.sender, c.membership, event_id, e.stream_ordering, r.room_version
             FROM local_current_membership AS c
             INNER JOIN events AS e USING (room_id, event_id)
             INNER JOIN rooms AS r USING (room_id)
             WHERE
                 user_id = ?
-                AND %s
-        """ % (clause,)
+                AND {clause}
+        """
 
         txn.execute(sql, (user_id, *args))
         results = [RoomsForUser(*r) for r in txn]
@@ -492,8 +491,7 @@ class RoomMemberWorkerStore(EventsWorkerStore, CacheInvalidationWorkerStore):
         """
         if not self.hs.is_mine_id(user_id):
             raise Exception(
-                "Cannot call 'check_local_user_in_room' on "
-                "non-local user %s" % (user_id,),
+                f"Cannot call 'check_local_user_in_room' on non-local user {user_id}",
             )
 
         (
@@ -538,7 +536,7 @@ class RoomMemberWorkerStore(EventsWorkerStore, CacheInvalidationWorkerStore):
         if not self.hs.is_mine_id(user_id):
             raise Exception(
                 "Cannot call 'get_local_current_membership_for_user_in_room' on "
-                "non-local user %s" % (user_id,),
+                f"non-local user {user_id}",
             )
 
         results = cast(
@@ -1242,13 +1240,13 @@ class RoomMemberWorkerStore(EventsWorkerStore, CacheInvalidationWorkerStore):
             self.database_engine, "user_id", ignore_users
         )
 
-        sql = """
+        sql = f"""
             SELECT 1 FROM local_current_membership
             WHERE
                 room_id = ? AND membership = ?
-                AND NOT (%s)
+                AND NOT ({clause})
                 LIMIT 1
-        """ % (clause,)
+        """
 
         def _is_local_host_in_room_ignoring_users_txn(
             txn: LoggingTransaction,

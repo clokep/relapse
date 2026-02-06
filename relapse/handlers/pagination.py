@@ -230,7 +230,7 @@ class PaginationHandler:
                 continue
 
             (stream, topo, _event_id) = r
-            token = "t%d-%d" % (topo, stream)
+            token = f"t{topo}-{stream}"
 
             logger.info("Starting purging events in room %s", room_id)
 
@@ -726,7 +726,7 @@ class PaginationHandler:
             unique ID for this delete transaction.
         """
         if len(await self.get_delete_tasks_by_room(room_id, only_active=True)) > 0:
-            raise RelapseError(400, "Purge already in progress for %s" % (room_id,))
+            raise RelapseError(400, f"Purge already in progress for {room_id}")
 
         # This check is double to `RoomShutdownHandler.shutdown_room`
         # But here the requester get a direct response / error with HTTP request
@@ -734,9 +734,7 @@ class PaginationHandler:
         new_room_user_id = shutdown_params["new_room_user_id"]
         if new_room_user_id is not None:
             if not self.hs.is_mine_id(new_room_user_id):
-                raise RelapseError(
-                    400, "User must be our own: %s" % (new_room_user_id,)
-                )
+                raise RelapseError(400, f"User must be our own: {new_room_user_id}")
 
         delete_id = await self._task_scheduler.schedule_task(
             SHUTDOWN_AND_PURGE_ROOM_ACTION_NAME,

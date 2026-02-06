@@ -49,7 +49,7 @@ class VoipRestServlet(RestServlet):
 
         if turnUris and turnSecret and userLifetime:
             expiry = (self.hs.get_clock().time_msec() + userLifetime) / 1000
-            username = "%d:%s" % (expiry, requester.user.to_string())
+            username = f"{expiry}:{requester.user.to_string()}"
 
             mac = hmac.new(
                 turnSecret.encode(), msg=username.encode(), digestmod=hashlib.sha1

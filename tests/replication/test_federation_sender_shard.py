@@ -127,7 +127,7 @@ class FederationSenderTestCase(BaseMultiWorkerStreamTestCase):
         sent_on_1 = False
         sent_on_2 = False
         for i in range(20):
-            server_name = "other_server_%d" % (i,)
+            server_name = f"other_server_{i}"
             room = self.create_room_with_remote_server(user, token, server_name)
             mock_client1.reset_mock()
             mock_client2.reset_mock()
@@ -199,7 +199,7 @@ class FederationSenderTestCase(BaseMultiWorkerStreamTestCase):
         sent_on_1 = False
         sent_on_2 = False
         for i in range(20):
-            server_name = "other_server_%d" % (i,)
+            server_name = f"other_server_{i}"
             room = self.create_room_with_remote_server(user, token, server_name)
             mock_client1.reset_mock()
             mock_client2.reset_mock()

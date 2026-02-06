@@ -97,7 +97,7 @@ def validate_event_for_room_version(event: "EventBase") -> None:
     _check_size_limits(event)
 
     if not hasattr(event, "room_id"):
-        raise AuthError(500, "Event has no room_id: %s" % event)
+        raise AuthError(500, f"Event has no room_id: {event}")
 
     # check that the event has the correct signatures
     sender_domain = get_domain_from_id(event.sender)
@@ -206,9 +206,8 @@ async def check_state_independent_auth_rules(
         if auth_event.room_id != room_id:
             raise AuthError(
                 403,
-                "During auth for event %s in room %s, found event %s in the state "
-                "which is in room %s"
-                % (event.event_id, room_id, auth_event_id, auth_event.room_id),
+                f"During auth for event {event.event_id} in room {room_id}, found event {auth_event_id} in the state "
+                f"which is in room {auth_event.room_id}",
             )
 
         k = (auth_event.type, auth_event.state_key)
@@ -233,8 +232,7 @@ async def check_state_independent_auth_rules(
         if auth_event.rejected_reason:
             raise AuthError(
                 403,
-                "During auth for event %s: found rejected event %s in the state"
-                % (event.event_id, auth_event.event_id),
+                f"During auth for event {event.event_id}: found rejected event {auth_event.event_id} in the state",
             )
 
         auth_dict[k] = auth_event_id
@@ -442,7 +440,7 @@ def _check_create(event: "EventBase") -> None:
     if room_version_prop not in KNOWN_ROOM_VERSIONS:
         raise AuthError(
             403,
-            "room appears to have unsupported version %s" % (room_version_prop,),
+            f"room appears to have unsupported version {room_version_prop}",
         )
 
     # 1.4 If content has no creator field, reject if the room version requires it.
@@ -550,7 +548,7 @@ def _is_membership_change_allowed(
         if not _verify_third_party_invite(event, auth_events):
             raise AuthError(403, "You are not invited to this room.")
         if target_banned:
-            raise AuthError(403, "%s is banned from the room" % (target_user_id,))
+            raise AuthError(403, f"{target_user_id} is banned from the room")
         return
 
     # Require the user to be in the room for membership changes other than join/knock.
@@ -569,7 +567,7 @@ def _is_membership_change_allowed(
         if not caller_in_room:  # caller isn't joined
             raise UnstableSpecAuthError(
                 403,
-                "%s not in room %s." % (event.user_id, event.room_id),
+                f"{event.user_id} not in room {event.room_id}.",
                 errcode=Codes.NOT_JOINED,
             )
 
@@ -579,11 +577,11 @@ def _is_membership_change_allowed(
 
         # Invites are valid iff caller is in the room and target isn't.
         if target_banned:
-            raise AuthError(403, "%s is banned from the room" % (target_user_id,))
+            raise AuthError(403, f"{target_user_id} is banned from the room")
         elif target_in_room:  # the target is already in the room.
             raise UnstableSpecAuthError(
                 403,
-                "%s is already in the room." % target_user_id,
+                f"{target_user_id} is already in the room.",
                 errcode=Codes.ALREADY_JOINED,
             )
         else:
@@ -656,7 +654,7 @@ def _is_membership_change_allowed(
         if target_banned and user_level < ban_level:
             raise UnstableSpecAuthError(
                 403,
-                "You cannot unban user %s." % (target_user_id,),
+                f"You cannot unban user {target_user_id}.",
                 errcode=Codes.INSUFFICIENT_POWER,
             )
         elif target_user_id != event.user_id:
@@ -665,7 +663,7 @@ def _is_membership_change_allowed(
             if user_level < kick_level or user_level <= target_level:
                 raise UnstableSpecAuthError(
                     403,
-                    "You cannot kick user %s." % target_user_id,
+                    f"You cannot kick user {target_user_id}.",
                     errcode=Codes.INSUFFICIENT_POWER,
                 )
     elif Membership.BAN == membership:
@@ -700,7 +698,7 @@ def _is_membership_change_allowed(
         elif target_banned:
             raise AuthError(403, "You are banned from this room")
     else:
-        raise AuthError(500, "Unknown membership %s" % membership)
+        raise AuthError(500, f"Unknown membership {membership}")
 
 
 def _check_event_sender_in_room(
@@ -716,9 +714,7 @@ def _check_joined_room(
     member: Optional["EventBase"], user_id: str, room_id: str
 ) -> None:
     if not member or member.membership != Membership.JOIN:
-        raise AuthError(
-            403, "User %s not in room %s (%s)" % (user_id, room_id, repr(member))
-        )
+        raise AuthError(403, f"User {user_id} not in room {room_id} ({repr(member)})")
 
 
 def get_send_level(
@@ -767,8 +763,7 @@ def _can_send_event(event: "EventBase", auth_events: StateMap["EventBase"]) -> b
     if user_level < send_level:
         raise UnstableSpecAuthError(
             403,
-            "You don't have permission to post that to the room. "
-            + "user_level (%d) < send_level (%d)" % (user_level, send_level),
+            f"You don't have permission to post that to the room. user_level ({user_level}) < send_level ({send_level})",
             errcode=Codes.INSUFFICIENT_POWER,
         )
 
@@ -830,12 +825,12 @@ def _check_power_levels(
         try:
             UserID.from_string(k)
         except Exception:
-            raise RelapseError(400, "Not a valid user_id: %s" % (k,))
+            raise RelapseError(400, f"Not a valid user_id: {k}")
 
         try:
             int(v)
         except Exception:
-            raise RelapseError(400, "Not a valid power level: %s" % (v,))
+            raise RelapseError(400, f"Not a valid power level: {v}")
 
     # Reject events with stringy power levels if required by room version
     if (

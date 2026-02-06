@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 
 
 def run_on_reactor() -> "Deferred[int]":
-    d: "Deferred[int]" = Deferred()
+    d: Deferred[int] = Deferred()
     cast(IReactorTime, reactor).callLater(0, d.callback, 0)
     return make_deferred_yieldable(d)
 
@@ -467,7 +467,7 @@ class DescriptorTestCase(unittest.TestCase):
 
     def test_cancel(self) -> None:
         """Test that cancelling a lookup does not cancel other lookups"""
-        complete_lookup: "Deferred[None]" = Deferred()
+        complete_lookup: Deferred[None] = Deferred()
 
         class Cls:
             @cached()
@@ -497,7 +497,7 @@ class DescriptorTestCase(unittest.TestCase):
         * The inner lookup must not resume with a finished logcontext.
         * The inner lookup must not restore a finished logcontext when done.
         """
-        complete_lookup: "Deferred[None]" = Deferred()
+        complete_lookup: Deferred[None] = Deferred()
 
         class Cls:
             inner_context_was_finished = False
@@ -625,7 +625,7 @@ class CacheDecoratorTestCase(unittest.HomeserverTestCase):
             yield a.func(k)
 
         self.assertTrue(
-            callcount[0] >= 14, msg="Expected callcount >= 14, got %d" % (callcount[0])
+            callcount[0] >= 14, msg=f"Expected callcount >= 14, got {callcount[0]}"
         )
 
     def test_prefill(self) -> None:
@@ -844,7 +844,7 @@ class CachedListDescriptorTestCase(unittest.TestCase):
                 return self.mock(args1)
 
         obj = Cls()
-        deferred_result: "Deferred[Mapping[int, str]]" = Deferred()
+        deferred_result: Deferred[Mapping[int, str]] = Deferred()
         obj.mock.return_value = deferred_result
 
         # start off several concurrent lookups of the same key
@@ -914,7 +914,7 @@ class CachedListDescriptorTestCase(unittest.TestCase):
 
     def test_cancel(self) -> None:
         """Test that cancelling a lookup does not cancel other lookups"""
-        complete_lookup: "Deferred[None]" = Deferred()
+        complete_lookup: Deferred[None] = Deferred()
 
         class Cls:
             @cached()
@@ -947,7 +947,7 @@ class CachedListDescriptorTestCase(unittest.TestCase):
         * The inner lookup must not resume with a finished logcontext.
         * The inner lookup must not restore a finished logcontext when done.
         """
-        complete_lookup: "Deferred[None]" = Deferred()
+        complete_lookup: Deferred[None] = Deferred()
 
         class Cls:
             inner_context_was_finished = False

@@ -111,7 +111,7 @@ class _RoomDirectoryRule:
             self.action = action
         else:
             raise ConfigError(
-                "%s rules can only have action of 'allow' or 'deny'" % (option_name,)
+                f"{option_name} rules can only have action of 'allow' or 'deny'"
             )
 
         self._alias_matches_all = alias == "*"

@@ -79,7 +79,7 @@ def run_create(cur: LoggingTransaction, database_engine: BaseDatabaseEngine) -> 
 
     sql = oldsql.replace("content TEXT NOT NULL", "content TEXT")
     if sql == oldsql:
-        raise Exception("Couldn't find null constraint to drop in %s" % oldsql)
+        raise Exception(f"Couldn't find null constraint to drop in {oldsql}")
 
     logger.info("Replacing definition of 'events' with: %s", sql)
 
@@ -92,5 +92,5 @@ def run_create(cur: LoggingTransaction, database_engine: BaseDatabaseEngine) -> 
         "UPDATE sqlite_master SET sql=? WHERE tbl_name='events' AND type='table'",
         (sql,),
     )
-    cur.execute("PRAGMA schema_version=%i" % (oldver + 1,))
+    cur.execute(f"PRAGMA schema_version={oldver + 1}")
     cur.execute("PRAGMA writable_schema=OFF")

@@ -16,7 +16,6 @@ import re
 from typing import (
     TYPE_CHECKING,
     Callable,
-    Dict,
     Generator,
     Iterable,
     Optional,
@@ -177,7 +176,7 @@ def _favicon_sort(image: "Tag") -> float:
     return max([int(s) for s in sizes if s.isdigit()])
 
 
-def parse_html_to_open_graph(soup: "BeautifulSoup") -> Dict[str, Optional[str]]:
+def parse_html_to_open_graph(soup: "BeautifulSoup") -> dict[str, Optional[str]]:
     """
     Calculate metadata for an HTML document.
 
@@ -383,7 +382,7 @@ def _iterate_over_text(
     # This is basically a stack that we extend using itertools.chain.
     # This will either consist of an element to iterate over *or* a string
     # to be returned.
-    elements: list["PageElement"] = [soup]
+    elements: list[PageElement] = [soup]
     while elements:
         el = elements.pop()
 

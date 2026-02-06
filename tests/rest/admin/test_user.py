@@ -581,10 +581,7 @@ class UsersListTestCase(unittest.HomeserverTestCase):
                 search_field: Field which is to request: `name` or `user_id`
                 expected_http_code: The expected http code for the request
             """
-            url = self.url + "?%s=%s" % (
-                search_field,
-                search_term,
-            )
+            url = self.url + f"?{search_field}={search_term}"
             channel = self.make_request(
                 "GET",
                 url,
@@ -1188,9 +1185,9 @@ class UsersListTestCase(unittest.HomeserverTestCase):
 
         url = self.url + "?deactivated=true&"
         if order_by is not None:
-            url += "order_by=%s&" % (order_by,)
+            url += f"order_by={order_by}&"
         if dir is not None and dir in ("b", "f"):
-            url += "dir=%s" % (dir,)
+            url += f"dir={dir}"
         channel = self.make_request(
             "GET",
             url,
@@ -1228,10 +1225,10 @@ class UsersListTestCase(unittest.HomeserverTestCase):
         """
         for i in range(1, number_users + 1):
             self.register_user(
-                "user%d" % i,
-                "pass%d" % i,
+                f"user{i}",
+                f"pass{i}",
                 admin=False,
-                displayname="Name %d" % i,
+                displayname=f"Name {i}",
             )
 
 
@@ -1339,11 +1336,11 @@ class DeactivateAccountTestCase(unittest.HomeserverTestCase):
 
         self.other_user = self.register_user("user", "pass", displayname="User1")
         self.other_user_token = self.login("user", "pass")
-        self.url_other_user = "/_relapse/admin/v2/users/%s" % urllib.parse.quote(
-            self.other_user
+        self.url_other_user = (
+            f"/_relapse/admin/v2/users/{urllib.parse.quote(self.other_user)}"
         )
-        self.url = "/_relapse/admin/v1/deactivate/%s" % urllib.parse.quote(
-            self.other_user
+        self.url = (
+            f"/_relapse/admin/v1/deactivate/{urllib.parse.quote(self.other_user)}"
         )
 
         # set attributes for user
@@ -3137,9 +3134,7 @@ class UserMembershipRestTestCase(unittest.HomeserverTestCase):
         self.admin_user_tok = self.login("admin", "pass")
 
         self.other_user = self.register_user("user", "pass")
-        self.url = "/_relapse/admin/v1/users/%s/joined_rooms" % urllib.parse.quote(
-            self.other_user
-        )
+        self.url = f"/_relapse/admin/v1/users/{urllib.parse.quote(self.other_user)}/joined_rooms"
 
     def test_no_auth(self) -> None:
         """
@@ -3297,8 +3292,8 @@ class PushersRestTestCase(unittest.HomeserverTestCase):
         self.admin_user_tok = self.login("admin", "pass")
 
         self.other_user = self.register_user("user", "pass")
-        self.url = "/_relapse/admin/v1/users/%s/pushers" % urllib.parse.quote(
-            self.other_user
+        self.url = (
+            f"/_relapse/admin/v1/users/{urllib.parse.quote(self.other_user)}/pushers"
         )
 
     def test_no_auth(self) -> None:
@@ -3427,8 +3422,8 @@ class UserMediaRestTestCase(unittest.HomeserverTestCase):
         self.admin_user_tok = self.login("admin", "pass")
 
         self.other_user = self.register_user("user", "pass")
-        self.url = "/_relapse/admin/v1/users/%s/media" % urllib.parse.quote(
-            self.other_user
+        self.url = (
+            f"/_relapse/admin/v1/users/{urllib.parse.quote(self.other_user)}/media"
         )
 
     @parameterized.expand(["GET", "DELETE"])
@@ -3999,8 +3994,8 @@ class UserTokenRestTestCase(unittest.HomeserverTestCase):
 
         self.other_user = self.register_user("user", "pass")
         self.other_user_tok = self.login("user", "pass")
-        self.url = "/_relapse/admin/v1/users/%s/login" % urllib.parse.quote(
-            self.other_user
+        self.url = (
+            f"/_relapse/admin/v1/users/{urllib.parse.quote(self.other_user)}/login"
         )
 
     def _get_token(self) -> str:
@@ -4203,8 +4198,8 @@ class ShadowBanRestTestCase(unittest.HomeserverTestCase):
 
         self.other_user = self.register_user("user", "pass")
 
-        self.url = "/_relapse/admin/v1/users/%s/shadow_ban" % urllib.parse.quote(
-            self.other_user
+        self.url = (
+            f"/_relapse/admin/v1/users/{urllib.parse.quote(self.other_user)}/shadow_ban"
         )
 
     @parameterized.expand(["POST", "DELETE"])
@@ -4282,10 +4277,7 @@ class RateLimitTestCase(unittest.HomeserverTestCase):
         self.admin_user_tok = self.login("admin", "pass")
 
         self.other_user = self.register_user("user", "pass")
-        self.url = (
-            "/_relapse/admin/v1/users/%s/override_ratelimit"
-            % urllib.parse.quote(self.other_user)
-        )
+        self.url = f"/_relapse/admin/v1/users/{urllib.parse.quote(self.other_user)}/override_ratelimit"
 
     @parameterized.expand(["GET", "POST", "DELETE"])
     def test_no_auth(self, method: str) -> None:

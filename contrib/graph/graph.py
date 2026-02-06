@@ -66,21 +66,21 @@ def make_graph(pdus: list[dict], filename_prefix: str) -> None:
 
         label = (
             "<"
-            "<b>%(name)s </b><br/>"
-            "Type: <b>%(type)s </b><br/>"
-            "State key: <b>%(state_key)s </b><br/>"
-            "Content: <b>%(content)s </b><br/>"
-            "Time: <b>%(time)s </b><br/>"
-            "Depth: <b>%(depth)s </b><br/>"
+            "<b>{name} </b><br/>"
+            "Type: <b>{type} </b><br/>"
+            "State key: <b>{state_key} </b><br/>"
+            "Content: <b>{content} </b><br/>"
+            "Time: <b>{time} </b><br/>"
+            "Depth: <b>{depth} </b><br/>"
             ">"
-        ) % {
-            "name": name,
-            "type": pdu.get("pdu_type"),
-            "state_key": pdu.get("state_key"),
-            "content": cgi.escape(json.dumps(pdu.get("content")), quote=True),
-            "time": t,
-            "depth": pdu.get("depth"),
-        }
+        ).format(
+            name=name,
+            type=pdu.get("pdu_type"),
+            state_key=pdu.get("state_key"),
+            content=cgi.escape(json.dumps(pdu.get("content")), quote=True),
+            time=t,
+            depth=pdu.get("depth"),
+        )
 
         node = pydot.Node(name=name, label=label, color=color_map[pdu.get("origin")])
         node_map[name] = node
@@ -92,7 +92,7 @@ def make_graph(pdus: list[dict], filename_prefix: str) -> None:
             end_name = make_name(i, o)
 
             if end_name not in node_map:
-                print("%s not in nodes" % end_name)
+                print(f"{end_name} not in nodes")
                 continue
 
             edge = pydot.Edge(node_map[start_name], node_map[end_name])
@@ -110,9 +110,9 @@ def make_graph(pdus: list[dict], filename_prefix: str) -> None:
                 )
                 graph.add_edge(state_edge)
 
-    graph.write("%s.dot" % filename_prefix, format="raw", prog="dot")
+    graph.write(f"{filename_prefix}.dot", format="raw", prog="dot")
     #    graph.write_png("%s.png" % filename_prefix, prog='dot')
-    graph.write_svg("%s.svg" % filename_prefix, prog="dot")
+    graph.write_svg(f"{filename_prefix}.svg", prog="dot")
 
 
 def get_pdus(host: str, room: str) -> list[dict]:
@@ -141,7 +141,7 @@ if __name__ == "__main__":
 
     host = args.host
     room = args.room
-    prefix = args.prefix if args.prefix else "%s_graph" % (room)
+    prefix = args.prefix if args.prefix else f"{room}_graph"
 
     pdus = get_pdus(host, room)
 

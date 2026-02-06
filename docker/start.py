@@ -60,8 +60,7 @@ def generate_config_from_template(
     for v in ("RELAPSE_SERVER_NAME", "RELAPSE_REPORT_STATS"):
         if v not in os_environ:
             error(
-                "Environment variable '%s' is mandatory when generating a config file."
-                % (v,)
+                f"Environment variable '{v}' is mandatory when generating a config file."
             )
 
     # populate some params from data files (if they exist, else create new ones)
@@ -73,13 +72,13 @@ def generate_config_from_template(
 
     for name, secret in secrets.items():
         if secret not in environ:
-            filename = "/data/%s.%s.key" % (environ["RELAPSE_SERVER_NAME"], name)
+            filename = "/data/{}.{}.key".format(environ["RELAPSE_SERVER_NAME"], name)
 
             # if the file already exists, load in the existing value; otherwise,
             # generate a new secret and write it to a file
 
             if os.path.exists(filename):
-                log("Reading %s from %s" % (secret, filename))
+                log(f"Reading {secret} from {filename}")
                 with open(filename) as handle:
                     value = handle.read()
             else:
@@ -154,7 +153,7 @@ def run_generate_config(environ: Mapping[str, str], ownership: Optional[str]) ->
     """
     for v in ("RELAPSE_SERVER_NAME", "RELAPSE_REPORT_STATS"):
         if v not in environ:
-            error("Environment variable '%s' is mandatory in `generate` mode." % (v,))
+            error(f"Environment variable '{v}' is mandatory in `generate` mode.")
 
     server_name = environ["RELAPSE_SERVER_NAME"]
     config_dir = environ.get("RELAPSE_CONFIG_DIR", "/data")
@@ -167,9 +166,9 @@ def run_generate_config(environ: Mapping[str, str], ownership: Optional[str]) ->
         subprocess.run(["chown", ownership, data_dir], check=True)
 
     # create a suitable log config from our template
-    log_config_file = "%s/%s.log.config" % (config_dir, server_name)
+    log_config_file = f"{config_dir}/{server_name}.log.config"
     if not os.path.exists(log_config_file):
-        log("Creating log config %s" % (log_config_file,))
+        log(f"Creating log config {log_config_file}")
         convert("/conf/log.config", log_config_file, environ)
 
     # generate the main config file, and a signing key.
@@ -225,19 +224,19 @@ def main(args: list[str], environ: MutableMapping[str, str]) -> None:
         )
 
     if mode != "run":
-        error("Unknown execution mode '%s'" % (mode,))
+        error(f"Unknown execution mode '{mode}'")
 
     args = args[2:]
 
     if "-m" not in args:
         args = ["-m", relapse_worker] + args
 
-    jemallocpath = "/usr/lib/%s-linux-gnu/libjemalloc.so.2" % (platform.machine(),)
+    jemallocpath = f"/usr/lib/{platform.machine()}-linux-gnu/libjemalloc.so.2"
 
     if os.path.isfile(jemallocpath):
         environ["LD_PRELOAD"] = jemallocpath
     else:
-        log("Could not find %s, will not use" % (jemallocpath,))
+        log(f"Could not find {jemallocpath}, will not use")
 
     # if there are no config files passed to relapse, try adding the default file
     if not any(p.startswith(("--config-path", "-c")) for p in args):
@@ -249,22 +248,20 @@ def main(args: list[str], environ: MutableMapping[str, str]) -> None:
         if not os.path.exists(config_path):
             if "RELAPSE_SERVER_NAME" in environ:
                 error(
-                    """\
-Config file '%s' does not exist.
+                    f"""\
+Config file '{config_path}' does not exist.
 
 The relapse docker image no longer supports generating a config file on-the-fly
 based on environment variables. You can migrate to a static config file by
 running with 'migrate_config'. See the README for more details.
 """
-                    % (config_path,)
                 )
 
             error(
-                "Config file '%s' does not exist. You should either create a new "
+                f"Config file '{config_path}' does not exist. You should either create a new "
                 "config file by running with the `generate` argument (and then edit "
                 "the resulting file before restarting) or specify the path to an "
                 "existing config file with the RELAPSE_CONFIG_PATH variable."
-                % (config_path,)
             )
 
         args += ["--config-path", config_path]

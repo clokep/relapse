@@ -198,7 +198,7 @@ class PusherWorkerStore(SQLBaseStore):
             FROM pushers
             """
 
-            sql += "WHERE %s" % (" AND ".join("%s = ?" % (k,) for k in keyvalues),)
+            sql += "WHERE {}".format(" AND ".join(f"{k} = ?" for k in keyvalues))
 
             txn.execute(sql, list(keyvalues.values()))
 

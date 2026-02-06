@@ -193,7 +193,7 @@ class IdentityHandler:
             )
 
         bind_data = {"sid": sid, "client_secret": client_secret, "mxid": mxid}
-        bind_url = "https://%s/_matrix/identity/v2/3pid/bind" % (id_server,)
+        bind_url = f"https://{id_server}/_matrix/identity/v2/3pid/bind"
         headers = {"Authorization": create_id_access_token_header(id_access_token)}
 
         try:
@@ -287,7 +287,7 @@ class IdentityHandler:
                 "id_server must be a valid hostname with optional port and path components",
             )
 
-        url = "https://%s/_matrix/identity/v2/3pid/unbind" % (id_server,)
+        url = f"https://{id_server}/_matrix/identity/v2/3pid/unbind"
         url_bytes = b"/_matrix/identity/v2/3pid/unbind"
 
         content = {
@@ -578,7 +578,7 @@ class IdentityHandler:
         # Check what hashing details are supported by this identity server
         try:
             hash_details = await self._http_client.get_json(
-                "%s%s/_matrix/identity/v2/hash_details" % (id_server_scheme, id_server),
+                f"{id_server_scheme}{id_server}/_matrix/identity/v2/hash_details",
                 {"access_token": id_access_token},
             )
         except RequestTimedOutError:
@@ -593,8 +593,7 @@ class IdentityHandler:
             )
             raise RelapseError(
                 400,
-                "Non-dict object from %s%s during v2 hash_details request: %s"
-                % (id_server_scheme, id_server, hash_details),
+                f"Non-dict object from {id_server_scheme}{id_server} during v2 hash_details request: {hash_details}",
             )
 
         # Extract information from hash_details
@@ -608,8 +607,7 @@ class IdentityHandler:
         ):
             raise RelapseError(
                 400,
-                "Invalid hash details received from identity server %s%s: %s"
-                % (id_server_scheme, id_server, hash_details),
+                f"Invalid hash details received from identity server {id_server_scheme}{id_server}: {hash_details}",
             )
 
         # Check if any of the supported lookup algorithms are present
@@ -618,7 +616,7 @@ class IdentityHandler:
             lookup_algorithm = LookupAlgorithm.SHA256
 
             # Hash address, medium and the pepper with sha256
-            to_hash = "%s %s %s" % (address, medium, lookup_pepper)
+            to_hash = f"{address} {medium} {lookup_pepper}"
             lookup_value = sha256_and_url_safe_base64(to_hash)
 
         elif LookupAlgorithm.NONE in supported_lookup_algorithms:
@@ -626,7 +624,7 @@ class IdentityHandler:
             lookup_algorithm = LookupAlgorithm.NONE
 
             # Combine together plaintext address and medium
-            lookup_value = "%s %s" % (address, medium)
+            lookup_value = f"{address} {medium}"
 
         else:
             logger.warning(
@@ -645,7 +643,7 @@ class IdentityHandler:
 
         try:
             lookup_results = await self._http_client.post_json_get_json(
-                "%s%s/_matrix/identity/v2/lookup" % (id_server_scheme, id_server),
+                f"{id_server_scheme}{id_server}/_matrix/identity/v2/lookup",
                 {
                     "addresses": [lookup_value],
                     "algorithm": lookup_algorithm,
@@ -743,12 +741,11 @@ class IdentityHandler:
         # Identity Service endpoints
         data = None
 
-        key_validity_url = "%s%s/_matrix/identity/v2/pubkey/isvalid" % (
-            id_server_scheme,
-            id_server,
+        key_validity_url = (
+            f"{id_server_scheme}{id_server}/_matrix/identity/v2/pubkey/isvalid"
         )
 
-        url = "%s%s/_matrix/identity/v2/store-invite" % (id_server_scheme, id_server)
+        url = f"{id_server_scheme}{id_server}/_matrix/identity/v2/store-invite"
         try:
             data = await self._http_client.post_json_get_json(
                 url,
@@ -785,7 +782,7 @@ def create_id_access_token_header(id_access_token: str) -> list[str]:
         The ascii-encoded bearer token encased in a list.
     """
     # Prefix with Bearer
-    bearer_token = "Bearer %s" % id_access_token
+    bearer_token = f"Bearer {id_access_token}"
 
     # Encode headers to standard ascii
     bearer_token.encode("ascii")

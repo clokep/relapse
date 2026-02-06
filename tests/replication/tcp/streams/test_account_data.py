@@ -28,7 +28,7 @@ class AccountDataStreamTestCase(BaseStreamTestCase):
         # generate lots of account data updates
         updates = []
         for i in range(_STREAM_UPDATE_TARGET_ROW_COUNT + 5):
-            update = "m.test_type.%i" % (i,)
+            update = f"m.test_type.{i}"
             self.get_success(
                 store.add_account_data_to_room("test_user", "test_room", update, {})
             )
@@ -69,7 +69,7 @@ class AccountDataStreamTestCase(BaseStreamTestCase):
         # generate lots of account data updates
         updates = []
         for i in range(_STREAM_UPDATE_TARGET_ROW_COUNT + 5):
-            update = "m.test_type.%i" % (i,)
+            update = f"m.test_type.{i}"
             self.get_success(store.add_account_data_for_user("test_user", update, {}))
             updates.append(update)
 

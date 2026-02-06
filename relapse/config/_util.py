@@ -61,7 +61,7 @@ def json_error_to_config_error(
     path = list(config_path)
     for p in list(e.absolute_path):
         if isinstance(p, int):
-            path.append("<item %i>" % p)
+            path.append(f"<item {p}>")
         else:
             path.append(str(p))
     return ConfigError(e.message, path)

@@ -182,7 +182,7 @@ class _IPBlockingResolver:
 
                 if _is_ip_blocked(ip_address, self._ip_allowlist, self._ip_blocklist):
                     logger.info(
-                        "Blocked %s from DNS resolution to %s" % (ip_address, hostname)
+                        f"Blocked {ip_address} from DNS resolution to {hostname}"
                     )
                     has_bad_ip = True
 
@@ -286,7 +286,7 @@ class BlocklistingAgentWrapper(Agent):
             pass
         else:
             if _is_ip_blocked(ip_address, self._ip_allowlist, self._ip_blocklist):
-                logger.info("Blocking access to %s" % (ip_address,))
+                logger.info(f"Blocking access to {ip_address}")
                 e = RelapseError(HTTPStatus.FORBIDDEN, "IP address blocked")
                 return defer.fail(Failure(e))
 
@@ -321,10 +321,7 @@ class BaseHttpClient:
 
         user_agent = hs.version_string
         if hs.config.server.user_agent_suffix:
-            user_agent = "%s %s" % (
-                user_agent,
-                hs.config.server.user_agent_suffix,
-            )
+            user_agent = f"{user_agent} {hs.config.server.user_agent_suffix}"
         self.user_agent = user_agent.encode("ascii")
 
         # We use this for our body producers to ensure that they use the correct
@@ -575,7 +572,7 @@ class BaseHttpClient:
         """
         if args:
             query_str = urllib.parse.urlencode(args, True)
-            uri = "%s?%s" % (uri, query_str)
+            uri = f"{uri}?{query_str}"
 
         json_str = encode_canonical_json(json_body)
 
@@ -624,7 +621,7 @@ class BaseHttpClient:
         """
         if args:
             query_str = urllib.parse.urlencode(args, True)
-            uri = "%s?%s" % (uri, query_str)
+            uri = f"{uri}?{query_str}"
 
         actual_headers = {b"User-Agent": [self.user_agent]}
         if headers:
@@ -684,9 +681,9 @@ class BaseHttpClient:
         resp_headers = dict(response.headers.getAllRawHeaders())
 
         if response.code > 299:
-            logger.warning("Got %d when downloading %s" % (response.code, url))
+            logger.warning("Got %d when downloading %s", response.code, url)
             raise RelapseError(
-                HTTPStatus.BAD_GATEWAY, "Got error %d" % (response.code,), Codes.UNKNOWN
+                HTTPStatus.BAD_GATEWAY, f"Got error {response.code}", Codes.UNKNOWN
             )
 
         if is_allowed_content_type and b"Content-Type" in resp_headers:
@@ -695,8 +692,7 @@ class BaseHttpClient:
                 raise RelapseError(
                     HTTPStatus.BAD_GATEWAY,
                     (
-                        "Requested file's content type not allowed for this operation: %s"
-                        % content_type
+                        f"Requested file's content type not allowed for this operation: {content_type}"
                     ),
                 )
 
@@ -714,7 +710,7 @@ class BaseHttpClient:
         except BodyExceededMaxSize:
             raise RelapseError(
                 HTTPStatus.BAD_GATEWAY,
-                "Requested file is too large > %r bytes" % (max_size,),
+                f"Requested file is too large > {max_size!r} bytes",
                 Codes.TOO_LARGE,
             )
         except defer.TimeoutError:
@@ -725,7 +721,7 @@ class BaseHttpClient:
             )
         except Exception as e:
             raise RelapseError(
-                HTTPStatus.BAD_GATEWAY, ("Failed to download remote body: %s" % e)
+                HTTPStatus.BAD_GATEWAY, (f"Failed to download remote body: {e}")
             ) from e
 
         return (
@@ -1055,7 +1051,7 @@ def read_body_with_max_size(
     Returns:
         A Deferred which resolves to the length of the read body.
     """
-    d: "defer.Deferred[int]" = defer.Deferred()
+    d: defer.Deferred[int] = defer.Deferred()
 
     # If the Content-Length header gives a size larger than the maximum allowed
     # size, do not bother downloading the body.

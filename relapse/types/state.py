@@ -23,7 +23,7 @@ from relapse.api.constants import EventTypes
 from relapse.types import MutableStateMap, StateKey, StateMap
 
 if TYPE_CHECKING:
-    from typing import FrozenSet  # noqa: used within quoted type hint; flake8 sad
+    pass  # noqa: used within quoted type hint; flake8 sad
 
 
 logger = logging.getLogger(__name__)
@@ -45,7 +45,7 @@ class StateFilter:
             appear in `types`.
     """
 
-    types: "immutabledict[str, Optional[FrozenSet[str]]]"
+    types: "immutabledict[str, Optional[frozenset[str]]]"
     include_others: bool = False
 
     def __attrs_post_init__(self) -> None:
@@ -261,7 +261,7 @@ class StateFilter:
             if where_clause:
                 where_clause += " OR "
 
-            where_clause += "type NOT IN (%s)" % (",".join(["?"] * len(self.types)),)
+            where_clause += "type NOT IN ({})".format(",".join(["?"] * len(self.types)))
             where_args.extend(self.types)
 
         return where_clause, where_args

@@ -41,20 +41,18 @@ def run_create(cur: LoggingTransaction, database_engine: BaseDatabaseEngine) -> 
 
     # remove duplicates from group_users & group_invites tables
     cur.execute(
-        """
-        DELETE FROM group_users WHERE %s NOT IN (
-           SELECT min(%s) FROM group_users GROUP BY group_id, user_id
+        f"""
+        DELETE FROM group_users WHERE {rowid} NOT IN (
+           SELECT min({rowid}) FROM group_users GROUP BY group_id, user_id
         );
     """
-        % (rowid, rowid)
     )
     cur.execute(
-        """
-        DELETE FROM group_invites WHERE %s NOT IN (
-           SELECT min(%s) FROM group_invites GROUP BY group_id, user_id
+        f"""
+        DELETE FROM group_invites WHERE {rowid} NOT IN (
+           SELECT min({rowid}) FROM group_invites GROUP BY group_id, user_id
         );
     """
-        % (rowid, rowid)
     )
 
     for statement in get_statements(FIX_INDEXES.splitlines()):

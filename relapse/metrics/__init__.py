@@ -98,7 +98,7 @@ class LaterGauge(Collector):
 
     def _register(self) -> None:
         if self.name in all_gauges.keys():
-            logger.warning("%s already registered, reregistering" % (self.name,))
+            logger.warning(f"{self.name} already registered, reregistering")
             REGISTRY.unregister(all_gauges.pop(self.name))
 
         REGISTRY.register(self)
@@ -224,7 +224,7 @@ class InFlightGauge(Generic[MetricsEntry], Collector):
 
     def _register_with_collector(self) -> None:
         if self.name in all_gauges.keys():
-            logger.warning("%s already registered, reregistering" % (self.name,))
+            logger.warning(f"{self.name} already registered, reregistering")
             REGISTRY.unregister(all_gauges.pop(self.name))
 
         REGISTRY.register(self)

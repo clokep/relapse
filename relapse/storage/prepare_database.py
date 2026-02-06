@@ -451,7 +451,7 @@ def _upgrade_existing_database(
                 pass
             except OSError:
                 raise UpgradeDatabaseException(
-                    "Could not open delta dir for version %d: %s" % (v, directory)
+                    f"Could not open delta dir for version {v}: {directory}"
                 )
 
         duplicates = {
@@ -460,11 +460,7 @@ def _upgrade_existing_database(
         if duplicates:
             # We don't support using the same file name in the same delta version.
             raise PrepareDatabaseException(
-                "Found multiple delta files with the same name in v%d: %s"
-                % (
-                    v,
-                    duplicates,
-                )
+                f"Found multiple delta files with the same name in v{v}: {duplicates}"
             )
 
         # We sort to ensure that we apply the delta files in a consistent
@@ -489,7 +485,7 @@ def _upgrade_existing_database(
                         UNAPPLIED_DELTA_ON_WORKER_ERROR % relative_path
                     )
 
-                module_name = "relapse.storage.v%d_%s" % (v, root_name)
+                module_name = f"relapse.storage.v{v}_{root_name}"
 
                 spec = importlib.util.spec_from_file_location(
                     module_name, absolute_path
@@ -582,7 +578,7 @@ def get_statements(f: Iterable[str]) -> Generator[str, None, None]:
         statements = line.split(";")
 
         # We must prepend statement_buffer to the first statement
-        first_statement = "%s %s" % (statement_buffer.strip(), statements[0].strip())
+        first_statement = f"{statement_buffer.strip()} {statements[0].strip()}"
         statements[0] = first_statement
 
         # Every entry, except the last, is a full statement

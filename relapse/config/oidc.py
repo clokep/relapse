@@ -48,7 +48,7 @@ class OIDCConfig(Config):
         for idp_id, count in c.items():
             if count > 1:
                 raise ConfigError(
-                    "Multiple OIDC providers have the idp_id %r." % idp_id
+                    f"Multiple OIDC providers have the idp_id {idp_id!r}."
                 )
 
         public_baseurl = self.root.server.public_baseurl
@@ -163,7 +163,7 @@ def _parse_oidc_provider_configs(config: JsonDict) -> Iterable["OidcProviderConf
     validate_config(MAIN_CONFIG_SCHEMA, config, ())
 
     for i, p in enumerate(config.get("oidc_providers") or []):
-        yield _parse_oidc_providers_dict(p, ("oidc_providers", "<item %i>" % (i,)))
+        yield _parse_oidc_providers_dict(p, ("oidc_providers", f"<item {i}>"))
 
 
 def _parse_oidc_providers_dict(
@@ -195,9 +195,7 @@ def _parse_oidc_providers_dict(
     ]
     if missing_methods:
         raise ConfigError(
-            "Class %s is missing required "
-            "methods: %s"
-            % (
+            "Class {} is missing required methods: {}".format(
                 user_mapping_provider_class,
                 ", ".join(missing_methods),
             ),

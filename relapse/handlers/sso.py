@@ -703,7 +703,7 @@ class SsoHandler:
         if not attributes.localpart or contains_invalid_mxid_characters(
             attributes.localpart
         ):
-            raise MappingException("localpart is invalid: %s" % (attributes.localpart,))
+            raise MappingException(f"localpart is invalid: {attributes.localpart}")
 
         logger.debug("Mapped SSO user to local part %s", attributes.localpart)
         registered_user_id = await self._registration_handler.register_user(
@@ -935,7 +935,7 @@ class SsoHandler:
         )
 
         if contains_invalid_mxid_characters(localpart):
-            raise RelapseError(400, "localpart is invalid: %s" % (localpart,))
+            raise RelapseError(400, f"localpart is invalid: {localpart}")
         user_id = UserID(localpart, self._server_name).to_string()
         user_infos = await self._store.get_users_by_id_case_insensitive(user_id)
 

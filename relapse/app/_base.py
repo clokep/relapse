@@ -184,7 +184,7 @@ def quit_with_error(error_string: str) -> NoReturn:
     line_length = min(max(len(line) for line in message_lines), 80) + 2
     sys.stderr.write("*" * line_length + "\n")
     for line in message_lines:
-        sys.stderr.write(" %s\n" % (line.rstrip(),))
+        sys.stderr.write(f" {line.rstrip()}\n")
     sys.stderr.write("*" * line_length + "\n")
     sys.exit(1)
 
@@ -370,8 +370,9 @@ def listen_http(
     site_tag = listener_config.get_site_tag()
 
     site = RelapseSite(
-        "relapse.access.%s.%s"
-        % ("https" if listener_config.is_tls() else "http", site_tag),
+        "relapse.access.{}.{}".format(
+            "https" if listener_config.is_tls() else "http", site_tag
+        ),
         site_tag,
         listener_config,
         root_resource,

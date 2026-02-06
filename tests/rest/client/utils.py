@@ -130,7 +130,7 @@ class RestHelper:
         if room_version:
             content["room_version"] = room_version
         if tok:
-            path = path + "?access_token=%s" % tok
+            path = path + f"?access_token={tok}"
 
         channel = make_request(
             self.reactor,
@@ -198,9 +198,9 @@ class RestHelper:
     ) -> None:
         temp_id = self.auth_user_id
         self.auth_user_id = user
-        path = "/knock/%s" % room
+        path = f"/knock/{room}"
         if tok:
-            path = path + "?access_token=%s" % tok
+            path = path + f"?access_token={tok}"
 
         data = {}
         if reason:
@@ -214,10 +214,8 @@ class RestHelper:
             data,
         )
 
-        assert channel.code == expect_code, "Expected: %d, got: %d, resp: %r" % (
-            expect_code,
-            channel.code,
-            channel.result["body"],
+        assert channel.code == expect_code, (
+            f"Expected: {expect_code}, got: {channel.code}, resp: {channel.result['body']}"
         )
 
         self.auth_user_id = temp_id
@@ -311,16 +309,13 @@ class RestHelper:
             data,
         )
 
-        assert channel.code == expect_code, "Expected: %d, got: %d, resp: %r" % (
-            expect_code,
-            channel.code,
-            channel.result["body"],
+        assert channel.code == expect_code, (
+            f"Expected: {expect_code}, got: {channel.code}, resp: {channel.result['body']}"
         )
 
         if expect_errcode:
             assert str(channel.json_body["errcode"]) == expect_errcode, (
-                "Expected: %r, got: %r, resp: %r"
-                % (
+                "Expected: {!r}, got: {!r}, resp: {!r}".format(
                     expect_errcode,
                     channel.json_body["errcode"],
                     channel.result["body"],
@@ -329,18 +324,11 @@ class RestHelper:
 
         if expect_additional_fields is not None:
             for expect_key, expect_value in expect_additional_fields.items():
-                assert expect_key in channel.json_body, "Expected field %s, got %s" % (
-                    expect_key,
-                    channel.json_body,
+                assert expect_key in channel.json_body, (
+                    f"Expected field {expect_key}, got {channel.json_body}"
                 )
                 assert channel.json_body[expect_key] == expect_value, (
-                    "Expected: %s at %s, got: %s, resp: %s"
-                    % (
-                        expect_value,
-                        expect_key,
-                        channel.json_body[expect_key],
-                        channel.json_body,
-                    )
+                    f"Expected: {expect_value} at {expect_key}, got: {channel.json_body[expect_key]}, resp: {channel.json_body}"
                 )
 
         self.auth_user_id = temp_id
@@ -380,11 +368,11 @@ class RestHelper:
         custom_headers: Optional[Iterable[tuple[AnyStr, AnyStr]]] = None,
     ) -> JsonDict:
         if txn_id is None:
-            txn_id = "m%s" % (str(time.time()))
+            txn_id = f"m{str(time.time())}"
 
-        path = "/_matrix/client/r0/rooms/%s/send/%s/%s" % (room_id, type, txn_id)
+        path = f"/_matrix/client/r0/rooms/{room_id}/send/{type}/{txn_id}"
         if tok:
-            path = path + "?access_token=%s" % tok
+            path = path + f"?access_token={tok}"
 
         channel = make_request(
             self.reactor,
@@ -395,10 +383,8 @@ class RestHelper:
             custom_headers=custom_headers,
         )
 
-        assert channel.code == expect_code, "Expected: %d, got: %d, resp: %r" % (
-            expect_code,
-            channel.code,
-            channel.result["body"],
+        assert channel.code == expect_code, (
+            f"Expected: {expect_code}, got: {channel.code}, resp: {channel.result['body']}"
         )
 
         return channel.json_body
@@ -432,10 +418,8 @@ class RestHelper:
             path,
         )
 
-        assert channel.code == expect_code, "Expected: %d, got: %d, resp: %r" % (
-            expect_code,
-            channel.code,
-            channel.result["body"],
+        assert channel.code == expect_code, (
+            f"Expected: {expect_code}, got: {channel.code}, resp: {channel.result['body']}"
         )
 
         return channel.json_body
@@ -468,13 +452,9 @@ class RestHelper:
         Raises:
             AssertionError: if expect_code doesn't match the HTTP code we received
         """
-        path = "/_matrix/client/r0/rooms/%s/state/%s/%s" % (
-            room_id,
-            event_type,
-            state_key,
-        )
+        path = f"/_matrix/client/r0/rooms/{room_id}/state/{event_type}/{state_key}"
         if tok:
-            path = path + "?access_token=%s" % tok
+            path = path + f"?access_token={tok}"
 
         # Set request body if provided
         content = b""
@@ -483,10 +463,8 @@ class RestHelper:
 
         channel = make_request(self.reactor, self.site, method, path, content)
 
-        assert channel.code == expect_code, "Expected: %d, got: %d, resp: %r" % (
-            expect_code,
-            channel.code,
-            channel.result["body"],
+        assert channel.code == expect_code, (
+            f"Expected: {expect_code}, got: {channel.code}, resp: {channel.result['body']}"
         )
 
         return channel.json_body
@@ -563,7 +541,7 @@ class RestHelper:
             expect_code: The return code to expect from attempting to upload the media
         """
         image_length = len(image_data)
-        path = "/_matrix/media/r0/upload?filename=%s" % (filename,)
+        path = f"/_matrix/media/r0/upload?filename={filename}"
         channel = make_request(
             self.reactor,
             self.site,
@@ -574,10 +552,8 @@ class RestHelper:
             custom_headers=[("Content-Length", str(image_length))],
         )
 
-        assert channel.code == expect_code, "Expected: %d, got: %d, resp: %r" % (
-            expect_code,
-            channel.code,
-            channel.result["body"],
+        assert channel.code == expect_code, (
+            f"Expected: {expect_code}, got: {channel.code}, resp: {channel.result['body']}"
         )
 
         return channel.json_body
@@ -602,10 +578,8 @@ class RestHelper:
             access_token=access_token,
         )
 
-        assert channel.code == expect_code, "Exepcted: %d, got %d, resp: %r" % (
-            expect_code,
-            channel.code,
-            channel.result["body"],
+        assert channel.code == expect_code, (
+            f"Exepcted: {expect_code}, got {channel.code}, resp: {channel.result['body']}"
         )
 
         return channel.json_body
@@ -658,7 +632,7 @@ class RestHelper:
 
         # fish the matrix login token out of the body of the confirmation page
         m = re.search(
-            'a href="%s.*loginToken=([^"]*)"' % (client_redirect_url,),
+            f'a href="{client_redirect_url}.*loginToken=([^"]*)"',
             channel.text_body,
         )
         assert m, channel.text_body
@@ -807,7 +781,7 @@ class RestHelper:
         )
         state = params["state"][0]
 
-        callback_uri = "%s?%s" % (
+        callback_uri = "{}?{}".format(
             urllib.parse.urlparse(params["redirect_uri"][0]).path,
             urllib.parse.urlencode({"state": state, "code": code}),
         )
@@ -819,9 +793,7 @@ class RestHelper:
                 self.site,
                 "GET",
                 callback_uri,
-                custom_headers=[
-                    ("Cookie", "%s=%s" % (k, v)) for (k, v) in cookies.items()
-                ],
+                custom_headers=[("Cookie", f"{k}={v}") for (k, v) in cookies.items()],
             )
         return channel, grant
 

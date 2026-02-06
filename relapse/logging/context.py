@@ -143,16 +143,9 @@ class ContextResourceUsage:
 
     def __repr__(self) -> str:
         return (
-            "<ContextResourceUsage ru_stime='%r', ru_utime='%r', "
-            "db_txn_count='%r', db_txn_duration_sec='%r', "
-            "db_sched_duration_sec='%r', evt_db_fetch_count='%r'>"
-        ) % (
-            self.ru_stime,
-            self.ru_utime,
-            self.db_txn_count,
-            self.db_txn_duration_sec,
-            self.db_sched_duration_sec,
-            self.evt_db_fetch_count,
+            f"<ContextResourceUsage ru_stime='{self.ru_stime!r}', ru_utime='{self.ru_utime!r}', "
+            f"db_txn_count='{self.db_txn_count!r}', db_txn_duration_sec='{self.db_txn_duration_sec!r}', "
+            f"db_sched_duration_sec='{self.db_sched_duration_sec!r}', evt_db_fetch_count='{self.evt_db_fetch_count!r}'>"
         )
 
     def __iadd__(self, other: "ContextResourceUsage") -> "ContextResourceUsage":
@@ -299,7 +292,7 @@ class LoggingContext:
         self.main_thread = get_thread_id()
         self.request = None
         self.tag = ""
-        self.scope: Optional["_LogContextScope"] = None
+        self.scope: Optional[_LogContextScope] = None
 
         # keep track of whether we have hit the __exit__ block for this context
         # (suggesting that the the thing that created the context thinks it should
@@ -336,11 +329,7 @@ class LoggingContext:
         old_context = set_current_context(self)
         if self.previous_context != old_context:
             logcontext_error(
-                "Expected previous context %r, found %r"
-                % (
-                    self.previous_context,
-                    old_context,
-                )
+                f"Expected previous context {self.previous_context!r}, found {old_context!r}"
             )
         return self
 
@@ -358,11 +347,9 @@ class LoggingContext:
         current = set_current_context(self.previous_context)
         if current is not self:
             if current is SENTINEL_CONTEXT:
-                logcontext_error("Expected logging context %s was lost" % (self,))
+                logcontext_error(f"Expected logging context {self} was lost")
             else:
-                logcontext_error(
-                    "Expected logging context %s but found %s" % (self, current)
-                )
+                logcontext_error(f"Expected logging context {self} but found {current}")
 
         # the fact that we are here suggests that the caller thinks that everything
         # is done and dusted for this logcontext, and further activity will not get
@@ -381,16 +368,16 @@ class LoggingContext:
                 support getrusuage.
         """
         if get_thread_id() != self.main_thread:
-            logcontext_error("Started logcontext %s on different thread" % (self,))
+            logcontext_error(f"Started logcontext {self} on different thread")
             return
 
         if self.finished:
-            logcontext_error("Re-starting finished log context %s" % (self,))
+            logcontext_error(f"Re-starting finished log context {self}")
 
         # If we haven't already started record the thread resource usage so
         # far
         if self.usage_start:
-            logcontext_error("Re-starting already-active log context %s" % (self,))
+            logcontext_error(f"Re-starting already-active log context {self}")
         else:
             self.usage_start = rusage
 
@@ -408,7 +395,7 @@ class LoggingContext:
 
         try:
             if get_thread_id() != self.main_thread:
-                logcontext_error("Stopped logcontext %s on different thread" % (self,))
+                logcontext_error(f"Stopped logcontext {self} on different thread")
                 return
 
             if not rusage:
@@ -417,8 +404,7 @@ class LoggingContext:
             # Record the cpu used since we started
             if not self.usage_start:
                 logcontext_error(
-                    "Called stop on logcontext %s without recording a start rusage"
-                    % (self,)
+                    f"Called stop on logcontext {self} without recording a start rusage"
                 )
                 return
 
@@ -595,15 +581,11 @@ class PreserveLoggingContext:
         if context != self._new_context:
             if not context:
                 logcontext_error(
-                    "Expected logging context %s was lost" % (self._new_context,)
+                    f"Expected logging context {self._new_context} was lost"
                 )
             else:
                 logcontext_error(
-                    "Expected logging context %s but found %s"
-                    % (
-                        self._new_context,
-                        context,
-                    )
+                    f"Expected logging context {self._new_context} but found {context}"
                 )
 
 
@@ -757,7 +739,7 @@ def run_in_background(
 
     # `res` may be a coroutine, `Deferred`, some other kind of awaitable, or a plain
     # value. Convert it to a `Deferred`.
-    d: "defer.Deferred[R]"
+    d: defer.Deferred[R]
     if isinstance(res, typing.Coroutine):
         # Wrap the coroutine in a `Deferred`.
         d = defer.ensureDeferred(res)

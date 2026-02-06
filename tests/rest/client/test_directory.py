@@ -183,10 +183,7 @@ class DirectoryTestCase(unittest.HomeserverTestCase):
     def set_alias_via_state_event(
         self, expected_code: HTTPStatus, alias_length: int = 5
     ) -> None:
-        url = "/_matrix/client/r0/rooms/%s/state/m.room.aliases/%s" % (
-            self.room_id,
-            self.hs.hostname,
-        )
+        url = f"/_matrix/client/r0/rooms/{self.room_id}/state/m.room.aliases/{self.hs.hostname}"
 
         request_data = {"aliases": [self.random_alias(alias_length)]}
 
@@ -199,7 +196,7 @@ class DirectoryTestCase(unittest.HomeserverTestCase):
         self, expected_code: HTTPStatus, alias_length: int = 5
     ) -> str:
         alias = self.random_alias(alias_length)
-        url = "/_matrix/client/r0/directory/room/%s" % alias
+        url = f"/_matrix/client/r0/directory/room/{alias}"
         request_data = {"room_id": self.room_id}
 
         channel = self.make_request(

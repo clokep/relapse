@@ -47,13 +47,13 @@ def request_registration(
     _print: Callable[[str], None] = print,
     exit: Callable[[int], None] = sys.exit,
 ) -> None:
-    url = "%s/_relapse/admin/v1/register" % (server_location.rstrip("/"),)
+    url = "{}/_relapse/admin/v1/register".format(server_location.rstrip("/"))
 
     # Get the nonce
     r = requests.get(url)
 
     if r.status_code != 200:
-        _print("ERROR! Received %d %s" % (r.status_code, r.reason))
+        _print(f"ERROR! Received {r.status_code} {r.reason}")
         if 400 <= r.status_code < 500:
             try:
                 _print(r.json()["error"])
@@ -91,7 +91,7 @@ def request_registration(
     r = requests.post(url, json=data)
 
     if r.status_code != 200:
-        _print("ERROR! Received %d %s" % (r.status_code, r.reason))
+        _print(f"ERROR! Received {r.status_code} {r.reason}")
         if 400 <= r.status_code < 500:
             try:
                 _print(r.json()["error"])
@@ -117,7 +117,7 @@ def register_new_user(
             default_user = None
 
         if default_user:
-            user = input("New user localpart [%s]: " % (default_user,))
+            user = input(f"New user localpart [{default_user}]: ")
             if not user:
                 user = default_user
         else:

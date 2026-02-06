@@ -129,7 +129,7 @@ class SrvResolver:
         now = int(self._get_time())
 
         if not isinstance(service_name, bytes):
-            raise TypeError("%r is not a byte string" % (service_name,))
+            raise TypeError(f"{service_name!r} is not a byte string")
 
         cache_entry = self._cache.get(service_name, None)
         if cache_entry:

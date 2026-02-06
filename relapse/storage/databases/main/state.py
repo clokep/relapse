@@ -66,8 +66,7 @@ def _retrieve_and_check_room_version(room_id: str, room_version_id: str) -> Room
     v = KNOWN_ROOM_VERSIONS.get(room_version_id)
     if not v:
         raise UnsupportedRoomVersionError(
-            "Room %s uses a room version %s which is no longer supported"
-            % (room_id, room_version_id)
+            f"Room {room_id} uses a room version {room_version_id} which is no longer supported"
         )
     return v
 
@@ -159,7 +158,7 @@ class StateGroupWorkerStore(EventsWorkerStore, SQLBaseStore):
         )
 
         if room_version is None:
-            raise NotFoundError("Could not find room_version for %s" % (room_id,))
+            raise NotFoundError(f"Could not find room_version for {room_id}")
 
         return room_version
 
@@ -340,7 +339,7 @@ class StateGroupWorkerStore(EventsWorkerStore, SQLBaseStore):
             """
 
             if where_clause:
-                sql += " AND (%s)" % (where_clause,)
+                sql += f" AND ({where_clause})"
 
             args = [room_id]
             args.extend(where_args)
@@ -394,7 +393,7 @@ class StateGroupWorkerStore(EventsWorkerStore, SQLBaseStore):
         res = dict(rows)
         for e in event_ids:
             if e not in res:
-                raise RuntimeError("No state group for unknown or outlier event %s" % e)
+                raise RuntimeError(f"No state group for unknown or outlier event {e}")
         return res
 
     async def get_referenced_state_groups(

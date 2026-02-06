@@ -294,7 +294,7 @@ def _make_generic_sql_bound(
 
     if val1 is None:
         val2 = int(val2)
-        return "(%d %s %s)" % (val2, bound, name2)
+        return f"({val2} {bound} {name2})"
 
     val1 = int(val1)
     val2 = int(val2)
@@ -303,25 +303,15 @@ def _make_generic_sql_bound(
         # Postgres doesn't optimise ``(x < a) OR (x=a AND y<b)`` as well
         # as it optimises ``(x,y) < (a,b)`` on multicolumn indexes. So we
         # use the later form when running against postgres.
-        return "((%d,%d) %s (%s,%s))" % (val1, val2, bound, name1, name2)
+        return f"(({val1},{val2}) {bound} ({name1},{name2}))"
 
     # We want to generate queries of e.g. the form:
     #
     #   (val1 < name1 OR (val1 = name1 AND val2 <= name2))
     #
     # which is equivalent to (val1, val2) < (name1, name2)
-
-    return """(
-        {val1:d} {strict_bound} {name1}
-        OR ({val1:d} = {name1} AND {val2:d} {bound} {name2})
-    )""".format(
-        name1=name1,
-        val1=val1,
-        name2=name2,
-        val2=val2,
-        strict_bound=bound[0],  # The first bound must always be strict equality here
-        bound=bound,
-    )
+    strict_bound = bound[0]  # The first bound must always be strict equality here
+    return f"({val1:d} {strict_bound} {name1} OR ({val1:d} = {name1} AND {val2:d} {bound} {name2}))"
 
 
 def _filter_results(
@@ -386,7 +376,7 @@ def filter_to_clause(event_filter: Optional[Filter]) -> tuple[str, list[str]]:
 
     if event_filter.types:
         clauses.append(
-            "(%s)" % " OR ".join("event.type = ?" for _ in event_filter.types)
+            "({})".format(" OR ".join("event.type = ?" for _ in event_filter.types))
         )
         args.extend(event_filter.types)
 
@@ -396,7 +386,7 @@ def filter_to_clause(event_filter: Optional[Filter]) -> tuple[str, list[str]]:
 
     if event_filter.senders:
         clauses.append(
-            "(%s)" % " OR ".join("event.sender = ?" for _ in event_filter.senders)
+            "({})".format(" OR ".join("event.sender = ?" for _ in event_filter.senders))
         )
         args.extend(event_filter.senders)
 
@@ -406,7 +396,7 @@ def filter_to_clause(event_filter: Optional[Filter]) -> tuple[str, list[str]]:
 
     if event_filter.rooms:
         clauses.append(
-            "(%s)" % " OR ".join("event.room_id = ?" for _ in event_filter.rooms)
+            "({})".format(" OR ".join("event.room_id = ?" for _ in event_filter.rooms))
         )
         args.extend(event_filter.rooms)
 
@@ -423,42 +413,49 @@ def filter_to_clause(event_filter: Optional[Filter]) -> tuple[str, list[str]]:
     # event_filter.check_fields apply it, which is not as efficient but makes the
     # implementation simpler.
     if event_filter.labels:
-        clauses.append("(%s)" % " OR ".join("label = ?" for _ in event_filter.labels))
+        clauses.append(
+            "({})".format(" OR ".join("label = ?" for _ in event_filter.labels))
+        )
         args.extend(event_filter.labels)
 
     # Filter on relation_senders / relation types from the joined tables.
     if event_filter.related_by_senders:
         clauses.append(
-            "(%s)"
-            % " OR ".join(
-                "related_event.sender = ?" for _ in event_filter.related_by_senders
+            "({})".format(
+                " OR ".join(
+                    "related_event.sender = ?" for _ in event_filter.related_by_senders
+                )
             )
         )
         args.extend(event_filter.related_by_senders)
 
     if event_filter.related_by_rel_types:
         clauses.append(
-            "(%s)"
-            % " OR ".join(
-                "relation_type = ?" for _ in event_filter.related_by_rel_types
+            "({})".format(
+                " OR ".join(
+                    "relation_type = ?" for _ in event_filter.related_by_rel_types
+                )
             )
         )
         args.extend(event_filter.related_by_rel_types)
 
     if event_filter.rel_types:
         clauses.append(
-            "(%s)"
-            % " OR ".join(
-                "event_relation.relation_type = ?" for _ in event_filter.rel_types
+            "({})".format(
+                " OR ".join(
+                    "event_relation.relation_type = ?" for _ in event_filter.rel_types
+                )
             )
         )
         args.extend(event_filter.rel_types)
 
     if event_filter.not_rel_types:
         clauses.append(
-            "((%s) OR event_relation.relation_type IS NULL)"
-            % " AND ".join(
-                "event_relation.relation_type != ?" for _ in event_filter.not_rel_types
+            "(({}) OR event_relation.relation_type IS NULL)".format(
+                " AND ".join(
+                    "event_relation.relation_type != ?"
+                    for _ in event_filter.not_rel_types
+                )
             )
         )
         args.extend(event_filter.not_rel_types)
@@ -659,15 +656,15 @@ class StreamWorkerStore(EventsWorkerStore, SQLBaseStore):
             min_from_id = from_key.stream
             max_to_id = to_key.get_max_stream_pos()
 
-            sql = """
+            sql = f"""
                 SELECT event_id, instance_name, topological_ordering, stream_ordering
                 FROM events
                 WHERE
                     room_id = ?
                     AND not outlier
                     AND stream_ordering > ? AND stream_ordering <= ?
-                ORDER BY stream_ordering %s LIMIT ?
-            """ % (order,)
+                ORDER BY stream_ordering {order} LIMIT ?
+            """
             txn.execute(sql, (room_id, min_from_id, max_to_id, 2 * limit))
 
             rows = [
@@ -738,20 +735,20 @@ class StreamWorkerStore(EventsWorkerStore, SQLBaseStore):
 
             ignore_room_clause = ""
             if excluded_rooms is not None and len(excluded_rooms) > 0:
-                ignore_room_clause = "AND e.room_id NOT IN (%s)" % ",".join(
-                    "?" for _ in excluded_rooms
+                ignore_room_clause = "AND e.room_id NOT IN ({})".format(
+                    ",".join("?" for _ in excluded_rooms)
                 )
                 args = args + excluded_rooms
 
-            sql = """
+            sql = f"""
                 SELECT m.event_id, instance_name, topological_ordering, stream_ordering
                 FROM events AS e, room_memberships AS m
                 WHERE e.event_id = m.event_id
                     AND m.user_id = ?
                     AND e.stream_ordering > ? AND e.stream_ordering <= ?
-                    %s
+                    {ignore_room_clause}
                 ORDER BY e.stream_ordering ASC
-            """ % (ignore_room_clause,)
+            """
 
             txn.execute(sql, args)
 
@@ -1450,21 +1447,16 @@ class StreamWorkerStore(EventsWorkerStore, SQLBaseStore):
         if needs_distinct:
             select_keywords += " DISTINCT"
 
-        sql = """
-            %(select_keywords)s
+        sql = f"""
+            {select_keywords}
                 event.event_id, event.instance_name,
                 event.topological_ordering, event.stream_ordering
             FROM events AS event
-            %(join_clause)s
-            WHERE event.outlier = FALSE AND event.room_id = ? AND %(bounds)s
-            ORDER BY event.topological_ordering %(order)s,
-            event.stream_ordering %(order)s LIMIT ?
-        """ % {
-            "select_keywords": select_keywords,
-            "join_clause": join_clause,
-            "bounds": bounds,
-            "order": order,
-        }
+            {join_clause}
+            WHERE event.outlier = FALSE AND event.room_id = ? AND {bounds}
+            ORDER BY event.topological_ordering {order},
+            event.stream_ordering {order} LIMIT ?
+        """
 
         txn.execute(sql, args)
 

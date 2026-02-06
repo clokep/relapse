@@ -61,14 +61,13 @@ class TimestampToEventResponse:
         event_id = d.get("event_id")
         if not isinstance(event_id, str):
             raise ValueError(
-                "Invalid response: 'event_id' must be a str but received %r" % event_id
+                f"Invalid response: 'event_id' must be a str but received {event_id!r}"
             )
 
         origin_server_ts = d.get("origin_server_ts")
         if type(origin_server_ts) is not int:  # noqa: E721
             raise ValueError(
-                "Invalid response: 'origin_server_ts' must be a int but received %r"
-                % origin_server_ts
+                f"Invalid response: 'origin_server_ts' must be a int but received {origin_server_ts!r}"
             )
 
         return cls(event_id, origin_server_ts, d)

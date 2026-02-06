@@ -14,7 +14,7 @@
 # limitations under the License.
 import logging
 from collections.abc import Collection, Iterable, Mapping, Sequence
-from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Union, cast
+from typing import TYPE_CHECKING, Any, Optional, Union, cast
 
 from twisted.internet import defer
 
@@ -246,7 +246,7 @@ class PushRulesWorkerStore(
             gather_results(
                 (
                     cast(
-                        "defer.Deferred[List[Tuple[str, str, int, int, str, str]]]",
+                        "defer.Deferred[list[tuple[str, str, int, int, str, str]]]",
                         run_in_background(
                             self.db_pool.simple_select_many_batch,
                             table="push_rules",
@@ -455,7 +455,7 @@ class PushRuleStore(PushRulesWorkerStore):
 
         if row is None:
             raise RuleNotFoundException(
-                "before/after rule not found: %s" % (relative_to_rule,)
+                f"before/after rule not found: {relative_to_rule}"
             )
 
         base_rule_priority, base_priority_class = row
@@ -724,14 +724,11 @@ class PushRuleStore(PushRulesWorkerStore):
             if not isinstance(self.database_engine, PostgresEngine):
                 # For key share is not applicable/available on SQLite
                 for_key_share = ""
-            sql = (
-                """
+            sql = f"""
                 SELECT 1 FROM push_rules
                 WHERE user_name = ? AND rule_id = ?
-                %s
+                {for_key_share}
             """
-                % for_key_share
-            )
             txn.execute(sql, (user_id, rule_id))
             if txn.fetchone() is None:
                 raise RuleNotFoundException("Push rule does not exist.")

@@ -345,7 +345,7 @@ class _TransactionController:
         self.as_api = as_api
 
         # map from service id to recoverer instance
-        self.recoverers: dict[str, "_Recoverer"] = {}
+        self.recoverers: dict[str, _Recoverer] = {}
 
         # for UTs
         self.RECOVERER_CLASS = _Recoverer

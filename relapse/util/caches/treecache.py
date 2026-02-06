@@ -97,7 +97,7 @@ class TreeCache:
             of the tree that was removed.
         """
         if not isinstance(key, tuple):
-            raise TypeError("The cache key must be a tuple not %r" % (type(key),))
+            raise TypeError(f"The cache key must be a tuple not {type(key)!r}")
 
         # a list of the nodes we have touched on the way down the tree
         nodes = []

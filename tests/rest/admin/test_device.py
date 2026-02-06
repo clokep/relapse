@@ -46,10 +46,7 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
         res = self.get_success(self.handler.get_devices_by_user(self.other_user))
         self.other_user_device_id = res[0]["device_id"]
 
-        self.url = "/_relapse/admin/v2/users/%s/devices/%s" % (
-            urllib.parse.quote(self.other_user),
-            self.other_user_device_id,
-        )
+        self.url = f"/_relapse/admin/v2/users/{urllib.parse.quote(self.other_user)}/devices/{self.other_user_device_id}"
 
     @parameterized.expand(["GET", "PUT", "DELETE"])
     def test_no_auth(self, method: str) -> None:
@@ -88,10 +85,7 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
         """
         Tests that a lookup for a user that does not exist returns a 404
         """
-        url = (
-            "/_relapse/admin/v2/users/@unknown_person:test/devices/%s"
-            % self.other_user_device_id
-        )
+        url = f"/_relapse/admin/v2/users/@unknown_person:test/devices/{self.other_user_device_id}"
 
         channel = self.make_request(
             method,
@@ -107,10 +101,7 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
         """
         Tests that a lookup for a user that is not a local returns a 400
         """
-        url = (
-            "/_relapse/admin/v2/users/@unknown_person:unknown_domain/devices/%s"
-            % self.other_user_device_id
-        )
+        url = f"/_relapse/admin/v2/users/@unknown_person:unknown_domain/devices/{self.other_user_device_id}"
 
         channel = self.make_request(
             method,
@@ -125,9 +116,7 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
         """
         Tests that a lookup for a device that does not exist returns either 404 or 200.
         """
-        url = "/_relapse/admin/v2/users/%s/devices/unknown_device" % urllib.parse.quote(
-            self.other_user
-        )
+        url = f"/_relapse/admin/v2/users/{urllib.parse.quote(self.other_user)}/devices/unknown_device"
 
         channel = self.make_request(
             "GET",
@@ -298,8 +287,8 @@ class DevicesRestTestCase(unittest.HomeserverTestCase):
 
         self.other_user = self.register_user("user", "pass")
 
-        self.url = "/_relapse/admin/v2/users/%s/devices" % urllib.parse.quote(
-            self.other_user
+        self.url = (
+            f"/_relapse/admin/v2/users/{urllib.parse.quote(self.other_user)}/devices"
         )
 
     def test_no_auth(self) -> None:
@@ -423,9 +412,7 @@ class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
 
         self.other_user = self.register_user("user", "pass")
 
-        self.url = "/_relapse/admin/v2/users/%s/delete_devices" % urllib.parse.quote(
-            self.other_user
-        )
+        self.url = f"/_relapse/admin/v2/users/{urllib.parse.quote(self.other_user)}/delete_devices"
 
     def test_no_auth(self) -> None:
         """

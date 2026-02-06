@@ -65,8 +65,7 @@ def main() -> None:
             password = password.decode(sys.stdin.encoding)
         except UnicodeDecodeError:
             print(
-                "ERROR! Your password is not decodable using your terminal encoding (%s)."
-                % (sys.stdin.encoding,)
+                f"ERROR! Your password is not decodable using your terminal encoding ({sys.stdin.encoding})."
             )
 
     pw = unicodedata.normalize("NFKC", password)

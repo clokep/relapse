@@ -1033,15 +1033,15 @@ class EventsBackgroundUpdatesStore(SQLBaseStore):
             LEFT JOIN event_auth_chain_to_calculate USING (event_id)
             WHERE event_auth_chains.event_id IS NULL
                 AND event_auth_chain_to_calculate.event_id IS NULL
-                AND %(tuple_cmp)s
-                %(extra)s
+                AND {tuple_cmp}
+                {extra}
             ORDER BY events.room_id, topological_ordering, stream_ordering
-            %(limit)s
-        """ % {
-            "tuple_cmp": tuple_clause,
-            "limit": "LIMIT ?" if batch_size is not None else "",
-            "extra": extra_clause,
-        }
+            {limit}
+        """.format(
+            tuple_cmp=tuple_clause,
+            limit="LIMIT ?" if batch_size is not None else "",
+            extra=extra_clause,
+        )
 
         if batch_size is not None:
             tuple_args.append(batch_size)

@@ -68,7 +68,7 @@ class BaseUploadServlet(RestServlet):
                 upload_name: Optional[str] = upload_name_bytes.decode("utf8")
             except UnicodeDecodeError:
                 raise RelapseError(
-                    msg="Invalid UTF-8 filename parameter: %r" % (upload_name_bytes,),
+                    msg=f"Invalid UTF-8 filename parameter: {upload_name_bytes!r}",
                     code=400,
                 )
 

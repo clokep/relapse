@@ -75,7 +75,7 @@ class RegistrationConfig(Config):
         self.auto_join_rooms = config.get("auto_join_rooms", [])
         for room_alias in self.auto_join_rooms:
             if not RoomAlias.is_valid(room_alias):
-                raise ConfigError("Invalid auto_join_rooms entry %s" % (room_alias,))
+                raise ConfigError(f"Invalid auto_join_rooms entry {room_alias}")
 
         # Options for creating auto-join rooms if they do not exist yet.
         self.autocreate_auto_join_rooms = config.get("autocreate_auto_join_rooms", True)
@@ -225,8 +225,8 @@ class RegistrationConfig(Config):
         self, generate_secrets: bool = False, **kwargs: Any
     ) -> str:
         if generate_secrets:
-            registration_shared_secret = 'registration_shared_secret: "%s"' % (
-                random_string_with_symbols(50),
+            registration_shared_secret = (
+                f'registration_shared_secret: "{random_string_with_symbols(50)}"'
             )
             return registration_shared_secret
         else:

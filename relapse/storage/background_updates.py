@@ -744,7 +744,7 @@ class BackgroundUpdater:
                 # we may already have a half-built index. Let's just drop it
                 # before trying to create it again.
 
-                sql = "DROP INDEX IF EXISTS %s" % (index_name,)
+                sql = f"DROP INDEX IF EXISTS {index_name}"
                 logger.debug("[SQL] %s", sql)
                 c.execute(sql)
 
@@ -754,16 +754,16 @@ class BackgroundUpdater:
                 c.execute(timeout_sql)
 
                 sql = (
-                    "CREATE %(unique)s INDEX CONCURRENTLY %(name)s"
-                    " ON %(table)s"
-                    " (%(columns)s) %(where_clause)s"
-                ) % {
-                    "unique": "UNIQUE" if unique else "",
-                    "name": index_name,
-                    "table": table,
-                    "columns": ", ".join(columns),
-                    "where_clause": "WHERE " + where_clause if where_clause else "",
-                }
+                    "CREATE {unique} INDEX CONCURRENTLY {name}"
+                    " ON {table}"
+                    " ({columns}) {where_clause}"
+                ).format(
+                    unique="UNIQUE" if unique else "",
+                    name=index_name,
+                    table=table,
+                    columns=", ".join(columns),
+                    where_clause="WHERE " + where_clause if where_clause else "",
+                )
                 logger.debug("[SQL] %s", sql)
                 c.execute(sql)
 
@@ -790,15 +790,15 @@ class BackgroundUpdater:
             # down at the wrong moment - hance we use IF NOT EXISTS. (SQLite
             # has supported CREATE TABLE|INDEX IF NOT EXISTS since 3.3.0.)
             sql = (
-                "CREATE %(unique)s INDEX IF NOT EXISTS %(name)s ON %(table)s"
-                " (%(columns)s) %(where_clause)s"
-            ) % {
-                "unique": "UNIQUE" if unique else "",
-                "name": index_name,
-                "table": table,
-                "columns": ", ".join(columns),
-                "where_clause": "WHERE " + where_clause if where_clause else "",
-            }
+                "CREATE {unique} INDEX IF NOT EXISTS {name} ON {table}"
+                " ({columns}) {where_clause}"
+            ).format(
+                unique="UNIQUE" if unique else "",
+                name=index_name,
+                table=table,
+                columns=", ".join(columns),
+                where_clause="WHERE " + where_clause if where_clause else "",
+            )
 
             c = conn.cursor()
             logger.debug("[SQL] %s", sql)
@@ -1009,8 +1009,7 @@ class BackgroundUpdater:
         """
         if update_name != self._current_background_update:
             raise Exception(
-                "Cannot end background update %s which isn't currently running"
-                % update_name
+                f"Cannot end background update {update_name} which isn't currently running"
             )
         self._current_background_update = None
         await self.db_pool.simple_delete_one(

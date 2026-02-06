@@ -469,8 +469,7 @@ class DeviceHandler(DeviceWorkerHandler):
         if name and len(name) > MAX_DEVICE_DISPLAY_NAME_LEN:
             raise RelapseError(
                 400,
-                "Device display name is too long (max %i)"
-                % (MAX_DEVICE_DISPLAY_NAME_LEN,),
+                "Device display name is too long (max [MAX_DEVICE_DISPLAY_NAME_LEN])",
                 errcode=Codes.TOO_LARGE,
             )
 

@@ -99,7 +99,7 @@ def providers_config(*providers: type[Any]) -> dict:
     """Returns a config dict that will enable the given modules"""
     return {
         "modules": [
-            {"module": "%s.%s" % (__name__, provider.__qualname__), "config": {}}
+            {"module": f"{__name__}.{provider.__qualname__}", "config": {}}
             for provider in providers
         ]
     }

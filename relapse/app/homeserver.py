@@ -104,7 +104,7 @@ class RelapseHomeServer(HomeServer):
         for path, resmodule in additional_resources.items():
             handler_cls, config = load_module(
                 resmodule,
-                ("listeners", site_tag, "additional_resources", "<%s>" % (path,)),
+                ("listeners", site_tag, "additional_resources", f"<{path}>"),
             )
             handler = handler_cls(config, module_api)
             if isinstance(handler, Resource):
@@ -113,8 +113,9 @@ class RelapseHomeServer(HomeServer):
                 resource = AdditionalResource(self, handler.handle_request)
             else:
                 raise ConfigError(
-                    "additional_resource %s does not implement a known interface"
-                    % (resmodule["module"],)
+                    "additional_resource {} does not implement a known interface".format(
+                        resmodule["module"]
+                    )
                 )
             resources[path] = resource
 

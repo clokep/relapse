@@ -119,18 +119,9 @@ def _prepare() -> None:
         # If the current version is an RC we don't need to bump any of the
         # version numbers (other than the RC number).
         if rc:
-            new_version = "{}.{}.{}rc{}".format(
-                current_version.major,
-                current_version.minor,
-                current_version.micro,
-                current_version.pre[1] + 1,
-            )
+            new_version = f"{current_version.major}.{current_version.minor}.{current_version.micro}rc{current_version.pre[1] + 1}"
         else:
-            new_version = "{}.{}.{}".format(
-                current_version.major,
-                current_version.minor,
-                current_version.micro,
-            )
+            new_version = f"{current_version.major}.{current_version.minor}.{current_version.micro}"
     else:
         # If this is a new release cycle then we need to know if it's a minor
         # or a patch version bump.
@@ -143,30 +134,16 @@ def _prepare() -> None:
 
         if release_type == "minor":
             if rc:
-                new_version = "{}.{}.{}rc1".format(
-                    current_version.major,
-                    current_version.minor + 1,
-                    0,
+                new_version = (
+                    f"{current_version.major}.{current_version.minor + 1}.{0}rc1"
                 )
             else:
-                new_version = "{}.{}.{}".format(
-                    current_version.major,
-                    current_version.minor + 1,
-                    0,
-                )
+                new_version = f"{current_version.major}.{current_version.minor + 1}.{0}"
         else:
             if rc:
-                new_version = "{}.{}.{}rc1".format(
-                    current_version.major,
-                    current_version.minor,
-                    current_version.micro + 1,
-                )
+                new_version = f"{current_version.major}.{current_version.minor}.{current_version.micro + 1}rc1"
             else:
-                new_version = "{}.{}.{}".format(
-                    current_version.major,
-                    current_version.minor,
-                    current_version.micro + 1,
-                )
+                new_version = f"{current_version.major}.{current_version.minor}.{current_version.micro + 1}"
 
     # Confirm the calculated version is OK.
     if not click.confirm(f"Create new version: {new_version}?", default=True):

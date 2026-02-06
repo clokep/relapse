@@ -230,7 +230,7 @@ class InternalAuth(BaseAuth):
             # guest tokens.
             stored_user = await self.store.get_user_by_id(user_id)
             if not stored_user:
-                raise InvalidClientTokenError("Unknown user_id %s" % user_id)
+                raise InvalidClientTokenError(f"Unknown user_id {user_id}")
             if not stored_user.is_guest:
                 raise InvalidClientTokenError(
                     "Guest access token used for regular user"

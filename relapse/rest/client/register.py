@@ -671,7 +671,7 @@ class RegisterRestServlet(RestServlet):
                         if existing_user_id is not None:
                             raise RelapseError(
                                 400,
-                                "%s is already in use" % medium,
+                                f"{medium} is already in use",
                                 Codes.THREEPID_IN_USE,
                             )
 

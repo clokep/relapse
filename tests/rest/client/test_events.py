@@ -66,13 +66,13 @@ class EventStreamPermissionsTestCase(unittest.HomeserverTestCase):
         # behaviour is used instead to be consistent with the r0 spec.
         # see issue https://github.com/matrix-org/synapse/issues/2602
         channel = self.make_request(
-            "GET", "/events?access_token=%s" % ("invalid" + self.token,)
+            "GET", "/events?access_token={}".format("invalid" + self.token)
         )
         self.assertEqual(channel.code, 401, msg=channel.result)
 
         # valid token, expect content
         channel = self.make_request(
-            "GET", "/events?access_token=%s&timeout=0" % (self.token,)
+            "GET", f"/events?access_token={self.token}&timeout=0"
         )
         self.assertEqual(channel.code, 200, msg=channel.result)
         self.assertTrue("chunk" in channel.json_body)
@@ -90,7 +90,7 @@ class EventStreamPermissionsTestCase(unittest.HomeserverTestCase):
 
         # valid token, expect content
         channel = self.make_request(
-            "GET", "/events?access_token=%s&timeout=0" % (self.token,)
+            "GET", f"/events?access_token={self.token}&timeout=0"
         )
         self.assertEqual(channel.code, 200, msg=channel.result)
 

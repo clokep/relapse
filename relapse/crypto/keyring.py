@@ -340,13 +340,7 @@ class Keyring:
             )
             raise RelapseError(
                 401,
-                "Invalid signature for server %s with key %s:%s: %s"
-                % (
-                    verify_request.server_name,
-                    verify_key.alg,
-                    verify_key.version,
-                    str(e),
-                ),
+                f"Invalid signature for server {verify_request.server_name} with key {verify_key.alg}:{verify_key.version}: {str(e)}",
                 Codes.UNAUTHORIZED,
             )
 
@@ -579,8 +573,7 @@ class BaseV2KeyFetcher(KeyFetcher):
 
         if not verified:
             raise KeyLookupError(
-                "Key response for %s is not signed by the origin server"
-                % (server_name,)
+                f"Key response for {server_name} is not signed by the origin server"
             )
 
         for key_id, key_data in response_json["old_verify_keys"].items():
@@ -698,7 +691,7 @@ class PerspectivesKeyFetcher(BaseV2KeyFetcher):
             # these both have str() representations which we can't really improve upon
             raise KeyLookupError(str(e))
         except HttpResponseException as e:
-            raise KeyLookupError("Remote server returned an error: %s" % (e,))
+            raise KeyLookupError(f"Remote server returned an error: {e}")
 
         logger.debug(
             "Response from notary server %s: %s", perspective_name, query_response
@@ -715,8 +708,7 @@ class PerspectivesKeyFetcher(BaseV2KeyFetcher):
             server_name = response.get("server_name")
             if not isinstance(server_name, str):
                 raise KeyLookupError(
-                    "Malformed response from key notary server %s: invalid server_name"
-                    % (perspective_name,)
+                    f"Malformed response from key notary server {perspective_name}: invalid server_name"
                 )
 
             try:
@@ -792,8 +784,7 @@ class PerspectivesKeyFetcher(BaseV2KeyFetcher):
 
         if not verified:
             raise KeyLookupError(
-                "Response not signed with a known key: signed with: %r, known keys: %r"
-                % (
+                "Response not signed with a known key: signed with: {!r}, known keys: {!r}".format(
                     list(response["signatures"][perspective_name].keys()),
                     list(perspective_keys.keys()),
                 )
@@ -887,13 +878,14 @@ class ServerKeyFetcher(BaseV2KeyFetcher):
             # upon
             raise KeyLookupError(str(e))
         except HttpResponseException as e:
-            raise KeyLookupError("Remote server returned an error: %s" % (e,))
+            raise KeyLookupError(f"Remote server returned an error: {e}")
 
         assert isinstance(response, dict)
         if response["server_name"] != server_name:
             raise KeyLookupError(
-                "Expected a response for server %r not %r"
-                % (server_name, response["server_name"])
+                "Expected a response for server {!r} not {!r}".format(
+                    server_name, response["server_name"]
+                )
             )
 
         return await self.process_v2_response(

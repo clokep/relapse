@@ -277,8 +277,7 @@ class FederationEventHandler:
                         )
                     except Exception as e:
                         raise Exception(
-                            "Error fetching missing prev_events for %s: %s"
-                            % (event_id, e)
+                            f"Error fetching missing prev_events for {event_id}: {e}"
                         ) from e
 
                 # Update the set of things we've seen after trying to
@@ -823,13 +822,7 @@ class FederationEventHandler:
             "processing pulled backfilled=%s events=%s",
             backfilled,
             [
-                "event_id=%s,depth=%d,body=%s,prevs=%s\n"
-                % (
-                    event.event_id,
-                    event.depth,
-                    event.content.get("body", event.type),
-                    event.prev_event_ids(),
-                )
+                f"event_id=event.event_id,depth={event.depth},body={event.content.get('body', event.type)},prevs={event.prev_event_ids()}\n"
                 for event in events
             ],
         )
@@ -1322,7 +1315,7 @@ class FederationEventHandler:
             redact_behaviour=EventRedactBehaviour.as_is,
         )
         if not remote_event:
-            raise Exception("Unable to get missing prev_event %s" % (event_id,))
+            raise Exception(f"Unable to get missing prev_event {event_id}")
 
         # missing state at that event is a warning, not a blocker
         # XXX: this doesn't sound right? it means that we'll end up with incomplete
@@ -1473,7 +1466,7 @@ class FederationEventHandler:
                         == RoomEncryptionAlgorithms.MEGOLM_V1_AES_SHA2
                     ):
                         # For this algorithm we expect a curve25519 key.
-                        key_name = "curve25519:%s" % (device_id,)
+                        key_name = f"curve25519:{device_id}"
                         current_keys = [keys.get(key_name)]
                     else:
                         # We don't know understand the algorithm, so we just

@@ -274,7 +274,7 @@ class CacheInvalidationWorkerStore(SQLBaseStore):
             self.get_rooms_for_user_with_stream_ordering.invalidate_all()  # type: ignore[attr-defined]
             self.get_rooms_for_user.invalidate_all()  # type: ignore[attr-defined]
         else:
-            raise Exception("Unknown events stream row type %s" % (row.type,))
+            raise Exception(f"Unknown events stream row type {row.type}")
 
     def _invalidate_caches_for_event(
         self,

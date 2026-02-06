@@ -87,7 +87,7 @@ def sign_json(
     signed = signing_key.sign(encode_canonical_json(json_object))
     signature_base64 = encode_base64(signed.signature)
 
-    key_id = "%s:%s" % (signing_key.alg, signing_key.version)
+    key_id = f"{signing_key.alg}:{signing_key.version}"
     signatures.setdefault(signing_name, {})[key_id] = signature_base64
 
     json_object["signatures"] = signatures
@@ -127,17 +127,12 @@ def request(
     authorization_headers = []
 
     for key, sig in signed_json["signatures"][origin_name].items():
-        header = 'X-Matrix origin=%s,key="%s",sig="%s",destination="%s"' % (
-            origin_name,
-            key,
-            sig,
-            destination,
-        )
+        header = f'X-Matrix origin={origin_name},key="{key}",sig="{sig}",destination="{destination}"'
         authorization_headers.append(header)
-        print("Authorization: %s" % header, file=sys.stderr)
+        print(f"Authorization: {header}", file=sys.stderr)
 
-    dest = "matrix-federation://%s%s" % (destination, path)
-    print("Requesting %s" % dest, file=sys.stderr)
+    dest = f"matrix-federation://{destination}{path}"
+    print(f"Requesting {dest}", file=sys.stderr)
 
     s = requests.Session()
     s.mount("matrix-federation://", MatrixConnectionAdapter())
@@ -237,7 +232,7 @@ def main() -> None:
         verify_tls=not args.insecure,
     )
 
-    sys.stderr.write("Status Code: %d\n" % (result.status_code,))
+    sys.stderr.write(f"Status Code: {result.status_code}\n")
 
     for chunk in result.iter_content():
         # we write raw utf8 to stdout.
@@ -327,7 +322,7 @@ class MatrixConnectionAdapter(HTTPAdapter):
             try:
                 port = int(out[1])
             except ValueError:
-                raise ValueError("Invalid host:port '%s'" % (server_name,))
+                raise ValueError(f"Invalid host:port '{server_name}'")
             return out[0], port, out[0]
 
         # Look up SRV for Matrix 1.8 `matrix-fed` service first
@@ -366,7 +361,7 @@ class MatrixConnectionAdapter(HTTPAdapter):
         try:
             resp = requests.get(uri)
             if resp.status_code != 200:
-                print("%s gave %i" % (uri, resp.status_code), file=sys.stderr)
+                print(f"{uri} gave {resp.status_code}", file=sys.stderr)
                 return None
 
             parsed_well_known = resp.json()
@@ -375,11 +370,11 @@ class MatrixConnectionAdapter(HTTPAdapter):
             if "m.server" not in parsed_well_known:
                 raise Exception("Missing key 'm.server'")
             new_name = parsed_well_known["m.server"]
-            print("well-known lookup gave %s" % (new_name,), file=sys.stderr)
+            print(f"well-known lookup gave {new_name}", file=sys.stderr)
             return new_name
 
         except Exception as e:
-            print("Invalid response from %s: %s" % (uri, e), file=sys.stderr)
+            print(f"Invalid response from {uri}: {e}", file=sys.stderr)
         return None
 
 

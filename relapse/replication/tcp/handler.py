@@ -13,8 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
+from collections import deque
 from collections.abc import Awaitable, Iterable, Iterator
-from typing import TYPE_CHECKING, Any, Deque, Optional, TypeVar, Union
+from typing import TYPE_CHECKING, Any, Optional, TypeVar, Union
 
 from prometheus_client import Counter
 
@@ -70,7 +71,7 @@ user_ip_cache_counter = Counter("relapse_replication_tcp_resource_user_ip_cache"
 
 
 # the type of the entries in _command_queues_by_stream
-_StreamCommandQueue = Deque[
+_StreamCommandQueue = deque[
     tuple[Union[RdataCommand, PositionCommand], IReplicationConnection]
 ]
 
@@ -503,7 +504,7 @@ class ReplicationCommandHandler:
             row = STREAMS_MAP[stream_name].parse_row(cmd.row)
         except Exception as e:
             raise Exception(
-                "Failed to parse RDATA: %r %r" % (stream_name, cmd.row)
+                f"Failed to parse RDATA: {stream_name!r} {cmd.row!r}"
             ) from e
 
         # make sure that we've processed a POSITION for this stream *on this

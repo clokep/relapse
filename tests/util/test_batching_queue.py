@@ -46,7 +46,7 @@ class BatchingQueueTestCase(TestCase):
         )
 
     async def _process_queue(self, values: list[str]) -> str:
-        d: "defer.Deferred[str]" = defer.Deferred()
+        d: defer.Deferred[str] = defer.Deferred()
         self._pending_calls.append((values, d))
         return await make_deferred_yieldable(d)
 

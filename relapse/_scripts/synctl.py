@@ -115,14 +115,10 @@ def start(pidfile: str, app: str, config_files: Iterable[str], daemonize: bool) 
 
     try:
         subprocess.check_call(args)
-        write("started %s(%s)" % (app, ",".join(config_files)), colour=GREEN)
+        write("started {}({})".format(app, ",".join(config_files)), colour=GREEN)
         return True
     except subprocess.CalledProcessError as e:
-        err = "%s(%s) failed to start (exit code: %d). Check the Relapse logfile" % (
-            app,
-            ",".join(config_files),
-            e.returncode,
-        )
+        err = f"{app}({','.join(config_files)}) failed to start (exit code: {e.returncode}). Check the Relapse logfile"
         if daemonize:
             err += ", or run synctl with --no-daemonize"
         err += "."
@@ -144,19 +140,18 @@ def stop(pidfile: str, app: str) -> Optional[int]:
         pid = int(open(pidfile).read())
         try:
             os.kill(pid, signal.SIGTERM)
-            write("stopped %s" % (app,), colour=GREEN)
+            write(f"stopped {app}", colour=GREEN)
             return pid
         except OSError as err:
             if err.errno == errno.ESRCH:
-                write("%s not running" % (app,), colour=YELLOW)
+                write(f"{app} not running", colour=YELLOW)
             elif err.errno == errno.EPERM:
-                abort("Cannot stop %s: Operation not permitted" % (app,))
+                abort(f"Cannot stop {app}: Operation not permitted")
             else:
-                abort("Cannot stop %s: Unknown error" % (app,))
+                abort(f"Cannot stop {app}: Unknown error")
     else:
         write(
-            "No running worker of %s found (from %s)\nThe process might be managed by another controller (e.g. systemd)"
-            % (app, pidfile),
+            f"No running worker of {app} found (from {pidfile})\nThe process might be managed by another controller (e.g. systemd)",
             colour=YELLOW,
         )
     return None
@@ -247,9 +242,7 @@ def main() -> None:
         start_stop_relapse = False
         worker_configfile = options.worker
         if not os.path.exists(worker_configfile):
-            write(
-                "No worker config found at %r" % (worker_configfile,), stream=sys.stderr
-            )
+            write(f"No worker config found at {worker_configfile!r}", stream=sys.stderr)
             sys.exit(1)
         worker_configfiles.append(worker_configfile)
 
@@ -260,7 +253,7 @@ def main() -> None:
         worker_configdir = options.all_processes
         if not os.path.isdir(worker_configdir):
             write(
-                "No worker config directory found at %r" % (worker_configdir,),
+                f"No worker config directory found at {worker_configdir!r}",
                 stream=sys.stderr,
             )
             sys.exit(1)

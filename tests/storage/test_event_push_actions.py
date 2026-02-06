@@ -748,7 +748,7 @@ class EventPushActionsStoreTestCase(HomeserverTestCase):
                     {
                         "stream_ordering": so,
                         "received_ts": ts,
-                        "event_id": "event%i" % so,
+                        "event_id": f"event{so}",
                         "type": "",
                         "room_id": "",
                         "content": "",
@@ -784,18 +784,18 @@ class EventPushActionsStoreTestCase(HomeserverTestCase):
             add_event(stream_ordering, ts)
 
         r = self.get_success(self.store.find_first_stream_ordering_after_ts(110))
-        self.assertEqual(r, 3, "First event after 110ms should be 3, was %i" % r)
+        self.assertEqual(r, 3, f"First event after 110ms should be 3, was {r}")
 
         # 4 and 5 are both after 120: we want 4 rather than 5
         r = self.get_success(self.store.find_first_stream_ordering_after_ts(120))
-        self.assertEqual(r, 4, "First event after 120ms should be 4, was %i" % r)
+        self.assertEqual(r, 4, f"First event after 120ms should be 4, was {r}")
 
         r = self.get_success(self.store.find_first_stream_ordering_after_ts(129))
-        self.assertEqual(r, 10, "First event after 129ms should be 10, was %i" % r)
+        self.assertEqual(r, 10, f"First event after 129ms should be 10, was {r}")
 
         # check we can get the last event
         r = self.get_success(self.store.find_first_stream_ordering_after_ts(140))
-        self.assertEqual(r, 20, "First event after 14ms should be 20, was %i" % r)
+        self.assertEqual(r, 20, f"First event after 14ms should be 20, was {r}")
 
         # off the end
         r = self.get_success(self.store.find_first_stream_ordering_after_ts(160))

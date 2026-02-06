@@ -163,7 +163,7 @@ class ProfileHandler:
 
         if len(new_displayname) > MAX_DISPLAYNAME_LEN:
             raise RelapseError(
-                400, "Displayname is too long (max %i)" % (MAX_DISPLAYNAME_LEN,)
+                400, f"Displayname is too long (max {MAX_DISPLAYNAME_LEN})"
             )
 
         displayname_to_set: Optional[str] = new_displayname.strip()
@@ -256,7 +256,7 @@ class ProfileHandler:
 
         if len(new_avatar_url) > MAX_AVATAR_URL_LEN:
             raise RelapseError(
-                400, "Avatar URL is too long (max %i)" % (MAX_AVATAR_URL_LEN,)
+                400, f"Avatar URL is too long (max {MAX_AVATAR_URL_LEN})"
             )
 
         if not await self.check_avatar_size_and_mime_type(new_avatar_url):

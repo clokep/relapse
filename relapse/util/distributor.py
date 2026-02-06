@@ -13,7 +13,7 @@
 # limitations under the License.
 import logging
 from collections.abc import Awaitable
-from typing import Any, Callable, Generic, List, Optional, TypeVar, Union
+from typing import Any, Callable, Generic, Optional, TypeVar, Union
 
 from typing_extensions import ParamSpec
 
@@ -48,7 +48,7 @@ class Distributor:
 
     def declare(self, name: str) -> None:
         if name in self.signals:
-            raise KeyError("%r already has a signal named %s" % (self, name))
+            raise KeyError(f"{self!r} already has a signal named {name}")
 
         self.signals[name] = Signal(name)
 
@@ -73,7 +73,7 @@ class Distributor:
         Runs the observers as a background process. Does not return a deferred.
         """
         if name not in self.signals:
-            raise KeyError("%r does not have a signal named %s" % (self, name))
+            raise KeyError(f"{self!r} does not have a signal named {name}")
 
         run_as_background_process(name, self.signals[name].fire, *args, **kwargs)
 
@@ -103,7 +103,7 @@ class Signal(Generic[P]):
         Each observer callable may return a Deferred."""
         self.observers.append(observer)
 
-    def fire(self, *args: P.args, **kwargs: P.kwargs) -> "defer.Deferred[List[Any]]":
+    def fire(self, *args: P.args, **kwargs: P.kwargs) -> "defer.Deferred[list[Any]]":
         """Invokes every callable in the observer list, passing in the args and
         kwargs. Exceptions thrown by observers are logged but ignored. It is
         not an error to fire a signal with no observers.
@@ -130,4 +130,4 @@ class Signal(Generic[P]):
         )
 
     def __repr__(self) -> str:
-        return "<Signal name=%r>" % (self.name,)
+        return f"<Signal name={self.name!r}>"

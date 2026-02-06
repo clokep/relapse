@@ -101,9 +101,7 @@ async def phone_stats_home(
     stats["timestamp"] = now
     stats["uptime_seconds"] = uptime
     version = sys.version_info
-    stats["python_version"] = "{}.{}.{}".format(
-        version.major, version.minor, version.micro
-    )
+    stats["python_version"] = f"{version.major}.{version.minor}.{version.micro}"
     stats["total_users"] = await store.count_all_users()
 
     total_nonbridged_users = await store.count_nonbridged_users()
@@ -151,7 +149,7 @@ async def phone_stats_home(
     stats["log_level"] = logging.getLevelName(log_level)
 
     logger.info(
-        "Reporting stats to %s: %s" % (hs.config.metrics.report_stats_endpoint, stats)
+        f"Reporting stats to {hs.config.metrics.report_stats_endpoint}: {stats}"
     )
     try:
         await hs.get_proxied_http_client().put_json(

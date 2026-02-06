@@ -912,4 +912,4 @@ def _maybe_get_event_id_dict_for_room_version(room_version: RoomVersion) -> dict
     global event_count
     c = event_count
     event_count += 1
-    return {"event_id": "!%i:example.com" % (c,)}
+    return {"event_id": f"!{c}:example.com"}

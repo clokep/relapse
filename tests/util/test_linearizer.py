@@ -48,8 +48,8 @@ class LinearizerTestCase(unittest.TestCase):
              * A function that unblocks the task. Must be called by the caller
                to allow the task to release the lock and complete.
         """
-        acquired_d: "Deferred[None]" = Deferred()
-        unblock_d: "Deferred[None]" = Deferred()
+        acquired_d: Deferred[None] = Deferred()
+        unblock_d: Deferred[None] = Deferred()
 
         async def task() -> None:
             async with linearizer.queue(key):
@@ -131,7 +131,7 @@ class LinearizerTestCase(unittest.TestCase):
         key = ""
 
         async def func(i: int) -> None:
-            with LoggingContext("func(%s)" % i) as lc:
+            with LoggingContext(f"func({i})") as lc:
                 async with linearizer.queue(key):
                     self.assertEqual(current_context(), lc)
 

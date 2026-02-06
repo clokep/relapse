@@ -107,7 +107,7 @@ class HTTPConnectProxyEndpoint:
         self._proxy_creds = proxy_creds
 
     def __repr__(self) -> str:
-        return "<HTTPConnectProxyEndpoint %s>" % (self._proxy_endpoint,)
+        return f"<HTTPConnectProxyEndpoint {self._proxy_endpoint}>"
 
     # Mypy encounters a false positive here: it complains that ClientFactory
     # is incompatible with IProtocolFactory. But ClientFactory inherits from
@@ -148,7 +148,7 @@ class HTTPProxiedClientFactory(protocol.ClientFactory):
         self.dst_port = dst_port
         self.wrapped_factory = wrapped_factory
         self.proxy_creds = proxy_creds
-        self.on_connection: "defer.Deferred[None]" = defer.Deferred()
+        self.on_connection: defer.Deferred[None] = defer.Deferred()
 
     def startedConnecting(self, connector: IConnector) -> None:
         return self.wrapped_factory.startedConnecting(connector)
@@ -266,7 +266,7 @@ class HTTPConnectSetupClient(http.HTTPClient):
         self.host = host
         self.port = port
         self.proxy_creds = proxy_creds
-        self.on_connected: "defer.Deferred[None]" = defer.Deferred()
+        self.on_connected: defer.Deferred[None] = defer.Deferred()
 
     def connectionMade(self) -> None:
         logger.debug("Connected to proxy, sending CONNECT")

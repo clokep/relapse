@@ -54,7 +54,7 @@ class IdentityTestCase(unittest.HomeserverTestCase):
             "address": "test@example.com",
             "id_access_token": tok,
         }
-        request_url = ("/rooms/%s/invite" % (room_id)).encode("ascii")
+        request_url = (f"/rooms/{room_id}/invite").encode("ascii")
         channel = self.make_request(
             b"POST", request_url, request_data, access_token=tok
         )

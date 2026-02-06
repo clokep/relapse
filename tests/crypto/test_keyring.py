@@ -55,10 +55,10 @@ class MockPerspectiveServer:
 
     def get_verify_keys(self) -> dict[str, str]:
         vk = signedjson.key.get_verify_key(self.key)
-        return {"%s:%s" % (vk.alg, vk.version): encode_verify_key_base64(vk)}
+        return {f"{vk.alg}:{vk.version}": encode_verify_key_base64(vk)}
 
     def get_signed_key(self, server_name: str, verify_key: VerifyKey) -> JsonDict:
-        key_id = "%s:%s" % (verify_key.alg, verify_key.version)
+        key_id = f"{verify_key.alg}:{verify_key.version}"
         res = {
             "server_name": server_name,
             "old_verify_keys": {},
@@ -97,7 +97,7 @@ class KeyringTestCase(unittest.HomeserverTestCase):
 
         # start off a first set of lookups. We make the mock fetcher block until this
         # deferred completes.
-        first_lookup_deferred: "Deferred[None]" = Deferred()
+        first_lookup_deferred: Deferred[None] = Deferred()
 
         async def first_lookup_fetch(
             server_name: str, key_ids: list[str], minimum_valid_until_ts: int
@@ -476,7 +476,7 @@ class PerspectivesKeyFetcherTestCase(unittest.HomeserverTestCase):
         Build a valid perspectives server response to a request for the given key
         """
         verify_key = signedjson.key.get_verify_key(signing_key)
-        verifykey_id = "%s:%s" % (verify_key.alg, verify_key.version)
+        verifykey_id = f"{verify_key.alg}:{verify_key.version}"
 
         response = {
             "server_name": server_name,
@@ -716,4 +716,4 @@ class PerspectivesKeyFetcherTestCase(unittest.HomeserverTestCase):
 
 def get_key_id(key: SigningKey) -> str:
     """Get the matrix ID tag for a given SigningKey or VerifyKey"""
-    return "%s:%s" % (key.alg, key.version)
+    return f"{key.alg}:{key.version}"

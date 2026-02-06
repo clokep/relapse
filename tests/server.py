@@ -24,7 +24,7 @@ import warnings
 from collections import deque
 from collections.abc import Awaitable, Iterable, MutableMapping, Sequence
 from io import SEEK_END, BytesIO
-from typing import Any, Callable, Deque, Optional, TypeVar, Union, cast
+from typing import Any, Callable, Optional, TypeVar, Union, cast
 from unittest.mock import Mock
 
 import attr
@@ -440,7 +440,7 @@ class ThreadedMemoryReactorClock(MemoryReactorClock):
         self._tcp_callbacks: dict[tuple[str, int], Callable] = {}
         self._udp: list[udp.Port] = []
         self.lookups: dict[str, str] = {}
-        self._thread_callbacks: Deque[Callable[..., R]] = deque()
+        self._thread_callbacks: deque[Callable[..., R]] = deque()
 
         lookups = self.lookups
 
@@ -450,7 +450,7 @@ class ThreadedMemoryReactorClock(MemoryReactorClock):
                 self, name: str, timeout: Optional[Sequence[int]] = None
             ) -> "Deferred[str]":
                 if name not in lookups:
-                    return fail(DNSLookupError("OH NO: unknown %s" % (name,)))
+                    return fail(DNSLookupError(f"OH NO: unknown {name}"))
                 return succeed(lookups[name])
 
         # In order for the TLS protocol tests to work, modify _get_default_clock
@@ -629,13 +629,11 @@ def validate_connector(connector: tcp.Connector, expected_ip: str) -> None:
             cls(expected_ip)
         except Exception as exc:
             raise ValueError(
-                "Invalid IP type and resolution for %s. Expected %s to be %s"
-                % (destination, expected_ip, cls.__name__)
+                f"Invalid IP type and resolution for {destination}. Expected {expected_ip} to be {cls.__name__}"
             ) from exc
     else:
         raise ValueError(
-            "Unknown address type %s for %s"
-            % (destination.__class__.__name__, destination)
+            f"Unknown address type {destination.__class__.__name__} for {destination}"
         )
 
 
@@ -668,7 +666,7 @@ class ThreadPool:
             else:
                 onResult(True, res)
 
-        d: "Deferred[None]" = Deferred()
+        d: Deferred[None] = Deferred()
         d.addCallback(lambda x: function(*args, **kwargs))
         d.addBoth(_)
         self._reactor.callLater(0, d.callback, True)
@@ -948,7 +946,7 @@ def setup_test_homeserver(
         kwargs["clock"] = MockClock()
 
     if USE_POSTGRES_FOR_TESTS:
-        test_db = "relapse_test_%s" % uuid.uuid4().hex
+        test_db = f"relapse_test_{uuid.uuid4().hex}"
 
         database_config = {
             "name": "psycopg2",
@@ -1018,10 +1016,8 @@ def setup_test_homeserver(
         )
         db_engine.attempt_to_set_autocommit(db_conn, True)
         cur = db_conn.cursor()
-        cur.execute("DROP DATABASE IF EXISTS %s;" % (test_db,))
-        cur.execute(
-            "CREATE DATABASE %s WITH TEMPLATE %s;" % (test_db, POSTGRES_BASE_DB)
-        )
+        cur.execute(f"DROP DATABASE IF EXISTS {test_db};")
+        cur.execute(f"CREATE DATABASE {test_db} WITH TEMPLATE {POSTGRES_BASE_DB};")
         cur.close()
         db_conn.close()
 
@@ -1070,7 +1066,7 @@ def setup_test_homeserver(
             # it, warn and move on.
             for _ in range(5):
                 try:
-                    cur.execute("DROP DATABASE IF EXISTS %s;" % (test_db,))
+                    cur.execute(f"DROP DATABASE IF EXISTS {test_db};")
                     db_conn.commit()
                     dropped = True
                 except psycopg2.OperationalError as e:

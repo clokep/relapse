@@ -68,7 +68,7 @@ def get_value_from_macaroon(macaroon: pymacaroons.Macaroon, key: str) -> str:
     # Note that it is insecure to generate a macaroon without all the caveats you
     # might need (because there is nothing stopping people from adding extra caveats),
     # so if the caveat isn't there, something odd must be going on.
-    raise MacaroonVerificationFailedException("No %s caveat in macaroon" % (key,))
+    raise MacaroonVerificationFailedException(f"No {key} caveat in macaroon")
 
 
 def satisfy_expiry(v: pymacaroons.Verifier, get_time_ms: Callable[[], int]) -> None:

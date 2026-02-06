@@ -387,7 +387,7 @@ class Deferred__next__Patch:
                 # We return a new, unresolved, `Deferred` for `_inlineCallbacks` to wait
                 # on. This blocks the coroutine that did this `await`.
                 # We queue it up for unblocking later.
-                new_deferred: "Deferred[T]" = Deferred()
+                new_deferred: Deferred[T] = Deferred()
                 self._to_unblock[new_deferred] = deferred.result
 
                 _log_await_stack(

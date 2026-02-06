@@ -171,7 +171,7 @@ class EventReportsTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "GET",
-            self.url + "?room_id=%s" % self.room_id1,
+            self.url + f"?room_id={self.room_id1}",
             access_token=self.admin_user_tok,
         )
 
@@ -191,7 +191,7 @@ class EventReportsTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "GET",
-            self.url + "?user_id=%s" % self.other_user,
+            self.url + f"?user_id={self.other_user}",
             access_token=self.admin_user_tok,
         )
 
@@ -211,7 +211,7 @@ class EventReportsTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "GET",
-            self.url + "?user_id=%s&room_id=%s" % (self.other_user, self.room_id1),
+            self.url + f"?user_id={self.other_user}&room_id={self.room_id1}",
             access_token=self.admin_user_tok,
         )
 
@@ -377,7 +377,7 @@ class EventReportsTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "POST",
-            "rooms/%s/report/%s" % (room_id, event_id),
+            f"rooms/{room_id}/report/{event_id}",
             {"score": -100, "reason": "this makes me sad"},
             access_token=user_tok,
         )
@@ -392,7 +392,7 @@ class EventReportsTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "POST",
-            "rooms/%s/report/%s" % (room_id, event_id),
+            f"rooms/{room_id}/report/{event_id}",
             {},
             access_token=user_tok,
         )
@@ -574,7 +574,7 @@ class EventReportDetailTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "POST",
-            "rooms/%s/report/%s" % (room_id, event_id),
+            f"rooms/{room_id}/report/{event_id}",
             {"score": -100, "reason": "this makes me sad"},
             access_token=user_tok,
         )

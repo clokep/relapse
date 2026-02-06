@@ -16,7 +16,7 @@ import shutil
 import tempfile
 from binascii import unhexlify
 from io import BytesIO
-from typing import Any, BinaryIO, ClassVar, Dict, List, Optional, Tuple, Union
+from typing import Any, BinaryIO, ClassVar, Optional, Union
 from unittest.mock import Mock
 from urllib import parse
 
@@ -231,7 +231,7 @@ class MediaRepoTests(unittest.HomeserverTestCase):
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         self.fetches: list[
             tuple[
-                "Deferred[Tuple[bytes, Tuple[int, Dict[bytes, List[bytes]]]]]",
+                Deferred[tuple[bytes, tuple[int, dict[bytes, list[bytes]]]]],
                 str,
                 str,
                 Optional[QueryParams],
@@ -247,7 +247,7 @@ class MediaRepoTests(unittest.HomeserverTestCase):
             max_size: Optional[int] = None,
             ignore_backoff: bool = False,
             follow_redirects: bool = False,
-        ) -> "Deferred[Tuple[int, Dict[bytes, List[bytes]]]]":
+        ) -> "Deferred[tuple[int, dict[bytes, list[bytes]]]]":
             """A mock for MatrixFederationHttpClient.get_file."""
 
             def write_to(

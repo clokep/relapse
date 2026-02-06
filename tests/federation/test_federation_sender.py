@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Callable, FrozenSet, Optional
+from typing import Callable, Optional
 from unittest.mock import AsyncMock, Mock
 
 from signedjson import key, sign
@@ -292,7 +292,7 @@ class FederationSenderDevicesTestCases(HomeserverTestCase):
 
         # stub out `get_rooms_for_user` and `get_current_hosts_in_room` so that the
         # server thinks the user shares a room with `@user2:host2`
-        def get_rooms_for_user(user_id: str) -> "defer.Deferred[FrozenSet[str]]":
+        def get_rooms_for_user(user_id: str) -> "defer.Deferred[frozenset[str]]":
             return defer.succeed(frozenset({test_room_id}))
 
         hs.get_datastores().main.get_rooms_for_user = get_rooms_for_user  # type: ignore[assignment]
@@ -737,7 +737,7 @@ def generate_self_id_key() -> SigningKey:
 
 
 def key_id(k: BaseKey) -> str:
-    return "%s:%s" % (k.alg, k.version)
+    return f"{k.alg}:{k.version}"
 
 
 def encode_pubkey(sk: SigningKey) -> str:

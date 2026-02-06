@@ -29,24 +29,13 @@ def exit(status: int = 0, message: Optional[str] = None) -> NoReturn:
 
 def format_plain(public_key: VerifyKey) -> None:
     print(
-        "%s:%s %s"
-        % (
-            public_key.alg,
-            public_key.version,
-            encode_verify_key_base64(public_key),
-        )
+        f"{public_key.alg}:{public_key.version} {encode_verify_key_base64(public_key)}"
     )
 
 
 def format_for_config(public_key: VerifyKey, expiry_ts: int) -> None:
     print(
-        '  "%s:%s": { key: "%s", expired_ts: %i }'
-        % (
-            public_key.alg,
-            public_key.version,
-            encode_verify_key_base64(public_key),
-            expiry_ts,
-        )
+        f'  "{public_key.alg}:{public_key.version}": {{ key: "{encode_verify_key_base64(public_key)}", expired_ts: {expiry_ts} }}'
     )
 
 
@@ -91,8 +80,7 @@ def main() -> None:
         except Exception as e:
             exit(
                 status=1,
-                message="Error reading key from file %s: %s %s"
-                % (file.name, type(e), e),
+                message=f"Error reading key from file {file.name}: {type(e)} {e}",
             )
         for key in res:
             formatter(get_verify_key(key))

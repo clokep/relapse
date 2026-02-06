@@ -96,7 +96,7 @@ class RoomTestCase(_ShadowBannedBase):
         # Inviting the user completes successfully.
         channel = self.make_request(
             "POST",
-            "/rooms/%s/invite" % (room_id,),
+            f"/rooms/{room_id}/invite",
             {
                 "id_server": "test",
                 "medium": "email",
@@ -170,7 +170,7 @@ class RoomTestCase(_ShadowBannedBase):
 
         channel = self.make_request(
             "POST",
-            "/_matrix/client/r0/rooms/%s/upgrade" % (room_id,),
+            f"/_matrix/client/r0/rooms/{room_id}/upgrade",
             {"new_version": "6"},
             access_token=self.banned_access_token,
         )
@@ -195,7 +195,7 @@ class RoomTestCase(_ShadowBannedBase):
 
         channel = self.make_request(
             "PUT",
-            "/rooms/%s/typing/%s" % (room_id, self.banned_user_id),
+            f"/rooms/{room_id}/typing/{self.banned_user_id}",
             {"typing": True, "timeout": 30000},
             access_token=self.banned_access_token,
         )
@@ -210,7 +210,7 @@ class RoomTestCase(_ShadowBannedBase):
 
         channel = self.make_request(
             "PUT",
-            "/rooms/%s/typing/%s" % (room_id, self.other_user_id),
+            f"/rooms/{room_id}/typing/{self.other_user_id}",
             {"typing": True, "timeout": 30000},
             access_token=self.other_access_token,
         )
@@ -262,7 +262,7 @@ class ProfileTestCase(_ShadowBannedBase):
         # The update should succeed.
         channel = self.make_request(
             "PUT",
-            "/_matrix/client/r0/profile/%s/displayname" % (self.banned_user_id,),
+            f"/_matrix/client/r0/profile/{self.banned_user_id}/displayname",
             {"displayname": new_display_name},
             access_token=self.banned_access_token,
         )
@@ -271,7 +271,7 @@ class ProfileTestCase(_ShadowBannedBase):
 
         # The user's display name should be updated.
         channel = self.make_request(
-            "GET", "/profile/%s/displayname" % (self.banned_user_id,)
+            "GET", f"/profile/{self.banned_user_id}/displayname"
         )
         self.assertEqual(channel.code, 200, channel.result)
         self.assertEqual(channel.json_body["displayname"], new_display_name)
@@ -304,8 +304,7 @@ class ProfileTestCase(_ShadowBannedBase):
         # The update should succeed.
         channel = self.make_request(
             "PUT",
-            "/_matrix/client/r0/rooms/%s/state/m.room.member/%s"
-            % (room_id, self.banned_user_id),
+            f"/_matrix/client/r0/rooms/{room_id}/state/m.room.member/{self.banned_user_id}",
             {"membership": "join", "displayname": new_display_name},
             access_token=self.banned_access_token,
         )

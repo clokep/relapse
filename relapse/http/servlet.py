@@ -128,13 +128,13 @@ def parse_integer_from_args(
         try:
             return int(args[name_bytes][0])
         except Exception:
-            message = "Query parameter %r must be an integer" % (name,)
+            message = f"Query parameter {name!r} must be an integer"
             raise RelapseError(
                 HTTPStatus.BAD_REQUEST, message, errcode=Codes.INVALID_PARAM
             )
     else:
         if required:
-            message = "Missing integer query parameter %r" % (name,)
+            message = f"Missing integer query parameter {name!r}"
             raise RelapseError(
                 HTTPStatus.BAD_REQUEST, message, errcode=Codes.MISSING_PARAM
             )
@@ -234,14 +234,14 @@ def parse_boolean_from_args(
             return {b"true": True, b"false": False}[args[name_bytes][0]]
         except Exception:
             message = (
-                "Boolean query parameter %r must be one of ['true', 'false']"
-            ) % (name,)
+                f"Boolean query parameter {name!r} must be one of ['true', 'false']"
+            )
             raise RelapseError(
                 HTTPStatus.BAD_REQUEST, message, errcode=Codes.INVALID_PARAM
             )
     else:
         if required:
-            message = "Missing boolean query parameter %r" % (name,)
+            message = f"Missing boolean query parameter {name!r}"
             raise RelapseError(
                 HTTPStatus.BAD_REQUEST, message, errcode=Codes.MISSING_PARAM
             )
@@ -303,7 +303,7 @@ def parse_bytes_from_args(
     if name_bytes in args:
         return args[name_bytes][0]
     elif required:
-        message = "Missing string query parameter %s" % (name,)
+        message = f"Missing string query parameter {name}"
         raise RelapseError(HTTPStatus.BAD_REQUEST, message, errcode=Codes.MISSING_PARAM)
 
     return default
@@ -463,11 +463,11 @@ def _parse_string_value(
         value_str = value.decode(encoding)
     except ValueError:
         raise RelapseError(
-            HTTPStatus.BAD_REQUEST, "Query parameter %r must be %s" % (name, encoding)
+            HTTPStatus.BAD_REQUEST, f"Query parameter {name!r} must be {encoding}"
         )
 
     if allowed_values is not None and value_str not in allowed_values:
-        message = "Query parameter %r must be one of [%s]" % (
+        message = "Query parameter {!r} must be one of [{}]".format(
             name,
             ", ".join(repr(v) for v in allowed_values),
         )
@@ -562,7 +562,7 @@ def parse_strings_from_args(
         ]
     else:
         if required:
-            message = "Missing string query parameter %r" % (name,)
+            message = f"Missing string query parameter {name!r}"
             raise RelapseError(
                 HTTPStatus.BAD_REQUEST, message, errcode=Codes.MISSING_PARAM
             )
@@ -790,7 +790,7 @@ def assert_params_in_dict(body: JsonDict, required: StrCollection) -> None:
 
     if len(absent) > 0:
         raise RelapseError(
-            HTTPStatus.BAD_REQUEST, "Missing params: %r" % absent, Codes.MISSING_PARAM
+            HTTPStatus.BAD_REQUEST, f"Missing params: {absent!r}", Codes.MISSING_PARAM
         )
 
 
@@ -819,9 +819,9 @@ class RestServlet:
         patterns = getattr(self, "PATTERNS", None)
         if patterns:
             for method in ("GET", "PUT", "POST", "DELETE"):
-                if hasattr(self, "on_%s" % (method,)):
+                if hasattr(self, f"on_{method}"):
                     servlet_classname = self.__class__.__name__
-                    method_handler = getattr(self, "on_%s" % (method,))
+                    method_handler = getattr(self, f"on_{method}")
                     http_server.register_paths(
                         method, patterns, method_handler, servlet_classname
                     )
@@ -864,11 +864,11 @@ class ResolveRoomIdMixin:
         else:
             raise RelapseError(
                 HTTPStatus.BAD_REQUEST,
-                "%s was not legal room ID or room alias" % (room_identifier,),
+                f"{room_identifier} was not legal room ID or room alias",
             )
         if not resolved_room_id:
             raise RelapseError(
                 HTTPStatus.BAD_REQUEST,
-                "Unknown room ID or room alias %s" % room_identifier,
+                f"Unknown room ID or room alias {room_identifier}",
             )
         return resolved_room_id, remote_room_hosts

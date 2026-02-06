@@ -149,7 +149,7 @@ class AccountValidityHandler:
 
         # If this user isn't set to be expired, raise an error.
         if expiration_ts is None:
-            raise RelapseError(400, "User has no expiration time: %s" % (user_id,))
+            raise RelapseError(400, f"User has no expiration time: {user_id}")
 
         await self._send_renewal_email(user_id, expiration_ts)
 
@@ -183,10 +183,7 @@ class AccountValidityHandler:
             user_display_name = user_id
 
         renewal_token = await self._get_renewal_token(user_id)
-        url = "%s_matrix/client/unstable/account_validity/renew?token=%s" % (
-            self.hs.config.server.public_baseurl,
-            renewal_token,
-        )
+        url = f"{self.hs.config.server.public_baseurl}_matrix/client/unstable/account_validity/renew?token={renewal_token}"
 
         template_vars = {
             "display_name": user_display_name,

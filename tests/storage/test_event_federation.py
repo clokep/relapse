@@ -196,7 +196,7 @@ class EventFederationWorkerStoreTestCase(tests.unittest.HomeserverTestCase):
 
         # add a bunch of events and hashes to act as forward extremities
         def insert_event(txn: Cursor, i: int) -> None:
-            event_id = "$event_%i:local" % i
+            event_id = f"$event_{i}:local"
 
             txn.execute(
                 (
@@ -225,7 +225,7 @@ class EventFederationWorkerStoreTestCase(tests.unittest.HomeserverTestCase):
         r = self.get_success(self.store.get_prev_events_for_room(room_id))
         self.assertEqual(10, len(r))
         for i in range(10):
-            self.assertEqual("$event_%i:local" % (19 - i), r[i])
+            self.assertEqual(f"$event_{19 - i}:local", r[i])
 
     def test_get_rooms_with_many_extremities(self) -> None:
         room1 = "#room1"
@@ -233,7 +233,7 @@ class EventFederationWorkerStoreTestCase(tests.unittest.HomeserverTestCase):
         room3 = "#room3"
 
         def insert_event(txn: LoggingTransaction, i: int, room_id: str) -> None:
-            event_id = "$event_%i:local" % i
+            event_id = f"$event_{i}:local"
 
             # We need to insert into events table to get around the foreign key constraint.
             self.store.db_pool.simple_insert_txn(

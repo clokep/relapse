@@ -98,7 +98,7 @@ class BaseAuth:
                     return membership, member_event_id
         raise UnstableSpecAuthError(
             403,
-            "User %s not in room %s" % (user_id, room_id),
+            f"User {user_id} not in room {room_id}",
             errcode=Codes.NOT_JOINED,
         )
 
@@ -142,8 +142,7 @@ class BaseAuth:
                 return Membership.JOIN, None
             raise AuthError(
                 403,
-                "User %r not in room %s, and room previews are disabled"
-                % (requester.user, room_id),
+                f"User {requester.user!r} not in room {room_id}, and room previews are disabled",
             )
 
     async def validate_appservice_can_control_user_id(
@@ -169,12 +168,12 @@ class BaseAuth:
         elif not app_service.is_interested_in_user(user_id):
             raise AuthError(
                 403,
-                "Application service cannot masquerade as this user (%s)." % user_id,
+                f"Application service cannot masquerade as this user ({user_id}).",
             )
         # Check to make sure the user is already registered on the homeserver
         elif not (await self.store.get_user_by_id(user_id)):
             raise AuthError(
-                403, "Application service has not registered this user (%s)" % user_id
+                403, f"Application service has not registered this user ({user_id})"
             )
 
     async def is_server_admin(self, requester: Requester) -> bool:

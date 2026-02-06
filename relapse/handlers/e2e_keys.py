@@ -745,7 +745,7 @@ class E2eKeysHandler:
             "Claimed one-time-keys: %s",
             ",".join(
                 (
-                    "%s for %s:%s" % (key_id, user_id, device_id)
+                    f"{key_id} for {user_id}:{device_id}"
                     for user_id, user_keys in json_result.items()
                     for device_id, device_keys in user_keys.items()
                     for key_id, _ in device_keys.items()
@@ -876,8 +876,9 @@ class E2eKeysHandler:
                 if not _one_time_keys_match(ex_json, key):
                     raise RelapseError(
                         400,
-                        ("One time key %s:%s already exists. Old key: %s; new key: %r")
-                        % (algorithm, key_id, ex_json, key),
+                        (
+                            f"One time key {algorithm}:{key_id} already exists. Old key: {ex_json}; new key: {key!r}"
+                        ),
                     )
             else:
                 new_keys.append(
@@ -1049,7 +1050,7 @@ class E2eKeysHandler:
         Raises:
             RelapseError: if the input is malformed
         """
-        signature_list: list["SignatureListItem"] = []
+        signature_list: list[SignatureListItem] = []
         failures: dict[str, dict[str, JsonDict]] = {}
         if not signatures:
             return signature_list, failures
@@ -1211,7 +1212,7 @@ class E2eKeysHandler:
         Raises:
             RelapseError: if the input is malformed
         """
-        signature_list: list["SignatureListItem"] = []
+        signature_list: list[SignatureListItem] = []
         failures: dict[str, dict[str, JsonDict]] = {}
         if not signatures:
             return signature_list, failures
@@ -1337,13 +1338,13 @@ class E2eKeysHandler:
         if self.is_mine(user) or key_type not in ["master", "self_signing"]:
             # Note that master and self_signing keys are the only cross-signing keys we
             # can request over federation
-            raise NotFoundError("No %s key found for %s" % (key_type, user_id))
+            raise NotFoundError(f"No {key_type} key found for {user_id}")
 
         cross_signing_keys = await self._retrieve_cross_signing_keys_for_remote_user(
             user, key_type
         )
         if cross_signing_keys is None:
-            raise NotFoundError("No %s key found for %s" % (key_type, user_id))
+            raise NotFoundError(f"No {key_type} key found for {user_id}")
 
         return cross_signing_keys
 
@@ -1483,14 +1484,14 @@ def _check_cross_signing_key(
         or key_type not in key.get("usage", [])
         or len(key.get("keys", {})) != 1
     ):
-        raise RelapseError(400, ("Invalid %s key" % (key_type,)), Codes.INVALID_PARAM)
+        raise RelapseError(400, (f"Invalid {key_type} key"), Codes.INVALID_PARAM)
 
     if signing_key:
         try:
             verify_signed_json(key, user_id, signing_key)
         except SignatureVerifyException:
             raise RelapseError(
-                400, ("Invalid signature on %s key" % key_type), Codes.INVALID_SIGNATURE
+                400, (f"Invalid signature on {key_type} key"), Codes.INVALID_SIGNATURE
             )
 
 

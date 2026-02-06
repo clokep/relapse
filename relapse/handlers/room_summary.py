@@ -180,8 +180,7 @@ class RoomSummaryHandler:
         if not await self._is_local_room_accessible(requested_room_id, requester):
             raise UnstableSpecAuthError(
                 403,
-                "User %s not in room %s, and room previews are disabled"
-                % (requester, requested_room_id),
+                f"User {requester} not in room {requested_room_id}, and room previews are disabled",
                 errcode=Codes.NOT_JOINED,
             )
 
@@ -371,7 +370,7 @@ class RoomSummaryHandler:
         )
         if root_room_entry is None:
             # Room is inaccessible to the requesting server.
-            raise RelapseError(404, "Unknown room: %s" % (requested_room_id,))
+            raise RelapseError(404, f"Unknown room: {requested_room_id}")
 
         children_rooms_result: list[JsonDict] = []
         inaccessible_children: list[str] = []
@@ -702,7 +701,7 @@ class RoomSummaryHandler:
         # currently this should be impossible because we call
         # _is_local_room_accessible on the room before we get here, so
         # there should always be an entry
-        assert stats is not None, "unable to retrieve stats for %s" % (room_id,)
+        assert stats is not None, f"unable to retrieve stats for {room_id}"
 
         entry: JsonDict = {
             "room_id": stats.room_id,

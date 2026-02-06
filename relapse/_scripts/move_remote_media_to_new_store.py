@@ -49,7 +49,7 @@ def main(src_repo: str, dest_repo: str) -> None:
         line = line.strip()
         parts = line.split("|")
         if len(parts) != 2:
-            print("Unable to parse input line %s" % line, file=sys.stderr)
+            print(f"Unable to parse input line {line}", file=sys.stderr)
             sys.exit(1)
 
         move_media(parts[0], parts[1], src_paths, dest_paths)

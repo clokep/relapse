@@ -99,9 +99,7 @@ async def calculate_room_name(
             )
             if inviter_member_event:
                 if fallback_to_single_member:
-                    return "Invite from %s" % (
-                        name_from_member_event(inviter_member_event),
-                    )
+                    return f"Invite from {name_from_member_event(inviter_member_event)}"
                 else:
                     return None
         else:
@@ -149,9 +147,7 @@ async def calculate_room_name(
                         # FIXME: no they're not - they look nothing like a member;
                         # they have a great big encrypted thing as their name to
                         # prevent leaking the 3PID name...
-                        # return "Inviting %s" % (
-                        #     descriptor_from_member_events(third_party_invites)
-                        # )
+                        # return f"Inviting {descriptor_from_member_events(third_party_invites)}"
                         return "Inviting email address"
                     else:
                         return ALL_ALONE
@@ -182,15 +178,9 @@ def descriptor_from_member_events(member_events: Iterable[EventBase]) -> str:
     elif len(member_events) == 1:
         return name_from_member_event(member_events[0])
     elif len(member_events) == 2:
-        return "%s and %s" % (
-            name_from_member_event(member_events[0]),
-            name_from_member_event(member_events[1]),
-        )
+        return f"{name_from_member_event(member_events[0])} and {name_from_member_event(member_events[1])}"
     else:
-        return "%s and %d others" % (
-            name_from_member_event(member_events[0]),
-            len(member_events) - 1,
-        )
+        return f"{name_from_member_event(member_events[0])} and {len(member_events) - 1} others"
 
 
 def name_from_member_event(member_event: EventBase) -> str:

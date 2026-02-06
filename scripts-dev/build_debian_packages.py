@@ -64,13 +64,13 @@ class Builder:
         """Build deb for a single distribution"""
 
         if self._failed:
-            print("not building %s due to earlier failure" % (dist,))
+            print(f"not building {dist} due to earlier failure")
             raise Exception("failed")
 
         try:
             self._inner_build(dist, skip_tests)
         except Exception as e:
-            print("build of %s failed: %s" % (dist, e), file=sys.stderr)
+            print(f"build of {dist} failed: {e}", file=sys.stderr)
             self._failed = True
             raise
 
@@ -87,8 +87,8 @@ class Builder:
         os.makedirs(debsdir, exist_ok=True)
 
         if self.redirect_stdout:
-            logfile = os.path.join(debsdir, "%s.buildlog" % (tag,))
-            print("building %s: directing output to %s" % (dist, logfile))
+            logfile = os.path.join(debsdir, f"{tag}.buildlog")
+            print(f"building {dist}: directing output to {logfile}")
             stdout = open(logfile, "w")
         else:
             stdout = None
@@ -131,11 +131,11 @@ class Builder:
                 "--volume=" + projdir + ":/relapse/source:ro",
                 "--volume=" + debsdir + ":/debs",
                 "-e",
-                "TARGET_USERID=%i" % (os.getuid(),),
+                f"TARGET_USERID={os.getuid()}",
                 "-e",
-                "TARGET_GROUPID=%i" % (os.getgid(),),
+                f"TARGET_GROUPID={os.getgid()}",
                 "-e",
-                "DEB_BUILD_OPTIONS=%s" % ("nocheck" if skip_tests else ""),
+                "DEB_BUILD_OPTIONS=" + ("nocheck" if skip_tests else ""),
                 "dh-venv-builder:" + tag,
             ],
             stdout=stdout,
@@ -147,14 +147,14 @@ class Builder:
 
         if stdout is not None:
             stdout.close()
-            print("Completed build of %s" % (dist,))
+            print(f"Completed build of {dist}")
 
     def kill_containers(self) -> None:
         with self._lock:
             active = list(self.active_containers)
 
         for c in active:
-            print("killing container %s" % (c,))
+            print(f"killing container {c}")
             subprocess.run(
                 [
                     "docker",

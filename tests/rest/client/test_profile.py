@@ -60,7 +60,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
     def test_set_displayname(self) -> None:
         channel = self.make_request(
             "PUT",
-            "/profile/%s/displayname" % (self.owner,),
+            f"/profile/{self.owner}/displayname",
             content={"displayname": "test"},
             access_token=self.owner_tok,
         )
@@ -72,7 +72,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
     def test_set_displayname_with_extra_spaces(self) -> None:
         channel = self.make_request(
             "PUT",
-            "/profile/%s/displayname" % (self.owner,),
+            f"/profile/{self.owner}/displayname",
             content={"displayname": "  test  "},
             access_token=self.owner_tok,
         )
@@ -84,7 +84,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
     def test_set_displayname_noauth(self) -> None:
         channel = self.make_request(
             "PUT",
-            "/profile/%s/displayname" % (self.owner,),
+            f"/profile/{self.owner}/displayname",
             content={"displayname": "test"},
         )
         self.assertEqual(channel.code, 401, channel.result)
@@ -93,7 +93,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
         """Attempts to set a stupid displayname should get a 400"""
         channel = self.make_request(
             "PUT",
-            "/profile/%s/displayname" % (self.owner,),
+            f"/profile/{self.owner}/displayname",
             content={"displayname": "test" * 100},
             access_token=self.owner_tok,
         )
@@ -109,7 +109,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
     def test_set_displayname_other(self) -> None:
         channel = self.make_request(
             "PUT",
-            "/profile/%s/displayname" % (self.other,),
+            f"/profile/{self.other}/displayname",
             content={"displayname": "test"},
             access_token=self.owner_tok,
         )
@@ -122,7 +122,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
     def test_set_avatar_url(self) -> None:
         channel = self.make_request(
             "PUT",
-            "/profile/%s/avatar_url" % (self.owner,),
+            f"/profile/{self.owner}/avatar_url",
             content={"avatar_url": "http://my.server/pic.gif"},
             access_token=self.owner_tok,
         )
@@ -134,7 +134,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
     def test_set_avatar_url_noauth(self) -> None:
         channel = self.make_request(
             "PUT",
-            "/profile/%s/avatar_url" % (self.owner,),
+            f"/profile/{self.owner}/avatar_url",
             content={"avatar_url": "http://my.server/pic.gif"},
         )
         self.assertEqual(channel.code, 401, channel.result)
@@ -143,7 +143,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
         """Attempts to set a stupid avatar_url should get a 400"""
         channel = self.make_request(
             "PUT",
-            "/profile/%s/avatar_url" % (self.owner,),
+            f"/profile/{self.owner}/avatar_url",
             content={"avatar_url": "http://my.server/pic.gif" * 100},
             access_token=self.owner_tok,
         )
@@ -159,16 +159,14 @@ class ProfileTestCase(unittest.HomeserverTestCase):
     def test_set_avatar_url_other(self) -> None:
         channel = self.make_request(
             "PUT",
-            "/profile/%s/avatar_url" % (self.other,),
+            f"/profile/{self.other}/avatar_url",
             content={"avatar_url": "http://my.server/pic.gif"},
             access_token=self.owner_tok,
         )
         self.assertEqual(channel.code, 400, channel.result)
 
     def _get_displayname(self, name: Optional[str] = None) -> Optional[str]:
-        channel = self.make_request(
-            "GET", "/profile/%s/displayname" % (name or self.owner,)
-        )
+        channel = self.make_request("GET", f"/profile/{name or self.owner}/displayname")
         self.assertEqual(channel.code, 200, channel.result)
         # FIXME: If a user has no displayname set, Relapse returns 200 and omits a
         # displayname from the response. This contradicts the spec, see
@@ -176,9 +174,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
         return channel.json_body.get("displayname")
 
     def _get_avatar_url(self, name: Optional[str] = None) -> Optional[str]:
-        channel = self.make_request(
-            "GET", "/profile/%s/avatar_url" % (name or self.owner,)
-        )
+        channel = self.make_request("GET", f"/profile/{name or self.owner}/avatar_url")
         self.assertEqual(channel.code, 200, channel.result)
         # FIXME: If a user has no avatar set, Relapse returns 200 and omits an
         # avatar_url from the response. This contradicts the spec, see
@@ -517,7 +513,7 @@ class ProfilesRestrictedTestCase(unittest.HomeserverTestCase):
         # User owning the requested profile.
         self.owner = self.register_user("owner", "pass")
         self.owner_tok = self.login("owner", "pass")
-        self.profile_url = "/profile/%s" % (self.owner)
+        self.profile_url = f"/profile/{self.owner}"
 
         # User requesting the profile.
         self.requester = self.register_user("requester", "pass")

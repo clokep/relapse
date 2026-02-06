@@ -39,7 +39,7 @@ class FilterTestCase(unittest.HomeserverTestCase):
     def test_add_filter(self) -> None:
         channel = self.make_request(
             "POST",
-            "/_matrix/client/r0/user/%s/filter" % (self.user_id),
+            f"/_matrix/client/r0/user/{self.user_id}/filter",
             self.EXAMPLE_FILTER_JSON,
         )
 
@@ -56,7 +56,7 @@ class FilterTestCase(unittest.HomeserverTestCase):
     def test_add_filter_for_other_user(self) -> None:
         channel = self.make_request(
             "POST",
-            "/_matrix/client/r0/user/%s/filter" % ("@watermelon:test"),
+            "/_matrix/client/r0/user/{}/filter".format("@watermelon:test"),
             self.EXAMPLE_FILTER_JSON,
         )
 
@@ -68,7 +68,7 @@ class FilterTestCase(unittest.HomeserverTestCase):
         self.hs.is_mine = lambda target_user: False  # type: ignore[assignment,method-assign]
         channel = self.make_request(
             "POST",
-            "/_matrix/client/r0/user/%s/filter" % (self.user_id),
+            f"/_matrix/client/r0/user/{self.user_id}/filter",
             self.EXAMPLE_FILTER_JSON,
         )
 
@@ -85,7 +85,7 @@ class FilterTestCase(unittest.HomeserverTestCase):
         )
         self.reactor.advance(1)
         channel = self.make_request(
-            "GET", "/_matrix/client/r0/user/%s/filter/%s" % (self.user_id, filter_id)
+            "GET", f"/_matrix/client/r0/user/{self.user_id}/filter/{filter_id}"
         )
 
         self.assertEqual(channel.code, 200)
@@ -93,7 +93,7 @@ class FilterTestCase(unittest.HomeserverTestCase):
 
     def test_get_filter_non_existant(self) -> None:
         channel = self.make_request(
-            "GET", "/_matrix/client/r0/user/%s/filter/12382148321" % (self.user_id)
+            "GET", f"/_matrix/client/r0/user/{self.user_id}/filter/12382148321"
         )
 
         self.assertEqual(channel.code, 404)
@@ -103,7 +103,7 @@ class FilterTestCase(unittest.HomeserverTestCase):
     # in errors.py
     def test_get_filter_invalid_id(self) -> None:
         channel = self.make_request(
-            "GET", "/_matrix/client/r0/user/%s/filter/foobar" % (self.user_id)
+            "GET", f"/_matrix/client/r0/user/{self.user_id}/filter/foobar"
         )
 
         self.assertEqual(channel.code, 400)
@@ -111,7 +111,7 @@ class FilterTestCase(unittest.HomeserverTestCase):
     # No ID also returns an invalid_id error
     def test_get_filter_no_id(self) -> None:
         channel = self.make_request(
-            "GET", "/_matrix/client/r0/user/%s/filter/" % (self.user_id)
+            "GET", f"/_matrix/client/r0/user/{self.user_id}/filter/"
         )
 
         self.assertEqual(channel.code, 400)

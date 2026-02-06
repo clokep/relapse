@@ -53,7 +53,7 @@ class PasswordPolicyServlet(RestServlet):
             "require_uppercase",
         ]:
             if param in self.policy:
-                policy["m.%s" % param] = self.policy[param]
+                policy[f"m.{param}"] = self.policy[param]
 
         return 200, policy
 

@@ -49,8 +49,6 @@ class ServerNameTestCase(unittest.TestCase):
         for i in test_data:
             try:
                 parse_and_validate_server_name(i)
-                self.fail(
-                    "Expected parse_and_validate_server_name('%s') to throw" % (i,)
-                )
+                self.fail(f"Expected parse_and_validate_server_name('{i}') to throw")
             except ValueError:
                 pass

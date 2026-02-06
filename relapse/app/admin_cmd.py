@@ -138,7 +138,7 @@ class FileExfiltrationWriter(ExfiltrationWriter):
             self.base_directory = directory
         else:
             self.base_directory = tempfile.mkdtemp(
-                prefix="relapse-exfiltrate__%s__" % (user_id,)
+                prefix=f"relapse-exfiltrate__{user_id}__"
             )
 
         os.makedirs(self.base_directory, exist_ok=True)

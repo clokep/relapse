@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from collections.abc import Sequence
-from typing import List, Optional, Tuple, cast
+from typing import Optional, cast
 from unittest.mock import AsyncMock, Mock
 
 from typing_extensions import TypeAlias
@@ -232,11 +232,11 @@ class ApplicationServiceSchedulerRecovererTestCase(unittest.TestCase):
 # Corresponds to relapse.appservice.scheduler._TransactionController.send
 TxnCtrlArgs: TypeAlias = """
 defer.Deferred[
-    Tuple[
+    tuple[
         ApplicationService,
         Sequence[EventBase],
-        Optional[List[JsonDict]],
-        Optional[List[JsonDict]],
+        Optional[list[JsonDict]],
+        Optional[list[JsonDict]],
         Optional[TransactionOneTimeKeysCount],
         Optional[TransactionUnusedFallbackKeys],
         Optional[DeviceListUpdates],
@@ -292,12 +292,12 @@ class ApplicationServiceSchedulerQueuerTestCase(unittest.HomeserverTestCase):
         # Tests that each service has its own queue, and that they don't block
         # on each other.
         srv1 = Mock(id=4)
-        srv_1_defer: "defer.Deferred[EventBase]" = defer.Deferred()
+        srv_1_defer: defer.Deferred[EventBase] = defer.Deferred()
         srv_1_event = Mock(event_id="srv1a")
         srv_1_event2 = Mock(event_id="srv1b")
 
         srv2 = Mock(id=6)
-        srv_2_defer: "defer.Deferred[EventBase]" = defer.Deferred()
+        srv_2_defer: defer.Deferred[EventBase] = defer.Deferred()
         srv_2_event = Mock(event_id="srv2a")
         srv_2_event2 = Mock(event_id="srv2b")
 
@@ -329,8 +329,8 @@ class ApplicationServiceSchedulerQueuerTestCase(unittest.HomeserverTestCase):
         self.assertEqual(3, self.txn_ctrl.send.call_count)
 
     def test_send_large_txns(self) -> None:
-        srv_1_defer: "defer.Deferred[EventBase]" = defer.Deferred()
-        srv_2_defer: "defer.Deferred[EventBase]" = defer.Deferred()
+        srv_1_defer: defer.Deferred[EventBase] = defer.Deferred()
+        srv_2_defer: defer.Deferred[EventBase] = defer.Deferred()
         send_return_list = [srv_1_defer, srv_2_defer]
 
         def do_send(*args: object, **kwargs: object) -> "defer.Deferred[EventBase]":
@@ -339,7 +339,7 @@ class ApplicationServiceSchedulerQueuerTestCase(unittest.HomeserverTestCase):
         self.txn_ctrl.send = Mock(side_effect=do_send)
 
         service = Mock(id=4, name="service")
-        event_list = [Mock(name="event%i" % (i + 1)) for i in range(200)]
+        event_list = [Mock(name=f"event{i + 1}") for i in range(200)]
         for event in event_list:
             self.scheduler.enqueue_for_appservice(service, [event], [])
 
@@ -413,8 +413,8 @@ class ApplicationServiceSchedulerQueuerTestCase(unittest.HomeserverTestCase):
         self.txn_ctrl.send = Mock(return_value=make_deferred_yieldable(d))
         # Expect the event to be sent immediately.
         service = Mock(id=4, name="service")
-        first_chunk = [Mock(name="event%i" % (i + 1)) for i in range(100)]
-        second_chunk = [Mock(name="event%i" % (i + 101)) for i in range(50)]
+        first_chunk = [Mock(name=f"event{i + 1}") for i in range(100)]
+        second_chunk = [Mock(name=f"event{i + 101}") for i in range(50)]
         event_list = first_chunk + second_chunk
         self.scheduler.enqueue_for_appservice(service, ephemeral=event_list)
         self.txn_ctrl.send.assert_called_once_with(

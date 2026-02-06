@@ -127,12 +127,7 @@ async def resolve_events_with_store(
     for event in event_map.values():
         if event.room_id != room_id:
             raise Exception(
-                "Attempting to state-resolve for room %s with event %s which is in %s"
-                % (
-                    room_id,
-                    event.event_id,
-                    event.room_id,
-                )
+                f"Attempting to state-resolve for room {room_id} with event {event.event_id} which is in {event.room_id}"
             )
 
     full_conflicted_set = {eid for eid in full_conflicted_set if eid in event_map}
@@ -763,12 +758,11 @@ async def _get_event(
     if event is None:
         if allow_none:
             return None
-        raise Exception("Unknown event %s" % (event_id,))
+        raise Exception(f"Unknown event {event_id}")
 
     if event.room_id != room_id:
         raise Exception(
-            "In state res for room %s, event %s is in %s"
-            % (room_id, event_id, event.room_id)
+            f"In state res for room {room_id}, event {event_id} is in {event.room_id}"
         )
     return event
 

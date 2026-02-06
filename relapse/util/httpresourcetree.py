@@ -98,4 +98,4 @@ def _resource_id(resource: Resource, path_seg: bytes) -> str:
     Returns:
         A unique string which can be a key to the child Resource.
     """
-    return "%s-%r" % (resource, path_seg)
+    return f"{resource}-{path_seg!r}"

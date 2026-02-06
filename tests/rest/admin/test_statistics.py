@@ -380,7 +380,7 @@ class UserMediaStatisticsTestCase(unittest.HomeserverTestCase):
         # result is 0
         channel = self.make_request(
             "GET",
-            self.url + "?from_ts=%s" % (ts1,),
+            self.url + f"?from_ts={ts1}",
             access_token=self.admin_user_tok,
         )
         self.assertEqual(200, channel.code, msg=channel.json_body)
@@ -395,7 +395,7 @@ class UserMediaStatisticsTestCase(unittest.HomeserverTestCase):
         # filter media between `ts1` and `ts2`
         channel = self.make_request(
             "GET",
-            self.url + "?from_ts=%s&until_ts=%s" % (ts1, ts2),
+            self.url + f"?from_ts={ts1}&until_ts={ts2}",
             access_token=self.admin_user_tok,
         )
         self.assertEqual(200, channel.code, msg=channel.json_body)
@@ -404,7 +404,7 @@ class UserMediaStatisticsTestCase(unittest.HomeserverTestCase):
         # filter media until `ts2` and earlier
         channel = self.make_request(
             "GET",
-            self.url + "?until_ts=%s" % (ts2,),
+            self.url + f"?until_ts={ts2}",
             access_token=self.admin_user_tok,
         )
         self.assertEqual(200, channel.code, msg=channel.json_body)
@@ -458,8 +458,8 @@ class UserMediaStatisticsTestCase(unittest.HomeserverTestCase):
             media_per_user: Number of media to be created for each user
         """
         for i in range(number_users):
-            self.register_user("foo_user_%s" % i, "pass", displayname="bar_user_%s" % i)
-            user_tok = self.login("foo_user_%s" % i, "pass")
+            self.register_user(f"foo_user_{i}", "pass", displayname=f"bar_user_{i}")
+            user_tok = self.login(f"foo_user_{i}", "pass")
             self._create_media(user_tok, media_per_user)
 
     def _create_media(self, user_token: str, number_media: int) -> None:
@@ -496,9 +496,9 @@ class UserMediaStatisticsTestCase(unittest.HomeserverTestCase):
             dir: The direction of ordering to give the server
         """
 
-        url = self.url + "?order_by=%s" % (order_type,)
+        url = self.url + f"?order_by={order_type}"
         if dir is not None and dir in ("b", "f"):
-            url += "&dir=%s" % (dir,)
+            url += f"&dir={dir}"
         channel = self.make_request(
             "GET",
             url.encode("ascii"),

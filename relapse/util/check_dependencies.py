@@ -38,9 +38,11 @@ class DependencyException(Exception):
     def message(self) -> str:
         return "\n".join(
             [
-                "Missing Requirements: %s" % (", ".join(self.dependencies),),
+                "Missing Requirements: {}".format(", ".join(self.dependencies)),
                 "To install run:",
-                "    pip install --upgrade --force %s" % (" ".join(self.dependencies),),
+                "    pip install --upgrade --force {}".format(
+                    " ".join(self.dependencies)
+                ),
                 "",
             ]
         )

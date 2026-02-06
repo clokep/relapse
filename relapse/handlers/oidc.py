@@ -115,7 +115,7 @@ class OidcHandler:
         assert provider_confs
 
         self._macaroon_generator = hs.get_macaroon_generator()
-        self._providers: dict[str, "OidcProvider"] = {
+        self._providers: dict[str, OidcProvider] = {
             p.idp_id: OidcProvider(hs, self._macaroon_generator, p)
             for p in provider_confs
         }
@@ -132,7 +132,7 @@ class OidcHandler:
                     await p.load_jwks()
             except Exception as e:
                 raise Exception(
-                    "Error while initialising OIDC provider %r" % (idp_id,)
+                    f"Error while initialising OIDC provider {idp_id!r}"
                 ) from e
 
     async def handle_oidc_callback(self, request: RelapseRequest) -> None:
@@ -481,8 +481,9 @@ class OidcProvider:
 
             if "code" not in m["response_types_supported"]:
                 raise ValueError(
-                    '"code" not in "response_types_supported" (%r)'
-                    % (m["response_types_supported"],)
+                    '"code" not in "response_types_supported" ({!r})'.format(
+                        m["response_types_supported"]
+                    )
                 )
 
         # Ensure there's a userinfo endpoint to fetch from if it is required.
@@ -743,9 +744,9 @@ class OidcProvider:
                 error = "server_error"
                 description = (
                     (
-                        'Authorization server responded with a "{status}" error '
+                        f'Authorization server responded with a "{status}" error '
                         "while exchanging the authorization code."
-                    ).format(status=status),
+                    ),
                 )
 
             raise OidcError(error, description)
@@ -776,10 +777,8 @@ class OidcProvider:
         # only throw on a 4xx code.
         if response.code >= 400:
             description = (
-                'Authorization server responded with a "{status}" error '
-                'but did not include an "error" field in its response.'.format(
-                    status=status
-                )
+                f'Authorization server responded with a "{status}" error '
+                'but did not include an "error" field in its response.'
             )
             logger.warning(description)
             # Body was still valid JSON. Might be useful to log it for debugging.
@@ -1143,9 +1142,7 @@ class OidcProvider:
         try:
             remote_user_id = self._remote_id_from_userinfo(userinfo)
         except Exception as e:
-            raise MappingException(
-                "Failed to extract subject from OIDC response: %s" % (e,)
-            )
+            raise MappingException(f"Failed to extract subject from OIDC response: {e}")
 
         # Older mapping providers don't accept the `failures` argument, so we
         # try and detect support.
@@ -1202,9 +1199,7 @@ class OidcProvider:
                     else:
                         # Do not attempt to continue generating Matrix IDs.
                         raise MappingException(
-                            "Attempted to login as '{}' but it matches more than one user inexactly: {}".format(
-                                user_id, users
-                            )
+                            f"Attempted to login as '{user_id}' but it matches more than one user inexactly: {users}"
                         )
 
                     return previously_registered_user_id
@@ -1578,7 +1573,7 @@ class JinjaOidcMappingProvider(OidcMappingProvider[JinjaOidcMappingConfig]):
             template = config.get(template_name)
             if not template:
                 # Use the default value.
-                template = "{{ user.%s }}" % (default_claim,)
+                template = f"{{{{ user.{default_claim} }}}}"
 
             try:
                 return env.from_string(template)
@@ -1677,5 +1672,5 @@ class JinjaOidcMappingProvider(OidcMappingProvider[JinjaOidcMappingConfig]):
                 extras[key] = template.render(user=userinfo).strip()
             except Exception as e:
                 # Log an error and skip this value (don't break login for this).
-                logger.error("Failed to render OIDC extra attribute %s: %s" % (key, e))
+                logger.error(f"Failed to render OIDC extra attribute {key}: {e}")
         return extras

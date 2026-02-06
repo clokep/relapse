@@ -16,7 +16,7 @@ import heapq
 import logging
 from collections import ChainMap, defaultdict
 from collections.abc import Awaitable, Mapping, Sequence
-from typing import TYPE_CHECKING, Any, Callable, DefaultDict, Optional
+from typing import TYPE_CHECKING, Any, Callable, Optional
 
 import attr
 from immutabledict import immutabledict
@@ -67,7 +67,7 @@ POWER_KEY = (EventTypes.PowerLevels, "")
 
 def _gen_state_id() -> str:
     global _NEXT_STATE_ID
-    s = "X%d" % (_NEXT_STATE_ID,)
+    s = f"X{_NEXT_STATE_ID}"
     _NEXT_STATE_ID += 1
     return s
 
@@ -600,7 +600,7 @@ class StateResolutionHandler:
         #
 
         # tracks the amount of work done on state res per room
-        self._state_res_metrics: DefaultDict[str, _StateResMetrics] = defaultdict(
+        self._state_res_metrics: defaultdict[str, _StateResMetrics] = defaultdict(
             _StateResMetrics
         )
 
@@ -788,7 +788,7 @@ class StateResolutionHandler:
             "%i biggest rooms for state-res by %s: %s",
             len(biggest),
             metric_name,
-            ["%s (%gs)" % (r, extract_key(m)) for (r, m) in biggest],
+            [f"{r} ({extract_key(m):g}s)" for (r, m) in biggest],
         )
 
         # report info on the single biggest to prometheus

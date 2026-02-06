@@ -326,11 +326,7 @@ class BaseMultiWorkerStreamTestCase(unittest.HomeserverTestCase):
             # Ensure the host is one that has a fake DNS entry.
             if instance_loc.host not in self.reactor.lookups:
                 raise Exception(
-                    "Host does not have an IP for instance_map[%r].host = %r"
-                    % (
-                        instance_name,
-                        instance_loc.host,
-                    )
+                    f"Host does not have an IP for instance_map[{instance_name!r}].host = {instance_loc.host!r}"
                 )
 
             # Copy the port into a new, non-Optional variable so mypy knows we're
@@ -359,9 +355,7 @@ class BaseMultiWorkerStreamTestCase(unittest.HomeserverTestCase):
 
         self._hs_to_site[worker_hs] = RelapseSite(
             logger_name="relapse.access.http.fake",
-            site_tag="{}-{}".format(
-                worker_hs.config.server.server_name, worker_hs.get_instance_name()
-            ),
+            site_tag=f"{worker_hs.config.server.server_name}-{worker_hs.get_instance_name()}",
             config=worker_hs.config.server.listeners[0],
             resource=resource,
             server_version_string="1",
@@ -471,7 +465,7 @@ class FakeRedisPubSubServer:
     """A fake Redis server for pub/sub."""
 
     def __init__(self) -> None:
-        self._subscribers_by_channel: dict[bytes, set["FakeRedisPubSubProtocol"]] = (
+        self._subscribers_by_channel: dict[bytes, set[FakeRedisPubSubProtocol]] = (
             defaultdict(set)
         )
 

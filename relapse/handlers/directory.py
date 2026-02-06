@@ -124,7 +124,7 @@ class DirectoryHandler:
         if len(room_alias_str) > MAX_ALIAS_LENGTH:
             raise RelapseError(
                 400,
-                "Can't create aliases longer than %s characters" % MAX_ALIAS_LENGTH,
+                f"Can't create aliases longer than {MAX_ALIAS_LENGTH} characters",
                 Codes.INVALID_PARAM,
             )
 
@@ -293,7 +293,7 @@ class DirectoryHandler:
         if not room_id:
             raise RelapseError(
                 404,
-                "Room alias %s not found" % (room_alias.to_string(),),
+                f"Room alias {room_alias.to_string()} not found",
                 Codes.NOT_FOUND,
             )
 
@@ -324,7 +324,7 @@ class DirectoryHandler:
         else:
             raise RelapseError(
                 404,
-                "Room alias %r not found" % (room_alias.to_string(),),
+                f"Room alias {room_alias.to_string()!r} not found",
                 Codes.NOT_FOUND,
             )
 

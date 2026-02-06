@@ -55,7 +55,7 @@ class FederationServerTests(unittest.FederatingHomeserverTestCase):
 
         channel = self.make_request(
             "POST",
-            "/_matrix/federation/v1/get_missing_events/%s" % (room_1,),
+            f"/_matrix/federation/v1/get_missing_events/{room_1}",
             query_content,
         )
         self.assertEqual(HTTPStatus.BAD_REQUEST, channel.code, channel.result)
@@ -126,7 +126,7 @@ class StateQueryTests(unittest.FederatingHomeserverTestCase):
         room_1 = self.helper.create_room_as(u1, tok=u1_token)
 
         channel = self.make_signed_federation_request(
-            "GET", "/_matrix/federation/v1/state/%s?event_id=xyz" % (room_1,)
+            "GET", f"/_matrix/federation/v1/state/{room_1}?event_id=xyz"
         )
         self.assertEqual(HTTPStatus.FORBIDDEN, channel.code, channel.result)
         self.assertEqual(channel.json_body["errcode"], "M_FORBIDDEN")

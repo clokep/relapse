@@ -157,10 +157,10 @@ class SearchBackgroundUpdateStore(SearchWorkerStore):
             FROM events
             JOIN event_json USING (room_id, event_id)
             WHERE ? <= stream_ordering AND stream_ordering < ?
-            AND (%s)
+            AND ({})
             ORDER BY stream_ordering DESC
             LIMIT ?
-            """ % (" OR ".join("type = '%s'" % (t,) for t in TYPES),)
+            """.format(" OR ".join(f"type = '{t}'" for t in TYPES))
 
             txn.execute(sql, (target_min_stream_id, max_stream_id, batch_size))
 
@@ -200,7 +200,7 @@ class SearchBackgroundUpdateStore(SearchWorkerStore):
                         key = "content.name"
                         value = content["name"]
                     else:
-                        raise Exception("unexpected event type %s" % etype)
+                        raise Exception(f"unexpected event type {etype}")
                 except (KeyError, AttributeError):
                     # If the event is missing a necessary field then
                     # skip over it.
@@ -446,7 +446,7 @@ class SearchStore(SearchBackgroundUpdateStore):
             local_clauses.append("key = ?")
             args.append(key)
 
-        clauses.append("(%s)" % (" OR ".join(local_clauses),))
+        clauses.append("({})".format(" OR ".join(local_clauses)))
 
         count_args = args
         count_clauses = clauses
@@ -571,7 +571,7 @@ class SearchStore(SearchBackgroundUpdateStore):
             local_clauses.append("key = ?")
             args.append(key)
 
-        clauses.append("(%s)" % (" OR ".join(local_clauses),))
+        clauses.append("({})".format(" OR ".join(local_clauses)))
 
         # take copies of the current args and clauses lists, before adding
         # pagination clauses to main query.
@@ -694,7 +694,7 @@ class SearchStore(SearchBackgroundUpdateStore):
                 {
                     "event": event_map[r[2]],
                     "rank": r[0],
-                    "pagination_token": "%s,%s" % (r[3], r[4]),
+                    "pagination_token": f"{r[3]},{r[4]}",
                 }
                 for r in results
                 if r[2] in event_map
@@ -747,16 +747,13 @@ class SearchStore(SearchBackgroundUpdateStore):
                 while stop_sel in value:
                     stop_sel += ">"
 
-                query = (
-                    "SELECT ts_headline(?, websearch_to_tsquery('english', ?), %s)"
-                    % (
-                        _to_postgres_options(
-                            {
-                                "StartSel": start_sel,
-                                "StopSel": stop_sel,
-                                "MaxFragments": "50",
-                            }
-                        )
+                query = "SELECT ts_headline(?, websearch_to_tsquery('english', ?), {})".format(
+                    _to_postgres_options(
+                        {
+                            "StartSel": start_sel,
+                            "StopSel": stop_sel,
+                            "MaxFragments": "50",
+                        }
                     )
                 )
                 txn.execute(query, (value, search_query))
@@ -764,10 +761,7 @@ class SearchStore(SearchBackgroundUpdateStore):
 
                 # Now we need to pick the possible highlights out of the haedline
                 # result.
-                matcher_regex = "%s(.*?)%s" % (
-                    re.escape(start_sel),
-                    re.escape(stop_sel),
-                )
+                matcher_regex = f"{re.escape(start_sel)}(.*?){re.escape(stop_sel)}"
 
                 res = re.findall(matcher_regex, headline)
                 highlight_words.update([r.lower() for r in res])
@@ -778,7 +772,7 @@ class SearchStore(SearchBackgroundUpdateStore):
 
 
 def _to_postgres_options(options_dict: JsonDict) -> str:
-    return "'%s'" % (",".join("%s=%s" % (k, v) for k, v in options_dict.items()),)
+    return "'{}'".format(",".join(f"{k}={v}" for k, v in options_dict.items()))
 
 
 @dataclass

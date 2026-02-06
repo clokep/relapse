@@ -729,7 +729,7 @@ class HTTPPusherTests(HomeserverTestCase):
         # count goes down
         channel = self.make_request(
             "POST",
-            "/rooms/%s/receipt/m.read/%s" % (room_id, message_event_id),
+            f"/rooms/{room_id}/receipt/m.read/{message_event_id}",
             {},
             access_token=access_token,
         )

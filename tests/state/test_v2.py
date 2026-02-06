@@ -14,7 +14,7 @@
 
 import itertools
 from collections.abc import Collection, Iterable, Mapping
-from typing import Dict, Optional, Set, TypeVar
+from typing import Optional, TypeVar
 
 import attr
 
@@ -865,7 +865,7 @@ class TestStateResolutionStore:
 
     def get_events(
         self, event_ids: Collection[str], allow_rejected: bool = False
-    ) -> "defer.Deferred[Dict[str, EventBase]]":
+    ) -> "defer.Deferred[dict[str, EventBase]]":
         """Get events from the database
 
         Args:
@@ -916,7 +916,7 @@ class TestStateResolutionStore:
 
     def get_auth_chain_difference(
         self, room_id: str, auth_sets: list[set[str]]
-    ) -> "defer.Deferred[Set[str]]":
+    ) -> "defer.Deferred[set[str]]":
         chains = [frozenset(self._get_auth_chain(a)) for a in auth_sets]
 
         common = set(chains[0]).intersection(*chains[1:])

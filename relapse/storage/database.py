@@ -513,7 +513,7 @@ class PerformanceCounters:
         counters.sort(reverse=True)
 
         top_n_counters = ", ".join(
-            "%s(%d): %.3f%%" % (name, count, 100 * ratio)
+            f"{name}({count}): {100 * ratio:.3f}%"
             for ratio, count, name in counters[:limit]
         )
 
@@ -731,7 +731,7 @@ class DatabasePool:
         # growing really large.
         self._TXN_ID = (self._TXN_ID + 1) % (MAX_TXN_ID)
 
-        name = "%s-%x" % (desc, txn_id)
+        name = f"{desc}-{txn_id:x}"
 
         transaction_logger.debug("[TXN START] {%s}", name)
 
@@ -1064,7 +1064,7 @@ class DatabasePool:
     ) -> None:
         keys, vals = zip(*values.items())
 
-        sql = "INSERT INTO %s (%s) VALUES(%s)" % (
+        sql = "INSERT INTO {} ({}) VALUES({})".format(
             table,
             ", ".join(k for k in keys),
             ", ".join("?" for _ in keys),
@@ -1119,14 +1119,14 @@ class DatabasePool:
         if isinstance(txn.database_engine, PostgresEngine):
             # We use `execute_values` as it can be a lot faster than `execute_batch`,
             # but it's only available on postgres.
-            sql = "INSERT INTO %s (%s) VALUES ?" % (
+            sql = "INSERT INTO {} ({}) VALUES ?".format(
                 table,
                 ", ".join(k for k in keys),
             )
 
             txn.execute_values(sql, values, fetch=False)
         else:
-            sql = "INSERT INTO %s (%s) VALUES(%s)" % (
+            sql = "INSERT INTO {} ({}) VALUES({})".format(
                 table,
                 ", ".join(k for k in keys),
                 ", ".join("?" for _ in keys),
@@ -1305,9 +1305,9 @@ class DatabasePool:
             # If the value we're passing in is None (aka NULL), we need to use
             # IS, not =, as NULL = NULL equals NULL (False).
             if keyvalues[key] is None:
-                return "%s IS ?" % (key,)
+                return f"{key} IS ?"
             else:
-                return "%s = ?" % (key,)
+                return f"{key} = ?"
 
         # Generate a where clause of each keyvalue and optionally the provided
         # index predicate.
@@ -1319,7 +1319,7 @@ class DatabasePool:
             # If `values` is empty, then all of the values we care about are in
             # the unique key, so there is nothing to UPDATE. We can just do a
             # SELECT instead to see if it exists.
-            sql = "SELECT 1 FROM %s WHERE %s" % (table, " AND ".join(where))
+            sql = "SELECT 1 FROM {} WHERE {}".format(table, " AND ".join(where))
             sqlargs = list(keyvalues.values())
             txn.execute(sql, sqlargs)
             if txn.fetchall():
@@ -1327,9 +1327,9 @@ class DatabasePool:
                 return False
         else:
             # First try to update.
-            sql = "UPDATE %s SET %s WHERE %s" % (
+            sql = "UPDATE {} SET {} WHERE {}".format(
                 table,
-                ", ".join("%s = ?" % (k,) for k in values),
+                ", ".join(f"{k} = ?" for k in values),
                 " AND ".join(where),
             )
             sqlargs = list(values.values()) + list(keyvalues.values())
@@ -1344,7 +1344,7 @@ class DatabasePool:
         allvalues.update(values)
         allvalues.update(insertion_values)
 
-        sql = "INSERT INTO %s (%s) VALUES (%s)" % (
+        sql = "INSERT INTO {} ({}) VALUES ({})".format(
             table,
             ", ".join(k for k in allvalues),
             ", ".join("?" for _ in allvalues),
@@ -1386,7 +1386,7 @@ class DatabasePool:
             allvalues.update(values)
             latter = "UPDATE SET " + ", ".join(k + "=EXCLUDED." + k for k in values)
 
-        sql = "INSERT INTO %s (%s) VALUES (%s) ON CONFLICT (%s) %sDO %s" % (
+        sql = "INSERT INTO {} ({}) VALUES ({}) ON CONFLICT ({}) {}DO {}".format(
             table,
             ", ".join(k for k in allvalues),
             ", ".join("?" for _ in allvalues),
@@ -1551,7 +1551,7 @@ class DatabasePool:
         if isinstance(txn.database_engine, PostgresEngine):
             # We use `execute_values` as it can be a lot faster than `execute_batch`,
             # but it's only available on postgres.
-            sql = "INSERT INTO %s (%s) VALUES ? ON CONFLICT (%s) DO %s" % (
+            sql = "INSERT INTO {} ({}) VALUES ? ON CONFLICT ({}) DO {}".format(
                 table,
                 ", ".join(k for k in allnames),
                 ", ".join(key_names),
@@ -1561,7 +1561,7 @@ class DatabasePool:
             txn.execute_values(sql, args, fetch=False)
 
         else:
-            sql = "INSERT INTO %s (%s) VALUES (%s) ON CONFLICT (%s) DO %s" % (
+            sql = "INSERT INTO {} ({}) VALUES ({}) ON CONFLICT ({}) DO {}".format(
                 table,
                 ", ".join(k for k in allnames),
                 ", ".join("?" for _ in allnames),
@@ -1719,10 +1719,12 @@ class DatabasePool:
         keyvalues: dict[str, Any],
         retcol: str,
     ) -> list[Any]:
-        sql = ("SELECT %(retcol)s FROM %(table)s") % {"retcol": retcol, "table": table}
+        sql = f"SELECT {retcol} FROM {table}"
 
         if keyvalues:
-            sql += " WHERE %s" % " AND ".join("%s = ?" % k for k in keyvalues.keys())
+            sql += " WHERE {}".format(
+                " AND ".join(f"{k} = ?" for k in keyvalues.keys())
+            )
             txn.execute(sql, list(keyvalues.values()))
         else:
             txn.execute(sql)
@@ -1810,14 +1812,14 @@ class DatabasePool:
             A list of tuples, one per result row, each the retcolumn's value for the row.
         """
         if keyvalues:
-            sql = "SELECT %s FROM %s WHERE %s" % (
+            sql = "SELECT {} FROM {} WHERE {}".format(
                 ", ".join(retcols),
                 table,
-                " AND ".join("%s = ?" % (k,) for k in keyvalues),
+                " AND ".join(f"{k} = ?" for k in keyvalues),
             )
             txn.execute(sql, list(keyvalues.values()))
         else:
-            sql = "SELECT %s FROM %s" % (", ".join(retcols), table)
+            sql = "SELECT {} FROM {}".format(", ".join(retcols), table)
             txn.execute(sql)
 
         return txn.fetchall()
@@ -1903,10 +1905,10 @@ class DatabasePool:
         clauses = [clause]
 
         for key, value in keyvalues.items():
-            clauses.append("%s = ?" % (key,))
+            clauses.append(f"{key} = ?")
             values.append(value)
 
-        sql = "SELECT %s FROM %s WHERE %s" % (
+        sql = "SELECT {} FROM {} WHERE {}".format(
             ", ".join(retcols),
             table,
             " AND ".join(clauses),
@@ -1960,13 +1962,15 @@ class DatabasePool:
             The number of rows that were updated. Will be 0 if no matching rows were found.
         """
         if keyvalues:
-            where = "WHERE %s" % " AND ".join("%s = ?" % k for k in keyvalues.keys())
+            where = "WHERE {}".format(
+                " AND ".join(f"{k} = ?" for k in keyvalues.keys())
+            )
         else:
             where = ""
 
-        update_sql = "UPDATE %s SET %s %s" % (
+        update_sql = "UPDATE {} SET {} {}".format(
             table,
-            ", ".join("%s = ?" % (k,) for k in updatevalues),
+            ", ".join(f"{k} = ?" for k in updatevalues),
             where,
         )
 
@@ -2088,9 +2092,9 @@ class DatabasePool:
         rowcount = cls.simple_update_txn(txn, table, keyvalues, updatevalues)
 
         if rowcount == 0:
-            raise StoreError(404, "No row found (%s)" % (table,))
+            raise StoreError(404, f"No row found ({table})")
         if rowcount > 1:
-            raise StoreError(500, "More than one row matched (%s)" % (table,))
+            raise StoreError(500, f"More than one row matched ({table})")
 
     # Ideally we could use the overload decorator here to specify that the
     # return type is only optional if allow_none is True, but this does not work
@@ -2104,10 +2108,12 @@ class DatabasePool:
         retcols: Collection[str],
         allow_none: bool = False,
     ) -> Optional[tuple[Any, ...]]:
-        select_sql = "SELECT %s FROM %s" % (", ".join(retcols), table)
+        select_sql = "SELECT {} FROM {}".format(", ".join(retcols), table)
 
         if keyvalues:
-            select_sql += " WHERE %s" % (" AND ".join("%s = ?" % k for k in keyvalues),)
+            select_sql += " WHERE {}".format(
+                " AND ".join(f"{k} = ?" for k in keyvalues)
+            )
             txn.execute(select_sql, list(keyvalues.values()))
         else:
             txn.execute(select_sql)
@@ -2117,9 +2123,9 @@ class DatabasePool:
         if not row:
             if allow_none:
                 return None
-            raise StoreError(404, "No row found (%s)" % (table,))
+            raise StoreError(404, f"No row found ({table})")
         if txn.rowcount > 1:
-            raise StoreError(500, "More than one row matched (%s)" % (table,))
+            raise StoreError(500, f"More than one row matched ({table})")
 
         return row
 
@@ -2153,16 +2159,16 @@ class DatabasePool:
             table: string giving the table name
             keyvalues: dict of column names and values to select the row with
         """
-        sql = "DELETE FROM %s WHERE %s" % (
+        sql = "DELETE FROM {} WHERE {}".format(
             table,
-            " AND ".join("%s = ?" % (k,) for k in keyvalues),
+            " AND ".join(f"{k} = ?" for k in keyvalues),
         )
 
         txn.execute(sql, list(keyvalues.values()))
         if txn.rowcount == 0:
-            raise StoreError(404, "No row found (%s)" % (table,))
+            raise StoreError(404, f"No row found ({table})")
         if txn.rowcount > 1:
-            raise StoreError(500, "More than one row matched (%s)" % (table,))
+            raise StoreError(500, f"More than one row matched ({table})")
 
     async def simple_delete(
         self, table: str, keyvalues: dict[str, Any], desc: str
@@ -2198,9 +2204,9 @@ class DatabasePool:
         Returns:
             The number of deleted rows.
         """
-        sql = "DELETE FROM %s WHERE %s" % (
+        sql = "DELETE FROM {} WHERE {}".format(
             table,
-            " AND ".join("%s = ?" % (k,) for k in keyvalues),
+            " AND ".join(f"{k} = ?" for k in keyvalues),
         )
 
         txn.execute(sql, list(keyvalues.values()))
@@ -2272,10 +2278,10 @@ class DatabasePool:
         clauses = [clause]
 
         for key, value in keyvalues.items():
-            clauses.append("%s = ?" % (key,))
+            clauses.append(f"{key} = ?")
             values.append(value)
 
-        sql = "DELETE FROM %s WHERE %s" % (table, " AND ".join(clauses))
+        sql = "DELETE FROM {} WHERE {}".format(table, " AND ".join(clauses))
         txn.execute(sql, values)
 
         return txn.rowcount
@@ -2302,14 +2308,14 @@ class DatabasePool:
         if isinstance(txn.database_engine, PostgresEngine):
             # We use `execute_values` as it can be a lot faster than `execute_batch`,
             # but it's only available on postgres.
-            sql = "DELETE FROM %s WHERE (%s) IN (VALUES ?)" % (
+            sql = "DELETE FROM {} WHERE ({}) IN (VALUES ?)".format(
                 table,
                 ", ".join(k for k in keys),
             )
 
             txn.execute_values(sql, values, fetch=False)
         else:
-            sql = "DELETE FROM %s WHERE (%s) = (%s)" % (
+            sql = "DELETE FROM {} WHERE ({}) = ({})".format(
                 table,
                 ", ".join(k for k in keys),
                 ", ".join("?" for _ in keys),
@@ -2415,17 +2421,17 @@ class DatabasePool:
         where_clause = "WHERE " if filters or keyvalues or exclude_keyvalues else ""
         arg_list: list[Any] = []
         if filters:
-            where_clause += " AND ".join("%s LIKE ?" % (k,) for k in filters)
+            where_clause += " AND ".join(f"{k} LIKE ?" for k in filters)
             arg_list += list(filters.values())
         where_clause += " AND " if filters and keyvalues else ""
         if keyvalues:
-            where_clause += " AND ".join("%s = ?" % (k,) for k in keyvalues)
+            where_clause += " AND ".join(f"{k} = ?" for k in keyvalues)
             arg_list += list(keyvalues.values())
         if exclude_keyvalues:
-            where_clause += " AND ".join("%s != ?" % (k,) for k in exclude_keyvalues)
+            where_clause += " AND ".join(f"{k} != ?" for k in exclude_keyvalues)
             arg_list += list(exclude_keyvalues.values())
 
-        sql = "SELECT %s FROM %s %s ORDER BY %s %s LIMIT ? OFFSET ?" % (
+        sql = "SELECT {} FROM {} {} ORDER BY {} {} LIMIT ? OFFSET ?".format(
             ", ".join(retcols),
             table,
             where_clause,
@@ -2459,9 +2465,11 @@ def make_in_list_sql_clause(
     if database_engine.supports_using_any_list:
         # This should hopefully be faster, but also makes postgres query
         # stats easier to understand.
-        return "%s = ANY(?)" % (column,), [list(iterable)]
+        return f"{column} = ANY(?)", [list(iterable)]
     else:
-        return "%s IN (%s)" % (column, ",".join("?" for _ in iterable)), list(iterable)
+        return "{} IN ({})".format(column, ",".join("?" for _ in iterable)), list(
+            iterable
+        )
 
 
 # These overloads ensure that `columns` and `iterable` values have the same length.
@@ -2516,8 +2524,8 @@ def make_tuple_in_list_sql_clause(
         # allowed in postgres.
         return "FALSE", []
 
-    tuple_sql = "(%s)" % (",".join("?" for _ in columns),)
-    return "(%s) IN (VALUES %s)" % (
+    tuple_sql = "({})".format(",".join("?" for _ in columns))
+    return "({}) IN (VALUES {})".format(
         ",".join(column for column in columns),
         ",".join(tuple_sql for _ in iterable),
     ), [value for values in iterable for value in values]
@@ -2538,6 +2546,6 @@ def make_tuple_comparison_clause(keys: list[tuple[str, KV]]) -> tuple[str, list[
         A tuple of SQL query and the args
     """
     return (
-        "(%s) > (%s)" % (",".join(k[0] for k in keys), ",".join("?" for _ in keys)),
+        "({}) > ({})".format(",".join(k[0] for k in keys), ",".join("?" for _ in keys)),
         [k[1] for k in keys],
     )

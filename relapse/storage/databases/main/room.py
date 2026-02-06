@@ -685,9 +685,7 @@ class RoomWorkerStore(CacheInvalidationWorkerStore):
             order_by_column = "curr.current_state_events"
             order_by_asc = False
         else:
-            raise StoreError(
-                500, "Incorrect value for order_by provided: %s" % order_by
-            )
+            raise StoreError(500, f"Incorrect value for order_by provided: {order_by}")
 
         # Whether to return the list in reverse order
         if reverse_order:
@@ -717,14 +715,12 @@ class RoomWorkerStore(CacheInvalidationWorkerStore):
         )
 
         # Use a nested SELECT statement as SQL can't count(*) with an OFFSET
-        count_sql = """
+        count_sql = f"""
             SELECT count(*) FROM (
               SELECT room_id FROM room_stats_state state
-              {where}
+              {where_statement}
             ) AS get_room_ids
-        """.format(
-            where=where_statement,
-        )
+        """
 
         def _get_rooms_paginate_txn(
             txn: LoggingTransaction,
@@ -938,9 +934,9 @@ class RoomWorkerStore(CacheInvalidationWorkerStore):
 
             # Convert the IDs to MXC URIs
             for media_id in local_mxcs:
-                local_media_mxcs.append("mxc://%s/%s" % (self.hs.hostname, media_id))
+                local_media_mxcs.append(f"mxc://{self.hs.hostname}/{media_id}")
             for hostname, media_id in remote_mxcs:
-                remote_media_mxcs.append("mxc://%s/%s" % (hostname, media_id))
+                remote_media_mxcs.append(f"mxc://{hostname}/{media_id}")
 
             return local_media_mxcs, remote_media_mxcs
 
@@ -1575,16 +1571,16 @@ class RoomWorkerStore(CacheInvalidationWorkerStore):
             # e.g. a room that doesn't have state, maybe because it was deleted.
             # The query returning the total count should be consistent with
             # the query returning the results.
-            sql = """
+            sql = f"""
                 SELECT COUNT(*) as total_event_reports
                 FROM event_reports AS er
                 JOIN room_stats_state ON room_stats_state.room_id = er.room_id
-                {}
-                """.format(where_clause)
+                {where_clause}
+                """
             txn.execute(sql, args)
             count = cast(tuple[int], txn.fetchone())[0]
 
-            sql = """
+            sql = f"""
                 SELECT
                     er.id,
                     er.received_ts,
@@ -1604,10 +1600,7 @@ class RoomWorkerStore(CacheInvalidationWorkerStore):
                 ORDER BY er.received_ts {order}
                 LIMIT ?
                 OFFSET ?
-            """.format(
-                where_clause=where_clause,
-                order=order,
-            )
+            """
 
             args += [limit, start]
             txn.execute(sql, args)
@@ -1738,15 +1731,14 @@ class RoomBackgroundUpdateStore(SQLBaseStore):
 
         def _background_insert_retention_txn(txn: LoggingTransaction) -> bool:
             txn.execute(
-                """
+                f"""
                 SELECT state.room_id, state.event_id, events.json
                 FROM current_state_events as state
                 LEFT JOIN event_json AS events ON (state.event_id = events.event_id)
-                WHERE state.room_id > ? AND state.type = '%s'
+                WHERE state.room_id > ? AND state.type = '{EventTypes.Retention}'
                 ORDER BY state.room_id ASC
                 LIMIT ?;
-                """
-                % EventTypes.Retention,
+                """,
                 (last_room, batch_size),
             )
 
@@ -1878,16 +1870,15 @@ class RoomBackgroundUpdateStore(SQLBaseStore):
 
         def _get_rooms(txn: LoggingTransaction) -> list[str]:
             txn.execute(
-                """
+                f"""
                 SELECT room_id
                 FROM rooms r
                 INNER JOIN current_state_events cse USING (room_id)
                 WHERE room_id > ? AND r.is_public
-                AND cse.type = '%s' AND cse.state_key = ''
+                AND cse.type = '{EventTypes.Tombstone}' AND cse.state_key = ''
                 ORDER BY room_id ASC
                 LIMIT ?;
-                """
-                % EventTypes.Tombstone,
+                """,
                 (last_room, batch_size),
             )
 

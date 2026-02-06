@@ -52,10 +52,7 @@ class PasswordPolicyHandler:
         minimum_accepted_length = self.policy.get("minimum_length", 0)
         if len(password) < minimum_accepted_length:
             raise PasswordRefusedError(
-                msg=(
-                    "The password must be at least %d characters long"
-                    % minimum_accepted_length
-                ),
+                msg=f"The password must be at least {minimum_accepted_length} characters long",
                 errcode=Codes.PASSWORD_TOO_SHORT,
             )
 

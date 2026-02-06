@@ -1219,8 +1219,8 @@ class RegistrationWorkerStore(CacheInvalidationWorkerStore):
             sql = """
                 SELECT address, session_id, medium, client_secret,
                 last_send_attempt, validated_at
-                FROM threepid_validation_session WHERE %s
-                """ % (" AND ".join("%s = ?" % k for k in keyvalues.keys()),)
+                FROM threepid_validation_session WHERE {}
+                """.format(" AND ".join(f"{k} = ?" for k in keyvalues.keys()))
 
             if validated is not None:
                 sql += " AND validated_at IS " + ("NOT NULL" if validated else "NULL")
@@ -2674,8 +2674,7 @@ class RegistrationStore(StatsStore, RegistrationBackgroundUpdateStore):
                 values.append(except_token_id)
 
             txn.execute(
-                "SELECT token, id, device_id FROM access_tokens WHERE %s"
-                % where_clause,
+                f"SELECT token, id, device_id FROM access_tokens WHERE {where_clause}",
                 values,
             )
             tokens_and_devices = [(r[0], r[1], r[2]) for r in txn]
@@ -2686,10 +2685,10 @@ class RegistrationStore(StatsStore, RegistrationBackgroundUpdateStore):
                 [(token,) for token, _, _ in tokens_and_devices],
             )
 
-            txn.execute("DELETE FROM access_tokens WHERE %s" % where_clause, values)
+            txn.execute(f"DELETE FROM access_tokens WHERE {where_clause}", values)
 
             txn.execute(
-                "DELETE FROM refresh_tokens WHERE %s" % refresh_where_clause,
+                f"DELETE FROM refresh_tokens WHERE {refresh_where_clause}",
                 refresh_values,
             )
 

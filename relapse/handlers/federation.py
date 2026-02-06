@@ -1278,7 +1278,7 @@ class FederationHandler:
         """Returns the state at the event. i.e. not including said event."""
         event = await self.store.get_event(event_id, check_room_id=room_id)
         if event.internal_metadata.outlier:
-            raise NotFoundError("State not known at event %s" % (event_id,))
+            raise NotFoundError(f"State not known at event {event_id}")
 
         state_groups = await self._state_storage_controller.get_state_groups_ids(
             room_id, [event_id]
@@ -1320,13 +1320,7 @@ class FederationHandler:
         logger.debug(
             "on_backfill_request: backfill events=%s",
             [
-                "event_id=%s,depth=%d,body=%s,prevs=%s\n"
-                % (
-                    event.event_id,
-                    event.depth,
-                    event.content.get("body", event.type),
-                    event.prev_event_ids(),
-                )
+                f"event_id={event.event_id},depth={event.depth},body={event.content.get('body', event.type)},prevs={event.prev_event_ids()}\n"
                 for event in events
             ],
         )

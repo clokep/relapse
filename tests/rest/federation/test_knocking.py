@@ -258,14 +258,9 @@ class FederationKnockingTestCase(
 
         channel = self.make_signed_federation_request(
             "GET",
-            "/_matrix/federation/v1/make_knock/%s/%s?ver=%s"
-            % (
-                room_id,
-                fake_knocking_user_id,
-                # Inform the remote that we support the room version of the room we're
-                # knocking on
-                RoomVersions.V7.identifier,
-            ),
+            # Inform the remote that we support the room version of the room we're
+            # knocking on
+            f"/_matrix/federation/v1/make_knock/{room_id}/{fake_knocking_user_id}?ver={RoomVersions.V7.identifier}",
         )
         self.assertEqual(200, channel.code, channel.result)
 
@@ -301,8 +296,7 @@ class FederationKnockingTestCase(
         # Send the signed knock event into the room
         channel = self.make_signed_federation_request(
             "PUT",
-            "/_matrix/federation/v1/send_knock/%s/%s"
-            % (room_id, signed_knock_event.event_id),
+            f"/_matrix/federation/v1/send_knock/{room_id}/{signed_knock_event.event_id}",
             signed_knock_event_json,
         )
         self.assertEqual(200, channel.code, channel.result)

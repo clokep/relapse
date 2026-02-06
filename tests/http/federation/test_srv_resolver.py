@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from collections.abc import Generator
-from typing import List, Tuple, cast
+from typing import cast
 from unittest.mock import Mock
 
 from twisted.internet import defer
@@ -39,7 +39,7 @@ class SrvResolverTestCase(unittest.TestCase):
             type=dns.SRV, payload=dns.Record_SRV(target=host_name)
         )
 
-        result_deferred: "Deferred[Tuple[List[dns.RRHeader], None, None]]" = Deferred()
+        result_deferred: Deferred[tuple[list[dns.RRHeader], None, None]] = Deferred()
         dns_client_mock.lookupService.return_value = result_deferred
 
         cache: dict[bytes, list[Server]] = {}
@@ -159,7 +159,7 @@ class SrvResolverTestCase(unittest.TestCase):
         """
         service_name = b"test_service.example.com"
 
-        lookup_deferred: "Deferred[Tuple[List[dns.RRHeader], None, None]]" = Deferred()
+        lookup_deferred: Deferred[tuple[list[dns.RRHeader], None, None]] = Deferred()
         dns_client_mock = Mock()
         dns_client_mock.lookupService.return_value = lookup_deferred
         cache: dict[bytes, list[Server]] = {}
@@ -185,7 +185,7 @@ class SrvResolverTestCase(unittest.TestCase):
         """
         service_name = b"test_service.example.com"
 
-        lookup_deferred: "Deferred[Tuple[List[dns.RRHeader], None, None]]" = Deferred()
+        lookup_deferred: Deferred[tuple[list[dns.RRHeader], None, None]] = Deferred()
         dns_client_mock = Mock()
         dns_client_mock.lookupService.return_value = lookup_deferred
         cache: dict[bytes, list[Server]] = {}

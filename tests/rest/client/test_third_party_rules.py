@@ -99,7 +99,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
 
         channel = self.make_request(
             "PUT",
-            "/_matrix/client/r0/rooms/%s/send/foo.bar.allowed/1" % self.room_id,
+            f"/_matrix/client/r0/rooms/{self.room_id}/send/foo.bar.allowed/1",
             {},
             access_token=self.tok,
         )
@@ -117,7 +117,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
 
         channel = self.make_request(
             "PUT",
-            "/_matrix/client/r0/rooms/%s/send/foo.bar.forbidden/2" % self.room_id,
+            f"/_matrix/client/r0/rooms/{self.room_id}/send/foo.bar.forbidden/2",
             {},
             access_token=self.tok,
         )
@@ -156,7 +156,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         # Make a request
         channel = self.make_request(
             "PUT",
-            "/_matrix/client/r0/rooms/%s/send/foo.bar.forbidden/2" % self.room_id,
+            f"/_matrix/client/r0/rooms/{self.room_id}/send/foo.bar.forbidden/2",
             {},
             access_token=self.tok,
         )
@@ -185,7 +185,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         # now send the event
         channel = self.make_request(
             "PUT",
-            "/_matrix/client/r0/rooms/%s/send/modifyme/1" % self.room_id,
+            f"/_matrix/client/r0/rooms/{self.room_id}/send/modifyme/1",
             {"x": "x"},
             access_token=self.tok,
         )
@@ -211,7 +211,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         # now send the event
         channel = self.make_request(
             "PUT",
-            "/_matrix/client/r0/rooms/%s/send/modifyme/1" % self.room_id,
+            f"/_matrix/client/r0/rooms/{self.room_id}/send/modifyme/1",
             {"x": "x"},
             access_token=self.tok,
         )
@@ -221,7 +221,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         # ... and check that it got modified
         channel = self.make_request(
             "GET",
-            "/_matrix/client/r0/rooms/%s/event/%s" % (self.room_id, event_id),
+            f"/_matrix/client/r0/rooms/{self.room_id}/event/{event_id}",
             access_token=self.tok,
         )
         self.assertEqual(channel.code, 200, channel.result)
@@ -249,7 +249,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         # Send an event, then edit it.
         channel = self.make_request(
             "PUT",
-            "/_matrix/client/r0/rooms/%s/send/modifyme/1" % self.room_id,
+            f"/_matrix/client/r0/rooms/{self.room_id}/send/modifyme/1",
             {
                 "msgtype": "m.text",
                 "body": "Original body",
@@ -261,7 +261,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
 
         channel = self.make_request(
             "PUT",
-            "/_matrix/client/r0/rooms/%s/send/m.room.message/2" % self.room_id,
+            f"/_matrix/client/r0/rooms/{self.room_id}/send/m.room.message/2",
             {
                 "m.new_content": {"msgtype": "m.text", "body": "Edited body"},
                 "m.relates_to": {
@@ -279,7 +279,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         # ... and check that they both got modified
         channel = self.make_request(
             "GET",
-            "/_matrix/client/r0/rooms/%s/event/%s" % (self.room_id, orig_event_id),
+            f"/_matrix/client/r0/rooms/{self.room_id}/event/{orig_event_id}",
             access_token=self.tok,
         )
         self.assertEqual(channel.code, 200, channel.result)
@@ -288,7 +288,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
 
         channel = self.make_request(
             "GET",
-            "/_matrix/client/r0/rooms/%s/event/%s" % (self.room_id, edited_event_id),
+            f"/_matrix/client/r0/rooms/{self.room_id}/event/{edited_event_id}",
             access_token=self.tok,
         )
         self.assertEqual(channel.code, 200, channel.result)
@@ -336,7 +336,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
 
         channel = self.make_request(
             "PUT",
-            "/_matrix/client/r0/rooms/%s/send/m.room.message/1" % self.room_id,
+            f"/_matrix/client/r0/rooms/{self.room_id}/send/m.room.message/1",
             {
                 "msgtype": "m.text",
                 "body": "Original body",
@@ -349,7 +349,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
 
         channel = self.make_request(
             "GET",
-            "/_matrix/client/r0/rooms/%s/event/%s" % (self.room_id, event_id),
+            f"/_matrix/client/r0/rooms/{self.room_id}/event/{event_id}",
             access_token=self.tok,
         )
         self.assertEqual(channel.code, 200, channel.result)
@@ -541,7 +541,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         # Change the display name.
         channel = self.make_request(
             "PUT",
-            "/_matrix/client/v3/profile/%s/displayname" % self.user_id,
+            f"/_matrix/client/v3/profile/{self.user_id}/displayname",
             {"displayname": displayname},
             access_token=self.tok,
         )
@@ -565,7 +565,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         # Change the avatar.
         channel = self.make_request(
             "PUT",
-            "/_matrix/client/v3/profile/%s/avatar_url" % self.user_id,
+            f"/_matrix/client/v3/profile/{self.user_id}/avatar_url",
             {"avatar_url": avatar_url},
             access_token=self.tok,
         )
@@ -606,7 +606,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         # Change a user's profile.
         channel = self.make_request(
             "PUT",
-            "/_relapse/admin/v2/users/%s" % self.user_id,
+            f"/_relapse/admin/v2/users/{self.user_id}",
             {"displayname": displayname, "avatar_url": avatar_url},
             access_token=admin_tok,
         )
@@ -707,7 +707,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         # Deactivate the user.
         channel = self.make_request(
             "PUT",
-            "/_relapse/admin/v2/users/%s" % user_id,
+            f"/_relapse/admin/v2/users/{user_id}",
             {"deactivated": True},
             access_token=admin_tok,
         )
@@ -726,7 +726,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         # Reactivate the user.
         channel = self.make_request(
             "PUT",
-            "/_relapse/admin/v2/users/%s" % user_id,
+            f"/_relapse/admin/v2/users/{user_id}",
             {"deactivated": False, "password": "hackme"},
             access_token=admin_tok,
         )
@@ -809,7 +809,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         # Deactivate the user.
         channel = self.make_request(
             "PUT",
-            "/_relapse/admin/v2/users/%s" % user_id,
+            f"/_relapse/admin/v2/users/{user_id}",
             {"deactivated": True},
             access_token=admin_tok,
         )
@@ -845,7 +845,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         # Shutdown the room.
         channel = self.make_request(
             "DELETE",
-            "/_relapse/admin/v2/rooms/%s" % self.room_id,
+            f"/_relapse/admin/v2/rooms/{self.room_id}",
             {},
             access_token=admin_tok,
         )
@@ -882,7 +882,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         # Add a 3PID to the user.
         channel = self.make_request(
             "PUT",
-            "/_relapse/admin/v2/users/%s" % user_id,
+            f"/_relapse/admin/v2/users/{user_id}",
             {
                 "threepids": [
                     {
@@ -929,7 +929,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         # Add a 3PID to the user.
         channel = self.make_request(
             "PUT",
-            "/_relapse/admin/v2/users/%s" % user_id,
+            f"/_relapse/admin/v2/users/{user_id}",
             {
                 "threepids": [
                     {
@@ -951,7 +951,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         # Now remove the 3PID from the user
         channel = self.make_request(
             "PUT",
-            "/_relapse/admin/v2/users/%s" % user_id,
+            f"/_relapse/admin/v2/users/{user_id}",
             {
                 "threepids": [],
             },
@@ -989,7 +989,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         # Add a 3PID to the user.
         channel = self.make_request(
             "PUT",
-            "/_relapse/admin/v2/users/%s" % user_id,
+            f"/_relapse/admin/v2/users/{user_id}",
             {
                 "threepids": [
                     {
@@ -1008,7 +1008,7 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         # Now deactivate the user.
         channel = self.make_request(
             "PUT",
-            "/_relapse/admin/v2/users/%s" % user_id,
+            f"/_relapse/admin/v2/users/{user_id}",
             {
                 "deactivated": True,
             },

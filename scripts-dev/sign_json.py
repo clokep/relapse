@@ -121,7 +121,7 @@ Example usage:
     try:
         obj = json.loads(json_to_sign)
     except JSONDecodeError as e:
-        print("Unable to parse input as JSON: %s" % e, file=sys.stderr)
+        print(f"Unable to parse input as JSON: {e}", file=sys.stderr)
         sys.exit(1)
 
     if not isinstance(obj, dict):

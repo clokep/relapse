@@ -156,7 +156,7 @@ class PerDestinationQueue:
         self._last_device_list_stream_id = 0
 
     def __str__(self) -> str:
-        return "PerDestinationQueue[%s]" % self._destination
+        return f"PerDestinationQueue[{self._destination}]"
 
     def pending_pdu_count(self) -> int:
         return len(self._pending_pdus)
@@ -483,8 +483,8 @@ class PerDestinationQueue:
             catchup_pdus = await self._store.get_events_as_list(event_ids)
             if not catchup_pdus:
                 raise AssertionError(
-                    "No events retrieved when we asked for %r. "
-                    "This should not happen." % event_ids
+                    f"No events retrieved when we asked for {event_ids!r}. "
+                    "This should not happen."
                 )
 
             logger.info(

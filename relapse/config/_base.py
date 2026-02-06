@@ -71,15 +71,15 @@ def format_config_error(e: ConfigError) -> Iterator[str]:
     yield "Error in configuration"
 
     if e.path:
-        yield " at '%s'" % (".".join(e.path),)
+        yield " at '{}'".format(".".join(e.path))
 
-    yield ":\n  %s" % (e.msg,)
+    yield f":\n  {e.msg}"
 
     parent_e = e.__cause__
     indent = 1
     while parent_e:
         indent += 1
-        yield ":\n%s%s" % ("  " * indent, str(parent_e))
+        yield ":\n{}{}".format("  " * indent, str(parent_e))
         parent_e = parent_e.__cause__
 
 
@@ -243,13 +243,12 @@ class Config:
     @classmethod
     def check_file(cls, file_path: Optional[str], config_name: str) -> str:
         if file_path is None:
-            raise ConfigError("Missing config for %s." % (config_name,))
+            raise ConfigError(f"Missing config for {config_name}.")
         try:
             os.stat(file_path)
         except OSError as e:
             raise ConfigError(
-                "Error accessing file '%s' (config for %s): %s"
-                % (file_path, config_name, e.strerror)
+                f"Error accessing file '{file_path}' (config for {config_name}): {e.strerror}"
             )
         return cls.abspath(file_path)
 
@@ -258,7 +257,7 @@ class Config:
         dir_path = cls.abspath(dir_path)
         os.makedirs(dir_path, exist_ok=True)
         if not os.path.isdir(dir_path):
-            raise ConfigError("%s is not a directory" % (dir_path,))
+            raise ConfigError(f"{dir_path} is not a directory")
         return dir_path
 
     @classmethod
@@ -323,8 +322,7 @@ class Config:
                 # Check that the given template directory exists
                 if not self.path_exists(custom_template_directory):
                     raise ConfigError(
-                        "Configured template directory does not exist: %s"
-                        % (custom_template_directory,)
+                        f"Configured template directory does not exist: {custom_template_directory}"
                     )
 
                 # Search the custom template directory as well
@@ -377,12 +375,12 @@ class RootConfig:
 
         for config_class in self.config_classes:
             if config_class.section is None:
-                raise ValueError("%r requires a section name" % (config_class,))
+                raise ValueError(f"{config_class!r} requires a section name")
 
             try:
                 conf = config_class(self)
             except Exception as e:
-                raise Exception("Failed making %s: %r" % (config_class.section, e))
+                raise Exception(f"Failed making {config_class.section}: {e!r}")
             setattr(self, config_class.section, conf)
 
     def invoke_all(
@@ -728,7 +726,7 @@ class RootConfig:
 
             (config_path,) = config_files
             if not path_exists(config_path):
-                print("Generating config file %s" % (config_path,))
+                print(f"Generating config file {config_path}")
 
                 if config_args.data_directory:
                     data_dir_path = config_args.data_directory
@@ -761,21 +759,15 @@ class RootConfig:
                 obj.generate_missing_files(config_dict, config_dir_path)
 
                 print(
-                    (
-                        "A config file has been generated in %r for server name"
-                        " %r. Please review this file and customise it"
-                        " to your needs."
-                    )
-                    % (config_path, server_name)
+                    f"A config file has been generated in {config_path!r} for server name"
+                    f" {server_name!r}. Please review this file and customise it"
+                    " to your needs."
                 )
                 return
             else:
                 print(
-                    (
-                        "Config file %r already exists. Generating any missing config"
-                        " files."
-                    )
-                    % (config_path,)
+                    f"Config file {config_path!r} already exists. Generating any missing config"
+                    " files."
                 )
 
         config_dict = read_config_files(config_files)
@@ -1010,7 +1002,7 @@ def read_file(file_path: Any, config_path: Iterable[str]) -> str:
         with open(file_path) as file_stream:
             return file_stream.read()
     except OSError as e:
-        raise ConfigError("Error accessing file %r" % (file_path,), config_path) from e
+        raise ConfigError(f"Error accessing file {file_path!r}", config_path) from e
 
 
 class _ConfigGenerateMode(Enum):

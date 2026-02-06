@@ -81,7 +81,7 @@ class NewUserConsentResource(DirectServeHtmlResource):
             "user_id": user_id.to_string(),
             "user_profile": user_profile,
             "consent_version": self._consent_version,
-            "terms_url": "/_matrix/consent?v=%s" % (self._consent_version,),
+            "terms_url": f"/_matrix/consent?v={self._consent_version}",
         }
 
         template = self._jinja_env.get_template("sso_new_user_consent.html")

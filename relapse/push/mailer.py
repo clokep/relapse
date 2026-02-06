@@ -122,7 +122,7 @@ class Mailer:
         self.app_name = app_name
         self.email_subjects: EmailSubjectConfig = hs.config.email.email_subjects
 
-        logger.info("Created Mailer for app_name %s" % app_name)
+        logger.info(f"Created Mailer for app_name {app_name}")
 
     async def send_password_reset_mail(
         self, email_address: str, token: str, client_secret: str, sid: str
@@ -141,8 +141,7 @@ class Mailer:
         params = {"token": token, "client_secret": client_secret, "sid": sid}
         link = (
             self.hs.config.server.public_baseurl
-            + "_relapse/client/password_reset/email/submit_token?%s"
-            % urllib.parse.urlencode(params)
+            + f"_relapse/client/password_reset/email/submit_token?{urllib.parse.urlencode(params)}"
         )
 
         template_vars: TemplateVars = {"link": link}
@@ -171,8 +170,7 @@ class Mailer:
         params = {"token": token, "client_secret": client_secret, "sid": sid}
         link = (
             self.hs.config.server.public_baseurl
-            + "_matrix/client/unstable/registration/email/submit_token?%s"
-            % urllib.parse.urlencode(params)
+            + f"_matrix/client/unstable/registration/email/submit_token?{urllib.parse.urlencode(params)}"
         )
 
         template_vars: TemplateVars = {"link": link}
@@ -202,8 +200,7 @@ class Mailer:
         params = {"token": token, "client_secret": client_secret, "sid": sid}
         link = (
             self.hs.config.server.public_baseurl
-            + "_matrix/client/unstable/add_threepid/email/submit_token?%s"
-            % urllib.parse.urlencode(params)
+            + f"_matrix/client/unstable/add_threepid/email/submit_token?{urllib.parse.urlencode(params)}"
         )
 
         template_vars: TemplateVars = {"link": link}
@@ -836,13 +833,13 @@ class Mailer:
              A link to open a room in the web client.
         """
         if self.hs.config.email.email_client_base_url:
-            base_url = "%s/#/room" % (self.hs.config.email.email_client_base_url)
+            base_url = f"{self.hs.config.email.email_client_base_url}/#/room"
         elif self.app_name == "Vector":
             # need /beta for Universal Links to work on iOS
             base_url = "https://vector.im/beta/#/room"
         else:
             base_url = "https://matrix.to/#"
-        return "%s/%s" % (base_url, room_id)
+        return f"{base_url}/{room_id}"
 
     def _make_notif_link(self, notif: EmailPushAction) -> str:
         """
@@ -855,19 +852,12 @@ class Mailer:
              A link to open the notification in the web client.
         """
         if self.hs.config.email.email_client_base_url:
-            return "%s/#/room/%s/%s" % (
-                self.hs.config.email.email_client_base_url,
-                notif.room_id,
-                notif.event_id,
-            )
+            return f"{self.hs.config.email.email_client_base_url}/#/room/{notif.room_id}/{notif.event_id}"
         elif self.app_name == "Vector":
             # need /beta for Universal Links to work on iOS
-            return "https://vector.im/beta/#/room/%s/%s" % (
-                notif.room_id,
-                notif.event_id,
-            )
+            return f"https://vector.im/beta/#/room/{notif.room_id}/{notif.event_id}"
         else:
-            return "https://matrix.to/#/%s/%s" % (notif.room_id, notif.event_id)
+            return f"https://matrix.to/#/{notif.room_id}/{notif.event_id}"
 
     def _make_unsubscribe_link(
         self, user_id: str, app_id: str, email_address: str
@@ -891,10 +881,7 @@ class Mailer:
             "pushkey": email_address,
         }
 
-        return "%s_relapse/client/unsubscribe?%s" % (
-            self.hs.config.server.public_baseurl,
-            urllib.parse.urlencode(params),
-        )
+        return f"{self.hs.config.server.public_baseurl}_relapse/client/unsubscribe?{urllib.parse.urlencode(params)}"
 
 
 def safe_markup(raw_html: str) -> Markup:

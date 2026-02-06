@@ -78,7 +78,7 @@ class JwtHandler:
             # A JWT error occurred, return some info back to the client.
             raise LoginError(
                 403,
-                "JWT validation failed: %s" % (str(e),),
+                f"JWT validation failed: {str(e)}",
                 errcode=Codes.FORBIDDEN,
             )
 
@@ -94,7 +94,7 @@ class JwtHandler:
         except JoseError as e:
             raise LoginError(
                 403,
-                "JWT validation failed: %s" % (str(e),),
+                f"JWT validation failed: {str(e)}",
                 errcode=Codes.FORBIDDEN,
             )
 

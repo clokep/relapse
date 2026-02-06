@@ -35,7 +35,7 @@ class LockTestCase(unittest.HomeserverTestCase):
         in_lock = 0
         max_in_lock = 0
 
-        release_lock: "Deferred[None]" = Deferred()
+        release_lock: Deferred[None] = Deferred()
 
         async def task() -> None:
             nonlocal in_lock
@@ -184,7 +184,7 @@ class ReadWriteLockTestCase(unittest.HomeserverTestCase):
         in_lock = 0
         max_in_lock = 0
 
-        release_lock: "Deferred[None]" = Deferred()
+        release_lock: Deferred[None] = Deferred()
 
         async def task() -> None:
             nonlocal in_lock
@@ -236,7 +236,7 @@ class ReadWriteLockTestCase(unittest.HomeserverTestCase):
         in_lock = 0
         max_in_lock = 0
 
-        release_lock: "Deferred[None]" = Deferred()
+        release_lock: Deferred[None] = Deferred()
 
         async def task() -> None:
             nonlocal in_lock

@@ -18,7 +18,7 @@ import abc
 import enum
 import threading
 from collections.abc import Collection, MutableMapping, Sized
-from typing import Callable, Dict, Generic, Optional, TypeVar, Union, cast
+from typing import Callable, Generic, Optional, TypeVar, Union, cast
 
 from prometheus_client import Gauge
 
@@ -85,7 +85,7 @@ class DeferredCache(Generic[KT, VT]):
 
         # _pending_deferred_cache maps from the key value to a `CacheEntry` object.
         self._pending_deferred_cache: Union[
-            TreeCache, "MutableMapping[KT, CacheEntry[KT, VT]]"
+            TreeCache, MutableMapping[KT, CacheEntry[KT, VT]]
         ] = cache_type()
 
         def metrics_cb() -> None:
@@ -173,7 +173,7 @@ class DeferredCache(Generic[KT, VT]):
         self,
         keys: Collection[KT],
         callback: Optional[Callable[[], None]] = None,
-    ) -> tuple[dict[KT, VT], Optional["defer.Deferred[Dict[KT, VT]]"], Collection[KT]]:
+    ) -> tuple[dict[KT, VT], Optional["defer.Deferred[dict[KT, VT]]"], Collection[KT]]:
         """Bulk lookup of items in the cache.
 
         Returns:

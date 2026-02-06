@@ -59,22 +59,20 @@ RELAPSE_SERVER_PUBLIC_HOSTNAME = "relapse"
 # FakeChannel.isSecure() returns False, so relapse will see the requested uri as
 # http://..., so using http in the public_baseurl stops Relapse trying to redirect to
 # https://....
-BASE_URL = "http://%s/" % (RELAPSE_SERVER_PUBLIC_HOSTNAME,)
+BASE_URL = f"http://{RELAPSE_SERVER_PUBLIC_HOSTNAME}/"
 
 # CAS server used in some tests
 CAS_SERVER = "https://fake.test"
 
 # just enough to tell pysaml2 where to redirect to
 SAML_SERVER = "https://test.saml.server/idp/sso"
-TEST_SAML_METADATA = """
+TEST_SAML_METADATA = f"""
 <md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata">
   <md:IDPSSODescriptor protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
-      <md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="%(SAML_SERVER)s"/>
+      <md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="{SAML_SERVER}"/>
   </md:IDPSSODescriptor>
 </md:EntityDescriptor>
-""" % {
-    "SAML_SERVER": SAML_SERVER,
-}
+"""
 
 LOGIN_URL = b"/_matrix/client/r0/login"
 TEST_URL = b"/_matrix/client/r0/account/whoami"
@@ -862,7 +860,7 @@ class MultiSSOTestCase(unittest.HomeserverTestCase):
         for caveat in macaroon.caveats:
             if caveat.caveat_id.startswith(prefix):
                 return caveat.caveat_id[len(prefix) :]
-        raise ValueError("No %s caveat in macaroon" % (key,))
+        raise ValueError(f"No {key} caveat in macaroon")
 
 
 class CASTestCase(unittest.HomeserverTestCase):
@@ -884,7 +882,7 @@ class CASTestCase(unittest.HomeserverTestCase):
         }
 
         cas_user_id = "username"
-        self.user_id = "@%s:test" % cas_user_id
+        self.user_id = f"@{cas_user_id}:test"
 
         async def get_raw(uri: str, args: Any) -> bytes:
             """Return an example response payload from a call to the `/proxyValidate`
@@ -895,10 +893,10 @@ class CASTestCase(unittest.HomeserverTestCase):
             mock's return value) because the corresponding Relapse code awaits on it.
             """
             return (
-                """
+                f"""
                 <cas:serviceResponse xmlns:cas='http://www.yale.edu/tp/cas'>
                   <cas:authenticationSuccess>
-                      <cas:user>%s</cas:user>
+                      <cas:user>{cas_user_id}</cas:user>
                       <cas:proxyGrantingTicket>PGTIOU-84678-8a9d...</cas:proxyGrantingTicket>
                       <cas:proxies>
                           <cas:proxy>https://proxy2/pgtUrl</cas:proxy>
@@ -907,8 +905,7 @@ class CASTestCase(unittest.HomeserverTestCase):
                   </cas:authenticationSuccess>
                 </cas:serviceResponse>
             """
-                % cas_user_id
-            ).encode("utf-8")
+            ).encode()
 
         mocked_http_client = Mock(spec=["get_raw"])
         mocked_http_client.get_raw.side_effect = get_raw
@@ -973,10 +970,7 @@ class CASTestCase(unittest.HomeserverTestCase):
 
     def _test_redirect(self, redirect_url: str) -> None:
         """Tests that the SSO login flow serves a redirect for the given redirect URL."""
-        cas_ticket_url = (
-            "/_matrix/client/r0/login/cas/ticket?redirectUrl=%s&ticket=ticket"
-            % (urllib.parse.quote(redirect_url))
-        )
+        cas_ticket_url = f"/_matrix/client/r0/login/cas/ticket?redirectUrl={urllib.parse.quote(redirect_url)}&ticket=ticket"
 
         # Get Relapse to call the fake CAS and serve the template.
         channel = self.make_request("GET", cas_ticket_url)
@@ -1002,10 +996,7 @@ class CASTestCase(unittest.HomeserverTestCase):
         )
 
         # Request the CAS ticket.
-        cas_ticket_url = (
-            "/_matrix/client/r0/login/cas/ticket?redirectUrl=%s&ticket=ticket"
-            % (urllib.parse.quote(redirect_url))
-        )
+        cas_ticket_url = f"/_matrix/client/r0/login/cas/ticket?redirectUrl={urllib.parse.quote(redirect_url)}&ticket=ticket"
 
         # Get Relapse to call the fake CAS and serve the template.
         channel = self.make_request("GET", cas_ticket_url)

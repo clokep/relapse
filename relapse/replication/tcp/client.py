@@ -308,7 +308,7 @@ class ReplicationDataHandler:
 
         # Create a new deferred that times out after N seconds, as we don't want
         # to wedge here forever.
-        deferred: "Deferred[None]" = Deferred()
+        deferred: Deferred[None] = Deferred()
         deferred = timeout_deferred(
             deferred, _WAIT_FOR_REPLICATION_TIMEOUT_SECONDS, self._reactor
         )
@@ -352,7 +352,7 @@ class ReplicationDataHandler:
         if not self._notify_pushers:
             return
 
-        key = "%s:%s" % (app_id, pushkey)
+        key = f"{app_id}:{pushkey}"
         pushers_for_user = self._pusher_pool.pushers.get(user_id, {})
         pusher = pushers_for_user.pop(key, None)
         if pusher is None:
@@ -366,7 +366,7 @@ class ReplicationDataHandler:
         if not self._notify_pushers:
             return
 
-        key = "%s:%s" % (app_id, pushkey)
+        key = f"{app_id}:{pushkey}"
         logger.info("Starting pusher %r / %r", user_id, key)
         await self._pusher_pool.process_pusher_change_by_id(app_id, pushkey, user_id)
 

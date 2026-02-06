@@ -726,10 +726,7 @@ class Notifier:
             # over /events.
             #
             # I am sorry for what I have done.
-            user_id_for_stream = "_PEEKING_%s_%s" % (
-                explicit_room_id,
-                user_id_for_stream,
-            )
+            user_id_for_stream = f"_PEEKING_{explicit_room_id}_{user_id_for_stream}"
 
         result = await self.wait_for_events(
             user_id_for_stream,

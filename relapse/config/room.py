@@ -71,8 +71,7 @@ class RoomConfig(Config):
             for preset in self.default_power_level_content_override:
                 if preset not in vars(RoomCreationPreset).values():
                     raise ConfigError(
-                        "Unrecognised room preset %s in default_power_level_content_override"
-                        % preset
+                        f"Unrecognised room preset {preset} in default_power_level_content_override"
                     )
                 # We validate the actual overrides when we try to apply them.
 

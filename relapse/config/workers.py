@@ -279,8 +279,7 @@ class WorkerConfig(Config):
             for instance in instances:
                 if instance != "master" and instance not in self.instance_map:
                     raise ConfigError(
-                        "Instance %r is configured to write %s but does not appear in `instance_map` config."
-                        % (instance, stream)
+                        f"Instance {instance!r} is configured to write {stream} but does not appear in `instance_map` config."
                     )
 
         if len(self.writers.typing) != 1:
@@ -357,8 +356,7 @@ class WorkerConfig(Config):
             for instance in outbound_federation_restricted_to:
                 if instance not in self.instance_map:
                     raise ConfigError(
-                        "Instance %r is configured in 'outbound_federation_restricted_to' but does not appear in `instance_map` config."
-                        % (instance,)
+                        f"Instance {instance!r} is configured in 'outbound_federation_restricted_to' but does not appear in `instance_map` config."
                     )
                 self.outbound_federation_restricted_to.locations.append(
                     self.instance_map[instance]

@@ -35,7 +35,6 @@ from typing import (
     Callable,
     Generic,
     Optional,
-    Tuple,
     TypeVar,
     Union,
     cast,
@@ -166,7 +165,7 @@ class ObservableDeferred(Generic[_T], AbstractObservableDeferred[_T]):
         """
         if not self._result:
             assert isinstance(self._observers, list)
-            d: "defer.Deferred[_T]" = defer.Deferred()
+            d: defer.Deferred[_T] = defer.Deferred()
             self._observers.append(d)
             return d
         elif self._result[0]:
@@ -195,11 +194,7 @@ class ObservableDeferred(Generic[_T], AbstractObservableDeferred[_T]):
         setattr(self._deferred, name, value)
 
     def __repr__(self) -> str:
-        return "<ObservableDeferred object at %s, result=%r, _deferred=%r>" % (
-            id(self),
-            self._result,
-            self._deferred,
-        )
+        return f"<ObservableDeferred object at {id(self)}, result={self._result!r}, _deferred={self._deferred!r}>"
 
 
 T = TypeVar("T")
@@ -349,21 +344,21 @@ T4 = TypeVar("T4")
 @overload
 def gather_results(
     deferredList: tuple[()], consumeErrors: bool = ...
-) -> "defer.Deferred[Tuple[()]]": ...
+) -> "defer.Deferred[tuple[()]]": ...
 
 
 @overload
 def gather_results(
     deferredList: tuple["defer.Deferred[T1]"],
     consumeErrors: bool = ...,
-) -> "defer.Deferred[Tuple[T1]]": ...
+) -> "defer.Deferred[tuple[T1]]": ...
 
 
 @overload
 def gather_results(
     deferredList: tuple["defer.Deferred[T1]", "defer.Deferred[T2]"],
     consumeErrors: bool = ...,
-) -> "defer.Deferred[Tuple[T1, T2]]": ...
+) -> "defer.Deferred[tuple[T1, T2]]": ...
 
 
 @overload
@@ -372,7 +367,7 @@ def gather_results(
         "defer.Deferred[T1]", "defer.Deferred[T2]", "defer.Deferred[T3]"
     ],
     consumeErrors: bool = ...,
-) -> "defer.Deferred[Tuple[T1, T2, T3]]": ...
+) -> "defer.Deferred[tuple[T1, T2, T3]]": ...
 
 
 @overload
@@ -384,13 +379,13 @@ def gather_results(
         "defer.Deferred[T4]",
     ],
     consumeErrors: bool = ...,
-) -> "defer.Deferred[Tuple[T1, T2, T3, T4]]": ...
+) -> "defer.Deferred[tuple[T1, T2, T3, T4]]": ...
 
 
 def gather_results(  # type: ignore[misc]
     deferredList: tuple["defer.Deferred[T1]", ...],
     consumeErrors: bool = False,
-) -> "defer.Deferred[Tuple[T1, ...]]":
+) -> "defer.Deferred[tuple[T1, ...]]":
     """Combines a tuple of `Deferred`s into a single `Deferred`.
 
     Wraps `defer.gatherResults` to provide type annotations that support heterogenous
@@ -491,7 +486,7 @@ class Linearizer:
         # this item so that it can continue executing.
         logger.debug("Waiting to acquire linearizer lock %r for key %r", self.name, key)
 
-        new_defer: "defer.Deferred[None]" = make_deferred_yieldable(defer.Deferred())
+        new_defer: defer.Deferred[None] = make_deferred_yieldable(defer.Deferred())
         entry.deferreds[new_defer] = 1
 
         try:
@@ -587,7 +582,7 @@ class ReadWriteLock:
     def read(self, key: str) -> AsyncContextManager:
         @asynccontextmanager
         async def _ctx_manager() -> AsyncIterator[None]:
-            new_defer: "defer.Deferred[None]" = defer.Deferred()
+            new_defer: defer.Deferred[None] = defer.Deferred()
 
             curr_readers = self.key_to_current_readers.setdefault(key, set())
             curr_writer = self.key_to_current_writer.get(key, None)
@@ -613,7 +608,7 @@ class ReadWriteLock:
     def write(self, key: str) -> AsyncContextManager:
         @asynccontextmanager
         async def _ctx_manager() -> AsyncIterator[None]:
-            new_defer: "defer.Deferred[None]" = defer.Deferred()
+            new_defer: defer.Deferred[None] = defer.Deferred()
 
             curr_readers = self.key_to_current_readers.get(key, set())
             curr_writer = self.key_to_current_writer.get(key, None)
@@ -675,7 +670,7 @@ def timeout_deferred(
     Returns:
         A new Deferred, which will errback with defer.TimeoutError on timeout.
     """
-    new_d: "defer.Deferred[_T]" = defer.Deferred()
+    new_d: defer.Deferred[_T] = defer.Deferred()
 
     timed_out = [False]
 
@@ -691,7 +686,7 @@ def timeout_deferred(
         # will have errbacked new_d, but in case it hasn't, errback it now.
 
         if not new_d.called:
-            new_d.errback(defer.TimeoutError("Timed out after %gs" % (timeout,)))
+            new_d.errback(defer.TimeoutError(f"Timed out after {timeout:g}s"))
 
     delayed_call = reactor.callLater(timeout, time_it_out)
 
@@ -700,7 +695,7 @@ def timeout_deferred(
         # the reason it was cancelled was due to our timeout. Turn the CancelledError
         # into a TimeoutError.
         if timed_out[0] and value.check(CancelledError):
-            raise defer.TimeoutError("Timed out after %gs" % (timeout,))
+            raise defer.TimeoutError(f"Timed out after {timeout:g}s")
         return value
 
     deferred.addErrback(convert_cancelled)
@@ -763,7 +758,7 @@ def stop_cancellation(deferred: "defer.Deferred[T]") -> "defer.Deferred[T]":
         The new `Deferred` will not follow the Relapse logcontext rules and should be
         wrapped with `make_deferred_yieldable`.
     """
-    new_deferred: "defer.Deferred[T]" = defer.Deferred()
+    new_deferred: defer.Deferred[T] = defer.Deferred()
     deferred.chainDeferred(new_deferred)
     return new_deferred
 
@@ -805,7 +800,7 @@ def delay_cancellation(awaitable: Awaitable[T]) -> Awaitable[T]:
 
     # First, convert the awaitable into a `Deferred`.
     try:
-        deferred: "defer.Deferred[T]" = defer.ensureDeferred(awaitable)  # type: ignore[arg-type]
+        deferred: defer.Deferred[T] = defer.ensureDeferred(awaitable)  # type: ignore[arg-type]
     except defer.NotACoroutineError:
         # We have no idea what to do with this awaitable.
         # We assume it's already resolved, such as `DoneAwaitable`s or `Future`s from
@@ -821,7 +816,7 @@ def delay_cancellation(awaitable: Awaitable[T]) -> Awaitable[T]:
 
         deferred.addBoth(lambda _: new_deferred.unpause())
 
-    new_deferred: "defer.Deferred[T]" = defer.Deferred(handle_cancel)
+    new_deferred: defer.Deferred[T] = defer.Deferred(handle_cancel)
     deferred.chainDeferred(new_deferred)
     return new_deferred
 
@@ -851,13 +846,13 @@ class AwakenableSleeper:
         """
 
         # Create a deferred that gets called in N seconds
-        sleep_deferred: "defer.Deferred[None]" = defer.Deferred()
+        sleep_deferred: defer.Deferred[None] = defer.Deferred()
         call = self._reactor.callLater(delay_ms / 1000, sleep_deferred.callback, None)
 
         # Create a deferred that will get called if `wake` is called with
         # the same `name`.
         stream_set = self._streams.setdefault(name, set())
-        notify_deferred: "defer.Deferred[None]" = defer.Deferred()
+        notify_deferred: defer.Deferred[None] = defer.Deferred()
         stream_set.add(notify_deferred)
 
         try:

@@ -56,9 +56,8 @@ def run_upgrade(
             if appservice.is_exclusive_user(user_id):
                 if user_id in owned.keys():
                     logger.error(
-                        "user_id %s was owned by more than one application"
-                        " service (IDs %s and %s); assigning arbitrarily to %s"
-                        % (user_id, owned[user_id], appservice.id, owned[user_id])
+                        f"user_id {user_id} was owned by more than one application"
+                        f" service (IDs {owned[user_id]} and {appservice.id}); assigning arbitrarily to {owned[user_id]}"
                     )
                 owned.setdefault(appservice.id, []).append(user_id)
 
@@ -67,7 +66,8 @@ def run_upgrade(
         user_chunks = (user_ids[i : i + 100] for i in range(0, len(user_ids), n))
         for chunk in user_chunks:
             cur.execute(
-                "UPDATE users SET appservice_id = ? WHERE name IN (%s)"
-                % (",".join("?" for _ in chunk),),
+                "UPDATE users SET appservice_id = ? WHERE name IN ({})".format(
+                    ",".join("?" for _ in chunk)
+                ),
                 [as_id] + chunk,
             )

@@ -31,5 +31,5 @@ def change_resource_limit(soft_file_no: int) -> None:
         resource.setrlimit(
             resource.RLIMIT_CORE, (resource.RLIM_INFINITY, resource.RLIM_INFINITY)
         )
-    except (ValueError, resource.error) as e:
+    except (OSError, ValueError) as e:
         logger.warning("Failed to set file or core limit: %s", e)

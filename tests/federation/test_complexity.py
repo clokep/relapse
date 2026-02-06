@@ -45,7 +45,7 @@ class RoomComplexityTests(unittest.FederatingHomeserverTestCase):
 
         # Get the room complexity
         channel = self.make_signed_federation_request(
-            "GET", "/_matrix/federation/unstable/rooms/%s/complexity" % (room_1,)
+            "GET", f"/_matrix/federation/unstable/rooms/{room_1}/complexity"
         )
         self.assertEqual(200, channel.code)
         complexity = channel.json_body["v1"]
@@ -61,7 +61,7 @@ class RoomComplexityTests(unittest.FederatingHomeserverTestCase):
 
         # Get the room complexity again -- make sure it's our artificial value
         channel = self.make_signed_federation_request(
-            "GET", "/_matrix/federation/unstable/rooms/%s/complexity" % (room_1,)
+            "GET", f"/_matrix/federation/unstable/rooms/{room_1}/complexity"
         )
         self.assertEqual(200, channel.code)
         complexity = channel.json_body["v1"]

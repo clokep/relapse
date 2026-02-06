@@ -120,7 +120,7 @@ class SyncTestCase(tests.unittest.HomeserverTestCase):
         )
         channel = self.make_request(
             "POST",
-            "/_matrix/client/r0/knock/%s" % (knock_room,),
+            f"/_matrix/client/r0/knock/{knock_room}",
             b"{}",
             tok,
         )

@@ -16,7 +16,7 @@ import functools
 import inspect
 import logging
 from collections.abc import Awaitable, Collection, Hashable, Iterable, Mapping, Sequence
-from typing import Any, Callable, Dict, Generic, Optional, Tuple, TypeVar, Union, cast
+from typing import Any, Callable, Generic, Optional, TypeVar, Union, cast
 from weakref import WeakValueDictionary
 
 import attr
@@ -95,9 +95,9 @@ class _CacheDescriptorBase:
 
         if len(all_args) < num_args + 1:
             raise Exception(
-                "Not enough explicit positional arguments to key off for %r: "
-                "got %i args, but wanted %i. (@cached cannot key off *args or "
-                "**kwargs)" % (orig.__name__, len(all_args), num_args)
+                f"Not enough explicit positional arguments to key off for {orig.__name__:r}: "
+                f"got {len(all_args)} args, but wanted {num_args}. (@cached cannot key off *args or "
+                "**kwargs)"
             )
 
         self.num_args = num_args
@@ -303,25 +303,23 @@ class DeferredCacheListDescriptor(_CacheDescriptorBase):
 
         if self.list_name not in self.arg_names:
             raise Exception(
-                "Couldn't see arguments %r for %r."
-                % (self.list_name, cached_method_name)
+                f"Couldn't see arguments {self.list_name!r} for {cached_method_name!r}."
             )
 
     def __get__(
         self, obj: Optional[Any], objtype: Optional[type] = None
-    ) -> Callable[..., "defer.Deferred[Dict[Hashable, Any]]"]:
+    ) -> Callable[..., "defer.Deferred[dict[Hashable, Any]]"]:
         cached_method = getattr(obj, self.cached_method_name)
         cache: DeferredCache[CacheKey, Any] = cached_method.cache
         num_args = cached_method.num_args
 
         if num_args != self.num_args:
             raise TypeError(
-                "Number of args (%s) does not match underlying cache_method_name=%s (%s)."
-                % (self.num_args, self.cached_method_name, num_args)
+                f"Number of args ({self.num_args}) does not match underlying cache_method_name={self.cached_method_name} ({num_args})."
             )
 
         @functools.wraps(self.orig)
-        def wrapped(*args: Any, **kwargs: Any) -> "defer.Deferred[Dict]":
+        def wrapped(*args: Any, **kwargs: Any) -> "defer.Deferred[dict]":
             # If we're passed a cache_context then we'll want to call its
             # invalidate() whenever we are invalidated
             invalidate_callback = kwargs.pop("on_invalidate", None)
@@ -357,7 +355,7 @@ class DeferredCacheListDescriptor(_CacheDescriptorBase):
 
             results = {cache_key_to_arg(key): v for key, v in immediate_results.items()}
 
-            cached_defers: list["defer.Deferred[Any]"] = []
+            cached_defers: list[defer.Deferred[Any]] = []
             if pending_deferred:
 
                 def update_results(r: dict) -> None:
@@ -423,7 +421,7 @@ class _CacheContext:
     Cache = Union[DeferredCache, LruCache]
 
     _cache_context_objects: """WeakValueDictionary[
-        Tuple["_CacheContext.Cache", CacheKey], "_CacheContext"
+        tuple["_CacheContext.Cache", CacheKey], "_CacheContext"
     ]""" = WeakValueDictionary()
 
     def __init__(self, cache: "_CacheContext.Cache", cache_key: CacheKey) -> None:
