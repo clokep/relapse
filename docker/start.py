@@ -7,7 +7,7 @@ import platform
 import subprocess
 import sys
 from collections.abc import Mapping, MutableMapping
-from typing import Any, NoReturn, Optional
+from typing import Any, NoReturn
 
 import jinja2
 
@@ -46,7 +46,7 @@ def generate_config_from_template(
     config_dir: str,
     config_path: str,
     os_environ: Mapping[str, str],
-    ownership: Optional[str],
+    ownership: str | None,
 ) -> None:
     """Generate a homeserver.yaml from environment variables
 
@@ -142,7 +142,7 @@ def generate_config_from_template(
     subprocess.run(args, check=True)
 
 
-def run_generate_config(environ: Mapping[str, str], ownership: Optional[str]) -> None:
+def run_generate_config(environ: Mapping[str, str], ownership: str | None) -> None:
     """Run relapse with a --generate-config param to generate a template config file
 
     Args:

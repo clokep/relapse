@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from collections.abc import Awaitable, Callable
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 from twisted.web.server import Request
 
@@ -36,7 +36,7 @@ class AdditionalResource(DirectServeJsonResource):
     def __init__(
         self,
         hs: "HomeServer",
-        handler: Callable[[Request], Awaitable[Optional[tuple[int, Any]]]],
+        handler: Callable[[Request], Awaitable[tuple[int, Any] | None]],
     ):
         """Initialise AdditionalResource
 
@@ -51,7 +51,7 @@ class AdditionalResource(DirectServeJsonResource):
         super().__init__()
         self._handler = handler
 
-    async def _async_render(self, request: Request) -> Optional[tuple[int, Any]]:
+    async def _async_render(self, request: Request) -> tuple[int, Any] | None:
         # Cheekily pass the result straight through, so we don't need to worry
         # if its an awaitable or not.
         return await self._handler(request)

@@ -15,7 +15,7 @@
 import threading
 from collections.abc import Generator
 from io import BytesIO
-from typing import BinaryIO, Optional, cast
+from typing import BinaryIO, cast
 from unittest.mock import NonCallableMock
 
 from zope.interface import implementer
@@ -122,7 +122,7 @@ class FileConsumerTests(unittest.TestCase):
 @implementer(IPullProducer)
 class DummyPullProducer:
     def __init__(self) -> None:
-        self.consumer: Optional[BackgroundFileConsumer] = None
+        self.consumer: BackgroundFileConsumer | None = None
         self.deferred: defer.Deferred[object] = defer.Deferred()
 
     def resumeProducing(self) -> None:
@@ -154,7 +154,7 @@ class BlockingBytesWrite:
         self.closed = False
         self.write_lock = threading.Lock()
 
-        self._notify_write_deferred: Optional[defer.Deferred] = None
+        self._notify_write_deferred: defer.Deferred | None = None
         self._number_of_writes = 0
 
     def write(self, write_bytes: bytes) -> None:

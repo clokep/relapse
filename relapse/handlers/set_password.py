@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from relapse.api.errors import Codes, RelapseError, StoreError
 from relapse.handlers.device import DeviceHandler
@@ -40,7 +40,7 @@ class SetPasswordHandler:
         user_id: str,
         password_hash: str,
         logout_devices: bool,
-        requester: Optional[Requester] = None,
+        requester: Requester | None = None,
     ) -> None:
         if not self._auth_handler.can_change_password():
             raise RelapseError(403, "Password change disabled", errcode=Codes.FORBIDDEN)

@@ -14,7 +14,7 @@
 
 import logging
 from inspect import isawaitable
-from typing import TYPE_CHECKING, Any, Generic, Optional, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
 
 import attr
 from txredisapi import (
@@ -65,10 +65,10 @@ class ConstantProperty(Generic[T, V]):
 
     constant: V = attr.ib()
 
-    def __get__(self, obj: Optional[T], objtype: Optional[type[T]] = None) -> V:
+    def __get__(self, obj: T | None, objtype: type[T] | None = None) -> V:
         return self.constant
 
-    def __set__(self, obj: Optional[T], value: V) -> None:
+    def __set__(self, obj: T | None, value: V) -> None:
         pass
 
 
@@ -247,14 +247,14 @@ class RelapseRedisFactory(RedisFactory):
         self,
         hs: "HomeServer",
         uuid: str,
-        dbid: Optional[int],
+        dbid: int | None,
         poolsize: int,
         isLazy: bool = False,
         handler: type = ConnectionHandler,
         charset: str = "utf-8",
-        password: Optional[str] = None,
+        password: str | None = None,
         replyTimeout: int = 30,
-        convertNumbers: Optional[int] = True,
+        convertNumbers: int | None = True,
     ):
         super().__init__(
             uuid=uuid,
@@ -369,9 +369,9 @@ def lazyConnection(
     hs: "HomeServer",
     host: str = "localhost",
     port: int = 6379,
-    dbid: Optional[int] = None,
+    dbid: int | None = None,
     reconnect: bool = True,
-    password: Optional[str] = None,
+    password: str | None = None,
     replyTimeout: int = 30,
 ) -> ConnectionHandler:
     """Creates a connection to Redis that is lazily set up and reconnects if the
@@ -418,9 +418,9 @@ def lazyConnection(
 def lazyUnixConnection(
     hs: "HomeServer",
     path: str = "/tmp/redis.sock",
-    dbid: Optional[int] = None,
+    dbid: int | None = None,
     reconnect: bool = True,
-    password: Optional[str] = None,
+    password: str | None = None,
     replyTimeout: int = 30,
 ) -> ConnectionHandler:
     """Creates a connection to Redis that is lazily set up and reconnects if the

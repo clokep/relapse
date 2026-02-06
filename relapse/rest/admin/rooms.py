@@ -13,7 +13,7 @@
 # limitations under the License.
 import logging
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Optional, cast
+from typing import TYPE_CHECKING, cast
 from urllib import parse as urlparse
 
 import attr
@@ -491,7 +491,7 @@ class JoinRoomAliasServlet(ResolveRoomIdMixin, RestServlet):
 
         # Get the room ID from the identifier.
         try:
-            remote_room_hosts: Optional[list[str]] = [
+            remote_room_hosts: list[str] | None = [
                 x.decode("ascii") for x in request.args[b"server_name"]
             ]
         except Exception:
@@ -772,7 +772,7 @@ class RoomEventContextServlet(RestServlet):
         filter_str = parse_string(request, "filter", encoding="utf-8")
         if filter_str:
             filter_json = urlparse.unquote(filter_str)
-            event_filter: Optional[Filter] = Filter(
+            event_filter: Filter | None = Filter(
                 self._hs, json_decoder.decode(filter_json)
             )
         else:
@@ -911,7 +911,7 @@ class RoomMessagesRestServlet(RestServlet):
         filter_str = parse_string(request, "filter", encoding="utf-8")
         if filter_str:
             filter_json = urlparse.unquote(filter_str)
-            event_filter: Optional[Filter] = Filter(
+            event_filter: Filter | None = Filter(
                 self._hs, json_decoder.decode(filter_json)
             )
             if (

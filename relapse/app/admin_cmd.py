@@ -18,7 +18,6 @@ import os
 import sys
 import tempfile
 from collections.abc import Mapping, Sequence
-from typing import Optional
 
 from twisted.internet import defer, task
 
@@ -131,7 +130,7 @@ class FileExfiltrationWriter(ExfiltrationWriter):
             to a temporary directory.
     """
 
-    def __init__(self, user_id: str, directory: Optional[str] = None):
+    def __init__(self, user_id: str, directory: str | None = None):
         self.user_id = user_id
 
         if directory:

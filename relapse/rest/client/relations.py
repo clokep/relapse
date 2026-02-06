@@ -14,7 +14,7 @@
 
 import logging
 import re
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from relapse.api.constants import Direction
 from relapse.handlers.relations import ThreadsListInclude
@@ -55,8 +55,8 @@ class RelationPaginationServlet(RestServlet):
         request: RelapseRequest,
         room_id: str,
         parent_id: str,
-        relation_type: Optional[str] = None,
-        event_type: Optional[str] = None,
+        relation_type: str | None = None,
+        event_type: str | None = None,
     ) -> tuple[int, JsonDict]:
         requester = await self.auth.get_user_by_req(request, allow_guest=True)
 

@@ -22,7 +22,7 @@ import string
 from collections import OrderedDict
 from collections.abc import Awaitable, Callable
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 import attr
 from typing_extensions import TypedDict
@@ -481,7 +481,7 @@ class RoomCreationHandler:
         initial_state = {}
 
         # Replicate relevant room events
-        types_to_copy: list[tuple[str, Optional[str]]] = [
+        types_to_copy: list[tuple[str, str | None]] = [
             (EventTypes.JoinRules, ""),
             (EventTypes.Name, ""),
             (EventTypes.Topic, ""),
@@ -699,9 +699,9 @@ class RoomCreationHandler:
         requester: Requester,
         config: JsonDict,
         ratelimit: bool = True,
-        creator_join_profile: Optional[JsonDict] = None,
+        creator_join_profile: JsonDict | None = None,
         ignore_forced_encryption: bool = False,
-    ) -> tuple[str, Optional[RoomAlias], int]:
+    ) -> tuple[str, RoomAlias | None, int]:
         """Creates a new room.
 
         Args:
@@ -1014,9 +1014,9 @@ class RoomCreationHandler:
         invite_list: list[str],
         initial_state: MutableStateMap,
         creation_content: JsonDict,
-        room_alias: Optional[RoomAlias] = None,
-        power_level_content_override: Optional[JsonDict] = None,
-        creator_join_profile: Optional[JsonDict] = None,
+        room_alias: RoomAlias | None = None,
+        power_level_content_override: JsonDict | None = None,
+        creator_join_profile: JsonDict | None = None,
         ignore_forced_encryption: bool = False,
     ) -> tuple[int, str, int]:
         """Sends the initial events into a new room. Sends the room creation, membership,
@@ -1416,9 +1416,9 @@ class RoomContextHandler:
         room_id: str,
         event_id: str,
         limit: int,
-        event_filter: Optional[Filter],
+        event_filter: Filter | None,
         use_admin_priviledge: bool = False,
-    ) -> Optional[EventContext]:
+    ) -> EventContext | None:
         """Retrieves events, pagination tokens and state around a given event
         in a room.
 
@@ -1704,7 +1704,7 @@ class RoomEventSource(EventSource[RoomStreamToken, EventBase]):
         limit: int,
         room_ids: StrCollection,
         is_guest: bool,
-        explicit_room_id: Optional[str] = None,
+        explicit_room_id: str | None = None,
     ) -> tuple[list[EventBase], RoomStreamToken]:
         # We just ignore the key for now.
 
@@ -1784,10 +1784,10 @@ class ShutdownRoomParams(TypedDict):
             even if there are still users joined to the room.
     """
 
-    requester_user_id: Optional[str]
-    new_room_user_id: Optional[str]
-    new_room_name: Optional[str]
-    message: Optional[str]
+    requester_user_id: str | None
+    new_room_user_id: str | None
+    new_room_name: str | None
+    message: str | None
     block: bool
     purge: bool
     force_purge: bool
@@ -1808,7 +1808,7 @@ class ShutdownRoomResponse(TypedDict):
     kicked_users: list[str]
     failed_to_kick_users: list[str]
     local_aliases: list[str]
-    new_room_id: Optional[str]
+    new_room_id: str | None
 
 
 class RoomShutdownHandler:
@@ -1831,11 +1831,10 @@ class RoomShutdownHandler:
         self,
         room_id: str,
         params: ShutdownRoomParams,
-        result: Optional[ShutdownRoomResponse] = None,
-        update_result_fct: Optional[
-            Callable[[Optional[JsonMapping]], Awaitable[None]]
-        ] = None,
-    ) -> Optional[ShutdownRoomResponse]:
+        result: ShutdownRoomResponse | None = None,
+        update_result_fct: Callable[[JsonMapping | None], Awaitable[None]]
+        | None = None,
+    ) -> ShutdownRoomResponse | None:
         """
         Shuts down a room. Moves all local users and room aliases automatically
         to a new room if `new_room_user_id` is set. Otherwise local users only

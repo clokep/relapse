@@ -19,7 +19,7 @@ import os
 import platform
 import threading
 from collections.abc import Callable, Iterable, Mapping
-from typing import Generic, Optional, TypeVar, Union, cast
+from typing import Generic, TypeVar, cast
 
 import attr
 from prometheus_client import CollectorRegistry, Counter, Gauge, Histogram, Metric
@@ -68,12 +68,10 @@ class LaterGauge(Collector):
 
     name: str
     desc: str
-    labels: Optional[StrSequence] = attr.ib(hash=False)
+    labels: StrSequence | None = attr.ib(hash=False)
     # callback: should either return a value (if there are no labels for this metric),
     # or dict mapping from a label tuple to a value
-    caller: Callable[
-        [], Union[Mapping[tuple[str, ...], Union[int, float]], Union[int, float]]
-    ]
+    caller: Callable[[], Mapping[tuple[str, ...], int | float] | int | float]
 
     def collect(self) -> Iterable[Metric]:
         g = GaugeMetricFamily(self.name, self.desc, labels=self.labels)
@@ -275,7 +273,7 @@ class GaugeBucketCollector(Collector):
 
         # We initially set this to None. We won't report metrics until
         # this has been initialised after a successful data update
-        self._metric: Optional[GaugeHistogramMetricFamily] = None
+        self._metric: GaugeHistogramMetricFamily | None = None
 
         registry.register(self)
 

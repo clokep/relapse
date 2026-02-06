@@ -14,7 +14,7 @@
 import html
 import logging
 import urllib.parse
-from typing import TYPE_CHECKING, Optional, cast
+from typing import TYPE_CHECKING, cast
 
 import attr
 
@@ -35,12 +35,12 @@ class OEmbedResult:
     # The Open Graph result (converted from the oEmbed result).
     open_graph_result: JsonDict
     # The author_name of the oEmbed result
-    author_name: Optional[str]
+    author_name: str | None
     # Number of milliseconds to cache the content, according to the oEmbed response.
     #
     # This will be None if no cache-age is provided in the oEmbed response (or
     # if the oEmbed response cannot be turned into an Open Graph response).
-    cache_age: Optional[int]
+    cache_age: int | None
 
 
 class OEmbedProvider:
@@ -73,7 +73,7 @@ class OEmbedProvider:
             for pattern in oembed_endpoint.url_patterns:
                 self._oembed_patterns[pattern] = api_endpoint
 
-    def get_oembed_url(self, url: str) -> Optional[str]:
+    def get_oembed_url(self, url: str) -> str | None:
         """
         Check whether the URL should be downloaded as oEmbed content instead.
 
@@ -98,7 +98,7 @@ class OEmbedProvider:
         # No match.
         return None
 
-    def autodiscover_from_html(self, soup: "BeautifulSoup") -> Optional[str]:
+    def autodiscover_from_html(self, soup: "BeautifulSoup") -> str | None:
         """
         Search an HTML document for oEmbed autodiscovery information.
 
@@ -206,7 +206,7 @@ class OEmbedProvider:
         return OEmbedResult(open_graph_response, author_name, cache_age)
 
 
-def _fetch_url(soup: "BeautifulSoup", tag_name: str) -> Optional[str]:
+def _fetch_url(soup: "BeautifulSoup", tag_name: str) -> str | None:
     tag = soup.find(tag_name, src=NON_BLANK)
     return cast(str, tag["src"]) if tag else None
 

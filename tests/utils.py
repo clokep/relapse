@@ -16,7 +16,7 @@
 import atexit
 import os
 from collections.abc import Callable
-from typing import Any, Literal, TypeVar, Union, overload
+from typing import Any, Literal, TypeVar, overload
 
 import attr
 from typing_extensions import ParamSpec
@@ -125,7 +125,7 @@ def default_config(name: str, parse: Literal[True]) -> HomeServerConfig: ...
 
 def default_config(
     name: str, parse: bool = False
-) -> Union[dict[str, object], HomeServerConfig]:
+) -> dict[str, object] | HomeServerConfig:
     """
     Create a reasonable test config.
     """

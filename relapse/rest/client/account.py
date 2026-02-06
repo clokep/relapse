@@ -15,7 +15,7 @@
 # limitations under the License.
 import logging
 import random
-from typing import TYPE_CHECKING, Annotated, Literal, Optional
+from typing import TYPE_CHECKING, Annotated, Literal
 from urllib.parse import urlparse
 
 import attr
@@ -151,15 +151,15 @@ class PasswordRestServlet(RestServlet):
         self._set_password_handler = hs.get_set_password_handler()
 
     class PostBody(RequestBodyModel):
-        auth: Optional[AuthenticationData] = None
+        auth: AuthenticationData | None = None
         logout_devices: bool = True
         if TYPE_CHECKING:
             # workaround for https://github.com/samuelcolvin/pydantic/issues/156
-            new_password: Optional[str] = None
+            new_password: str | None = None
         else:
-            new_password: Optional[
-                Annotated[str, StringConstraints(max_length=512, strict=True)]
-            ] = None
+            new_password: (
+                Annotated[str, StringConstraints(max_length=512, strict=True)] | None
+            ) = None
 
     @interactive_auth_handler
     async def on_POST(self, request: RelapseRequest) -> tuple[int, JsonDict]:
@@ -253,7 +253,7 @@ class PasswordRestServlet(RestServlet):
         # If we have a password in this request, prefer it. Otherwise, use the
         # password hash from an earlier request.
         if new_password:
-            password_hash: Optional[str] = await self.auth_handler.hash(new_password)
+            password_hash: str | None = await self.auth_handler.hash(new_password)
         elif session_id is not None:
             password_hash = existing_session_password_hash
         else:
@@ -283,8 +283,8 @@ class DeactivateAccountRestServlet(RestServlet):
         self._deactivate_account_handler = hs.get_deactivate_account_handler()
 
     class PostBody(RequestBodyModel):
-        auth: Optional[AuthenticationData] = None
-        id_server: Optional[str] = None
+        auth: AuthenticationData | None = None
+        id_server: str | None = None
         # Not specced, see https://github.com/matrix-org/matrix-spec/issues/297
         erase: bool = False
 
@@ -647,7 +647,7 @@ class ThreepidAddRestServlet(RestServlet):
         self.auth_handler = hs.get_auth_handler()
 
     class PostBody(RequestBodyModel):
-        auth: Optional[AuthenticationData] = None
+        auth: AuthenticationData | None = None
         client_secret: ClientSecretStr
         sid: str
 
@@ -726,7 +726,7 @@ class ThreepidUnbindRestServlet(RestServlet):
 
     class PostBody(RequestBodyModel):
         address: str
-        id_server: Optional[str] = None
+        id_server: str | None = None
         medium: Literal["email", "msisdn"]
 
     async def on_POST(self, request: RelapseRequest) -> tuple[int, JsonDict]:
@@ -755,7 +755,7 @@ class ThreepidDeleteRestServlet(RestServlet):
 
     class PostBody(RequestBodyModel):
         address: str
-        id_server: Optional[str] = None
+        id_server: str | None = None
         medium: Literal["email", "msisdn"]
 
     async def on_POST(self, request: RelapseRequest) -> tuple[int, JsonDict]:

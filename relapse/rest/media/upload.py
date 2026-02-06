@@ -15,7 +15,7 @@
 
 import logging
 import re
-from typing import IO, TYPE_CHECKING, Optional
+from typing import IO, TYPE_CHECKING
 
 from relapse.api.errors import Codes, RelapseError
 from relapse.http.servlet import RestServlet, parse_bytes_from_args
@@ -46,7 +46,7 @@ class BaseUploadServlet(RestServlet):
 
     def _get_file_metadata(
         self, request: RelapseRequest
-    ) -> tuple[int, Optional[str], str]:
+    ) -> tuple[int, str | None, str]:
         raw_content_length = request.getHeader("Content-Length")
         if raw_content_length is None:
             raise RelapseError(msg="Request must specify a Content-Length", code=400)
@@ -65,7 +65,7 @@ class BaseUploadServlet(RestServlet):
         upload_name_bytes = parse_bytes_from_args(args, "filename")
         if upload_name_bytes:
             try:
-                upload_name: Optional[str] = upload_name_bytes.decode("utf8")
+                upload_name: str | None = upload_name_bytes.decode("utf8")
             except UnicodeDecodeError:
                 raise RelapseError(
                     msg=f"Invalid UTF-8 filename parameter: {upload_name_bytes!r}",

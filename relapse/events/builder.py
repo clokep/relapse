@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-from typing import TYPE_CHECKING, Any, Optional, Union
+from typing import TYPE_CHECKING, Any
 
 import attr
 from signedjson.types import SigningKey
@@ -83,9 +83,9 @@ class EventBuilder:
 
     # These only exist on a subset of events, so they raise AttributeError if
     # someone tries to get them when they don't exist.
-    _state_key: Optional[str] = None
-    _redacts: Optional[str] = None
-    _origin_server_ts: Optional[int] = None
+    _state_key: str | None = None
+    _redacts: str | None = None
+    _origin_server_ts: int | None = None
 
     internal_metadata: _EventInternalMetadata = attr.Factory(
         lambda: _EventInternalMetadata({})
@@ -104,8 +104,8 @@ class EventBuilder:
     async def build(
         self,
         prev_event_ids: list[str],
-        auth_event_ids: Optional[list[str]],
-        depth: Optional[int] = None,
+        auth_event_ids: list[str] | None,
+        depth: int | None = None,
     ) -> EventBase:
         """Transform into a fully signed and hashed event
 
@@ -136,8 +136,8 @@ class EventBuilder:
 
         format_version = self.room_version.event_format
         # The types of auth/prev events changes between event versions.
-        prev_events: Union[StrCollection, list[tuple[str, dict[str, str]]]]
-        auth_events: Union[list[str], list[tuple[str, dict[str, str]]]]
+        prev_events: StrCollection | list[tuple[str, dict[str, str]]]
+        auth_events: list[str] | list[tuple[str, dict[str, str]]]
         if format_version == EventFormatVersions.ROOM_V1_V2:
             auth_events = await self._store.add_event_hashes(auth_event_ids)
             prev_events = await self._store.add_event_hashes(prev_event_ids)
@@ -239,7 +239,7 @@ def create_local_event_from_event_dict(
     signing_key: SigningKey,
     room_version: RoomVersion,
     event_dict: JsonDict,
-    internal_metadata_dict: Optional[JsonDict] = None,
+    internal_metadata_dict: JsonDict | None = None,
 ) -> EventBase:
     """Takes a fully formed event dict, ensuring that fields like `origin`
     and `origin_server_ts` have correct values for a locally produced event,

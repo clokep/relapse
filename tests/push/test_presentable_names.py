@@ -13,7 +13,7 @@
 #  limitations under the License.
 
 from collections.abc import Iterable
-from typing import Optional, cast
+from typing import cast
 
 from relapse.api.constants import EventTypes, Membership
 from relapse.api.room_versions import RoomVersions
@@ -53,7 +53,7 @@ class MockDataStore:
 
     async def get_event(
         self, event_id: str, allow_none: bool = False
-    ) -> Optional[FrozenEvent]:
+    ) -> FrozenEvent | None:
         assert allow_none, "Mock not configured for allow_none = False"
 
         # Decode the state key from the event ID.
@@ -75,7 +75,7 @@ class PresentableNamesTestCase(unittest.HomeserverTestCase):
         user_id: str = "",
         fallback_to_members: bool = True,
         fallback_to_single_member: bool = True,
-    ) -> Optional[str]:
+    ) -> str | None:
         # Encode the state key into the event ID.
         room_state_ids = {k[0]: "|".join(k[0]) for k in events}
 

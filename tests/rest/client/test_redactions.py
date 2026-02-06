@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Optional
 
 from parameterized import parameterized
 
@@ -78,8 +77,8 @@ class RedactionsTestCase(HomeserverTestCase):
         room_id: str,
         event_id: str,
         expect_code: int = 200,
-        with_relations: Optional[list[str]] = None,
-        content: Optional[JsonDict] = None,
+        with_relations: list[str] | None = None,
+        content: JsonDict | None = None,
     ) -> JsonDict:
         """Helper function to send a redaction event.
 

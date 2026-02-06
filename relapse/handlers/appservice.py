@@ -13,7 +13,7 @@
 # limitations under the License.
 import logging
 from collections.abc import Collection, Iterable, Mapping
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING
 
 from prometheus_client import Counter
 
@@ -209,8 +209,8 @@ class ApplicationServicesHandler:
     def notify_interested_services_ephemeral(
         self,
         stream_key: StreamKeyType,
-        new_token: Union[int, RoomStreamToken, MultiWriterStreamToken],
-        users: Collection[Union[str, UserID]],
+        new_token: int | RoomStreamToken | MultiWriterStreamToken,
+        users: Collection[str | UserID],
     ) -> None:
         """
         This is called by the notifier in the background when an ephemeral event is handled
@@ -309,8 +309,8 @@ class ApplicationServicesHandler:
         self,
         services: list[ApplicationService],
         stream_key: StreamKeyType,
-        new_token: Union[int, MultiWriterStreamToken],
-        users: Collection[Union[str, UserID]],
+        new_token: int | MultiWriterStreamToken,
+        users: Collection[str | UserID],
     ) -> None:
         logger.debug("Checking interested services for %s", stream_key)
         with Measure(self.clock, "notify_interested_services_ephemeral"):
@@ -463,8 +463,8 @@ class ApplicationServicesHandler:
     async def _handle_presence(
         self,
         service: ApplicationService,
-        users: Collection[Union[str, UserID]],
-        new_token: Optional[int],
+        users: Collection[str | UserID],
+        new_token: int | None,
     ) -> list[JsonMapping]:
         """
         Return the latest presence updates that the given application service should receive.
@@ -524,7 +524,7 @@ class ApplicationServicesHandler:
         self,
         service: ApplicationService,
         new_token: int,
-        users: Collection[Union[str, UserID]],
+        users: Collection[str | UserID],
     ) -> list[JsonDict]:
         """
         Given an application service, determine which events it should receive
@@ -697,7 +697,7 @@ class ApplicationServicesHandler:
 
     async def query_room_alias_exists(
         self, room_alias: RoomAlias
-    ) -> Optional[RoomAliasMapping]:
+    ) -> RoomAliasMapping | None:
         """Check if an application service knows this room alias exists.
 
         Args:
@@ -746,7 +746,7 @@ class ApplicationServicesHandler:
         return ret
 
     async def get_3pe_protocols(
-        self, only_protocol: Optional[str] = None
+        self, only_protocol: str | None = None
     ) -> dict[str, JsonDict]:
         services = self.store.get_app_services()
         protocols: dict[str, list[JsonDict]] = {}
@@ -898,7 +898,7 @@ class ApplicationServicesHandler:
         return claimed_keys, missing
 
     async def query_keys(
-        self, query: Mapping[str, Optional[list[str]]]
+        self, query: Mapping[str, list[str] | None]
     ) -> dict[str, dict[str, dict[str, JsonDict]]]:
         """Query application services for device keys.
 

@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Optional
 
 from twisted.internet.testing import MemoryReactor
 
@@ -485,7 +484,7 @@ class UserMediaStatisticsTestCase(unittest.HomeserverTestCase):
             self.assertIn("media_length", c)
 
     def _order_test(
-        self, order_type: str, expected_user_list: list[str], dir: Optional[str] = None
+        self, order_type: str, expected_user_list: list[str], dir: str | None = None
     ) -> None:
         """Request the list of users in a certain order. Assert that order is what
         we expect

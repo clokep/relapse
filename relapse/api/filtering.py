@@ -16,7 +16,7 @@
 # limitations under the License.
 import json
 from collections.abc import Awaitable, Callable, Collection, Iterable, Mapping
-from typing import TYPE_CHECKING, Optional, TypeVar, Union
+from typing import TYPE_CHECKING, TypeVar
 
 import jsonschema
 from jsonschema import FormatChecker
@@ -140,7 +140,7 @@ class Filtering:
         self.DEFAULT_FILTER_COLLECTION = FilterCollection(hs, {})
 
     async def get_user_filter(
-        self, user_id: UserID, filter_id: Union[int, str]
+        self, user_id: UserID, filter_id: int | str
     ) -> "FilterCollection":
         result = await self.store.get_user_filter(user_id, filter_id)
         return FilterCollection(self._hs, result)
@@ -516,7 +516,7 @@ class Filter:
         return newFilter
 
 
-def _matches_wildcard(actual_value: Optional[str], filter_value: str) -> bool:
+def _matches_wildcard(actual_value: str | None, filter_value: str) -> bool:
     if filter_value.endswith("*") and isinstance(actual_value, str):
         type_prefix = filter_value[:-1]
         return actual_value.startswith(type_prefix)

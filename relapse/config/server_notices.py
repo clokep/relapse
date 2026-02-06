@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Optional
+from typing import Any
 
 from relapse.types import JsonDict, UserID
 
@@ -52,12 +52,12 @@ class ServerNoticesConfig(Config):
 
     def __init__(self, *args: Any):
         super().__init__(*args)
-        self.server_notices_mxid: Optional[str] = None
-        self.server_notices_mxid_display_name: Optional[str] = None
-        self.server_notices_mxid_avatar_url: Optional[str] = None
-        self.server_notices_room_name: Optional[str] = None
-        self.server_notices_room_avatar_url: Optional[str] = None
-        self.server_notices_room_topic: Optional[str] = None
+        self.server_notices_mxid: str | None = None
+        self.server_notices_mxid_display_name: str | None = None
+        self.server_notices_mxid_avatar_url: str | None = None
+        self.server_notices_room_name: str | None = None
+        self.server_notices_room_avatar_url: str | None = None
+        self.server_notices_room_topic: str | None = None
         self.server_notices_auto_join: bool = False
 
     def read_config(self, config: JsonDict, **kwargs: Any) -> None:

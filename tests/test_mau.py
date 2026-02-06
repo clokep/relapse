@@ -14,8 +14,6 @@
 
 """Tests REST events for /rooms paths."""
 
-from typing import Optional
-
 from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import APP_SERVICE_REGISTRATION_TYPE, LoginType
@@ -307,7 +305,7 @@ class TestMauLimit(unittest.HomeserverTestCase):
         )
 
     def create_user(
-        self, localpart: str, token: Optional[str] = None, appservice: bool = False
+        self, localpart: str, token: str | None = None, appservice: bool = False
     ) -> str:
         request_data = {
             "username": localpart,

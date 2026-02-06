@@ -19,7 +19,6 @@ import urllib
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Generator
 from types import TracebackType
-from typing import Optional
 
 import attr
 
@@ -105,8 +104,8 @@ async def respond_with_file(
     request: RelapseRequest,
     media_type: str,
     file_path: str,
-    file_size: Optional[int] = None,
-    upload_name: Optional[str] = None,
+    file_size: int | None = None,
+    upload_name: str | None = None,
 ) -> None:
     logger.debug("Responding with %r", file_path)
 
@@ -128,8 +127,8 @@ async def respond_with_file(
 def add_file_headers(
     request: Request,
     media_type: str,
-    file_size: Optional[int],
-    upload_name: Optional[str],
+    file_size: int | None,
+    upload_name: str | None,
 ) -> None:
     """Adds the correct response headers in preparation for responding with the
     media.
@@ -250,10 +249,10 @@ def _can_encode_filename_as_token(x: str) -> bool:
 
 async def respond_with_responder(
     request: RelapseRequest,
-    responder: "Optional[Responder]",
+    responder: "Responder | None",
     media_type: str,
-    file_size: Optional[int],
-    upload_name: Optional[str] = None,
+    file_size: int | None,
+    upload_name: str | None = None,
 ) -> None:
     """Responds to the request with given responder. If responder is None then
     returns 404.
@@ -318,9 +317,9 @@ class Responder(ABC):
 
     def __exit__(  # noqa: B027
         self,
-        exc_type: Optional[type[BaseException]],
-        exc_val: Optional[BaseException],
-        exc_tb: Optional[TracebackType],
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
     ) -> None:
         pass
 
@@ -343,47 +342,47 @@ class FileInfo:
     """Details about a requested/uploaded file."""
 
     # The server name where the media originated from, or None if local.
-    server_name: Optional[str]
+    server_name: str | None
     # The local ID of the file. For local files this is the same as the media_id
     file_id: str
     # If the file is for the url preview cache
     url_cache: bool = False
     # Whether the file is a thumbnail or not.
-    thumbnail: Optional[ThumbnailInfo] = None
+    thumbnail: ThumbnailInfo | None = None
 
     # The below properties exist to maintain compatibility with third-party modules.
     @property
-    def thumbnail_width(self) -> Optional[int]:
+    def thumbnail_width(self) -> int | None:
         if not self.thumbnail:
             return None
         return self.thumbnail.width
 
     @property
-    def thumbnail_height(self) -> Optional[int]:
+    def thumbnail_height(self) -> int | None:
         if not self.thumbnail:
             return None
         return self.thumbnail.height
 
     @property
-    def thumbnail_method(self) -> Optional[str]:
+    def thumbnail_method(self) -> str | None:
         if not self.thumbnail:
             return None
         return self.thumbnail.method
 
     @property
-    def thumbnail_type(self) -> Optional[str]:
+    def thumbnail_type(self) -> str | None:
         if not self.thumbnail:
             return None
         return self.thumbnail.type
 
     @property
-    def thumbnail_length(self) -> Optional[int]:
+    def thumbnail_length(self) -> int | None:
         if not self.thumbnail:
             return None
         return self.thumbnail.length
 
 
-def get_filename_from_headers(headers: dict[bytes, list[bytes]]) -> Optional[str]:
+def get_filename_from_headers(headers: dict[bytes, list[bytes]]) -> str | None:
     """
     Get the filename of the downloaded file by inspecting the
     Content-Disposition HTTP header.

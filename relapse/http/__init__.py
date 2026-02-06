@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import re
-from typing import Union
 
 from twisted.internet import address, task
 from twisted.web.client import FileBodyProducer
@@ -69,7 +68,7 @@ def _get_requested_host(request: IRequest) -> bytes:
         return hostname
 
     # no Host header, use the address/port that the request arrived on
-    host: Union[address.IPv4Address, address.IPv6Address] = request.getHost()
+    host: address.IPv4Address | address.IPv6Address = request.getHost()
 
     hostname = host.host.encode("ascii")
 

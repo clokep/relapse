@@ -11,7 +11,7 @@
 # limitations under the License.
 from collections.abc import Callable
 from http import HTTPStatus
-from typing import BinaryIO, Optional
+from typing import BinaryIO
 from unittest.mock import Mock
 
 from twisted.internet.testing import MemoryReactor
@@ -110,9 +110,9 @@ class TestSSOHandler(unittest.HomeserverTestCase):
 async def mock_get_file(
     url: str,
     output_stream: BinaryIO,
-    max_size: Optional[int] = None,
-    headers: Optional[RawHeaders] = None,
-    is_allowed_content_type: Optional[Callable[[str], bool]] = None,
+    max_size: int | None = None,
+    headers: RawHeaders | None = None,
+    is_allowed_content_type: Callable[[str], bool] | None = None,
 ) -> tuple[int, dict[bytes, list[bytes]], str, int]:
     fake_response = FakeResponse(code=404)
     if url == "http://my.server/me.png":

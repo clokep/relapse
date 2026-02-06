@@ -15,7 +15,6 @@
 import logging
 import math
 from collections.abc import Collection, Mapping
-from typing import Optional, Union
 
 import attr
 from sortedcontainers import SortedDict
@@ -39,7 +38,7 @@ class AllEntitiesChangedResult:
     that callers do the correct checks.
     """
 
-    _entities: Optional[list[EntityType]]
+    _entities: list[EntityType] | None
 
     @property
     def hit(self) -> bool:
@@ -70,7 +69,7 @@ class StreamChangeCache:
         name: str,
         current_stream_pos: int,
         max_size: int = 10000,
-        prefilled_cache: Optional[Mapping[EntityType, int]] = None,
+        prefilled_cache: Mapping[EntityType, int] | None = None,
     ) -> None:
         self._original_max_size: int = max_size
         self._max_size = math.floor(max_size)
@@ -160,7 +159,7 @@ class StreamChangeCache:
 
     def get_entities_changed(
         self, entities: Collection[EntityType], stream_pos: int
-    ) -> Union[set[EntityType], frozenset[EntityType]]:
+    ) -> set[EntityType] | frozenset[EntityType]:
         """
         Returns the subset of the given entities that have had changes after the given position.
 

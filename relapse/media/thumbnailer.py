@@ -15,7 +15,6 @@
 import logging
 from io import BytesIO
 from types import TracebackType
-from typing import Optional
 
 from PIL import Image
 
@@ -215,9 +214,9 @@ class Thumbnailer:
 
     def __exit__(
         self,
-        type: Optional[type[BaseException]],
-        value: Optional[BaseException],
-        traceback: Optional[TracebackType],
+        type: type[BaseException] | None,
+        value: BaseException | None,
+        traceback: TracebackType | None,
     ) -> None:
         self.close()
 

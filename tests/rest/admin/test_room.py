@@ -14,7 +14,6 @@
 import json
 import time
 import urllib.parse
-from typing import Optional
 from unittest.mock import AsyncMock, Mock
 
 from parameterized import parameterized
@@ -1679,7 +1678,7 @@ class RoomTestCase(unittest.HomeserverTestCase):
         self._set_canonical_alias(room_id_1, "#Room_Alias1:test", self.admin_user_tok)
 
         def _search_test(
-            expected_room_id: Optional[str],
+            expected_room_id: str | None,
             search_term: str,
             expected_http_code: int = 200,
         ) -> None:

@@ -16,7 +16,7 @@ import shutil
 import tempfile
 from binascii import unhexlify
 from io import BytesIO
-from typing import Any, BinaryIO, ClassVar, Literal, Optional, Union
+from typing import Any, BinaryIO, ClassVar, Literal
 from unittest.mock import Mock
 from urllib import parse
 
@@ -135,8 +135,8 @@ class _TestImage:
     data: bytes
     content_type: bytes
     extension: bytes
-    expected_cropped: Optional[bytes] = None
-    expected_scaled: Optional[bytes] = None
+    expected_cropped: bytes | None = None
+    expected_scaled: bytes | None = None
     expected_found: bool = True
     unable_to_thumbnail: bool = False
     is_inline: bool = True
@@ -233,7 +233,7 @@ class MediaRepoTests(unittest.HomeserverTestCase):
                 Deferred[tuple[bytes, tuple[int, dict[bytes, list[bytes]]]]],
                 str,
                 str,
-                Optional[QueryParams],
+                QueryParams | None,
             ]
         ] = []
 
@@ -241,9 +241,9 @@ class MediaRepoTests(unittest.HomeserverTestCase):
             destination: str,
             path: str,
             output_stream: BinaryIO,
-            args: Optional[QueryParams] = None,
+            args: QueryParams | None = None,
             retry_on_dns_fail: bool = True,
-            max_size: Optional[int] = None,
+            max_size: int | None = None,
             ignore_backoff: bool = False,
             follow_redirects: bool = False,
         ) -> "Deferred[tuple[int, dict[bytes, list[bytes]]]]":
@@ -300,7 +300,7 @@ class MediaRepoTests(unittest.HomeserverTestCase):
         self.media_id = "example.com/12345"
 
     def _req(
-        self, content_disposition: Optional[bytes], include_content_type: bool = True
+        self, content_disposition: bytes | None, include_content_type: bool = True
     ) -> FakeChannel:
         channel = self.make_request(
             "GET",
@@ -532,7 +532,7 @@ class MediaRepoTests(unittest.HomeserverTestCase):
     def _test_thumbnail(
         self,
         method: str,
-        expected_body: Optional[bytes],
+        expected_body: bytes | None,
         expected_found: bool,
         unable_to_thumbnail: bool = False,
     ) -> None:
@@ -733,7 +733,7 @@ class TestSpamCheckerLegacy:
     def parse_config(config: dict[str, Any]) -> dict[str, Any]:
         return config
 
-    async def check_event_for_spam(self, event: EventBase) -> Union[bool, str]:
+    async def check_event_for_spam(self, event: EventBase) -> bool | str:
         return False  # allow all events
 
     async def user_may_invite(
@@ -785,7 +785,7 @@ class SpamCheckerTestCase(unittest.HomeserverTestCase):
 
     async def check_media_file_for_spam(
         self, file_wrapper: ReadableFileWrapper, file_info: FileInfo
-    ) -> Union[Codes, Literal["NOT_SPAM"], tuple[Codes, JsonDict]]:
+    ) -> Codes | Literal["NOT_SPAM"] | tuple[Codes, JsonDict]:
         buf = BytesIO()
         await file_wrapper.write_chunks_to(buf.write)
 

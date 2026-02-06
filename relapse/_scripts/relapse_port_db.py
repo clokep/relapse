@@ -193,14 +193,14 @@ IGNORED_TABLES = {
 
 # Error returned by the run function. Used at the top-level part of the script to
 # handle errors and return codes.
-end_error: Optional[str] = None
+end_error: str | None = None
 # The exec_info for the error, if any. If error is defined but not exec_info the script
 # will show only the error message without the stacktrace, if exec_info is defined but
 # not the error then the script will show nothing outside of what's printed in the run
 # function. If both are defined, the script will print both the error and the stacktrace.
-end_error_exec_info: Optional[
-    tuple[type[BaseException], BaseException, TracebackType]
-] = None
+end_error_exec_info: tuple[type[BaseException], BaseException, TracebackType] | None = (
+    None
+)
 
 R = TypeVar("R")
 
@@ -450,7 +450,7 @@ class Porter:
 
             def r(
                 txn: LoggingTransaction,
-            ) -> tuple[Optional[list[str]], list[tuple], list[tuple]]:
+            ) -> tuple[list[str] | None, list[tuple], list[tuple]]:
                 forward_rows = []
                 backward_rows = []
                 if do_forward[0]:
@@ -467,7 +467,7 @@ class Porter:
 
                 if forward_rows or backward_rows:
                     assert txn.description is not None
-                    headers: Optional[list[str]] = [
+                    headers: list[str] | None = [
                         column[0] for column in txn.description
                     ]
                 else:
@@ -1015,9 +1015,7 @@ class Porter:
         return done, remaining + done
 
     async def _setup_state_group_id_seq(self) -> None:
-        curr_id: Optional[
-            int
-        ] = await self.sqlite_store.db_pool.simple_select_one_onecol(
+        curr_id: int | None = await self.sqlite_store.db_pool.simple_select_one_onecol(
             table="state_groups", keyvalues={}, retcol="MAX(id)", allow_none=True
         )
 
@@ -1105,9 +1103,9 @@ class Porter:
         await self.postgres_store.db_pool.runInteraction(f"_setup_{sequence_name}", r)
 
     async def _setup_auth_chain_sequence(self) -> None:
-        curr_chain_id: Optional[
-            int
-        ] = await self.sqlite_store.db_pool.simple_select_one_onecol(
+        curr_chain_id: (
+            int | None
+        ) = await self.sqlite_store.db_pool.simple_select_one_onecol(
             table="event_auth_chains",
             keyvalues={},
             retcol="MAX(chain_id)",

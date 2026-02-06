@@ -14,7 +14,7 @@
 # limitations under the License.
 import logging
 from collections.abc import Awaitable, Callable
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from relapse.api.constants import MAX_DEPTH, EventContentFields, EventTypes, Membership
 from relapse.api.errors import Codes, RelapseError
@@ -62,9 +62,8 @@ class FederationBase:
         self,
         room_version: RoomVersion,
         pdu: EventBase,
-        record_failure_callback: Optional[
-            Callable[[EventBase, str], Awaitable[None]]
-        ] = None,
+        record_failure_callback: Callable[[EventBase, str], Awaitable[None]]
+        | None = None,
     ) -> EventBase:
         """Checks that event is correctly signed by the sending server.
 

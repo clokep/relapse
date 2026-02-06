@@ -15,7 +15,7 @@
 
 import logging
 import re
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from relapse.api.errors import Codes, RelapseError, cs_error
 from relapse.config.repository import THUMBNAIL_SUPPORTED_MEDIA_FORMAT_MAP
@@ -315,7 +315,7 @@ class ThumbnailServlet(RestServlet):
         media_id: str,
         file_id: str,
         url_cache: bool,
-        server_name: Optional[str] = None,
+        server_name: str | None = None,
     ) -> None:
         """
         Respond to a request with an appropriate thumbnail from the previously generated thumbnails.
@@ -452,8 +452,8 @@ class ThumbnailServlet(RestServlet):
         thumbnail_infos: list[ThumbnailInfo],
         file_id: str,
         url_cache: bool,
-        server_name: Optional[str],
-    ) -> Optional[FileInfo]:
+        server_name: str | None,
+    ) -> FileInfo | None:
         """
         Choose an appropriate thumbnail from the previously generated thumbnails.
 
@@ -481,11 +481,11 @@ class ThumbnailServlet(RestServlet):
         if desired_method == "crop":
             # Thumbnails that match equal or larger sizes of desired width/height.
             crop_info_list: list[
-                tuple[int, int, int, bool, Optional[int], ThumbnailInfo]
+                tuple[int, int, int, bool, int | None, ThumbnailInfo]
             ] = []
             # Other thumbnails.
             crop_info_list2: list[
-                tuple[int, int, int, bool, Optional[int], ThumbnailInfo]
+                tuple[int, int, int, bool, int | None, ThumbnailInfo]
             ] = []
             for info in thumbnail_infos:
                 # Skip thumbnails generated with different methods.

@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from collections.abc import Callable
-from typing import Optional
 from unittest.mock import AsyncMock, Mock
 
 from signedjson import key, sign
@@ -318,7 +317,7 @@ class FederationSenderDevicesTestCases(HomeserverTestCase):
         self.federation_client.send_transaction.side_effect = self.record_transaction
 
     async def record_transaction(
-        self, txn: Transaction, json_cb: Optional[Callable[[], JsonDict]] = None
+        self, txn: Transaction, json_cb: Callable[[], JsonDict] | None = None
     ) -> JsonDict:
         assert json_cb is not None
         data = json_cb()
@@ -398,7 +397,7 @@ class FederationSenderDevicesTestCases(HomeserverTestCase):
 
         # expect two edus
         self.assertEqual(len(self.edus), 2)
-        stream_id: Optional[int] = None
+        stream_id: int | None = None
         stream_id = self.check_device_update_edu(self.edus.pop(0), u1, "D1", stream_id)
         stream_id = self.check_device_update_edu(self.edus.pop(0), u1, "D2", stream_id)
 
@@ -560,7 +559,7 @@ class FederationSenderDevicesTestCases(HomeserverTestCase):
 
         # for each device, there should be a single update
         self.assertEqual(len(self.edus), 3)
-        stream_id: Optional[int] = None
+        stream_id: int | None = None
         for edu in self.edus:
             self.assertEqual(edu["edu_type"], EduTypes.DEVICE_LIST_UPDATE)
             c = edu["content"]
@@ -682,7 +681,7 @@ class FederationSenderDevicesTestCases(HomeserverTestCase):
         edu: JsonDict,
         user_id: str,
         device_id: str,
-        prev_stream_id: Optional[int],
+        prev_stream_id: int | None,
     ) -> int:
         """Check that the given EDU is an update for the given device
         Returns the stream_id.

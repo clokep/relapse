@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Optional
+from typing import Any
 
 import attr
 
@@ -68,7 +68,7 @@ class MetricsConfig(Config):
                 )
 
     def generate_config_section(
-        self, report_stats: Optional[bool] = None, **kwargs: Any
+        self, report_stats: bool | None = None, **kwargs: Any
     ) -> str:
         if report_stats is not None:
             report_stats_str = "true" if report_stats else "false"

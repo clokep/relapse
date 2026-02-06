@@ -15,7 +15,7 @@
 import logging
 import random
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from relapse.api.constants import EduTypes, EventTypes, Membership, PresenceState
 from relapse.api.errors import AuthError, RelapseError
@@ -52,7 +52,7 @@ class EventStreamHandler:
         timeout: int = 0,
         as_client_event: bool = True,
         affect_presence: bool = True,
-        room_id: Optional[str] = None,
+        room_id: str | None = None,
     ) -> JsonDict:
         """Fetches the events stream for a given user."""
 
@@ -146,10 +146,10 @@ class EventHandler:
     async def get_event(
         self,
         user: UserID,
-        room_id: Optional[str],
+        room_id: str | None,
         event_id: str,
         show_redacted: bool = False,
-    ) -> Optional[EventBase]:
+    ) -> EventBase | None:
         """Retrieve a single specified event.
 
         Args:

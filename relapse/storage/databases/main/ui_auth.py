@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Optional, Union, cast
+from typing import Any, cast
 
 import attr
 
@@ -134,7 +134,7 @@ class UIAuthWorkerStore(SQLBaseStore):
         self,
         session_id: str,
         stage_type: str,
-        result: Union[str, bool, JsonDict],
+        result: str | bool | JsonDict,
     ) -> None:
         """
         Mark a session stage as completed.
@@ -162,7 +162,7 @@ class UIAuthWorkerStore(SQLBaseStore):
 
     async def get_completed_ui_auth_stages(
         self, session_id: str
-    ) -> dict[str, Union[str, bool, JsonDict]]:
+    ) -> dict[str, str | bool | JsonDict]:
         """
         Retrieve the completed stages of a UI authentication session.
 
@@ -254,7 +254,7 @@ class UIAuthWorkerStore(SQLBaseStore):
         )
 
     async def get_ui_auth_session_data(
-        self, session_id: str, key: str, default: Optional[Any] = None
+        self, session_id: str, key: str, default: Any | None = None
     ) -> Any:
         """
         Retrieve data stored with set_session_data

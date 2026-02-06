@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from relapse.storage._base import SQLBaseStore
 from relapse.storage.database import (
@@ -59,7 +59,7 @@ class ProfileWorkerStore(SQLBaseStore):
 
         lower_bound_id = progress.get("lower_bound_id", "")
 
-        def _get_last_id(txn: LoggingTransaction) -> Optional[str]:
+        def _get_last_id(txn: LoggingTransaction) -> str | None:
             sql = """
                     SELECT user_id FROM profiles
                     WHERE user_id > ?
@@ -150,7 +150,7 @@ class ProfileWorkerStore(SQLBaseStore):
 
         return ProfileInfo(avatar_url=profile[1], display_name=profile[0])
 
-    async def get_profile_displayname(self, user_id: UserID) -> Optional[str]:
+    async def get_profile_displayname(self, user_id: UserID) -> str | None:
         return await self.db_pool.simple_select_one_onecol(
             table="profiles",
             keyvalues={"full_user_id": user_id.to_string()},
@@ -158,7 +158,7 @@ class ProfileWorkerStore(SQLBaseStore):
             desc="get_profile_displayname",
         )
 
-    async def get_profile_avatar_url(self, user_id: UserID) -> Optional[str]:
+    async def get_profile_avatar_url(self, user_id: UserID) -> str | None:
         return await self.db_pool.simple_select_one_onecol(
             table="profiles",
             keyvalues={"full_user_id": user_id.to_string()},
@@ -175,7 +175,7 @@ class ProfileWorkerStore(SQLBaseStore):
         )
 
     async def set_profile_displayname(
-        self, user_id: UserID, new_displayname: Optional[str]
+        self, user_id: UserID, new_displayname: str | None
     ) -> None:
         """
         Set the display name of a user.
@@ -197,7 +197,7 @@ class ProfileWorkerStore(SQLBaseStore):
         )
 
     async def set_profile_avatar_url(
-        self, user_id: UserID, new_avatar_url: Optional[str]
+        self, user_id: UserID, new_avatar_url: str | None
     ) -> None:
         """
         Set the avatar of a user.

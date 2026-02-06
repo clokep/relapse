@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Optional, cast
+from typing import Any, cast
 from unittest.mock import AsyncMock
 
 from parameterized import parameterized
@@ -98,7 +98,7 @@ class ClientIpStoreTestCase(unittest.HomeserverTestCase):
         self.pump(0)
 
         result = cast(
-            list[tuple[str, str, str, Optional[str], int]],
+            list[tuple[str, str, str, str | None, int]],
             self.get_success(
                 self.store.db_pool.simple_select_list(
                     table="user_ips",
@@ -129,7 +129,7 @@ class ClientIpStoreTestCase(unittest.HomeserverTestCase):
         self.pump(0)
 
         result = cast(
-            list[tuple[str, str, str, Optional[str], int]],
+            list[tuple[str, str, str, str | None, int]],
             self.get_success(
                 self.store.db_pool.simple_select_list(
                     table="user_ips",
@@ -178,7 +178,7 @@ class ClientIpStoreTestCase(unittest.HomeserverTestCase):
         else:
             # Check that the new IP and user agent has not been stored yet
             db_result = cast(
-                list[tuple[str, Optional[str], Optional[str], str, Optional[int]]],
+                list[tuple[str, str | None, str | None, str, int | None]],
                 self.get_success(
                     self.store.db_pool.simple_select_list(
                         table="devices",
@@ -260,7 +260,7 @@ class ClientIpStoreTestCase(unittest.HomeserverTestCase):
 
         # Check that the new IP and user agent has not been stored yet
         db_result = cast(
-            list[tuple[str, Optional[str], Optional[str], str, Optional[int]]],
+            list[tuple[str, str | None, str | None, str, int | None]],
             self.get_success(
                 self.store.db_pool.simple_select_list(
                     table="devices",
@@ -583,7 +583,7 @@ class ClientIpStoreTestCase(unittest.HomeserverTestCase):
 
         # We should see that in the DB
         result = cast(
-            list[tuple[str, str, str, Optional[str], int]],
+            list[tuple[str, str, str, str | None, int]],
             self.get_success(
                 self.store.db_pool.simple_select_list(
                     table="user_ips",
@@ -610,7 +610,7 @@ class ClientIpStoreTestCase(unittest.HomeserverTestCase):
 
         # We should get no results.
         result = cast(
-            list[tuple[str, str, str, Optional[str], int]],
+            list[tuple[str, str, str, str | None, int]],
             self.get_success(
                 self.store.db_pool.simple_select_list(
                     table="user_ips",
@@ -689,7 +689,7 @@ class ClientIpStoreTestCase(unittest.HomeserverTestCase):
 
         # We should see that in the DB
         result = cast(
-            list[tuple[str, str, str, Optional[str], int]],
+            list[tuple[str, str, str, str | None, int]],
             self.get_success(
                 self.store.db_pool.simple_select_list(
                     table="user_ips",

@@ -14,7 +14,7 @@
 import logging
 import urllib.parse
 from collections.abc import Generator
-from typing import Any, Optional, cast
+from typing import Any, cast
 from urllib.request import (  # type: ignore[attr-defined]
     getproxies_environment,
     proxy_bypass_environment,
@@ -88,12 +88,12 @@ class MatrixFederationAgent:
     def __init__(
         self,
         reactor: IRelapseReactor,
-        tls_client_options_factory: Optional[FederationPolicyForHTTPS],
+        tls_client_options_factory: FederationPolicyForHTTPS | None,
         user_agent: bytes,
-        ip_allowlist: Optional[IPSet],
+        ip_allowlist: IPSet | None,
         ip_blocklist: IPSet,
-        _srv_resolver: Optional[SrvResolver] = None,
-        _well_known_resolver: Optional[WellKnownResolver] = None,
+        _srv_resolver: SrvResolver | None = None,
+        _well_known_resolver: WellKnownResolver | None = None,
     ):
         # proxy_reactor is not blocklisting reactor
         proxy_reactor = reactor
@@ -143,8 +143,8 @@ class MatrixFederationAgent:
         self,
         method: bytes,
         uri: bytes,
-        headers: Optional[Headers] = None,
-        bodyProducer: Optional[IBodyProducer] = None,
+        headers: Headers | None = None,
+        bodyProducer: IBodyProducer | None = None,
     ) -> Generator[defer.Deferred, Any, IResponse]:
         """
         Args:
@@ -229,8 +229,8 @@ class MatrixHostnameEndpointFactory:
         self,
         reactor: IReactorCore,
         proxy_reactor: IReactorCore,
-        tls_client_options_factory: Optional[FederationPolicyForHTTPS],
-        srv_resolver: Optional[SrvResolver],
+        tls_client_options_factory: FederationPolicyForHTTPS | None,
+        srv_resolver: SrvResolver | None,
     ):
         self._reactor = reactor
         self._proxy_reactor = proxy_reactor
@@ -275,7 +275,7 @@ class MatrixHostnameEndpoint:
         self,
         reactor: IReactorCore,
         proxy_reactor: IReactorCore,
-        tls_client_options_factory: Optional[FederationPolicyForHTTPS],
+        tls_client_options_factory: FederationPolicyForHTTPS | None,
         srv_resolver: SrvResolver,
         parsed_uri: URI,
     ):

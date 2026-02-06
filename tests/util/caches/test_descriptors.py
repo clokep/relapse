@@ -14,7 +14,7 @@
 # limitations under the License.
 import logging
 from collections.abc import Generator, Iterable, Mapping
-from typing import Any, NoReturn, Optional, cast
+from typing import Any, NoReturn, cast
 from unittest import mock
 
 from twisted.internet import defer, reactor
@@ -214,7 +214,7 @@ class DescriptorTestCase(unittest.TestCase):
         """The wrapped function returns a failure"""
 
         class Cls:
-            result: Optional[Deferred] = None
+            result: Deferred | None = None
             call_count = 0
 
             @cached()

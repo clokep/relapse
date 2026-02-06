@@ -15,7 +15,7 @@
 # limitations under the License.
 import logging
 from collections.abc import Iterable, Mapping
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from relapse.api import errors
 from relapse.api.constants import EduTypes, EventTypes
@@ -114,9 +114,7 @@ class DeviceWorkerHandler:
         log_kv(device_map)
         return devices
 
-    async def get_dehydrated_device(
-        self, user_id: str
-    ) -> Optional[tuple[str, JsonDict]]:
+    async def get_dehydrated_device(self, user_id: str) -> tuple[str, JsonDict] | None:
         """Retrieve the information for a dehydrated device.
 
         Args:
@@ -343,7 +341,7 @@ class DeviceWorkerHandler:
         # Check if the application services have any results.
         if self._query_appservices_for_keys:
             # Query the appservice for all devices for this user.
-            query: dict[str, Optional[list[str]]] = {user_id: None}
+            query: dict[str, list[str] | None] = {user_id: None}
 
             # Query the appservices for any keys.
             appservice_results = await self._appservice_handler.query_keys(query)
@@ -389,7 +387,7 @@ class DeviceWorkerHandler:
     async def _delete_device_messages(
         self,
         task: ScheduledTask,
-    ) -> tuple[TaskStatus, Optional[JsonMapping], Optional[str]]:
+    ) -> tuple[TaskStatus, JsonMapping | None, str | None]:
         """Scheduler task to delete device messages in batch of `DEVICE_MSGS_DELETE_BATCH_LIMIT`."""
         assert task.params is not None
         user_id = task.params["user_id"]
@@ -456,7 +454,7 @@ class DeviceHandler(DeviceWorkerHandler):
                 self._delete_stale_devices,
             )
 
-    def _check_device_name_length(self, name: Optional[str]) -> None:
+    def _check_device_name_length(self, name: str | None) -> None:
         """
         Checks whether a device name is longer than the maximum allowed length.
 
@@ -476,10 +474,10 @@ class DeviceHandler(DeviceWorkerHandler):
     async def check_device_registered(
         self,
         user_id: str,
-        device_id: Optional[str],
-        initial_device_display_name: Optional[str] = None,
-        auth_provider_id: Optional[str] = None,
-        auth_provider_session_id: Optional[str] = None,
+        device_id: str | None,
+        initial_device_display_name: str | None = None,
+        auth_provider_id: str | None = None,
+        auth_provider_session_id: str | None = None,
     ) -> str:
         """
         If the given device has not been registered, register it with the
@@ -545,7 +543,7 @@ class DeviceHandler(DeviceWorkerHandler):
 
     @trace
     async def delete_all_devices_for_user(
-        self, user_id: str, except_device_id: Optional[str] = None
+        self, user_id: str, except_device_id: str | None = None
     ) -> None:
         """Delete all of the user's devices
 
@@ -704,10 +702,10 @@ class DeviceHandler(DeviceWorkerHandler):
     async def store_dehydrated_device(
         self,
         user_id: str,
-        device_id: Optional[str],
+        device_id: str | None,
         device_data: JsonDict,
         keys_for_device: JsonDict,
-        initial_device_display_name: Optional[str] = None,
+        initial_device_display_name: str | None = None,
     ) -> str:
         """Store a dehydrated device for a user, optionally storing the keys associated with
         it as well.  If the user had a previous dehydrated device, it is removed.
@@ -989,7 +987,7 @@ class DeviceListWorkerUpdater:
 
     async def multi_user_device_resync(
         self, user_ids: list[str], mark_failed_as_stale: bool = True
-    ) -> dict[str, Optional[JsonMapping]]:
+    ) -> dict[str, JsonMapping | None]:
         """
         Like `user_device_resync` but operates on multiple users **from the same origin**
         at once.
@@ -1271,7 +1269,7 @@ class DeviceListUpdater(DeviceListWorkerUpdater):
 
     async def multi_user_device_resync(
         self, user_ids: list[str], mark_failed_as_stale: bool = True
-    ) -> dict[str, Optional[JsonMapping]]:
+    ) -> dict[str, JsonMapping | None]:
         """
         Like `user_device_resync` but operates on multiple users **from the same origin**
         at once.
@@ -1307,7 +1305,7 @@ class DeviceListUpdater(DeviceListWorkerUpdater):
 
     async def _user_device_resync_returning_failed(
         self, user_id: str
-    ) -> tuple[Optional[JsonMapping], bool]:
+    ) -> tuple[JsonMapping | None, bool]:
         """Fetches all devices for a user and updates the device cache with them.
 
         Args:
@@ -1447,8 +1445,8 @@ class DeviceListUpdater(DeviceListWorkerUpdater):
     async def process_cross_signing_key_update(
         self,
         user_id: str,
-        master_key: Optional[JsonDict],
-        self_signing_key: Optional[JsonDict],
+        master_key: JsonDict | None,
+        self_signing_key: JsonDict | None,
     ) -> list[str]:
         """Process the given new master and self-signing key for the given remote user.
 

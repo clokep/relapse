@@ -14,7 +14,7 @@
 
 import logging
 from enum import Enum, auto
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from relapse.server import HomeServer
@@ -34,8 +34,8 @@ class StateDeltasHandler:
 
     async def _get_key_change(
         self,
-        prev_event_id: Optional[str],
-        event_id: Optional[str],
+        prev_event_id: str | None,
+        event_id: str | None,
         key_name: str,
         public_value: str,
     ) -> MatchChange:

@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Optional
 from unittest.mock import patch
 
 from twisted.internet.testing import MemoryReactor
@@ -49,8 +48,8 @@ class UpgradeRoomTest(unittest.HomeserverTestCase):
 
     def _upgrade_room(
         self,
-        token: Optional[str] = None,
-        room_id: Optional[str] = None,
+        token: str | None = None,
+        room_id: str | None = None,
         expire_cache: bool = True,
     ) -> FakeChannel:
         if expire_cache:

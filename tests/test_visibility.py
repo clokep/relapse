@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-from typing import Optional
 from unittest.mock import patch
 
 from relapse.api.room_versions import RoomVersions
@@ -219,7 +218,7 @@ class FilterEventsForServerTestCase(unittest.HomeserverTestCase):
         self,
         user_id: str,
         membership: str = "join",
-        extra_content: Optional[JsonDict] = None,
+        extra_content: JsonDict | None = None,
     ) -> EventBase:
         content = {"membership": membership}
         content.update(extra_content or {})
@@ -243,7 +242,7 @@ class FilterEventsForServerTestCase(unittest.HomeserverTestCase):
         return event
 
     def _inject_message(
-        self, user_id: str, content: Optional[JsonDict] = None
+        self, user_id: str, content: JsonDict | None = None
     ) -> EventBase:
         if content is None:
             content = {"body": "testytest", "msgtype": "m.text"}

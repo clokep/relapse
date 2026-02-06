@@ -14,7 +14,7 @@
 import time
 import urllib.parse
 from collections.abc import Collection
-from typing import Any, Literal, Optional, Union
+from typing import Any, Literal
 from unittest.mock import Mock
 from urllib.parse import urlencode
 
@@ -101,11 +101,11 @@ class TestSpamChecker:
     async def check_login_for_spam(
         self,
         user_id: str,
-        device_id: Optional[str],
-        initial_display_name: Optional[str],
-        request_info: Collection[tuple[Optional[str], str]],
-        auth_provider_id: Optional[str] = None,
-    ) -> Union[Literal["NOT_SPAM"], tuple[Codes, JsonDict]]:
+        device_id: str | None,
+        initial_display_name: str | None,
+        request_info: Collection[tuple[str | None, str]],
+        auth_provider_id: str | None = None,
+    ) -> Literal["NOT_SPAM"] | tuple[Codes, JsonDict]:
         return "NOT_SPAM"
 
 
@@ -122,11 +122,11 @@ class DenyAllSpamChecker:
     async def check_login_for_spam(
         self,
         user_id: str,
-        device_id: Optional[str],
-        initial_display_name: Optional[str],
-        request_info: Collection[tuple[Optional[str], str]],
-        auth_provider_id: Optional[str] = None,
-    ) -> Union[Literal["NOT_SPAM"], tuple[Codes, JsonDict]]:
+        device_id: str | None,
+        initial_display_name: str | None,
+        request_info: Collection[tuple[str | None, str]],
+        auth_provider_id: str | None = None,
+    ) -> Literal["NOT_SPAM"] | tuple[Codes, JsonDict]:
         # Return an odd set of values to ensure that they get correctly passed
         # to the client.
         return Codes.LIMIT_EXCEEDED, {"extra": "value"}
@@ -837,7 +837,7 @@ class MultiSSOTestCase(unittest.HomeserverTestCase):
         # it should redirect us to the auth page of the OIDC server
         self.assertEqual(oidc_uri_path, fake_oidc_server.authorization_endpoint)
 
-    def _make_sso_redirect_request(self, idp_prov: Optional[str] = None) -> FakeChannel:
+    def _make_sso_redirect_request(self, idp_prov: str | None = None) -> FakeChannel:
         """Send a request to /_matrix/client/r0/login/sso/redirect
 
         ... possibly specifying an IDP provider

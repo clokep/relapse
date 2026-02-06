@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from collections.abc import Sequence
-from typing import Optional, TypeAlias, cast
+from typing import TypeAlias, cast
 from unittest.mock import AsyncMock, Mock
 
 from twisted.internet import defer
@@ -167,9 +167,7 @@ class ApplicationServiceSchedulerRecovererTestCase(unittest.TestCase):
         # return one txn to send, then no more old txns
         txns = [txn, None]
 
-        def take_txn(
-            *args: object, **kwargs: object
-        ) -> "defer.Deferred[Optional[Mock]]":
+        def take_txn(*args: object, **kwargs: object) -> "defer.Deferred[Mock | None]":
             return defer.succeed(txns.pop(0))
 
         self.store.get_oldest_unsent_txn = Mock(side_effect=take_txn)
@@ -193,9 +191,7 @@ class ApplicationServiceSchedulerRecovererTestCase(unittest.TestCase):
         txns = [txn, None]
         pop_txn = False
 
-        def take_txn(
-            *args: object, **kwargs: object
-        ) -> "defer.Deferred[Optional[Mock]]":
+        def take_txn(*args: object, **kwargs: object) -> "defer.Deferred[Mock | None]":
             if pop_txn:
                 return defer.succeed(txns.pop(0))
             else:
@@ -233,11 +229,11 @@ defer.Deferred[
     tuple[
         ApplicationService,
         Sequence[EventBase],
-        Optional[list[JsonDict]],
-        Optional[list[JsonDict]],
-        Optional[TransactionOneTimeKeysCount],
-        Optional[TransactionUnusedFallbackKeys],
-        Optional[DeviceListUpdates],
+        list[JsonDict] | None,
+        list[JsonDict] | None,
+        TransactionOneTimeKeysCount | None,
+        TransactionUnusedFallbackKeys | None,
+        DeviceListUpdates | None,
     ]
 ]
 """

@@ -17,7 +17,7 @@ import itertools
 import logging
 from collections import OrderedDict
 from collections.abc import Collection, Generator, Iterable
-from typing import TYPE_CHECKING, Any, Optional, Union, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import attr
 from prometheus_client import Counter
@@ -122,8 +122,8 @@ class PersistEventsStore:
         room_id: str,
         events_and_contexts: list[tuple[EventBase, EventContext]],
         *,
-        state_delta_for_room: Optional[DeltaState],
-        new_forward_extremities: Optional[set[str]],
+        state_delta_for_room: DeltaState | None,
+        new_forward_extremities: set[str] | None,
         use_negative_stream_ordering: bool = False,
         inhibit_local_membership_updates: bool = False,
     ) -> None:
@@ -331,8 +331,8 @@ class PersistEventsStore:
         room_id: str,
         events_and_contexts: list[tuple[EventBase, EventContext]],
         inhibit_local_membership_updates: bool,
-        state_delta_for_room: Optional[DeltaState],
-        new_forward_extremities: Optional[set[str]],
+        state_delta_for_room: DeltaState | None,
+        new_forward_extremities: set[str] | None,
     ) -> None:
         """Insert some number of room events into the necessary database tables.
 
@@ -504,7 +504,7 @@ class PersistEventsStore:
         # We ignore legacy rooms that we aren't filling the chain cover index
         # for.
         rows = cast(
-            list[tuple[str, Optional[Union[int, bool]]]],
+            list[tuple[str, int | bool | None]],
             self.db_pool.simple_select_many_txn(
                 txn,
                 table="rooms",
@@ -885,7 +885,7 @@ class PersistEventsStore:
         #
 
         existing_chains: set[int] = set()
-        tree: list[tuple[str, Optional[str]]] = []
+        tree: list[tuple[str, str | None]] = []
 
         # We need to do this in a topologically sorted order as we want to
         # generate chain IDs/sequence numbers of an event's auth events before
@@ -937,7 +937,7 @@ class PersistEventsStore:
                 if not existing_chain_id:
                     existing_chain_id = chain_map[auth_event_id]
 
-            new_chain_tuple: Optional[tuple[Any, int]] = None
+            new_chain_tuple: tuple[Any, int] | None = None
             if existing_chain_id:
                 # We found a chain ID/sequence number candidate, check its
                 # not already taken.
@@ -1303,7 +1303,7 @@ class PersistEventsStore:
             room_id: The room ID
             events_and_contexts: events we are persisting
         """
-        stream_ordering: Optional[int] = None
+        stream_ordering: int | None = None
         depth_update = 0
         for event, context in events_and_contexts:
             # Don't update the stream ordering for backfilled events because

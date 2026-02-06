@@ -15,7 +15,7 @@
 import logging
 from collections import Counter, Counter as CounterType
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 from relapse.api.constants import EventContentFields, EventTypes, Membership
 from relapse.metrics import event_processing_positions
@@ -49,7 +49,7 @@ class StatsHandler:
         self.stats_enabled = hs.config.stats.stats_enabled
 
         # The current position in the current_state_delta stream
-        self.pos: Optional[int] = None
+        self.pos: int | None = None
 
         # Guard to ensure we only process deltas one at a time
         self._is_processing = False

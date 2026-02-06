@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional
 from unittest.mock import Mock, patch
 
 from relapse._scripts.register_new_matrix_user import request_registration
@@ -28,14 +27,14 @@ class RegisterTestCase(TestCase):
         post that MAC.
         """
 
-        def get(url: str, verify: Optional[bool] = None) -> Mock:
+        def get(url: str, verify: bool | None = None) -> Mock:
             r = Mock()
             r.status_code = 200
             r.json = lambda: {"nonce": "a"}
             return r
 
         def post(
-            url: str, json: Optional[JsonDict] = None, verify: Optional[bool] = None
+            url: str, json: JsonDict | None = None, verify: bool | None = None
         ) -> Mock:
             # Make sure we are sent the correct info
             assert json is not None
@@ -79,7 +78,7 @@ class RegisterTestCase(TestCase):
         If the script fails to fetch a nonce, it throws an error and quits.
         """
 
-        def get(url: str, verify: Optional[bool] = None) -> Mock:
+        def get(url: str, verify: bool | None = None) -> Mock:
             r = Mock()
             r.status_code = 404
             r.reason = "Not Found"
@@ -117,14 +116,14 @@ class RegisterTestCase(TestCase):
         report an error and quit.
         """
 
-        def get(url: str, verify: Optional[bool] = None) -> Mock:
+        def get(url: str, verify: bool | None = None) -> Mock:
             r = Mock()
             r.status_code = 200
             r.json = lambda: {"nonce": "a"}
             return r
 
         def post(
-            url: str, json: Optional[JsonDict] = None, verify: Optional[bool] = None
+            url: str, json: JsonDict | None = None, verify: bool | None = None
         ) -> Mock:
             # Make sure we are sent the correct info
             assert json is not None

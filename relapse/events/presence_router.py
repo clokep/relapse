@@ -13,7 +13,7 @@
 # limitations under the License.
 import logging
 from collections.abc import Awaitable, Callable, Iterable
-from typing import TYPE_CHECKING, Optional, TypeVar, Union
+from typing import TYPE_CHECKING, TypeVar
 
 from typing_extensions import ParamSpec
 
@@ -29,7 +29,7 @@ GET_USERS_FOR_STATES_CALLBACK = Callable[
     [Iterable[UserPresenceState]], Awaitable[dict[str, set[UserPresenceState]]]
 ]
 # This must either return a set of strings or the constant PresenceRouter.ALL_USERS.
-GET_INTERESTED_USERS_CALLBACK = Callable[[str], Awaitable[Union[set[str], str]]]
+GET_INTERESTED_USERS_CALLBACK = Callable[[str], Awaitable[set[str] | str]]
 
 logger = logging.getLogger(__name__)
 
@@ -53,8 +53,8 @@ class PresenceRouter:
 
     def register_presence_router_callbacks(
         self,
-        get_users_for_states: Optional[GET_USERS_FOR_STATES_CALLBACK] = None,
-        get_interested_users: Optional[GET_INTERESTED_USERS_CALLBACK] = None,
+        get_users_for_states: GET_USERS_FOR_STATES_CALLBACK | None = None,
+        get_interested_users: GET_INTERESTED_USERS_CALLBACK | None = None,
     ) -> None:
         # PresenceRouter modules are required to implement both of these methods
         # or neither of them as they are assumed to act in a complementary manner
@@ -126,7 +126,7 @@ class PresenceRouter:
 
         return users_for_states
 
-    async def get_interested_users(self, user_id: str) -> Union[set[str], str]:
+    async def get_interested_users(self, user_id: str) -> set[str] | str:
         """
         Retrieve a list of users that `user_id` is interested in receiving the
         presence of. This will be in addition to those they share a room with.

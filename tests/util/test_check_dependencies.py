@@ -16,7 +16,6 @@ from collections.abc import Generator
 from contextlib import contextmanager
 from os import PathLike
 from pathlib import Path
-from typing import Optional, Union
 from unittest.mock import patch
 
 from relapse.util.check_dependencies import (
@@ -36,7 +35,7 @@ class DummyDistribution(metadata.Distribution):
     def version(self) -> str:
         return self._version
 
-    def locate_file(self, path: Union[str, PathLike]) -> Path:
+    def locate_file(self, path: str | PathLike) -> Path:
         raise NotImplementedError()
 
     def read_text(self, filename: str) -> None:
@@ -55,7 +54,7 @@ distribution_with_no_version = DummyDistribution(None)  # type: ignore[arg-type]
 class TestDependencyChecker(TestCase):
     @contextmanager
     def mock_installed_package(
-        self, distribution: Optional[DummyDistribution]
+        self, distribution: DummyDistribution | None
     ) -> Generator[None, None, None]:
         """Pretend that looking up any package yields the given `distribution`.
 

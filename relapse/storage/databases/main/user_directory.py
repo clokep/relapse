@@ -16,7 +16,7 @@ import logging
 import re
 import unicodedata
 from collections.abc import Collection, Iterable, Sequence
-from typing import TYPE_CHECKING, Optional, cast
+from typing import TYPE_CHECKING, cast
 
 import attr
 from typing_extensions import TypedDict
@@ -58,8 +58,8 @@ class _UserDirProfile:
     user_id: str
 
     # If the display name or avatar URL are unexpected types, replace with None
-    display_name: Optional[str] = attr.ib(default=None, converter=non_null_str_or_none)
-    avatar_url: Optional[str] = attr.ib(default=None, converter=non_null_str_or_none)
+    display_name: str | None = attr.ib(default=None, converter=non_null_str_or_none)
+    avatar_url: str | None = attr.ib(default=None, converter=non_null_str_or_none)
 
 
 class UserDirectoryBackgroundUpdateStore(StateDeltasStore):
@@ -192,7 +192,7 @@ class UserDirectoryBackgroundUpdateStore(StateDeltasStore):
 
         def _get_next_batch(
             txn: LoggingTransaction,
-        ) -> Optional[Sequence[tuple[str, int]]]:
+        ) -> Sequence[tuple[str, int]] | None:
             # Only fetch 250 rooms, so we don't fetch too many at once, even
             # if those 250 rooms have less than batch_size state events.
             sql = """
@@ -336,7 +336,7 @@ class UserDirectoryBackgroundUpdateStore(StateDeltasStore):
 
         def _populate_user_directory_process_users_txn(
             txn: LoggingTransaction,
-        ) -> Optional[int]:
+        ) -> int | None:
             if self.database_engine.supports_returning:
                 # Note: we use an ORDER BY in the SELECT to force usage of an
                 # index. Otherwise, postgres does a sequential scan that is
@@ -389,7 +389,7 @@ class UserDirectoryBackgroundUpdateStore(StateDeltasStore):
 
             # Next fetch their profiles. Note that not all users have profiles.
             profile_rows = cast(
-                list[tuple[str, Optional[str], Optional[str]]],
+                list[tuple[str, str | None, str | None]],
                 self.db_pool.simple_select_many_txn(
                     txn,
                     table="profiles",
@@ -495,7 +495,7 @@ class UserDirectoryBackgroundUpdateStore(StateDeltasStore):
         ]
 
         rows = cast(
-            list[tuple[str, Optional[str]]],
+            list[tuple[str, str | None]],
             self.db_pool.simple_select_many_txn(
                 txn,
                 table="users",
@@ -649,7 +649,7 @@ class UserDirectoryBackgroundUpdateStore(StateDeltasStore):
         )
 
     async def update_profile_in_user_dir(
-        self, user_id: str, display_name: Optional[str], avatar_url: Optional[str]
+        self, user_id: str, display_name: str | None, avatar_url: str | None
     ) -> None:
         """
         Update or add a user's profile in the user directory.
@@ -813,7 +813,7 @@ class UserDirectoryBackgroundUpdateStore(StateDeltasStore):
 
     async def _get_user_in_directory(
         self, user_id: str
-    ) -> Optional[tuple[Optional[str], Optional[str]]]:
+    ) -> tuple[str | None, str | None] | None:
         """
         Fetch the user information in the user directory.
 
@@ -822,7 +822,7 @@ class UserDirectoryBackgroundUpdateStore(StateDeltasStore):
             avatar URL (both of which may be None).
         """
         return cast(
-            Optional[tuple[Optional[str], Optional[str]]],
+            tuple[str | None, str | None] | None,
             await self.db_pool.simple_select_one(
                 table="user_directory",
                 keyvalues={"user_id": user_id},
@@ -832,7 +832,7 @@ class UserDirectoryBackgroundUpdateStore(StateDeltasStore):
             ),
         )
 
-    async def update_user_directory_stream_pos(self, stream_id: Optional[int]) -> None:
+    async def update_user_directory_stream_pos(self, stream_id: int | None) -> None:
         await self.db_pool.simple_update_one(
             table="user_directory_stream_pos",
             keyvalues={},
@@ -972,7 +972,7 @@ class UserDirectoryStore(UserDirectoryBackgroundUpdateStore):
         users.update(rows)
         return list(users)
 
-    async def get_user_directory_stream_pos(self) -> Optional[int]:
+    async def get_user_directory_stream_pos(self) -> int | None:
         """
         Get the stream ID of the user directory stream.
 
@@ -1135,7 +1135,7 @@ class UserDirectoryStore(UserDirectoryBackgroundUpdateStore):
             raise Exception("Unrecognized database engine")
 
         results = cast(
-            list[tuple[str, Optional[str], Optional[str]]],
+            list[tuple[str, str | None, str | None]],
             await self.db_pool.execute("search_user_dir", sql, *args),
         )
 

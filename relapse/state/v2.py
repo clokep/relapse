@@ -16,7 +16,7 @@ import heapq
 import itertools
 import logging
 from collections.abc import Awaitable, Callable, Generator, Iterable, Sequence
-from typing import Any, Literal, Optional, overload
+from typing import Any, Literal, overload
 
 from typing_extensions import Protocol
 
@@ -65,7 +65,7 @@ async def resolve_events_with_store(
     room_id: str,
     room_version: RoomVersion,
     state_sets: Sequence[StateMap[str]],
-    event_map: Optional[dict[str, EventBase]],
+    event_map: dict[str, EventBase] | None,
     state_res_store: StateResolutionStore,
 ) -> StateMap[str]:
     """Resolves the state using the v2 state resolution algorithm
@@ -592,7 +592,7 @@ async def _mainline_sort(
     clock: Clock,
     room_id: str,
     event_ids: list[str],
-    resolved_power_event_id: Optional[str],
+    resolved_power_event_id: str | None,
     event_map: dict[str, EventBase],
     state_res_store: StateResolutionStore,
 ) -> list[str]:
@@ -679,7 +679,7 @@ async def _get_mainline_depth_for_event(
     """
 
     room_id = event.room_id
-    tmp_event: Optional[EventBase] = event
+    tmp_event: EventBase | None = event
 
     # We do an iterative search, replacing `event with the power level in its
     # auth events (if any)
@@ -726,7 +726,7 @@ async def _get_event(
     event_map: dict[str, EventBase],
     state_res_store: StateResolutionStore,
     allow_none: Literal[True],
-) -> Optional[EventBase]: ...
+) -> EventBase | None: ...
 
 
 async def _get_event(
@@ -735,7 +735,7 @@ async def _get_event(
     event_map: dict[str, EventBase],
     state_res_store: StateResolutionStore,
     allow_none: bool = False,
-) -> Optional[EventBase]:
+) -> EventBase | None:
     """Helper function to look up event in event_map, falling back to looking
     it up in the store
 

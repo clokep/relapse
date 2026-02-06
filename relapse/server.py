@@ -22,7 +22,7 @@ import abc
 import functools
 import logging
 from collections.abc import Callable, Iterable
-from typing import TYPE_CHECKING, Any, Optional, TypeAlias, TypeVar, cast
+from typing import TYPE_CHECKING, Any, TypeAlias, TypeVar, cast
 
 from twisted.internet.interfaces import IOpenSSLContextFactory
 from twisted.internet.tcp import Port
@@ -255,7 +255,7 @@ class HomeServer(metaclass=abc.ABCMeta):
         self,
         hostname: str,
         config: HomeServerConfig,
-        reactor: Optional[IRelapseReactor] = None,
+        reactor: IRelapseReactor | None = None,
         version_string: str = "Relapse",
     ):
         """
@@ -274,20 +274,20 @@ class HomeServer(metaclass=abc.ABCMeta):
         self.signing_key = config.key.signing_key[0]
         self.config = config
         self._listening_services: list[Port] = []
-        self.start_time: Optional[int] = None
+        self.start_time: int | None = None
 
         self._instance_id = random_string(5)
         self._instance_name = config.worker.instance_name
 
         self.version_string = version_string
 
-        self.datastores: Optional[Databases] = None
+        self.datastores: Databases | None = None
 
         self._module_web_resources: dict[str, Resource] = {}
         self._module_web_resources_consumed = False
 
         # This attribute is set by the free function `refresh_certificate`.
-        self.tls_server_context_factory: Optional[IOpenSSLContextFactory] = None
+        self.tls_server_context_factory: IOpenSSLContextFactory | None = None
 
     def register_module_web_resource(self, path: str, resource: Resource) -> None:
         """Allows a module to register a web resource to be served at the given path.

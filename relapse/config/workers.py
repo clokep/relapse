@@ -14,7 +14,7 @@
 # limitations under the License.
 
 import argparse
-from typing import Any, Optional, Union
+from typing import Any
 
 import attr
 from pydantic import BaseModel, ConfigDict
@@ -47,7 +47,7 @@ MAIN_PROCESS_INSTANCE_NAME = "master"
 MAIN_PROCESS_INSTANCE_MAP_NAME = "main"
 
 
-def _instance_to_list_converter(obj: Union[str, list[str]]) -> list[str]:
+def _instance_to_list_converter(obj: str | list[str]) -> list[str]:
     """Helper for allowing parsing a string or list of strings to a config
     option expecting a list of strings.
     """
@@ -107,7 +107,7 @@ class InstanceUnixLocationConfig(ConfigModel):
         return f"{self.path}"
 
 
-InstanceLocationConfig = Union[InstanceTcpLocationConfig, InstanceUnixLocationConfig]
+InstanceLocationConfig = InstanceTcpLocationConfig | InstanceUnixLocationConfig
 
 
 @attr.s
@@ -164,7 +164,7 @@ class OutboundFederationRestrictedTo:
         locations: list of instance locations to connect to proxy via.
     """
 
-    instances: Optional[list[str]]
+    instances: list[str] | None
     locations: list[InstanceLocationConfig] = attr.Factory(list)
 
     def __contains__(self, instance: str) -> bool:

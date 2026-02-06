@@ -17,7 +17,7 @@ import itertools
 import logging
 from collections.abc import Collection, Container, Iterable, Sequence
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from prometheus_client import Counter, Histogram
 
@@ -1763,7 +1763,7 @@ class FederationEventHandler:
 
     @trace
     async def _check_event_auth(
-        self, origin: Optional[str], event: EventBase, context: EventContext
+        self, origin: str | None, event: EventBase, context: EventContext
     ) -> None:
         """
         Checks whether an event should be rejected (for failing auth checks).
@@ -2040,7 +2040,7 @@ class FederationEventHandler:
             event.internal_metadata.soft_failed = True
 
     async def _load_or_fetch_auth_events_for_event(
-        self, destination: Optional[str], event: EventBase
+        self, destination: str | None, event: EventBase
     ) -> Collection[EventBase]:
         """Fetch this event's auth_events, from database or remote
 

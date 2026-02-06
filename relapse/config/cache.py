@@ -16,7 +16,7 @@ import os
 import re
 import threading
 from collections.abc import Callable, Mapping
-from typing import Any, Optional
+from typing import Any
 
 import attr
 
@@ -44,7 +44,7 @@ class CacheProperties:
     default_factor_size: float = float(
         os.environ.get(_CACHE_PREFIX, _DEFAULT_FACTOR_SIZE)
     )
-    resize_all_caches_func: Optional[Callable[[], None]] = None
+    resize_all_caches_func: Callable[[], None] | None = None
 
 
 properties = CacheProperties()
@@ -98,7 +98,7 @@ class CacheConfig(Config):
     cache_factors: dict[str, float]
     global_factor: float
     track_memory_usage: bool
-    expiry_time_msec: Optional[int]
+    expiry_time_msec: int | None
     sync_response_cache_duration: int
 
     @staticmethod

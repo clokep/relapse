@@ -15,7 +15,7 @@
 import abc
 import logging
 from collections.abc import Mapping, Sequence
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 import attr
 
@@ -58,11 +58,9 @@ class AdminHandler:
 
         return ret
 
-    async def get_user(self, user: UserID) -> Optional[JsonMapping]:
+    async def get_user(self, user: UserID) -> JsonMapping | None:
         """Function to get user details"""
-        user_info: Optional[UserInfo] = await self._store.get_user_by_id(
-            user.to_string()
-        )
+        user_info: UserInfo | None = await self._store.get_user_by_id(user.to_string())
         if user_info is None:
             return None
 

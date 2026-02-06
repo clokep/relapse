@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import logging
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 from prometheus_client import Counter, Histogram
 
@@ -63,7 +63,7 @@ class ExternalCache:
 
     def __init__(self, hs: "HomeServer"):
         if hs.config.redis.redis_enabled:
-            self._redis_connection: Optional[ConnectionHandler] = (
+            self._redis_connection: ConnectionHandler | None = (
                 hs.get_outbound_redis_connection()
             )
         else:
@@ -107,7 +107,7 @@ class ExternalCache:
                     )
                 )
 
-    async def get(self, cache_name: str, key: str) -> Optional[Any]:
+    async def get(self, cache_name: str, key: str) -> Any | None:
         """Look up a key/value in the named cache."""
 
         if self._redis_connection is None:

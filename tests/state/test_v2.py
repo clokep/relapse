@@ -14,7 +14,7 @@
 
 import itertools
 from collections.abc import Collection, Iterable, Mapping
-from typing import Optional, TypeVar
+from typing import TypeVar
 
 import attr
 
@@ -66,7 +66,7 @@ class FakeEvent:
         id: str,
         sender: str,
         type: str,
-        state_key: Optional[str],
+        state_key: str | None,
         content: Mapping[str, object],
     ):
         self.node_id = id

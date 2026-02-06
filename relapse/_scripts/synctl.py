@@ -25,7 +25,7 @@ import subprocess
 import sys
 import time
 from collections.abc import Iterable
-from typing import NoReturn, Optional, TextIO
+from typing import NoReturn, TextIO
 
 import yaml
 
@@ -126,7 +126,7 @@ def start(pidfile: str, app: str, config_files: Iterable[str], daemonize: bool) 
         return False
 
 
-def stop(pidfile: str, app: str) -> Optional[int]:
+def stop(pidfile: str, app: str) -> int | None:
     """Attempts to kill a relapse worker from the pidfile.
     Args:
         pidfile: path to file containing worker's pid

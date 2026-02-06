@@ -1,9 +1,8 @@
 from types import ModuleType
-from typing import Optional
 
 from . import lrucache, lrucache_evict
 
-SUITES: list[tuple[ModuleType, Optional[int]]] = [
+SUITES: list[tuple[ModuleType, int | None]] = [
     (lrucache, None),
     (lrucache_evict, None),
 ]

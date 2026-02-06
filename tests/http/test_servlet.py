@@ -14,7 +14,6 @@
 import json
 from http import HTTPStatus
 from io import BytesIO
-from typing import Union
 from unittest.mock import Mock
 
 from pydantic import BaseModel
@@ -36,7 +35,7 @@ from tests import unittest
 from tests.http.server._base import test_disconnect
 
 
-def make_request(content: Union[bytes, JsonDict]) -> Mock:
+def make_request(content: bytes | JsonDict) -> Mock:
     """Make an object that acts enough like a request."""
     request = Mock(spec=["method", "uri", "content"])
 

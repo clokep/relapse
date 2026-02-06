@@ -1,5 +1,4 @@
 from collections.abc import Callable, Collection
-from typing import Optional
 from unittest import mock
 from unittest.mock import AsyncMock, Mock
 
@@ -71,7 +70,7 @@ class FederationCatchUpTestCases(FederatingHomeserverTestCase):
         return config
 
     async def record_transaction(
-        self, txn: Transaction, json_cb: Optional[Callable[[], JsonDict]]
+        self, txn: Transaction, json_cb: Callable[[], JsonDict] | None
     ) -> JsonDict:
         if json_cb is None:
             # The tests seem to expect that this method raises in this situation.

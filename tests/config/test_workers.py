@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from collections.abc import Mapping
-from typing import Any, Optional
+from typing import Any
 from unittest.mock import Mock
 
 from immutabledict import immutabledict
@@ -28,7 +28,7 @@ class WorkerDutyConfigTestCase(TestCase):
     def _make_worker_config(
         self,
         worker_app: str,
-        worker_name: Optional[str],
+        worker_name: str | None,
         extras: Mapping[str, Any] = _EMPTY_IMMUTABLEDICT,
     ) -> WorkerConfig:
         root_config = Mock()

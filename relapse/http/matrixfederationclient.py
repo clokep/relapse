@@ -26,10 +26,8 @@ from typing import (
     BinaryIO,
     Generic,
     Literal,
-    Optional,
     TextIO,
     TypeVar,
-    Union,
     cast,
     overload,
 )
@@ -137,15 +135,15 @@ class MatrixFederationRequest:
     """The remote server to send the HTTP request to.
     """
 
-    json: Optional[JsonDict] = None
+    json: JsonDict | None = None
     """JSON to send in the body.
     """
 
-    json_callback: Optional[Callable[[], JsonDict]] = None
+    json_callback: Callable[[], JsonDict] | None = None
     """A callback to generate the JSON.
     """
 
-    query: Optional[QueryParams] = None
+    query: QueryParams | None = None
     """Query arguments.
     """
 
@@ -188,7 +186,7 @@ class MatrixFederationRequest:
             )
             object.__setattr__(self, "uri", uri)
 
-    def get_json(self) -> Optional[JsonDict]:
+    def get_json(self) -> JsonDict | None:
         if self.json_callback:
             return self.json_callback()
         return self.json
@@ -200,7 +198,7 @@ class _BaseJsonParser(ByteParser[T]):
     CONTENT_TYPE = "application/json"
 
     def __init__(
-        self, validator: Optional[Callable[[Optional[object]], bool]] = None
+        self, validator: Callable[[object | None], bool] | None = None
     ) -> None:
         """
         Args:
@@ -369,7 +367,7 @@ class BinaryIOWrapper:
         self.decoder = codecs.getincrementaldecoder(encoding)(errors)
         self.file = file
 
-    def write(self, b: Union[bytes, bytearray]) -> int:
+    def write(self, b: bytes | bytearray) -> int:
         self.file.write(self.decoder.decode(b))
         return len(b)
 
@@ -386,7 +384,7 @@ class MatrixFederationHttpClient:
     def __init__(
         self,
         hs: "HomeServer",
-        tls_client_options_factory: Optional[FederationPolicyForHTTPS],
+        tls_client_options_factory: FederationPolicyForHTTPS | None,
     ):
         self.hs = hs
         self.signing_key = hs.signing_key
@@ -511,7 +509,7 @@ class MatrixFederationHttpClient:
         self,
         request: MatrixFederationRequest,
         retry_on_dns_fail: bool = True,
-        timeout: Optional[int] = None,
+        timeout: int | None = None,
         long_retries: bool = False,
         ignore_backoff: bool = False,
         backoff_on_404: bool = False,
@@ -652,7 +650,7 @@ class MatrixFederationHttpClient:
                             destination_bytes, method_bytes, url_to_sign_bytes, json
                         )
                         data = encode_canonical_json(json)
-                        producer: Optional[IBodyProducer] = QuieterFileBodyProducer(
+                        producer: IBodyProducer | None = QuieterFileBodyProducer(
                             BytesIO(data), cooperator=self._cooperator
                         )
                     else:
@@ -845,11 +843,11 @@ class MatrixFederationHttpClient:
 
     def build_auth_headers(
         self,
-        destination: Optional[bytes],
+        destination: bytes | None,
         method: bytes,
         url_bytes: bytes,
-        content: Optional[JsonDict] = None,
-        destination_is: Optional[bytes] = None,
+        content: JsonDict | None = None,
+        destination_is: bytes | None = None,
     ) -> list[bytes]:
         """
         Builds the Authorization headers for a federation request
@@ -909,11 +907,11 @@ class MatrixFederationHttpClient:
         self,
         destination: str,
         path: str,
-        args: Optional[QueryParams] = None,
-        data: Optional[JsonDict] = None,
-        json_data_callback: Optional[Callable[[], JsonDict]] = None,
+        args: QueryParams | None = None,
+        data: JsonDict | None = None,
+        json_data_callback: Callable[[], JsonDict] | None = None,
         long_retries: bool = False,
-        timeout: Optional[int] = None,
+        timeout: int | None = None,
         ignore_backoff: bool = False,
         backoff_on_404: bool = False,
         try_trailing_slash_on_400: bool = False,
@@ -926,15 +924,15 @@ class MatrixFederationHttpClient:
         self,
         destination: str,
         path: str,
-        args: Optional[QueryParams] = None,
-        data: Optional[JsonDict] = None,
-        json_data_callback: Optional[Callable[[], JsonDict]] = None,
+        args: QueryParams | None = None,
+        data: JsonDict | None = None,
+        json_data_callback: Callable[[], JsonDict] | None = None,
         long_retries: bool = False,
-        timeout: Optional[int] = None,
+        timeout: int | None = None,
         ignore_backoff: bool = False,
         backoff_on_404: bool = False,
         try_trailing_slash_on_400: bool = False,
-        parser: Optional[ByteParser[T]] = None,
+        parser: ByteParser[T] | None = None,
         backoff_on_all_error_codes: bool = False,
     ) -> T: ...
 
@@ -942,17 +940,17 @@ class MatrixFederationHttpClient:
         self,
         destination: str,
         path: str,
-        args: Optional[QueryParams] = None,
-        data: Optional[JsonDict] = None,
-        json_data_callback: Optional[Callable[[], JsonDict]] = None,
+        args: QueryParams | None = None,
+        data: JsonDict | None = None,
+        json_data_callback: Callable[[], JsonDict] | None = None,
         long_retries: bool = False,
-        timeout: Optional[int] = None,
+        timeout: int | None = None,
         ignore_backoff: bool = False,
         backoff_on_404: bool = False,
         try_trailing_slash_on_400: bool = False,
-        parser: Optional[ByteParser[T]] = None,
+        parser: ByteParser[T] | None = None,
         backoff_on_all_error_codes: bool = False,
-    ) -> Union[JsonDict, T]:
+    ) -> JsonDict | T:
         """Sends the specified json data using PUT
 
         Args:
@@ -1047,11 +1045,11 @@ class MatrixFederationHttpClient:
         self,
         destination: str,
         path: str,
-        data: Optional[JsonDict] = None,
+        data: JsonDict | None = None,
         long_retries: bool = False,
-        timeout: Optional[int] = None,
+        timeout: int | None = None,
         ignore_backoff: bool = False,
-        args: Optional[QueryParams] = None,
+        args: QueryParams | None = None,
     ) -> JsonDict:
         """Sends the specified json data using POST
 
@@ -1120,9 +1118,9 @@ class MatrixFederationHttpClient:
         self,
         destination: str,
         path: str,
-        args: Optional[QueryParams] = None,
+        args: QueryParams | None = None,
         retry_on_dns_fail: bool = True,
-        timeout: Optional[int] = None,
+        timeout: int | None = None,
         ignore_backoff: bool = False,
         try_trailing_slash_on_400: bool = False,
         parser: Literal[None] = None,
@@ -1133,9 +1131,9 @@ class MatrixFederationHttpClient:
         self,
         destination: str,
         path: str,
-        args: Optional[QueryParams] = ...,
+        args: QueryParams | None = ...,
         retry_on_dns_fail: bool = ...,
-        timeout: Optional[int] = ...,
+        timeout: int | None = ...,
         ignore_backoff: bool = ...,
         try_trailing_slash_on_400: bool = ...,
         parser: ByteParser[T] = ...,
@@ -1145,13 +1143,13 @@ class MatrixFederationHttpClient:
         self,
         destination: str,
         path: str,
-        args: Optional[QueryParams] = None,
+        args: QueryParams | None = None,
         retry_on_dns_fail: bool = True,
-        timeout: Optional[int] = None,
+        timeout: int | None = None,
         ignore_backoff: bool = False,
         try_trailing_slash_on_400: bool = False,
-        parser: Optional[ByteParser[T]] = None,
-    ) -> Union[JsonDict, T]:
+        parser: ByteParser[T] | None = None,
+    ) -> JsonDict | T:
         """GETs some json from the given host homeserver and path
 
         Args:
@@ -1214,9 +1212,9 @@ class MatrixFederationHttpClient:
         self,
         destination: str,
         path: str,
-        args: Optional[QueryParams] = None,
+        args: QueryParams | None = None,
         retry_on_dns_fail: bool = True,
-        timeout: Optional[int] = None,
+        timeout: int | None = None,
         ignore_backoff: bool = False,
         try_trailing_slash_on_400: bool = False,
         parser: Literal[None] = None,
@@ -1227,9 +1225,9 @@ class MatrixFederationHttpClient:
         self,
         destination: str,
         path: str,
-        args: Optional[QueryParams] = ...,
+        args: QueryParams | None = ...,
         retry_on_dns_fail: bool = ...,
-        timeout: Optional[int] = ...,
+        timeout: int | None = ...,
         ignore_backoff: bool = ...,
         try_trailing_slash_on_400: bool = ...,
         parser: ByteParser[T] = ...,
@@ -1239,13 +1237,13 @@ class MatrixFederationHttpClient:
         self,
         destination: str,
         path: str,
-        args: Optional[QueryParams] = None,
+        args: QueryParams | None = None,
         retry_on_dns_fail: bool = True,
-        timeout: Optional[int] = None,
+        timeout: int | None = None,
         ignore_backoff: bool = False,
         try_trailing_slash_on_400: bool = False,
-        parser: Optional[ByteParser[T]] = None,
-    ) -> tuple[Union[JsonDict, T], dict[bytes, list[bytes]]]:
+        parser: ByteParser[T] | None = None,
+    ) -> tuple[JsonDict | T, dict[bytes, list[bytes]]]:
         """GETs some json from the given host homeserver and path
 
         Args:
@@ -1332,9 +1330,9 @@ class MatrixFederationHttpClient:
         destination: str,
         path: str,
         long_retries: bool = False,
-        timeout: Optional[int] = None,
+        timeout: int | None = None,
         ignore_backoff: bool = False,
-        args: Optional[QueryParams] = None,
+        args: QueryParams | None = None,
     ) -> JsonDict:
         """Send a DELETE request to the remote expecting some json response
 
@@ -1399,9 +1397,9 @@ class MatrixFederationHttpClient:
         destination: str,
         path: str,
         output_stream: BinaryIO,
-        args: Optional[QueryParams] = None,
+        args: QueryParams | None = None,
         retry_on_dns_fail: bool = True,
-        max_size: Optional[int] = None,
+        max_size: int | None = None,
         ignore_backoff: bool = False,
         follow_redirects: bool = False,
     ) -> tuple[int, dict[bytes, list[bytes]]]:

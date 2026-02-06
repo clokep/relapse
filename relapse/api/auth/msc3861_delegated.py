@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 from urllib.parse import urlencode
 
 from authlib.oauth2 import ClientAuth
@@ -281,7 +281,7 @@ class MSC3861DelegatedAuth(BaseAuth):
             raise InvalidClientTokenError("No scope in token granting user rights")
 
         # Match via the sub claim
-        sub: Optional[str] = introspection_result.get("sub")
+        sub: str | None = introspection_result.get("sub")
         if sub is None:
             raise InvalidClientTokenError(
                 "Invalid sub claim in the introspection result"
@@ -295,7 +295,7 @@ class MSC3861DelegatedAuth(BaseAuth):
             # or the external_id was never recorded
 
             # TODO: claim mapping should be configurable
-            username: Optional[str] = introspection_result.get("username")
+            username: str | None = introspection_result.get("username")
             if username is None or not isinstance(username, str):
                 raise AuthError(
                     500,
@@ -313,7 +313,7 @@ class MSC3861DelegatedAuth(BaseAuth):
 
                 # TODO: claim mapping should be configurable
                 # If present, use the name claim as the displayname
-                name: Optional[str] = introspection_result.get("name")
+                name: str | None = introspection_result.get("name")
 
                 await self.store.register_user(
                     user_id=user_id.to_string(), create_profile_with_displayname=name

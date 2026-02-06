@@ -15,7 +15,7 @@ from socket import (
     gaierror,
     getaddrinfo,
 )
-from typing import TYPE_CHECKING, NoReturn, Optional, Union
+from typing import TYPE_CHECKING, NoReturn
 
 from zope.interface import implementer
 
@@ -88,7 +88,7 @@ _GETADDRINFO_RESULT = list[
         SocketKind,
         int,
         str,
-        Union[tuple[str, int], tuple[str, int, int, int]],
+        tuple[str, int] | tuple[str, int, int, int],
     ]
 ]
 
@@ -103,10 +103,10 @@ class GAIResolver:
     def __init__(
         self,
         reactor: IReactorThreads,
-        getThreadPool: Optional[Callable[[], "ThreadPool"]] = None,
+        getThreadPool: Callable[[], "ThreadPool"] | None = None,
         # getaddrinfo doesn't properly have overloads defined.
         getaddrinfo: Callable[
-            [Union[bytes, str, None], Union[bytes, str, int, None], int, int],
+            [bytes | str | None, bytes | str | int | None, int, int],
             _GETADDRINFO_RESULT,
         ] = getaddrinfo,  # type: ignore[assignment]
     ):
@@ -136,7 +136,7 @@ class GAIResolver:
         resolutionReceiver: IResolutionReceiver,
         hostName: str,
         portNumber: int = 0,
-        addressTypes: Optional[Sequence[type[IAddress]]] = None,
+        addressTypes: Sequence[type[IAddress]] | None = None,
         transportSemantics: str = "TCP",
     ) -> IHostResolution:
         """

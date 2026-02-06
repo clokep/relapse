@@ -13,7 +13,6 @@
 # limitations under the License.
 
 from collections.abc import Collection
-from typing import Optional
 
 from twisted.internet.testing import MemoryReactor
 
@@ -95,8 +94,8 @@ class ReceiptTestCase(HomeserverTestCase):
         )
 
     def get_last_unthreaded_receipt(
-        self, receipt_types: Collection[str], room_id: Optional[str] = None
-    ) -> Optional[str]:
+        self, receipt_types: Collection[str], room_id: str | None = None
+    ) -> str | None:
         """
         Fetch the event ID for the latest unthreaded receipt in the test room for the test user.
 

@@ -17,7 +17,7 @@ import urllib.parse
 from collections.abc import Callable, Mapping
 from http import HTTPStatus
 from io import BytesIO
-from typing import TYPE_CHECKING, Any, BinaryIO, Optional, Union
+from typing import TYPE_CHECKING, Any, BinaryIO
 
 import treq
 from canonicaljson import encode_canonical_json
@@ -85,7 +85,7 @@ incoming_responses_counter = Counter(
 # the type of the headers map, to be passed to the t.w.h.Headers.
 #
 # The actual type accepted by Twisted is
-#   Mapping[Union[str, bytes], Sequence[Union[str, bytes]] ,
+#   Mapping[str | bytes, Sequence[str | bytes]],
 # allowing us to mix and match str and bytes freely. However: any str is also a
 # Sequence[str]; passing a header string value which is a
 # standalone str is interpreted as a sequence of 1-codepoint strings. This is a disastrous footgun.
@@ -93,21 +93,21 @@ incoming_responses_counter = Counter(
 #
 # We also simplify the keys to be either all str or all bytes. This helps because
 # Dict[K, V] is invariant in K (and indeed V).
-RawHeaders = Union[Mapping[str, "RawHeaderValue"], Mapping[bytes, "RawHeaderValue"]]
+RawHeaders = Mapping[str, "RawHeaderValue"] | Mapping[bytes, "RawHeaderValue"]
 
 # the value actually has to be a List, but List is invariant so we can't specify that
 # the entries can either be Lists or bytes.
-RawHeaderValue = Union[
-    StrSequence,
-    list[bytes],
-    list[Union[str, bytes]],
-    tuple[bytes, ...],
-    tuple[Union[str, bytes], ...],
-]
+RawHeaderValue = (
+    StrSequence
+    | list[bytes]
+    | list[str | bytes]
+    | tuple[bytes, ...]
+    | tuple[str | bytes, ...]
+)
 
 
 def _is_ip_blocked(
-    ip_address: IPAddress, allowlist: Optional[IPSet], blocklist: IPSet
+    ip_address: IPAddress, allowlist: IPSet | None, blocklist: IPSet
 ) -> bool:
     """
     Compares an IP address to allowed and disallowed IP sets.
@@ -152,7 +152,7 @@ class _IPBlockingResolver:
     def __init__(
         self,
         reactor: IReactorPluggableNameResolver,
-        ip_allowlist: Optional[IPSet],
+        ip_allowlist: IPSet | None,
         ip_blocklist: IPSet,
     ):
         """
@@ -227,7 +227,7 @@ class BlocklistingReactorWrapper:
     def __init__(
         self,
         reactor: IReactorPluggableNameResolver,
-        ip_allowlist: Optional[IPSet],
+        ip_allowlist: IPSet | None,
         ip_blocklist: IPSet,
     ):
         self._reactor = reactor
@@ -256,7 +256,7 @@ class BlocklistingAgentWrapper(Agent):
         self,
         agent: IAgent,
         ip_blocklist: IPSet,
-        ip_allowlist: Optional[IPSet] = None,
+        ip_allowlist: IPSet | None = None,
     ):
         """
         Args:
@@ -272,8 +272,8 @@ class BlocklistingAgentWrapper(Agent):
         self,
         method: bytes,
         uri: bytes,
-        headers: Optional[Headers] = None,
-        bodyProducer: Optional[IBodyProducer] = None,
+        headers: Headers | None = None,
+        bodyProducer: IBodyProducer | None = None,
     ) -> defer.Deferred:
         h = urllib.parse.urlparse(uri.decode("ascii"))
 
@@ -311,7 +311,7 @@ class BaseHttpClient:
     def __init__(
         self,
         hs: "HomeServer",
-        treq_args: Optional[dict[str, Any]] = None,
+        treq_args: dict[str, Any] | None = None,
     ):
         self.hs = hs
         self.reactor = hs.get_reactor()
@@ -332,8 +332,8 @@ class BaseHttpClient:
         self,
         method: str,
         uri: str,
-        data: Optional[bytes] = None,
-        headers: Optional[Headers] = None,
+        data: bytes | None = None,
+        headers: Headers | None = None,
     ) -> IResponse:
         """
         Args:
@@ -420,8 +420,8 @@ class BaseHttpClient:
     async def post_urlencoded_get_json(
         self,
         uri: str,
-        args: Optional[Mapping[str, Union[str, list[str]]]] = None,
-        headers: Optional[RawHeaders] = None,
+        args: Mapping[str, str | list[str]] | None = None,
+        headers: RawHeaders | None = None,
     ) -> Any:
         """
         Args:
@@ -469,7 +469,7 @@ class BaseHttpClient:
             )
 
     async def post_json_get_json(
-        self, uri: str, post_json: Any, headers: Optional[RawHeaders] = None
+        self, uri: str, post_json: Any, headers: RawHeaders | None = None
     ) -> Any:
         """
 
@@ -518,8 +518,8 @@ class BaseHttpClient:
     async def get_json(
         self,
         uri: str,
-        args: Optional[QueryParams] = None,
-        headers: Optional[RawHeaders] = None,
+        args: QueryParams | None = None,
+        headers: RawHeaders | None = None,
     ) -> Any:
         """Gets some json from the given URI.
 
@@ -549,8 +549,8 @@ class BaseHttpClient:
         self,
         uri: str,
         json_body: Any,
-        args: Optional[QueryParams] = None,
-        headers: Optional[RawHeaders] = None,
+        args: QueryParams | None = None,
+        headers: RawHeaders | None = None,
     ) -> Any:
         """Puts some json to the given URI.
 
@@ -600,8 +600,8 @@ class BaseHttpClient:
     async def get_raw(
         self,
         uri: str,
-        args: Optional[QueryParams] = None,
-        headers: Optional[RawHeaders] = None,
+        args: QueryParams | None = None,
+        headers: RawHeaders | None = None,
     ) -> bytes:
         """Gets raw text from the given URI.
 
@@ -645,9 +645,9 @@ class BaseHttpClient:
         self,
         url: str,
         output_stream: BinaryIO,
-        max_size: Optional[int] = None,
-        headers: Optional[RawHeaders] = None,
-        is_allowed_content_type: Optional[Callable[[str], bool]] = None,
+        max_size: int | None = None,
+        headers: RawHeaders | None = None,
+        is_allowed_content_type: Callable[[str], bool] | None = None,
     ) -> tuple[int, dict[bytes, list[bytes]], str, int]:
         """GETs a file from a given URL
         Args:
@@ -751,9 +751,9 @@ class SimpleHttpClient(BaseHttpClient):
     def __init__(
         self,
         hs: "HomeServer",
-        treq_args: Optional[dict[str, Any]] = None,
-        ip_allowlist: Optional[IPSet] = None,
-        ip_blocklist: Optional[IPSet] = None,
+        treq_args: dict[str, Any] | None = None,
+        ip_allowlist: IPSet | None = None,
+        ip_blocklist: IPSet | None = None,
         use_proxy: bool = False,
     ):
         super().__init__(hs, treq_args=treq_args)
@@ -829,8 +829,8 @@ class ReplicationClient(BaseHttpClient):
         self,
         method: str,
         uri: str,
-        data: Optional[bytes] = None,
-        headers: Optional[Headers] = None,
+        data: bytes | None = None,
+        headers: Headers | None = None,
     ) -> IResponse:
         """
         Make a request, differs from BaseHttpClient.request in that it does not use treq.
@@ -956,7 +956,7 @@ class BodyExceededMaxSize(Exception):
 class _DiscardBodyWithMaxSizeProtocol(protocol.Protocol):
     """A protocol which immediately errors upon receiving data."""
 
-    transport: Optional[ITCPTransport] = None
+    transport: ITCPTransport | None = None
 
     def __init__(self, deferred: defer.Deferred):
         self.deferred = deferred
@@ -982,10 +982,10 @@ class _DiscardBodyWithMaxSizeProtocol(protocol.Protocol):
 class _ReadBodyWithMaxSizeProtocol(protocol.Protocol):
     """A protocol which reads body to a stream, erroring if the body exceeds a maximum size."""
 
-    transport: Optional[ITCPTransport] = None
+    transport: ITCPTransport | None = None
 
     def __init__(
-        self, stream: ByteWriteable, deferred: defer.Deferred, max_size: Optional[int]
+        self, stream: ByteWriteable, deferred: defer.Deferred, max_size: int | None
     ):
         self.stream = stream
         self.deferred = deferred
@@ -1035,7 +1035,7 @@ class _ReadBodyWithMaxSizeProtocol(protocol.Protocol):
 
 
 def read_body_with_max_size(
-    response: IResponse, stream: ByteWriteable, max_size: Optional[int]
+    response: IResponse, stream: ByteWriteable, max_size: int | None
 ) -> "defer.Deferred[int]":
     """
     Read a HTTP response body to a file-object. Optionally enforcing a maximum file size.
@@ -1064,7 +1064,7 @@ def read_body_with_max_size(
     return d
 
 
-def encode_query_args(args: Optional[QueryParams]) -> bytes:
+def encode_query_args(args: QueryParams | None) -> bytes:
     """
     Encodes a map of query arguments to bytes which can be appended to a URL.
 
@@ -1102,7 +1102,7 @@ class InsecureInterceptableContextFactory(ssl.ContextFactory):
 
 
 def is_unknown_endpoint(
-    e: HttpResponseException, relapse_error: Optional[RelapseError] = None
+    e: HttpResponseException, relapse_error: RelapseError | None = None
 ) -> bool:
     """
     Returns true if the response was due to an endpoint being unimplemented.

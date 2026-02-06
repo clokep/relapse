@@ -20,7 +20,7 @@ import urllib.parse
 from binascii import crc32
 from collections.abc import Awaitable, Callable, Iterable, Mapping
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Any, Optional, Union, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import attr
 import bcrypt
@@ -269,7 +269,7 @@ class AuthHandler:
         request_body: dict[str, Any],
         description: str,
         can_skip_ui_auth: bool = False,
-    ) -> tuple[dict, Optional[str]]:
+    ) -> tuple[dict, str | None]:
         """
         Checks that the user is who they claim to be, via a UI auth.
 
@@ -420,7 +420,7 @@ class AuthHandler:
         request: RelapseRequest,
         clientdict: dict[str, Any],
         description: str,
-        get_new_session_data: Optional[Callable[[], JsonDict]] = None,
+        get_new_session_data: Callable[[], JsonDict] | None = None,
     ) -> tuple[dict, dict, str]:
         """
         Takes a dictionary sent by the client in the login / registration
@@ -467,7 +467,7 @@ class AuthHandler:
                 all the stages in any of the permitted flows.
         """
 
-        sid: Optional[str] = None
+        sid: str | None = None
         authdict = clientdict.pop("auth", {})
         if "session" in authdict:
             sid = authdict["session"]
@@ -617,7 +617,7 @@ class AuthHandler:
             authdict["session"], stagetype, result
         )
 
-    def get_session_id(self, clientdict: dict[str, Any]) -> Optional[str]:
+    def get_session_id(self, clientdict: dict[str, Any]) -> str | None:
         """
         Gets the session ID for a client given the client dictionary
 
@@ -653,7 +653,7 @@ class AuthHandler:
             raise RelapseError(400, f"Unknown session ID: {session_id}")
 
     async def get_session_data(
-        self, session_id: str, key: str, default: Optional[Any] = None
+        self, session_id: str, key: str, default: Any | None = None
     ) -> Any:
         """
         Retrieve data stored with set_session_data
@@ -679,7 +679,7 @@ class AuthHandler:
 
     async def _check_auth_dict(
         self, authdict: dict[str, Any], clientip: str
-    ) -> Union[dict[str, Any], str]:
+    ) -> dict[str, Any] | str:
         """Attempt to validate the auth dict provided by a client
 
         Args:
@@ -750,9 +750,9 @@ class AuthHandler:
     async def refresh_token(
         self,
         refresh_token: str,
-        access_token_valid_until_ms: Optional[int],
-        refresh_token_valid_until_ms: Optional[int],
-    ) -> tuple[str, str, Optional[int]]:
+        access_token_valid_until_ms: int | None,
+        refresh_token_valid_until_ms: int | None,
+    ) -> tuple[str, str, int | None]:
         """
         Consumes a refresh token and generate both a new access token and a new refresh token from it.
 
@@ -885,8 +885,8 @@ class AuthHandler:
         self,
         user_id: str,
         duration_ms: int = (2 * 60 * 1000),
-        auth_provider_id: Optional[str] = None,
-        auth_provider_session_id: Optional[str] = None,
+        auth_provider_id: str | None = None,
+        auth_provider_session_id: str | None = None,
     ) -> str:
         login_token = self.generate_login_token()
         now = self._clock.time_msec()
@@ -904,8 +904,8 @@ class AuthHandler:
         self,
         user_id: str,
         device_id: str,
-        expiry_ts: Optional[int],
-        ultimate_session_expiry_ts: Optional[int],
+        expiry_ts: int | None,
+        ultimate_session_expiry_ts: int | None,
     ) -> tuple[str, int]:
         """
         Creates a new refresh token for the user with the given user ID.
@@ -937,11 +937,11 @@ class AuthHandler:
     async def create_access_token_for_user_id(
         self,
         user_id: str,
-        device_id: Optional[str],
-        valid_until_ms: Optional[int],
-        puppets_user_id: Optional[str] = None,
+        device_id: str | None,
+        valid_until_ms: int | None,
+        puppets_user_id: str | None = None,
         is_appservice_ghost: bool = False,
-        refresh_token_id: Optional[int] = None,
+        refresh_token_id: int | None = None,
     ) -> str:
         """
         Creates a new access token for the user with the given user ID.
@@ -1010,7 +1010,7 @@ class AuthHandler:
 
         return access_token
 
-    async def check_user_exists(self, user_id: str) -> Optional[str]:
+    async def check_user_exists(self, user_id: str) -> str | None:
         """
         Checks to see if a user with the given id exists. Will check case
         insensitively, but return None if there are multiple inexact matches.
@@ -1037,9 +1037,7 @@ class AuthHandler:
         """
         return await self.store.is_user_approved(user_id)
 
-    async def _find_user_id_and_pwd_hash(
-        self, user_id: str
-    ) -> Optional[tuple[str, str]]:
+    async def _find_user_id_and_pwd_hash(self, user_id: str) -> tuple[str, str] | None:
         """Checks to see if a user with the given id exists. Will check case
         insensitively, but will return None if there are multiple inexact
         matches.
@@ -1117,7 +1115,7 @@ class AuthHandler:
         login_submission: dict[str, Any],
         ratelimit: bool = False,
         is_reauth: bool = False,
-    ) -> tuple[str, Optional[Callable[["LoginResponse"], Awaitable[None]]]]:
+    ) -> tuple[str, Callable[["LoginResponse"], Awaitable[None]] | None]:
         """Authenticates the user for the /login API
 
         Also used by the user-interactive auth flow to validate auth types which don't
@@ -1273,7 +1271,7 @@ class AuthHandler:
         self,
         username: str,
         login_submission: dict[str, Any],
-    ) -> tuple[str, Optional[Callable[["LoginResponse"], Awaitable[None]]]]:
+    ) -> tuple[str, Callable[["LoginResponse"], Awaitable[None]] | None]:
         """Helper for validate_login
 
         Handles login, once we've mapped 3pids onto userids
@@ -1361,7 +1359,7 @@ class AuthHandler:
 
     async def check_password_provider_3pid(
         self, medium: str, address: str, password: str
-    ) -> tuple[Optional[str], Optional[Callable[["LoginResponse"], Awaitable[None]]]]:
+    ) -> tuple[str | None, Callable[["LoginResponse"], Awaitable[None]] | None]:
         """Check if a password provider is able to validate a thirdparty login
 
         Args:
@@ -1388,7 +1386,7 @@ class AuthHandler:
         # if result is None then return (None, None)
         return None, None
 
-    async def _check_local_password(self, user_id: str, password: str) -> Optional[str]:
+    async def _check_local_password(self, user_id: str, password: str) -> str | None:
         """Authenticate a user against the local password database.
 
         user_id is checked case insensitively, but will return None if there are
@@ -1494,8 +1492,8 @@ class AuthHandler:
     async def delete_access_tokens_for_user(
         self,
         user_id: str,
-        except_token_id: Optional[int] = None,
-        device_id: Optional[str] = None,
+        except_token_id: int | None = None,
+        device_id: str | None = None,
     ) -> None:
         """Invalidate access tokens belonging to a user
 
@@ -1621,9 +1619,7 @@ class AuthHandler:
 
         return await defer_to_thread(self.hs.get_reactor(), _do_hash)
 
-    async def validate_hash(
-        self, password: str, stored_hash: Union[bytes, str]
-    ) -> bool:
+    async def validate_hash(self, password: str, stored_hash: bytes | str) -> bool:
         """Validates that self.hash(password) == stored_hash.
 
         Args:
@@ -1709,9 +1705,9 @@ class AuthHandler:
         auth_provider_id: str,
         request: Request,
         client_redirect_url: str,
-        extra_attributes: Optional[JsonDict] = None,
+        extra_attributes: JsonDict | None = None,
         new_user: bool = False,
-        auth_provider_session_id: Optional[str] = None,
+        auth_provider_session_id: str | None = None,
     ) -> None:
         """Having figured out a mxid for this user, complete the HTTP request
 
@@ -1851,24 +1847,20 @@ class AuthHandler:
 
 CHECK_3PID_AUTH_CALLBACK = Callable[
     [str, str, str],
-    Awaitable[
-        Optional[tuple[str, Optional[Callable[["LoginResponse"], Awaitable[None]]]]]
-    ],
+    Awaitable[tuple[str, Callable[["LoginResponse"], Awaitable[None]] | None] | None],
 ]
-ON_LOGGED_OUT_CALLBACK = Callable[[str, Optional[str], str], Awaitable]
+ON_LOGGED_OUT_CALLBACK = Callable[[str, str | None, str], Awaitable]
 CHECK_AUTH_CALLBACK = Callable[
     [str, str, JsonDict],
-    Awaitable[
-        Optional[tuple[str, Optional[Callable[["LoginResponse"], Awaitable[None]]]]]
-    ],
+    Awaitable[tuple[str, Callable[["LoginResponse"], Awaitable[None]] | None] | None],
 ]
 GET_USERNAME_FOR_REGISTRATION_CALLBACK = Callable[
     [JsonDict, JsonDict],
-    Awaitable[Optional[str]],
+    Awaitable[str | None],
 ]
 GET_DISPLAYNAME_FOR_REGISTRATION_CALLBACK = Callable[
     [JsonDict, JsonDict],
-    Awaitable[Optional[str]],
+    Awaitable[str | None],
 ]
 IS_3PID_ALLOWED_CALLBACK = Callable[[str, str, bool], Awaitable[bool]]
 
@@ -1899,18 +1891,15 @@ class PasswordAuthProvider:
 
     def register_password_auth_provider_callbacks(
         self,
-        check_3pid_auth: Optional[CHECK_3PID_AUTH_CALLBACK] = None,
-        on_logged_out: Optional[ON_LOGGED_OUT_CALLBACK] = None,
-        is_3pid_allowed: Optional[IS_3PID_ALLOWED_CALLBACK] = None,
-        auth_checkers: Optional[
-            dict[tuple[str, tuple[str, ...]], CHECK_AUTH_CALLBACK]
-        ] = None,
-        get_username_for_registration: Optional[
-            GET_USERNAME_FOR_REGISTRATION_CALLBACK
-        ] = None,
-        get_displayname_for_registration: Optional[
-            GET_DISPLAYNAME_FOR_REGISTRATION_CALLBACK
-        ] = None,
+        check_3pid_auth: CHECK_3PID_AUTH_CALLBACK | None = None,
+        on_logged_out: ON_LOGGED_OUT_CALLBACK | None = None,
+        is_3pid_allowed: IS_3PID_ALLOWED_CALLBACK | None = None,
+        auth_checkers: dict[tuple[str, tuple[str, ...]], CHECK_AUTH_CALLBACK]
+        | None = None,
+        get_username_for_registration: GET_USERNAME_FOR_REGISTRATION_CALLBACK
+        | None = None,
+        get_displayname_for_registration: GET_DISPLAYNAME_FOR_REGISTRATION_CALLBACK
+        | None = None,
     ) -> None:
         # Register check_3pid_auth callback
         if check_3pid_auth is not None:
@@ -1978,7 +1967,7 @@ class PasswordAuthProvider:
 
     async def check_auth(
         self, username: str, login_type: str, login_dict: JsonDict
-    ) -> Optional[tuple[str, Optional[Callable[["LoginResponse"], Awaitable[None]]]]]:
+    ) -> tuple[str, Callable[["LoginResponse"], Awaitable[None]] | None] | None:
         """Check if the user has presented valid login credentials
 
         Args:
@@ -2055,7 +2044,7 @@ class PasswordAuthProvider:
 
     async def check_3pid_auth(
         self, medium: str, address: str, password: str
-    ) -> Optional[tuple[str, Optional[Callable[["LoginResponse"], Awaitable[None]]]]]:
+    ) -> tuple[str, Callable[["LoginResponse"], Awaitable[None]] | None] | None:
         # This function is able to return a deferred that either
         # resolves None, meaning authentication failure, or upon
         # success, to a str (which is the user_id) or a tuple of
@@ -2117,7 +2106,7 @@ class PasswordAuthProvider:
         return None
 
     async def on_logged_out(
-        self, user_id: str, device_id: Optional[str], access_token: str
+        self, user_id: str, device_id: str | None, access_token: str
     ) -> None:
         # call all of the on_logged_out callbacks
         for callback in self.on_logged_out_callbacks:
@@ -2131,7 +2120,7 @@ class PasswordAuthProvider:
         self,
         uia_results: JsonDict,
         params: JsonDict,
-    ) -> Optional[str]:
+    ) -> str | None:
         """Defines the username to use when registering the user, using the credentials
         and parameters provided during the UIA flow.
 
@@ -2176,7 +2165,7 @@ class PasswordAuthProvider:
         self,
         uia_results: JsonDict,
         params: JsonDict,
-    ) -> Optional[str]:
+    ) -> str | None:
         """Defines the display name to use when registering the user, using the
         credentials and parameters provided during the UIA flow.
 

@@ -14,7 +14,7 @@
 import logging
 import re
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 import attr
 import saml2
@@ -48,7 +48,7 @@ class Saml2SessionData:
     creation_time: int
     # The user interactive authentication session ID associated with this SAML
     # session (or None if this SAML session is for an initial login).
-    ui_auth_session_id: Optional[str] = None
+    ui_auth_session_id: str | None = None
 
 
 class SamlHandler:
@@ -92,8 +92,8 @@ class SamlHandler:
     async def handle_redirect_request(
         self,
         request: RelapseRequest,
-        client_redirect_url: Optional[bytes],
-        ui_auth_session_id: Optional[str] = None,
+        client_redirect_url: bytes | None,
+        ui_auth_session_id: str | None = None,
     ) -> str:
         """Handle an incoming request to /login/sso/redirect
 
@@ -297,7 +297,7 @@ class SamlHandler:
                 emails=result.get("emails", []),
             )
 
-        async def grandfather_existing_users() -> Optional[str]:
+        async def grandfather_existing_users() -> str | None:
             # backwards-compatibility hack: see if there is an existing user with a
             # suitable mapping from the uid
             if (
@@ -335,7 +335,7 @@ class SamlHandler:
     def _remote_id_from_saml_response(
         self,
         saml2_auth: saml2.response.AuthnResponse,
-        client_redirect_url: Optional[str],
+        client_redirect_url: str | None,
     ) -> str:
         """Extract the unique remote id from a SAML2 AuthnResponse
 

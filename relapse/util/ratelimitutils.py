@@ -19,7 +19,7 @@ import threading
 import typing
 from collections.abc import Callable, Iterator, Mapping, MutableSet
 from contextlib import AbstractContextManager
-from typing import Any, Optional
+from typing import Any
 from weakref import WeakSet
 
 from prometheus_client.core import Counter
@@ -141,7 +141,7 @@ class FederationRateLimiter:
         self,
         clock: Clock,
         config: FederationRatelimitSettings,
-        metrics_name: Optional[str] = None,
+        metrics_name: str | None = None,
     ):
         """
         Args:
@@ -189,7 +189,7 @@ class _PerHostRatelimiter:
         self,
         clock: Clock,
         config: FederationRatelimitSettings,
-        metrics_name: Optional[str] = None,
+        metrics_name: str | None = None,
     ):
         """
         Args:

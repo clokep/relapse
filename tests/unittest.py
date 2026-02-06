@@ -28,9 +28,7 @@ from typing import (
     Concatenate,
     Generic,
     NoReturn,
-    Optional,
     TypeVar,
-    Union,
 )
 from unittest.mock import Mock, patch
 
@@ -511,16 +509,16 @@ class HomeserverTestCase(TestCase):
 
     def make_request(
         self,
-        method: Union[bytes, str],
-        path: Union[bytes, str],
-        content: Union[bytes, str, JsonDict] = b"",
-        access_token: Optional[str] = None,
+        method: bytes | str,
+        path: bytes | str,
+        content: bytes | str | JsonDict = b"",
+        access_token: str | None = None,
         request: type[Request] = RelapseRequest,
         shorthand: bool = True,
-        federation_auth_origin: Optional[bytes] = None,
+        federation_auth_origin: bytes | None = None,
         content_is_form: bool = False,
         await_result: bool = True,
-        custom_headers: Optional[Iterable[CustomHeaderType]] = None,
+        custom_headers: Iterable[CustomHeaderType] | None = None,
         client_ip: str = "127.0.0.1",
     ) -> FakeChannel:
         """
@@ -568,7 +566,7 @@ class HomeserverTestCase(TestCase):
         )
 
     def setup_test_homeserver(
-        self, name: Optional[str] = None, **kwargs: Any
+        self, name: str | None = None, **kwargs: Any
     ) -> HomeServer:
         """
         Set up the test homeserver, meant to be called by the overridable
@@ -663,8 +661,8 @@ class HomeserverTestCase(TestCase):
         self,
         username: str,
         password: str,
-        admin: Optional[bool] = False,
-        displayname: Optional[str] = None,
+        admin: bool | None = False,
+        displayname: str | None = None,
     ) -> str:
         """
         Register a user. Requires the Admin API be registered.
@@ -744,9 +742,9 @@ class HomeserverTestCase(TestCase):
         self,
         username: str,
         password: str,
-        device_id: Optional[str] = None,
-        additional_request_fields: Optional[dict[str, str]] = None,
-        custom_headers: Optional[Iterable[CustomHeaderType]] = None,
+        device_id: str | None = None,
+        additional_request_fields: dict[str, str] | None = None,
+        custom_headers: Iterable[CustomHeaderType] | None = None,
     ) -> str:
         """
         Log in a user, and get an access token. Requires the Login API be registered.
@@ -785,7 +783,7 @@ class HomeserverTestCase(TestCase):
         room_id: str,
         user: UserID,
         soft_failed: bool = False,
-        prev_event_ids: Optional[list[str]] = None,
+        prev_event_ids: list[str] | None = None,
     ) -> str:
         """
         Create and send an event.
@@ -888,9 +886,9 @@ class FederatingHomeserverTestCase(HomeserverTestCase):
         self,
         method: str,
         path: str,
-        content: Optional[JsonDict] = None,
+        content: JsonDict | None = None,
         await_result: bool = True,
-        custom_headers: Optional[Iterable[CustomHeaderType]] = None,
+        custom_headers: Iterable[CustomHeaderType] | None = None,
         client_ip: str = "127.0.0.1",
     ) -> FakeChannel:
         """Make an inbound signed federation request to this server
@@ -955,7 +953,7 @@ def _auth_header_for_request(
     signing_key: signedjson.key.SigningKey,
     method: str,
     path: str,
-    content: Optional[JsonDict],
+    content: JsonDict | None,
 ) -> str:
     """Build a suitable Authorization header for an outgoing federation request"""
     request_description: JsonDict = {

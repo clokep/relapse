@@ -15,7 +15,7 @@
 
 import logging
 from collections.abc import Collection, Iterable
-from typing import TYPE_CHECKING, Optional, cast
+from typing import TYPE_CHECKING, cast
 
 from relapse.api.constants import EventContentFields
 from relapse.logging import issue9533_logger
@@ -64,13 +64,13 @@ class DeviceInboxWorkerStore(SQLBaseStore):
 
         # Map of (user_id, device_id) to the last stream_id that has been
         # deleted up to. This is so that we can no op deletions.
-        self._last_device_delete_cache: ExpiringCache[
-            tuple[str, Optional[str]], int
-        ] = ExpiringCache(
-            cache_name="last_device_delete_cache",
-            clock=self._clock,
-            max_len=10000,
-            expiry_ms=30 * 60 * 1000,
+        self._last_device_delete_cache: ExpiringCache[tuple[str, str | None], int] = (
+            ExpiringCache(
+                cache_name="last_device_delete_cache",
+                clock=self._clock,
+                max_len=10000,
+                expiry_ms=30 * 60 * 1000,
+            )
         )
 
         if isinstance(database.engine, PostgresEngine):
@@ -256,8 +256,8 @@ class DeviceInboxWorkerStore(SQLBaseStore):
         user_ids: Collection[str],
         from_stream_id: int,
         to_stream_id: int,
-        device_id: Optional[str] = None,
-        limit: Optional[int] = None,
+        device_id: str | None = None,
+        limit: int | None = None,
     ) -> tuple[dict[tuple[str, str], list[JsonDict]], int]:
         """
         Retrieve pending to-device messages for a collection of user devices.
@@ -446,7 +446,7 @@ class DeviceInboxWorkerStore(SQLBaseStore):
     async def delete_messages_for_device(
         self,
         user_id: str,
-        device_id: Optional[str],
+        device_id: str | None,
         up_to_stream_id: int,
     ) -> int:
         """
@@ -504,11 +504,11 @@ class DeviceInboxWorkerStore(SQLBaseStore):
     async def delete_messages_for_device_between(
         self,
         user_id: str,
-        device_id: Optional[str],
-        from_stream_id: Optional[int],
+        device_id: str | None,
+        from_stream_id: int | None,
         to_stream_id: int,
         limit: int,
-    ) -> tuple[Optional[int], int]:
+    ) -> tuple[int | None, int]:
         """Delete N device messages between the stream IDs, returning the
         highest stream ID deleted (or None if all messages in the range have
         been deleted) and the number of messages deleted.
@@ -528,7 +528,7 @@ class DeviceInboxWorkerStore(SQLBaseStore):
 
         def delete_messages_for_device_between_txn(
             txn: LoggingTransaction,
-        ) -> tuple[Optional[int], int]:
+        ) -> tuple[int | None, int]:
             txn.execute(
                 """
                 SELECT MAX(stream_id) FROM (
@@ -1032,7 +1032,7 @@ class DeviceInboxBackgroundUpdateStore(SQLBaseStore):
                 # There's a type mismatch here between how we want to type the row and
                 # what fetchone says it returns, but we silence it because we know that
                 # res can't be None.
-                res = cast(tuple[Optional[int]], txn.fetchone())
+                res = cast(tuple[int | None], txn.fetchone())
                 if res[0] is None:
                     # this can only happen if the `device_inbox` table is empty, in which
                     # case we have no work to do.

@@ -16,7 +16,7 @@
 import heapq
 import logging
 from collections.abc import Awaitable, Callable
-from typing import TYPE_CHECKING, Any, Optional, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 import attr
 
@@ -273,9 +273,9 @@ class BackfillStream(Stream):
         event_id: str
         room_id: str
         type: str
-        state_key: Optional[str]
-        redacts: Optional[str]
-        relates_to: Optional[str]
+        state_key: str | None
+        redacts: str | None
+        relates_to: str | None
 
     NAME = "backfill"
     ROW_TYPE = BackfillStreamRow
@@ -423,7 +423,7 @@ class ReceiptsStream(_StreamFromIdGen):
         receipt_type: str
         user_id: str
         event_id: str
-        thread_id: Optional[str]
+        thread_id: str | None
         data: dict
 
     NAME = "receipts"
@@ -498,7 +498,7 @@ class CachesStream(Stream):
         """
 
         cache_func: str
-        keys: Optional[list[Any]]
+        keys: list[Any] | None
         invalidation_ts: int
 
     NAME = "caches"
@@ -623,7 +623,7 @@ class AccountDataStream(_StreamFromIdGen):
     @attr.s(slots=True, frozen=True, auto_attribs=True)
     class AccountDataStreamRow:
         user_id: str
-        room_id: Optional[str]
+        room_id: str | None
         data_type: str
 
     NAME = "account_data"

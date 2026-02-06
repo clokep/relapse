@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Optional
+from typing import Any
 from unittest.mock import AsyncMock, Mock
 
 from twisted.internet import defer
@@ -796,10 +796,10 @@ class ModuleApiTestCase(BaseModuleApiTestCase):
         )
 
         # Setup a callback counting the number of pushers.
-        number_of_pushers_in_callback: Optional[int] = None
+        number_of_pushers_in_callback: int | None = None
 
         async def _on_logged_out_mock(
-            user_id: str, device_id: Optional[str], access_token: str
+            user_id: str, device_id: str | None, access_token: str
         ) -> None:
             nonlocal number_of_pushers_in_callback
             number_of_pushers_in_callback = len(

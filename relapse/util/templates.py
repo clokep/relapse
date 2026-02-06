@@ -17,7 +17,7 @@
 import time
 import urllib.parse
 from collections.abc import Callable, Sequence
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING
 
 import jinja2
 
@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 def build_jinja_env(
     template_search_directories: Sequence[str],
     config: "HomeServerConfig",
-    autoescape: Union[bool, Callable[[Optional[str]], bool], None] = None,
+    autoescape: bool | Callable[[str | None], bool] | None = None,
 ) -> jinja2.Environment:
     """Set up a Jinja2 environment to load templates from the given search path
 
@@ -76,7 +76,7 @@ def build_jinja_env(
 
 
 def _create_mxc_to_http_filter(
-    public_baseurl: Optional[str],
+    public_baseurl: str | None,
 ) -> Callable[[str, int, int, str], str]:
     """Create and return a jinja2 filter that converts MXC urls to HTTP
 

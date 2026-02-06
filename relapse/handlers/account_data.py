@@ -15,7 +15,7 @@
 import logging
 import random
 from collections.abc import Awaitable, Callable
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from relapse.api.constants import AccountDataTypes
 from relapse.replication.http.account_data import (
@@ -34,9 +34,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-ON_ACCOUNT_DATA_UPDATED_CALLBACK = Callable[
-    [str, Optional[str], str, JsonDict], Awaitable
-]
+ON_ACCOUNT_DATA_UPDATED_CALLBACK = Callable[[str, str | None, str, JsonDict], Awaitable]
 
 
 class AccountDataHandler:
@@ -66,7 +64,7 @@ class AccountDataHandler:
         ] = []
 
     def register_module_callbacks(
-        self, on_account_data_updated: Optional[ON_ACCOUNT_DATA_UPDATED_CALLBACK] = None
+        self, on_account_data_updated: ON_ACCOUNT_DATA_UPDATED_CALLBACK | None = None
     ) -> None:
         """Register callbacks from modules."""
         if on_account_data_updated is not None:
@@ -75,7 +73,7 @@ class AccountDataHandler:
     async def _notify_modules(
         self,
         user_id: str,
-        room_id: Optional[str],
+        room_id: str | None,
         account_data_type: str,
         content: JsonDict,
     ) -> None:
@@ -137,7 +135,7 @@ class AccountDataHandler:
 
     async def remove_account_data_for_room(
         self, user_id: str, room_id: str, account_data_type: str
-    ) -> Optional[int]:
+    ) -> int | None:
         """
         Deletes the room account data for the given user and account data type.
 
@@ -213,7 +211,7 @@ class AccountDataHandler:
 
     async def remove_account_data_for_user(
         self, user_id: str, account_data_type: str
-    ) -> Optional[int]:
+    ) -> int | None:
         """Removes a piece of global account_data for a user.
 
         Args:
@@ -318,7 +316,7 @@ class AccountDataEventSource(EventSource[int, JsonDict]):
         limit: int,
         room_ids: StrCollection,
         is_guest: bool,
-        explicit_room_id: Optional[str] = None,
+        explicit_room_id: str | None = None,
     ) -> tuple[list[JsonDict], int]:
         user_id = user.to_string()
         last_stream_id = from_key

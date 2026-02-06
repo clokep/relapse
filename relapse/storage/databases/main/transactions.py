@@ -15,7 +15,7 @@
 import logging
 from collections.abc import Iterable, Mapping
 from enum import Enum
-from typing import TYPE_CHECKING, Optional, cast
+from typing import TYPE_CHECKING, cast
 
 import attr
 from canonicaljson import encode_canonical_json
@@ -91,7 +91,7 @@ class TransactionWorkerStore(CacheInvalidationWorkerStore):
 
     async def get_received_txn_response(
         self, transaction_id: str, origin: str
-    ) -> Optional[tuple[int, JsonDict]]:
+    ) -> tuple[int, JsonDict] | None:
         """For an incoming transaction from a given origin, check if we have
         already responded to it. If so, return the response code and response
         body (as a dict).
@@ -114,7 +114,7 @@ class TransactionWorkerStore(CacheInvalidationWorkerStore):
 
     def _get_received_txn_response(
         self, txn: LoggingTransaction, transaction_id: str, origin: str
-    ) -> Optional[tuple[int, JsonDict]]:
+    ) -> tuple[int, JsonDict] | None:
         result = self.db_pool.simple_select_one_txn(
             txn,
             table="received_transactions",
@@ -163,7 +163,7 @@ class TransactionWorkerStore(CacheInvalidationWorkerStore):
     async def get_destination_retry_timings(
         self,
         destination: str,
-    ) -> Optional[DestinationRetryTimings]:
+    ) -> DestinationRetryTimings | None:
         """Gets the current retry timings (if any) for a given destination.
 
         Args:
@@ -184,7 +184,7 @@ class TransactionWorkerStore(CacheInvalidationWorkerStore):
 
     def _get_destination_retry_timings(
         self, txn: LoggingTransaction, destination: str
-    ) -> Optional[DestinationRetryTimings]:
+    ) -> DestinationRetryTimings | None:
         result = self.db_pool.simple_select_one_txn(
             txn,
             table="destinations",
@@ -207,9 +207,9 @@ class TransactionWorkerStore(CacheInvalidationWorkerStore):
     )
     async def get_destination_retry_timings_batch(
         self, destinations: StrCollection
-    ) -> Mapping[str, Optional[DestinationRetryTimings]]:
+    ) -> Mapping[str, DestinationRetryTimings | None]:
         rows = cast(
-            list[tuple[str, Optional[int], Optional[int], Optional[int]]],
+            list[tuple[str, int | None, int | None, int | None]],
             await self.db_pool.simple_select_many_batch(
                 table="destinations",
                 iterable=destinations,
@@ -235,7 +235,7 @@ class TransactionWorkerStore(CacheInvalidationWorkerStore):
     async def set_destination_retry_timings(
         self,
         destination: str,
-        failure_ts: Optional[int],
+        failure_ts: int | None,
         retry_last_ts: int,
         retry_interval: int,
     ) -> None:
@@ -263,7 +263,7 @@ class TransactionWorkerStore(CacheInvalidationWorkerStore):
         self,
         txn: LoggingTransaction,
         destination: str,
-        failure_ts: Optional[int],
+        failure_ts: int | None,
         retry_last_ts: int,
         retry_interval: int,
     ) -> None:
@@ -331,7 +331,7 @@ class TransactionWorkerStore(CacheInvalidationWorkerStore):
 
     async def get_destination_last_successful_stream_ordering(
         self, destination: str
-    ) -> Optional[int]:
+    ) -> int | None:
         """
         Gets the stream ordering of the PDU most-recently successfully sent
         to the specified destination, or None if this information has not been
@@ -414,7 +414,7 @@ class TransactionWorkerStore(CacheInvalidationWorkerStore):
         return event_ids
 
     async def get_catch_up_outstanding_destinations(
-        self, after_destination: Optional[str]
+        self, after_destination: str | None
     ) -> list[str]:
         """
         Gets at most 25 destinations which have outstanding PDUs to be caught up,
@@ -440,7 +440,7 @@ class TransactionWorkerStore(CacheInvalidationWorkerStore):
 
     @staticmethod
     def _get_catch_up_outstanding_destinations_txn(
-        txn: LoggingTransaction, now_time_ms: int, after_destination: Optional[str]
+        txn: LoggingTransaction, now_time_ms: int, after_destination: str | None
     ) -> list[str]:
         q = """
             SELECT DISTINCT destination FROM destinations
@@ -472,11 +472,11 @@ class TransactionWorkerStore(CacheInvalidationWorkerStore):
         self,
         start: int,
         limit: int,
-        destination: Optional[str] = None,
+        destination: str | None = None,
         order_by: str = DestinationSortOrder.DESTINATION.value,
         direction: Direction = Direction.FORWARDS,
     ) -> tuple[
-        list[tuple[str, Optional[int], Optional[int], Optional[int], Optional[int]]],
+        list[tuple[str, int | None, int | None, int | None, int | None]],
         int,
     ]:
         """Function to retrieve a paginated list of destinations.
@@ -502,9 +502,7 @@ class TransactionWorkerStore(CacheInvalidationWorkerStore):
         def get_destinations_paginate_txn(
             txn: LoggingTransaction,
         ) -> tuple[
-            list[
-                tuple[str, Optional[int], Optional[int], Optional[int], Optional[int]]
-            ],
+            list[tuple[str, int | None, int | None, int | None, int | None]],
             int,
         ]:
             order_by_column = DestinationSortOrder(order_by).value
@@ -534,11 +532,7 @@ class TransactionWorkerStore(CacheInvalidationWorkerStore):
             """
             txn.execute(sql, args + [limit, start])
             destinations = cast(
-                list[
-                    tuple[
-                        str, Optional[int], Optional[int], Optional[int], Optional[int]
-                    ]
-                ],
+                list[tuple[str, int | None, int | None, int | None, int | None]],
                 txn.fetchall(),
             )
             return destinations, count

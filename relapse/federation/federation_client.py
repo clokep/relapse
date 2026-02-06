@@ -27,7 +27,7 @@ from collections.abc import (
     Sequence,
     Set,
 )
-from typing import TYPE_CHECKING, Any, BinaryIO, Optional, TypeVar, Union
+from typing import TYPE_CHECKING, Any, BinaryIO, TypeVar
 
 import attr
 from prometheus_client import Counter
@@ -251,7 +251,7 @@ class FederationClient(FederationBase):
         user: UserID,
         destination: str,
         query: dict[str, dict[str, dict[str, int]]],
-        timeout: Optional[int],
+        timeout: int | None,
     ) -> JsonDict:
         """Claims one-time keys for a device hosted on a remote server.
 
@@ -327,7 +327,7 @@ class FederationClient(FederationBase):
     @tag_args
     async def backfill(
         self, destination: str, room_id: str, limit: int, extremities: Collection[str]
-    ) -> Optional[list[EventBase]]:
+    ) -> list[EventBase] | None:
         """Requests some more historic PDUs for the given room from the
         given destination server.
 
@@ -386,8 +386,8 @@ class FederationClient(FederationBase):
         destination: str,
         event_id: str,
         room_version: RoomVersion,
-        timeout: Optional[int] = None,
-    ) -> Optional[EventBase]:
+        timeout: int | None = None,
+    ) -> EventBase | None:
         """Requests the PDU with given origin and ID from the remote home
         server. Does not have any caching or rate limiting!
 
@@ -455,8 +455,8 @@ class FederationClient(FederationBase):
         destinations: Collection[str],
         event_id: str,
         room_version: RoomVersion,
-        timeout: Optional[int] = None,
-    ) -> Optional[PulledPduInfo]:
+        timeout: int | None = None,
+    ) -> PulledPduInfo | None:
         """Requests the PDU with given origin and ID from the remote home
         servers.
 
@@ -766,10 +766,9 @@ class FederationClient(FederationBase):
         pdu: EventBase,
         origin: str,
         room_version: RoomVersion,
-        record_failure_callback: Optional[
-            Callable[[EventBase, str], Awaitable[None]]
-        ] = None,
-    ) -> Optional[EventBase]:
+        record_failure_callback: Callable[[EventBase, str], Awaitable[None]]
+        | None = None,
+    ) -> EventBase | None:
         """Takes a PDU and checks its signatures and hashes.
 
         If the PDU fails its signature check then we check if we have it in the
@@ -866,7 +865,7 @@ class FederationClient(FederationBase):
         description: str,
         destinations: Iterable[str],
         callback: Callable[[str], Awaitable[T]],
-        failover_errcodes: Optional[Container[str]] = None,
+        failover_errcodes: Container[str] | None = None,
         failover_on_unknown_endpoint: bool = False,
     ) -> T:
         """Try an operation on a series of servers, until it succeeds
@@ -981,7 +980,7 @@ class FederationClient(FederationBase):
         user_id: str,
         membership: str,
         content: dict,
-        params: Optional[Mapping[str, Union[str, Iterable[str]]]],
+        params: Mapping[str, str | Iterable[str]] | None,
     ) -> tuple[str, EventBase, RoomVersion]:
         """
         Creates an m.room.member event, with context, without participating in the room.
@@ -1531,11 +1530,11 @@ class FederationClient(FederationBase):
     async def get_public_rooms(
         self,
         remote_server: str,
-        limit: Optional[int] = None,
-        since_token: Optional[str] = None,
-        search_filter: Optional[dict] = None,
+        limit: int | None = None,
+        since_token: str | None = None,
+        search_filter: dict | None = None,
         include_all_networks: bool = False,
-        third_party_instance_id: Optional[str] = None,
+        third_party_instance_id: str | None = None,
     ) -> JsonDict:
         """Get the list of public rooms from a remote homeserver
 
@@ -1586,7 +1585,7 @@ class FederationClient(FederationBase):
                     )
                 raise
         else:
-            args: dict[str, Union[str, Iterable[str]]] = {
+            args: dict[str, str | Iterable[str]] = {
                 "include_all_networks": "true" if include_all_networks else "false"
             }
             if third_party_instance_id:
@@ -1693,7 +1692,7 @@ class FederationClient(FederationBase):
 
     async def get_room_complexity(
         self, destination: str, room_id: str
-    ) -> Optional[JsonDict]:
+    ) -> JsonDict | None:
         """
         Fetch the complexity of a remote room from another server.
 
@@ -1848,7 +1847,7 @@ class FederationClient(FederationBase):
         room_id: str,
         timestamp: int,
         direction: Direction,
-    ) -> Optional[TimestampToEventResponse]:
+    ) -> TimestampToEventResponse | None:
         """
         Calls each remote federating server from `destinations` asking for their closest
         event to the given timestamp in the given direction until we get a response.
@@ -2073,7 +2072,7 @@ class FederationClient(FederationBase):
     async def send_transaction(
         self,
         transaction: Transaction,
-        json_data_callback: Optional[Callable[[], JsonDict]] = None,
+        json_data_callback: Callable[[], JsonDict] | None = None,
     ) -> JsonDict:
         """Sends the given Transaction to its destination
 

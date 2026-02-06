@@ -14,7 +14,7 @@
 
 import unittest
 from collections.abc import Collection, Iterable
-from typing import Any, Optional
+from typing import Any
 
 from parameterized import parameterized
 
@@ -791,8 +791,8 @@ def _member_event(
     room_version: RoomVersion,
     user_id: str,
     membership: str,
-    sender: Optional[str] = None,
-    additional_content: Optional[dict] = None,
+    sender: str | None = None,
+    additional_content: dict | None = None,
 ) -> EventBase:
     return make_event_from_dict(
         {
@@ -812,7 +812,7 @@ def _member_event(
 def _join_event(
     room_version: RoomVersion,
     user_id: str,
-    additional_content: Optional[dict] = None,
+    additional_content: dict | None = None,
 ) -> EventBase:
     return _member_event(
         room_version,
@@ -865,7 +865,7 @@ def _build_auth_dict_for_room_version(
 def _random_state_event(
     room_version: RoomVersion,
     sender: str,
-    auth_events: Optional[Iterable[EventBase]] = None,
+    auth_events: Iterable[EventBase] | None = None,
 ) -> EventBase:
     if auth_events is None:
         auth_events = []

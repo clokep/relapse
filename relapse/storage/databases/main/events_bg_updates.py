@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import logging
-from typing import TYPE_CHECKING, Optional, cast
+from typing import TYPE_CHECKING, cast
 
 import attr
 
@@ -988,7 +988,7 @@ class EventsBackgroundUpdatesStore(SQLBaseStore):
         last_room_id: str,
         last_depth: int,
         last_stream: int,
-        batch_size: Optional[int],
+        batch_size: int | None,
         single_room: bool,
     ) -> _CalculateChainCover:
         """Calculate the chain cover for `batch_size` events, ordered by

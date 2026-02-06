@@ -15,7 +15,7 @@
 # limitations under the License.
 import logging
 from collections.abc import Collection, Iterable, Mapping
-from typing import TYPE_CHECKING, Any, Literal, Optional, cast
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 from canonicaljson import encode_canonical_json
 
@@ -195,7 +195,7 @@ class DeviceWorkerStore(RoomMemberWorkerStore, EndToEndKeyWorkerStore):
         return self._device_list_id_gen.get_current_token()
 
     async def count_devices_by_users(
-        self, user_ids: Optional[Collection[str]] = None
+        self, user_ids: Collection[str] | None = None
     ) -> int:
         """Retrieve number of all devices of given users.
         Only returns number of devices that are not marked as hidden.
@@ -230,9 +230,7 @@ class DeviceWorkerStore(RoomMemberWorkerStore, EndToEndKeyWorkerStore):
             "count_devices_by_users", count_devices_by_users_txn, user_ids
         )
 
-    async def get_device(
-        self, user_id: str, device_id: str
-    ) -> Optional[dict[str, Any]]:
+    async def get_device(self, user_id: str, device_id: str) -> dict[str, Any] | None:
         """Retrieve a device. Only returns devices that are not marked as
         hidden.
 
@@ -256,7 +254,7 @@ class DeviceWorkerStore(RoomMemberWorkerStore, EndToEndKeyWorkerStore):
 
     async def get_devices_by_user(
         self, user_id: str
-    ) -> dict[str, dict[str, Optional[str]]]:
+    ) -> dict[str, dict[str, str | None]]:
         """Retrieve all of a user's registered devices. Only returns devices
         that are not marked as hidden.
 
@@ -267,7 +265,7 @@ class DeviceWorkerStore(RoomMemberWorkerStore, EndToEndKeyWorkerStore):
             and "display_name" for each device. Display name may be null.
         """
         devices = cast(
-            list[tuple[str, str, Optional[str]]],
+            list[tuple[str, str, str | None]],
             await self.db_pool.simple_select_list(
                 table="devices",
                 keyvalues={"user_id": user_id, "hidden": False},
@@ -409,7 +407,7 @@ class DeviceWorkerStore(RoomMemberWorkerStore, EndToEndKeyWorkerStore):
         last_processed_stream_id = from_stream_id
 
         # A map of (user ID, device ID) to (stream ID, context).
-        query_map: dict[tuple[str, str], tuple[int, Optional[str]]] = {}
+        query_map: dict[tuple[str, str], tuple[int, str | None]] = {}
         cross_signing_keys_by_user: dict[str, dict[str, object]] = {}
         for user_id, device_id, update_stream_id, update_context in updates:
             # Calculate the remaining length budget.
@@ -516,7 +514,7 @@ class DeviceWorkerStore(RoomMemberWorkerStore, EndToEndKeyWorkerStore):
         from_stream_id: int,
         now_stream_id: int,
         limit: int,
-    ) -> list[tuple[str, str, int, Optional[str]]]:
+    ) -> list[tuple[str, str, int, str | None]]:
         """Return device update information for a given remote destination
 
         Args:
@@ -542,13 +540,13 @@ class DeviceWorkerStore(RoomMemberWorkerStore, EndToEndKeyWorkerStore):
         """
         txn.execute(sql, (destination, from_stream_id, now_stream_id, limit))
 
-        return cast(list[tuple[str, str, int, Optional[str]]], txn.fetchall())
+        return cast(list[tuple[str, str, int, str | None]], txn.fetchall())
 
     async def _get_device_update_edus_by_remote(
         self,
         destination: str,
         from_stream_id: int,
-        query_map: dict[tuple[str, str], tuple[int, Optional[str]]],
+        query_map: dict[tuple[str, str], tuple[int, str | None]],
     ) -> list[tuple[str, dict]]:
         """Returns a list of device update EDUs as well as E2EE keys
 
@@ -874,7 +872,7 @@ class DeviceWorkerStore(RoomMemberWorkerStore, EndToEndKeyWorkerStore):
         self,
         from_key: int,
         user_ids: Collection[str],
-        to_key: Optional[int] = None,
+        to_key: int | None = None,
     ) -> set[str]:
         """Get set of users whose devices have changed since `from_key` that
         are in the given list of user_ids.
@@ -1013,7 +1011,7 @@ class DeviceWorkerStore(RoomMemberWorkerStore, EndToEndKeyWorkerStore):
     @cached(max_entries=10000)
     async def get_device_list_last_stream_id_for_remote(
         self, user_id: str
-    ) -> Optional[str]:
+    ) -> str | None:
         """Get the last stream_id we got for a user. May be None if we haven't
         got any information for them.
         """
@@ -1031,7 +1029,7 @@ class DeviceWorkerStore(RoomMemberWorkerStore, EndToEndKeyWorkerStore):
     )
     async def get_device_list_last_stream_id_for_remotes(
         self, user_ids: Iterable[str]
-    ) -> Mapping[str, Optional[str]]:
+    ) -> Mapping[str, str | None]:
         rows = cast(
             list[tuple[str, str]],
             await self.db_pool.simple_select_many_batch(
@@ -1043,14 +1041,14 @@ class DeviceWorkerStore(RoomMemberWorkerStore, EndToEndKeyWorkerStore):
             ),
         )
 
-        results: dict[str, Optional[str]] = dict.fromkeys(user_ids)
+        results: dict[str, str | None] = dict.fromkeys(user_ids)
         results.update(rows)
 
         return results
 
     async def get_user_ids_requiring_device_list_resync(
         self,
-        user_ids: Optional[Collection[str]] = None,
+        user_ids: Collection[str] | None = None,
     ) -> set[str]:
         """Given a list of remote users return the list of users that we
         should resync the device lists for. If None is given instead of a list,
@@ -1172,9 +1170,7 @@ class DeviceWorkerStore(RoomMemberWorkerStore, EndToEndKeyWorkerStore):
             txn, self.get_device_list_last_stream_id_for_remote, (user_id,)
         )
 
-    async def get_dehydrated_device(
-        self, user_id: str
-    ) -> Optional[tuple[str, JsonDict]]:
+    async def get_dehydrated_device(self, user_id: str) -> tuple[str, JsonDict] | None:
         """Retrieve the information for a dehydrated device.
 
         Args:
@@ -1200,7 +1196,7 @@ class DeviceWorkerStore(RoomMemberWorkerStore, EndToEndKeyWorkerStore):
         device_data: str,
         time: int,
         keys: JsonDict,
-    ) -> Optional[str]:
+    ) -> str | None:
         device_keys = keys.get("device_keys", None)
         if device_keys:
             # Type ignore - this function is defined on EndToEndKeyStore which we do
@@ -1250,7 +1246,7 @@ class DeviceWorkerStore(RoomMemberWorkerStore, EndToEndKeyWorkerStore):
         device_data: JsonDict,
         time_now: int,
         keys: dict,
-    ) -> Optional[str]:
+    ) -> str | None:
         """Store a dehydrated device for a user.
 
         Args:
@@ -1436,7 +1432,7 @@ class DeviceWorkerStore(RoomMemberWorkerStore, EndToEndKeyWorkerStore):
     @cancellable
     async def get_device_list_changes_in_rooms(
         self, room_ids: Collection[str], from_id: int
-    ) -> Optional[set[str]]:
+    ) -> set[str] | None:
         """Return the set of users whose devices have changed in the given rooms
         since the given stream ID.
 
@@ -1687,9 +1683,9 @@ class DeviceStore(DeviceWorkerStore, DeviceBackgroundUpdateStore):
         self,
         user_id: str,
         device_id: str,
-        initial_device_display_name: Optional[str],
-        auth_provider_id: Optional[str] = None,
-        auth_provider_session_id: Optional[str] = None,
+        initial_device_display_name: str | None,
+        auth_provider_id: str | None = None,
+        auth_provider_session_id: str | None = None,
     ) -> bool:
         """Ensure the given device is known; add it to the store if not
 
@@ -1796,7 +1792,7 @@ class DeviceStore(DeviceWorkerStore, DeviceBackgroundUpdateStore):
             self.device_id_exists_cache.invalidate((user_id, device_id))
 
     async def update_device(
-        self, user_id: str, device_id: str, new_display_name: Optional[str] = None
+        self, user_id: str, device_id: str, new_display_name: str | None = None
     ) -> None:
         """Update a device. Only updates the device if it is not marked as
         hidden.
@@ -1938,7 +1934,7 @@ class DeviceStore(DeviceWorkerStore, DeviceBackgroundUpdateStore):
         user_id: str,
         device_ids: Collection[str],
         room_ids: Collection[str],
-    ) -> Optional[int]:
+    ) -> int | None:
         """Persist that a user's devices have been updated, and which hosts
         (if any) should be poked.
 
@@ -2037,7 +2033,7 @@ class DeviceStore(DeviceWorkerStore, DeviceBackgroundUpdateStore):
         device_id: str,
         hosts: Collection[str],
         stream_ids: list[int],
-        context: Optional[dict[str, str]],
+        context: dict[str, str] | None,
     ) -> None:
         for host in hosts:
             txn.call_after(
@@ -2137,7 +2133,7 @@ class DeviceStore(DeviceWorkerStore, DeviceBackgroundUpdateStore):
 
     async def get_uncoverted_outbound_room_pokes(
         self, start_stream_id: int, start_room_id: str, limit: int = 10
-    ) -> list[tuple[str, str, str, int, Optional[dict[str, str]]]]:
+    ) -> list[tuple[str, str, str, int, dict[str, str] | None]]:
         """Get device list changes by room that have not yet been handled and
         written to `device_lists_outbound_pokes`.
 
@@ -2166,7 +2162,7 @@ class DeviceStore(DeviceWorkerStore, DeviceBackgroundUpdateStore):
 
         def get_uncoverted_outbound_room_pokes_txn(
             txn: LoggingTransaction,
-        ) -> list[tuple[str, str, str, int, Optional[dict[str, str]]]]:
+        ) -> list[tuple[str, str, str, int, dict[str, str] | None]]:
             txn.execute(
                 sql,
                 (
@@ -2200,7 +2196,7 @@ class DeviceStore(DeviceWorkerStore, DeviceBackgroundUpdateStore):
         device_id: str,
         room_id: str,
         hosts: Collection[str],
-        context: Optional[dict[str, str]],
+        context: dict[str, str] | None,
     ) -> None:
         """Queue the device update to be sent to the given set of hosts,
         calculated from the room ID.

@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import logging
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from relapse.handlers.room_member import NoKnownServersError, RoomMemberHandler
 from relapse.replication.http.membership import (
@@ -66,7 +66,7 @@ class RoomMemberWorkerHandler(RoomMemberHandler):
     async def remote_reject_invite(
         self,
         invite_event_id: str,
-        txn_id: Optional[str],
+        txn_id: str | None,
         requester: Requester,
         content: dict,
     ) -> tuple[str, int]:
@@ -86,7 +86,7 @@ class RoomMemberWorkerHandler(RoomMemberHandler):
     async def remote_rescind_knock(
         self,
         knock_event_id: str,
-        txn_id: Optional[str],
+        txn_id: str | None,
         requester: Requester,
         content: JsonDict,
     ) -> tuple[str, int]:

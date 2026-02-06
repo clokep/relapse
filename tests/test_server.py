@@ -15,7 +15,7 @@
 import re
 from collections.abc import Awaitable, Callable
 from http import HTTPStatus
-from typing import NoReturn, Optional
+from typing import NoReturn
 
 from twisted.internet.defer import Deferred
 from twisted.web.resource import Resource
@@ -304,7 +304,7 @@ class OptionsResourceTests(unittest.TestCase):
 
 class WrapHtmlRequestHandlerTests(unittest.TestCase):
     class TestResource(DirectServeHtmlResource):
-        callback: Optional[Callable[..., Awaitable[None]]]
+        callback: Callable[..., Awaitable[None]] | None
 
         async def _async_render_GET(self, request: RelapseRequest) -> None:
             assert self.callback is not None

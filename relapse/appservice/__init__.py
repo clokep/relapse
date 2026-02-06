@@ -18,7 +18,7 @@ import re
 from collections.abc import Iterable, Sequence
 from enum import Enum
 from re import Pattern
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 import attr
 from netaddr import IPSet
@@ -74,12 +74,12 @@ class ApplicationService:
         token: str,
         id: str,
         sender: str,
-        url: Optional[str] = None,
-        namespaces: Optional[JsonDict] = None,
-        hs_token: Optional[str] = None,
-        protocols: Optional[Iterable[str]] = None,
+        url: str | None = None,
+        namespaces: JsonDict | None = None,
+        hs_token: str | None = None,
+        protocols: Iterable[str] | None = None,
         rate_limited: bool = True,
-        ip_range_whitelist: Optional[IPSet] = None,
+        ip_range_whitelist: IPSet | None = None,
         supports_ephemeral: bool = False,
         msc3202_transaction_extensions: bool = False,
     ):
@@ -108,7 +108,7 @@ class ApplicationService:
         self.rate_limited = rate_limited
 
     def _check_namespaces(
-        self, namespaces: Optional[JsonDict]
+        self, namespaces: JsonDict | None
     ) -> dict[str, list[Namespace]]:
         # Sanity check that it is of the form:
         # {
@@ -145,9 +145,7 @@ class ApplicationService:
 
         return result
 
-    def _matches_regex(
-        self, namespace_key: str, test_string: str
-    ) -> Optional[Namespace]:
+    def _matches_regex(self, namespace_key: str, test_string: str) -> Namespace | None:
         for namespace in self.namespaces[namespace_key]:
             if namespace.regex.match(test_string):
                 return namespace

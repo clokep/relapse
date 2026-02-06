@@ -15,7 +15,7 @@
 import logging
 from collections.abc import Collection, Mapping, Sequence
 from enum import Enum, auto
-from typing import Final, Optional
+from typing import Final
 
 import attr
 
@@ -116,7 +116,7 @@ async def filter_events_for_client(
                 room_id
             ] = await storage.main.get_retention_policy_for_room(room_id)
 
-    def allowed(event: EventBase) -> Optional[EventBase]:
+    def allowed(event: EventBase) -> EventBase | None:
         return _check_client_allowed_to_see_event(
             user_id=user_id,
             event=event,
@@ -273,9 +273,9 @@ def _check_client_allowed_to_see_event(
     always_include_ids: frozenset[str],
     sender_ignored: bool,
     retention_policy: RetentionPolicy,
-    state: Optional[StateMap[EventBase]],
+    state: StateMap[EventBase] | None,
     sender_erased: bool,
-) -> Optional[EventBase]:
+) -> EventBase | None:
     """Check with the given user is allowed to see the given event
 
     See `filter_events_for_client` for details about args

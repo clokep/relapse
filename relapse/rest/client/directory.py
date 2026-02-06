@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import logging
-from typing import TYPE_CHECKING, Literal, Optional
+from typing import TYPE_CHECKING, Literal
 
 from twisted.web.server import Request
 
@@ -64,7 +64,7 @@ class ClientDirectoryServer(RestServlet):
         # TODO: get Pydantic to validate that this is a valid room id?
         room_id: str
         # `servers` is unspecced
-        servers: Optional[list[str]] = None
+        servers: list[str] | None = None
 
     async def on_PUT(
         self, request: RelapseRequest, room_alias: str

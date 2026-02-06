@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from collections.abc import Collection, Generator, Iterable, Iterator
-from typing import Any, Optional, cast
+from typing import Any, cast
 from unittest.mock import Mock
 
 from twisted.internet import defer
@@ -36,12 +36,12 @@ _next_event_id = 1000
 
 
 def create_event(
-    name: Optional[str] = None,
-    type: Optional[str] = None,
-    state_key: Optional[str] = None,
+    name: str | None = None,
+    type: str | None = None,
+    state_key: str | None = None,
     depth: int = 2,
-    event_id: Optional[str] = None,
-    prev_events: Optional[list[tuple[str, dict]]] = None,
+    event_id: str | None = None,
+    prev_events: list[tuple[str, dict]] | None = None,
     **kwargs: Any,
 ) -> EventBase:
     global _next_event_id
@@ -94,7 +94,7 @@ class _DummyStore:
         return groups
 
     async def get_state_ids_for_group(
-        self, state_group: int, state_filter: Optional[StateFilter] = None
+        self, state_group: int, state_filter: StateFilter | None = None
     ) -> MutableStateMap[str]:
         return self._group_to_state[state_group]
 
@@ -102,9 +102,9 @@ class _DummyStore:
         self,
         event_id: str,
         room_id: str,
-        prev_group: Optional[int],
-        delta_ids: Optional[StateMap[str]],
-        current_state_ids: Optional[StateMap[str]],
+        prev_group: int | None,
+        delta_ids: StateMap[str] | None,
+        current_state_ids: StateMap[str] | None,
     ) -> int:
         state_group = self._next_group
         self._next_group += 1
@@ -135,7 +135,7 @@ class _DummyStore:
 
     async def get_state_group_delta(
         self, name: str
-    ) -> tuple[Optional[int], Optional[StateMap[str]]]:
+    ) -> tuple[int | None, StateMap[str] | None]:
         return None, None
 
     def register_events(self, events: Iterable[EventBase]) -> None:

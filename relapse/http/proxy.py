@@ -16,7 +16,7 @@
 import json
 import logging
 import urllib.parse
-from typing import TYPE_CHECKING, Any, Optional, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from twisted.internet import protocol
 from twisted.internet.interfaces import ITCPTransport
@@ -69,7 +69,7 @@ HOP_BY_HOP_HEADERS = {
 
 
 def parse_connection_header_value(
-    connection_header_value: Optional[bytes],
+    connection_header_value: bytes | None,
 ) -> set[str]:
     """
     Parse the `Connection` header to determine which headers we should not be copied
@@ -241,7 +241,7 @@ class _ProxyResponseBody(protocol.Protocol):
     request.
     """
 
-    transport: Optional[ITCPTransport] = None
+    transport: ITCPTransport | None = None
 
     def __init__(self, request: "RelapseRequest") -> None:
         self._request = request

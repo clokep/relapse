@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional
 
 from twisted.internet.task import deferLater
 from twisted.internet.testing import MemoryReactor
@@ -36,7 +35,7 @@ class TestTaskScheduler(HomeserverTestCase):
 
     async def _test_task(
         self, task: ScheduledTask
-    ) -> tuple[TaskStatus, Optional[JsonMapping], Optional[str]]:
+    ) -> tuple[TaskStatus, JsonMapping | None, str | None]:
         # This test task will copy the parameters to the result
         result = None
         if task.params:
@@ -79,7 +78,7 @@ class TestTaskScheduler(HomeserverTestCase):
 
     async def _sleeping_task(
         self, task: ScheduledTask
-    ) -> tuple[TaskStatus, Optional[JsonMapping], Optional[str]]:
+    ) -> tuple[TaskStatus, JsonMapping | None, str | None]:
         # Sleep for a second
         await deferLater(self.reactor, 1, lambda: None)
         return TaskStatus.COMPLETE, None, None
@@ -135,7 +134,7 @@ class TestTaskScheduler(HomeserverTestCase):
 
     async def _raising_task(
         self, task: ScheduledTask
-    ) -> tuple[TaskStatus, Optional[JsonMapping], Optional[str]]:
+    ) -> tuple[TaskStatus, JsonMapping | None, str | None]:
         raise Exception("raising")
 
     def test_schedule_raising_task(self) -> None:
@@ -149,7 +148,7 @@ class TestTaskScheduler(HomeserverTestCase):
 
     async def _resumable_task(
         self, task: ScheduledTask
-    ) -> tuple[TaskStatus, Optional[JsonMapping], Optional[str]]:
+    ) -> tuple[TaskStatus, JsonMapping | None, str | None]:
         if task.result and "in_progress" in task.result:
             return TaskStatus.COMPLETE, {"success": True}, None
         else:
@@ -185,7 +184,7 @@ class TestTaskSchedulerWithBackgroundWorker(BaseMultiWorkerStreamTestCase):
 
     async def _test_task(
         self, task: ScheduledTask
-    ) -> tuple[TaskStatus, Optional[JsonMapping], Optional[str]]:
+    ) -> tuple[TaskStatus, JsonMapping | None, str | None]:
         return (TaskStatus.COMPLETE, None, None)
 
     @override_config({"run_background_tasks_on": "worker1"})

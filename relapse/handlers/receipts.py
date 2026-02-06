@@ -13,7 +13,7 @@
 # limitations under the License.
 import logging
 from collections.abc import Iterable, Sequence
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from relapse.api.constants import EduTypes, ReceiptTypes
 from relapse.appservice import ApplicationService
@@ -174,7 +174,7 @@ class ReceiptsHandler:
         receipt_type: str,
         user_id: UserID,
         event_id: str,
-        thread_id: Optional[str],
+        thread_id: str | None,
     ) -> None:
         """Called when a client tells us a local user has read up to the given
         event_id in the room.
@@ -279,7 +279,7 @@ class ReceiptEventSource(EventSource[MultiWriterStreamToken, JsonMapping]):
         limit: int,
         room_ids: Iterable[str],
         is_guest: bool,
-        explicit_room_id: Optional[str] = None,
+        explicit_room_id: str | None = None,
     ) -> tuple[list[JsonMapping], MultiWriterStreamToken]:
         to_key = self.get_current_key()
 
