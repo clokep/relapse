@@ -54,8 +54,9 @@ import multiprocessing
 import os
 import signal
 import sys
+from collections.abc import Callable
 from types import FrameType
-from typing import Any, Callable, Optional
+from typing import Any
 
 # a list of the original signal handlers, before we installed our custom ones.
 # We restore these in our child processes.
@@ -135,7 +136,7 @@ def main() -> None:
     # Install signal handlers to propagate signals to all our children, so that they
     # shut down cleanly. This also inhibits our own exit, but that's good: we want to
     # wait until the children have exited.
-    def handle_signal(signum: int, frame: Optional[FrameType]) -> None:
+    def handle_signal(signum: int, frame: FrameType | None) -> None:
         print(
             f"complement_fork_starter: Caught signal {signum}. Stopping children.",
             file=sys.stderr,

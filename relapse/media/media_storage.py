@@ -15,9 +15,9 @@ import contextlib
 import logging
 import os
 import shutil
-from collections.abc import Awaitable, Generator, Sequence
+from collections.abc import Awaitable, Callable, Generator, Sequence
 from types import TracebackType
-from typing import IO, TYPE_CHECKING, Any, BinaryIO, Callable, Optional
+from typing import IO, TYPE_CHECKING, Any, BinaryIO
 
 import attr
 
@@ -184,7 +184,7 @@ class MediaStorage:
             )
             raise exc
 
-    async def fetch_media(self, file_info: FileInfo) -> Optional[Responder]:
+    async def fetch_media(self, file_info: FileInfo) -> Responder | None:
         """Attempts to fetch media described by file_info from the local cache
         and configured storage providers.
 
@@ -345,9 +345,9 @@ class FileResponder(Responder):
 
     def __exit__(
         self,
-        exc_type: Optional[type[BaseException]],
-        exc_val: Optional[BaseException],
-        exc_tb: Optional[TracebackType],
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
     ) -> None:
         self.open_file.close()
 

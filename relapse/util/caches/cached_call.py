@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import enum
-from collections.abc import Awaitable
-from typing import Callable, Generic, Optional, TypeVar, Union
+from collections.abc import Awaitable, Callable
+from typing import Generic, TypeVar
 
 from twisted.internet.defer import Deferred
 from twisted.python.failure import Failure
@@ -68,9 +68,9 @@ class CachedCall(Generic[TV]):
             f: The underlying function. Only one call to this function will be alive
                 at once (per instance of CachedCall)
         """
-        self._callable: Optional[Callable[[], Awaitable[TV]]] = f
-        self._deferred: Optional[Deferred] = None
-        self._result: Union[_Sentinel, TV, Failure] = _Sentinel.sentinel
+        self._callable: Callable[[], Awaitable[TV]] | None = f
+        self._deferred: Deferred | None = None
+        self._result: _Sentinel | TV | Failure = _Sentinel.sentinel
 
     async def get(self) -> TV:
         """Kick off the call if necessary, and return the result"""
@@ -87,7 +87,7 @@ class CachedCall(Generic[TV]):
             # result in the deferred, since `awaiting` a deferred destroys its result.
             # (Also, if it's a Failure, GCing the deferred would log a critical error
             # about unhandled Failures)
-            def got_result(r: Union[TV, Failure]) -> None:
+            def got_result(r: TV | Failure) -> None:
                 self._result = r
 
             self._deferred.addBoth(got_result)

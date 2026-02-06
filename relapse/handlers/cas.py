@@ -13,7 +13,7 @@
 # limitations under the License.
 import logging
 import urllib.parse
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 from xml.etree import ElementTree as ET
 
 import attr
@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 class CasError(Exception):
     """Used to catch errors when validating the CAS ticket."""
 
-    def __init__(self, error: str, error_description: Optional[str] = None):
+    def __init__(self, error: str, error_description: str | None = None):
         self.error = error
         self.error_description = error_description
 
@@ -47,7 +47,7 @@ class CasError(Exception):
 @attr.s(slots=True, frozen=True, auto_attribs=True)
 class CasResponse:
     username: str
-    attributes: dict[str, list[Optional[str]]]
+    attributes: dict[str, list[str | None]]
 
 
 class CasHandler:
@@ -174,7 +174,7 @@ class CasHandler:
 
         # Iterate through the nodes and pull out the user and any extra attributes.
         user = None
-        attributes: dict[str, list[Optional[str]]] = {}
+        attributes: dict[str, list[str | None]] = {}
         for child in root[0]:
             if child.tag.endswith("user"):
                 user = child.text
@@ -198,8 +198,8 @@ class CasHandler:
     async def handle_redirect_request(
         self,
         request: RelapseRequest,
-        client_redirect_url: Optional[bytes],
-        ui_auth_session_id: Optional[str] = None,
+        client_redirect_url: bytes | None,
+        ui_auth_session_id: str | None = None,
     ) -> str:
         """Generates a URL for the CAS server where the client should be redirected.
 
@@ -230,8 +230,8 @@ class CasHandler:
         self,
         request: RelapseRequest,
         ticket: str,
-        client_redirect_url: Optional[str],
-        session: Optional[str],
+        client_redirect_url: str | None,
+        session: str | None,
     ) -> None:
         """
         Called once the user has successfully authenticated with the SSO.
@@ -277,8 +277,8 @@ class CasHandler:
         self,
         request: RelapseRequest,
         cas_response: CasResponse,
-        client_redirect_url: Optional[str],
-        session: Optional[str],
+        client_redirect_url: str | None,
+        session: str | None,
     ) -> None:
         """Handle a CAS response to a ticket request.
 
@@ -371,7 +371,7 @@ class CasHandler:
 
             return UserAttributes(localpart=localpart, display_name=display_name)
 
-        async def grandfather_existing_users() -> Optional[str]:
+        async def grandfather_existing_users() -> str | None:
             # Since CAS did not always use the user_external_ids table, always
             # to attempt to map to existing users.
             user_id = UserID(localpart, self._hostname).to_string()

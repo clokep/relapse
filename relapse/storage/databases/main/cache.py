@@ -16,7 +16,7 @@
 import itertools
 import logging
 from collections.abc import Collection, Iterable
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 from relapse.api.constants import EventTypes
 from relapse.config._base import Config
@@ -91,7 +91,7 @@ class CacheInvalidationWorkerStore(SQLBaseStore):
             psql_only=True,  # The table is only on postgres DBs.
         )
 
-        self._cache_id_gen: Optional[MultiWriterIdGenerator]
+        self._cache_id_gen: MultiWriterIdGenerator | None
         if isinstance(self.database_engine, PostgresEngine):
             # We set the `writers` to an empty list here as we don't care about
             # missing updates over restarts, as we'll not have anything in our
@@ -282,9 +282,9 @@ class CacheInvalidationWorkerStore(SQLBaseStore):
         event_id: str,
         room_id: str,
         etype: str,
-        state_key: Optional[str],
-        redacts: Optional[str],
-        relates_to: Optional[str],
+        state_key: str | None,
+        redacts: str | None,
+        relates_to: str | None,
         backfilled: bool,
     ) -> None:
         # XXX: If you add something to this function make sure you add it to
@@ -551,7 +551,7 @@ class CacheInvalidationWorkerStore(SQLBaseStore):
             )
 
     async def send_invalidation_to_replication(
-        self, cache_name: str, keys: Optional[Collection[Any]]
+        self, cache_name: str, keys: Collection[Any] | None
     ) -> None:
         await self.db_pool.runInteraction(
             "send_invalidation_to_replication",
@@ -561,7 +561,7 @@ class CacheInvalidationWorkerStore(SQLBaseStore):
         )
 
     def _send_invalidation_to_replication(
-        self, txn: LoggingTransaction, cache_name: str, keys: Optional[Iterable[Any]]
+        self, txn: LoggingTransaction, cache_name: str, keys: Iterable[Any] | None
     ) -> None:
         """Notifies replication that given cache has been invalidated.
 

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import itertools
-from typing import Optional, cast
+from typing import cast
 from unittest.mock import Mock, call
 
 from parameterized import parameterized
@@ -1525,7 +1525,7 @@ class PresenceHandlerTestCase(BaseMultiWorkerStreamTestCase):
         self.assertEqual(state.state, PresenceState.ONLINE)
 
     def _set_presencestate_with_status_msg(
-        self, state: str, status_msg: Optional[str]
+        self, state: str, status_msg: str | None
     ) -> None:
         """Set a PresenceState and status_msg and check the result.
 

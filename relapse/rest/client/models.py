@@ -11,10 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Annotated
 
 from pydantic import ConfigDict, StringConstraints, field_validator, model_validator
-from typing_extensions import Annotated, Self
+from typing_extensions import Self
 
 from relapse.rest.models import RequestBodyModel
 from relapse.util.threepids import validate_email
@@ -32,8 +32,8 @@ class AuthenticationData(RequestBodyModel):
 
     model_config = ConfigDict(extra="allow", strict=True)
 
-    session: Optional[str] = None
-    type: Optional[str] = None
+    session: str | None = None
+    type: str | None = None
 
 
 if TYPE_CHECKING:
@@ -53,9 +53,9 @@ else:
 
 class ThreepidRequestTokenBody(RequestBodyModel):
     client_secret: ClientSecretStr
-    id_server: Optional[str] = None
-    id_access_token: Optional[str] = None
-    next_link: Optional[str] = None
+    id_server: str | None = None
+    id_access_token: str | None = None
+    next_link: str | None = None
     send_attempt: int
 
     @model_validator(mode="after")

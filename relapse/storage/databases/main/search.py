@@ -17,7 +17,7 @@ import re
 from collections import deque
 from collections.abc import Collection, Iterable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Optional, Union, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import attr
 
@@ -45,7 +45,7 @@ class SearchEntry:
     value: str
     event_id: str
     room_id: str
-    stream_ordering: Optional[int]
+    stream_ordering: int | None
     origin_server_ts: int
 
 
@@ -497,7 +497,7 @@ class SearchStore(SearchBackgroundUpdateStore):
 
         # List of tuples of (rank, room_id, event_id).
         results = cast(
-            list[tuple[Union[int, float], str, str]],
+            list[tuple[int | float, str, str]],
             await self.db_pool.execute("search_msgs", sql, *args),
         )
 
@@ -541,7 +541,7 @@ class SearchStore(SearchBackgroundUpdateStore):
         search_term: str,
         keys: Iterable[str],
         limit: int,
-        pagination_token: Optional[str] = None,
+        pagination_token: str | None = None,
     ) -> JsonDict:
         """Performs a full text search over events with given keys.
 
@@ -660,7 +660,7 @@ class SearchStore(SearchBackgroundUpdateStore):
 
         # List of tuples of (rank, room_id, event_id, origin_server_ts, stream_ordering).
         results = cast(
-            list[tuple[Union[int, float], str, str, int, int]],
+            list[tuple[int | float, str, str, int, int]],
             await self.db_pool.execute("search_rooms", sql, *args),
         )
 
@@ -786,7 +786,7 @@ class SearchToken(enum.Enum):
     And = enum.auto()
 
 
-Token = Union[str, Phrase, SearchToken]
+Token = str | Phrase | SearchToken
 TokenList = list[Token]
 
 

@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import logging
-from typing import TYPE_CHECKING, Generic, Optional, TypeVar
+from typing import TYPE_CHECKING, Generic, TypeVar
 
 from relapse.storage._base import SQLBaseStore
 from relapse.storage.database import DatabasePool, make_conn
@@ -47,16 +47,16 @@ class Databases(Generic[DataStoreT]):
     databases: list[DatabasePool]
     main: "DataStore"  # FIXME: https://github.com/matrix-org/synapse/issues/11165: actually an instance of `main_store_class`
     state: StateGroupDataStore
-    persist_events: Optional[PersistEventsStore]
+    persist_events: PersistEventsStore | None
 
     def __init__(self, main_store_class: type[DataStoreT], hs: "HomeServer"):
         # Note we pass in the main store class here as workers use a different main
         # store.
 
         self.databases = []
-        main: Optional[DataStoreT] = None
-        state: Optional[StateGroupDataStore] = None
-        persist_events: Optional[PersistEventsStore] = None
+        main: DataStoreT | None = None
+        state: StateGroupDataStore | None = None
+        persist_events: PersistEventsStore | None = None
 
         for database_config in hs.config.database.databases:
             db_name = database_config.name

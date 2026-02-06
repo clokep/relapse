@@ -14,7 +14,7 @@
 
 import datetime
 from collections.abc import Collection, Iterable, Mapping
-from typing import TypeVar, Union, cast
+from typing import TypeVar, cast
 
 import attr
 from parameterized import parameterized
@@ -698,7 +698,7 @@ class EventFederationWorkerStoreTestCase(tests.unittest.HomeserverTestCase):
 
         room_id = "some_room_id"
 
-        def prev_event_format(prev_event_id: str) -> Union[tuple[str, dict], str]:
+        def prev_event_format(prev_event_id: str) -> tuple[str, dict] | str:
             """Account for differences in prev_events format across room versions"""
             if room_version.event_format == EventFormatVersions.ROOM_V1_V2:
                 return prev_event_id, {}

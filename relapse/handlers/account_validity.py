@@ -15,7 +15,7 @@
 import email.mime.multipart
 import email.utils
 import logging
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from relapse.api.errors import AuthError, RelapseError, StoreError
 from relapse.metrics.background_process_metrics import wrap_as_background_process
@@ -101,8 +101,8 @@ class AccountValidityHandler:
     async def on_user_login(
         self,
         user_id: str,
-        auth_provider_type: Optional[str],
-        auth_provider_id: Optional[str],
+        auth_provider_type: str | None,
+        auth_provider_id: str | None,
     ) -> None:
         """Tell third-party modules about a user logins.
 
@@ -301,9 +301,9 @@ class AccountValidityHandler:
     async def renew_account_for_user(
         self,
         user_id: str,
-        expiration_ts: Optional[int] = None,
+        expiration_ts: int | None = None,
         email_sent: bool = False,
-        renewal_token: Optional[str] = None,
+        renewal_token: str | None = None,
     ) -> int:
         """Renews the account attached to a given user by pushing back the
         expiration date by the current validity period in the server's

@@ -13,7 +13,7 @@
 # limitations under the License.
 import logging
 from collections.abc import Collection
-from typing import Optional, cast
+from typing import cast
 from unittest import TestCase
 from unittest.mock import AsyncMock, Mock, patch
 
@@ -692,7 +692,7 @@ class PartialJoinTestCase(unittest.FederatingHomeserverTestCase):
             return is_partial_state
 
         async def sync_partial_state_room(
-            initial_destination: Optional[str],
+            initial_destination: str | None,
             other_destinations: Collection[str],
             room_id: str,
         ) -> None:
@@ -747,7 +747,7 @@ class PartialJoinTestCase(unittest.FederatingHomeserverTestCase):
             return is_partial_state
 
         async def sync_partial_state_room(
-            initial_destination: Optional[str],
+            initial_destination: str | None,
             other_destinations: Collection[str],
             room_id: str,
         ) -> None:

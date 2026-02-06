@@ -13,7 +13,7 @@
 # limitations under the License.
 import logging
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING
 
 from relapse import event_auth
 from relapse.api.constants import (
@@ -53,7 +53,7 @@ class EventAuthHandler:
     async def check_auth_rules_from_context(
         self,
         event: EventBase,
-        batched_auth_events: Optional[Mapping[str, EventBase]] = None,
+        batched_auth_events: Mapping[str, EventBase] | None = None,
     ) -> None:
         """Check an event passes the auth rules at its own auth events
         Args:
@@ -81,7 +81,7 @@ class EventAuthHandler:
 
     def compute_auth_events(
         self,
-        event: Union[EventBase, EventBuilder],
+        event: EventBase | EventBuilder,
         current_state_ids: StateMap[str],
         for_verification: bool = False,
     ) -> list[str]:
@@ -213,7 +213,7 @@ class EventAuthHandler:
         state_ids: StateMap[str],
         room_version: RoomVersion,
         user_id: str,
-        prev_membership: Optional[str],
+        prev_membership: str | None,
     ) -> None:
         """
         Check whether a user can join a room without an invite due to restricted join rules.

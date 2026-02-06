@@ -13,8 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections.abc import Iterable
-from typing import Any, Callable, Optional
+from collections.abc import Callable, Iterable
+from typing import Any
 from unittest.mock import Mock
 
 from twisted.internet.testing import MemoryReactor
@@ -51,8 +51,8 @@ class BaseWorkerStoreTestCase(BaseStreamTestCase):
         self,
         method: str,
         args: Iterable[Any],
-        expected_result: Optional[Any] = None,
-        asserter: Optional[Callable[[Any, Any, Optional[Any]], None]] = None,
+        expected_result: Any | None = None,
+        asserter: Callable[[Any, Any, Any | None], None] | None = None,
     ) -> None:
         if asserter is None:
             asserter = self.assertEqual

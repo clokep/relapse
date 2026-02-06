@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from typing import Callable, Union
+from collections.abc import Callable
 from unittest.mock import patch
 
 from zope.interface import implementer
@@ -97,7 +97,7 @@ class _DummyMessage:
 
 
 class SendEmailHandlerTestCaseIPv4(HomeserverTestCase):
-    ip_class: Union[type[IPv4Address], type[IPv6Address]] = IPv4Address
+    ip_class: type[IPv4Address] | type[IPv6Address] = IPv4Address
 
     def setUp(self) -> None:
         super().setUp()

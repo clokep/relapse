@@ -13,13 +13,10 @@
 # limitations under the License.
 import logging
 import re
+from collections.abc import Callable, Generator, Iterable
 from typing import (
     TYPE_CHECKING,
-    Callable,
-    Generator,
-    Iterable,
     Optional,
-    Union,
     cast,
 )
 
@@ -37,7 +34,7 @@ ARIA_ROLES_TO_IGNORE = {"directory", "menu", "menubar", "toolbar"}
 NON_BLANK = re.compile(".+")
 
 
-def decode_body(body: Union[bytes, str], uri: str) -> Optional["BeautifulSoup"]:
+def decode_body(body: bytes | str, uri: str) -> Optional["BeautifulSoup"]:
     """
     This uses BeautifulSoup to parse the HTML document.
 
@@ -71,8 +68,8 @@ def _get_meta_tags(
     soup: "BeautifulSoup",
     property: str,
     prefix: str,
-    property_mapper: Optional[Callable[[str], Optional[str]]] = None,
-) -> dict[str, Optional[str]]:
+    property_mapper: Callable[[str], str | None] | None = None,
+) -> dict[str, str | None]:
     """
     Search for meta tags prefixed with a particular string.
 
@@ -88,7 +85,7 @@ def _get_meta_tags(
         A map of tag name to value.
     """
 
-    results: dict[str, Optional[str]] = {}
+    results: dict[str, str | None] = {}
     for tag in soup.find_all(
         "meta", attrs={property: re.compile(rf"^{prefix}.+")}, content=NON_BLANK
     ):
@@ -114,7 +111,7 @@ def _get_meta_tags(
     return results
 
 
-def _map_twitter_to_open_graph(key: str) -> Optional[str]:
+def _map_twitter_to_open_graph(key: str) -> str | None:
     """
     Map a Twitter card property to the analogous Open Graph property.
 
@@ -136,7 +133,7 @@ def _map_twitter_to_open_graph(key: str) -> Optional[str]:
     return "og" + key[7:]
 
 
-def _map_microdata_to_open_graph(key: str) -> Optional[str]:
+def _map_microdata_to_open_graph(key: str) -> str | None:
     """
     Map a microdata tags property to the analogous Open Graph property.
 
@@ -176,7 +173,7 @@ def _favicon_sort(image: "Tag") -> float:
     return max([int(s) for s in sizes if s.isdigit()])
 
 
-def parse_html_to_open_graph(soup: "BeautifulSoup") -> dict[str, Optional[str]]:
+def parse_html_to_open_graph(soup: "BeautifulSoup") -> dict[str, str | None]:
     """
     Calculate metadata for an HTML document.
 
@@ -316,7 +313,7 @@ def parse_html_to_open_graph(soup: "BeautifulSoup") -> dict[str, Optional[str]]:
     return og
 
 
-def parse_html_description(soup: "BeautifulSoup") -> Optional[str]:
+def parse_html_description(soup: "BeautifulSoup") -> str | None:
     """
     Calculate a text description based on an HTML document.
 
@@ -405,7 +402,7 @@ def _iterate_over_text(
 
 def summarize_paragraphs(
     text_nodes: Iterable[str], min_size: int = 200, max_size: int = 500
-) -> Optional[str]:
+) -> str | None:
     """
     Try to get a summary respecting first paragraph and then word boundaries.
 

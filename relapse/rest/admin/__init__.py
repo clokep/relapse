@@ -17,7 +17,7 @@
 
 import logging
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from relapse.api.errors import Codes, NotFoundError, RelapseError
 from relapse.handlers.pagination import PURGE_HISTORY_ACTION_NAME
@@ -123,7 +123,7 @@ class PurgeHistoryRestServlet(RestServlet):
         self.auth = hs.get_auth()
 
     async def on_POST(
-        self, request: RelapseRequest, room_id: str, event_id: Optional[str]
+        self, request: RelapseRequest, room_id: str, event_id: str | None
     ) -> tuple[int, JsonDict]:
         await assert_requester_is_admin(self.auth, request)
 

@@ -20,7 +20,8 @@ import hashlib
 import hmac
 import logging
 import sys
-from typing import Any, Callable, Optional
+from collections.abc import Callable
+from typing import Any
 
 import requests
 import yaml
@@ -43,7 +44,7 @@ def request_registration(
     server_location: str,
     shared_secret: str,
     admin: bool = False,
-    user_type: Optional[str] = None,
+    user_type: str | None = None,
     _print: Callable[[str], None] = print,
     exit: Callable[[int], None] = sys.exit,
 ) -> None:
@@ -107,12 +108,12 @@ def register_new_user(
     password: str,
     server_location: str,
     shared_secret: str,
-    admin: Optional[bool],
-    user_type: Optional[str],
+    admin: bool | None,
+    user_type: str | None,
 ) -> None:
     if not user:
         try:
-            default_user: Optional[str] = getpass.getuser()
+            default_user: str | None = getpass.getuser()
         except Exception:
             default_user = None
 
@@ -220,7 +221,7 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    config: Optional[dict[str, Any]] = None
+    config: dict[str, Any] | None = None
     if "config" in args and args.config:
         config = yaml.safe_load(args.config)
 
@@ -292,7 +293,7 @@ def _read_file(file_path: Any, config_path: str) -> str:
         sys.exit(1)
 
 
-def _find_client_listener(config: dict[str, Any]) -> Optional[str]:
+def _find_client_listener(config: dict[str, Any]) -> str | None:
     # try to find a listener in the config. Returns a host:port pair
     for listener in config.get("listeners", []):
         if listener.get("type") != "http" or listener.get("tls", False):

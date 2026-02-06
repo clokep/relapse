@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from collections.abc import Collection
-from typing import Any, Optional
+from typing import Any
 from unittest.mock import AsyncMock, Mock
 
 from twisted.internet.testing import MemoryReactor
@@ -57,10 +57,10 @@ class TestSpamChecker:
 
     async def check_registration_for_spam(
         self,
-        email_threepid: Optional[dict],
-        username: Optional[str],
+        email_threepid: dict | None,
+        username: str | None,
         request_info: Collection[tuple[str, str]],
-        auth_provider_id: Optional[str],
+        auth_provider_id: str | None,
     ) -> RegistrationBehaviour:
         return RegistrationBehaviour.ALLOW
 
@@ -68,10 +68,10 @@ class TestSpamChecker:
 class DenyAll(TestSpamChecker):
     async def check_registration_for_spam(
         self,
-        email_threepid: Optional[dict],
-        username: Optional[str],
+        email_threepid: dict | None,
+        username: str | None,
         request_info: Collection[tuple[str, str]],
-        auth_provider_id: Optional[str],
+        auth_provider_id: str | None,
     ) -> RegistrationBehaviour:
         return RegistrationBehaviour.DENY
 
@@ -79,10 +79,10 @@ class DenyAll(TestSpamChecker):
 class BanAll(TestSpamChecker):
     async def check_registration_for_spam(
         self,
-        email_threepid: Optional[dict],
-        username: Optional[str],
+        email_threepid: dict | None,
+        username: str | None,
         request_info: Collection[tuple[str, str]],
-        auth_provider_id: Optional[str],
+        auth_provider_id: str | None,
     ) -> RegistrationBehaviour:
         return RegistrationBehaviour.SHADOW_BAN
 
@@ -90,10 +90,10 @@ class BanAll(TestSpamChecker):
 class BanBadIdPUser(TestSpamChecker):
     async def check_registration_for_spam(
         self,
-        email_threepid: Optional[dict],
-        username: Optional[str],
+        email_threepid: dict | None,
+        username: str | None,
         request_info: Collection[tuple[str, str]],
-        auth_provider_id: Optional[str] = None,
+        auth_provider_id: str | None = None,
     ) -> RegistrationBehaviour:
         # Reject any user coming from CAS and whose username contains profanity
         if auth_provider_id == "cas" and username and "flimflob" in username:
@@ -640,8 +640,8 @@ class RegistrationTestCase(unittest.HomeserverTestCase):
         self,
         requester: Requester,
         localpart: str,
-        displayname: Optional[str],
-        password_hash: Optional[str] = None,
+        displayname: str | None,
+        password_hash: str | None = None,
     ) -> tuple[str, str]:
         """Creates a new user if the user does not exist,
         else revokes all previous access tokens and generates a new one.

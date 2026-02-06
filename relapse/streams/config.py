@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-from typing import Optional
 
 import attr
 
@@ -33,8 +32,8 @@ MAX_LIMIT = 1000
 class PaginationConfig:
     """A configuration object which stores pagination parameters."""
 
-    from_token: Optional[StreamToken]
-    to_token: Optional[StreamToken]
+    from_token: StreamToken | None
+    to_token: StreamToken | None
     direction: Direction
     limit: int
 

@@ -14,7 +14,7 @@
 # limitations under the License.
 import re
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
 
 from twisted.internet.defer import succeed
 from twisted.internet.testing import MemoryReactor
@@ -84,7 +84,7 @@ class FallbackAuthTests(unittest.HomeserverTestCase):
         self,
         session: str,
         expected_post_response: int,
-        post_session: Optional[str] = None,
+        post_session: str | None = None,
     ) -> None:
         """Get and respond to a fallback recaptcha. Returns the second request."""
         if post_session is None:
@@ -213,7 +213,7 @@ class UIAuthTests(unittest.HomeserverTestCase):
         access_token: str,
         device: str,
         expected_response: int,
-        body: Union[bytes, JsonDict] = b"",
+        body: bytes | JsonDict = b"",
     ) -> FakeChannel:
         """Delete an individual device."""
         channel = self.make_request(

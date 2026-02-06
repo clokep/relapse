@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Optional
 from unittest.mock import AsyncMock, Mock, patch
 
 from twisted.internet.testing import MemoryReactor
@@ -284,7 +283,7 @@ _request_key = 0
 
 
 def generate_sync_config(
-    user_id: str, device_id: Optional[str] = "device_id"
+    user_id: str, device_id: str | None = "device_id"
 ) -> SyncConfig:
     """Generate a sync config (with a unique request key)."""
     global _request_key

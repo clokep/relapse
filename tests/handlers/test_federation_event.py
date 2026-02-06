@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import urllib.parse
-from typing import Any, Optional
+from typing import Any
 from unittest import mock
 
 from twisted.internet.testing import MemoryReactor
@@ -187,7 +187,7 @@ class FederationEventHandlerTests(unittest.FederatingHomeserverTestCase):
         def get_json(
             destination: str,
             path: str,
-            args: Optional[QueryParams] = None,
+            args: QueryParams | None = None,
             **kwargs: Any,
         ) -> Any:
             if "/event/" in path:
@@ -270,7 +270,7 @@ class FederationEventHandlerTests(unittest.FederatingHomeserverTestCase):
         def get_json(
             destination: str,
             path: str,
-            args: Optional[QueryParams] = None,
+            args: QueryParams | None = None,
             **kwargs: Any,
         ) -> Any:
             # We expect an outbound request to /state_ids, so stub that out
@@ -557,7 +557,7 @@ class FederationEventHandlerTests(unittest.FederatingHomeserverTestCase):
         def get_json(
             destination: str,
             path: str,
-            args: Optional[QueryParams] = None,
+            args: QueryParams | None = None,
             **kwargs: Any,
         ) -> Any:
             # We expect an outbound request to /backfill, so stub that out
@@ -1092,7 +1092,7 @@ class FederationEventHandlerTests(unittest.FederatingHomeserverTestCase):
             def get_json(
                 destination: str,
                 path: str,
-                args: Optional[QueryParams] = None,
+                args: QueryParams | None = None,
                 **kwargs: Any,
             ) -> Any:
                 self.assertEqual(destination, self.OTHER_SERVER_NAME)

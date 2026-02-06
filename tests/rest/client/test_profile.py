@@ -16,7 +16,7 @@
 
 import urllib.parse
 from http import HTTPStatus
-from typing import Any, Optional
+from typing import Any
 
 from twisted.internet.testing import MemoryReactor
 
@@ -165,7 +165,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
         )
         self.assertEqual(channel.code, 400, channel.result)
 
-    def _get_displayname(self, name: Optional[str] = None) -> Optional[str]:
+    def _get_displayname(self, name: str | None = None) -> str | None:
         channel = self.make_request("GET", f"/profile/{name or self.owner}/displayname")
         self.assertEqual(channel.code, 200, channel.result)
         # FIXME: If a user has no displayname set, Relapse returns 200 and omits a
@@ -173,7 +173,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
         # https://github.com/matrix-org/synapse/issues/13137.
         return channel.json_body.get("displayname")
 
-    def _get_avatar_url(self, name: Optional[str] = None) -> Optional[str]:
+    def _get_avatar_url(self, name: str | None = None) -> str | None:
         channel = self.make_request("GET", f"/profile/{name or self.owner}/avatar_url")
         self.assertEqual(channel.code, 200, channel.result)
         # FIXME: If a user has no avatar set, Relapse returns 200 and omits an
@@ -537,7 +537,7 @@ class ProfilesRestrictedTestCase(unittest.HomeserverTestCase):
         self.try_fetch_profile(200, self.requester_tok)
 
     def try_fetch_profile(
-        self, expected_code: int, access_token: Optional[str] = None
+        self, expected_code: int, access_token: str | None = None
     ) -> None:
         self.request_profile(expected_code, access_token=access_token)
 
@@ -553,7 +553,7 @@ class ProfilesRestrictedTestCase(unittest.HomeserverTestCase):
         self,
         expected_code: int,
         url_suffix: str = "",
-        access_token: Optional[str] = None,
+        access_token: str | None = None,
     ) -> None:
         channel = self.make_request(
             "GET", self.profile_url + url_suffix, access_token=access_token

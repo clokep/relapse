@@ -20,9 +20,9 @@ import signal
 import socket
 import sys
 import traceback
-from collections.abc import Awaitable
+from collections.abc import Awaitable, Callable
 from textwrap import indent
-from typing import TYPE_CHECKING, Any, Callable, NoReturn, Optional, cast
+from typing import TYPE_CHECKING, Any, NoReturn, cast
 
 from typing_extensions import ParamSpec
 
@@ -126,8 +126,8 @@ def start_worker_reactor(
 def start_reactor(
     appname: str,
     soft_file_limit: int,
-    gc_thresholds: Optional[tuple[int, int, int]],
-    pid_file: Optional[str],
+    gc_thresholds: tuple[int, int, int] | None,
+    pid_file: str | None,
     daemonize: bool,
     print_pidfile: bool,
     logger: logging.Logger,
@@ -362,7 +362,7 @@ def listen_http(
     root_resource: Resource,
     version_string: str,
     max_request_body_size: int,
-    context_factory: Optional[IOpenSSLContextFactory],
+    context_factory: IOpenSSLContextFactory | None,
     reactor: IRelapseReactor = reactor,
 ) -> list[Port]:
     assert listener_config.http_options is not None

@@ -15,7 +15,7 @@
 # limitations under the License.
 
 import logging
-from typing import TYPE_CHECKING, Optional, Union, cast
+from typing import TYPE_CHECKING, cast
 
 import attr
 
@@ -89,14 +89,14 @@ class UserPaginateResponse:
     """This is very similar to UserInfo, but not quite the same."""
 
     name: str
-    user_type: Optional[str]
+    user_type: str | None
     is_guest: bool
     admin: bool
     deactivated: bool
     shadow_banned: bool
-    displayname: Optional[str]
-    avatar_url: Optional[str]
-    creation_ts: Optional[int]
+    displayname: str | None
+    avatar_url: str | None
+    creation_ts: int | None
     approved: bool
     erased: bool
     last_seen_ts: int
@@ -167,15 +167,15 @@ class DataStore(
         self,
         start: int,
         limit: int,
-        user_id: Optional[str] = None,
-        name: Optional[str] = None,
+        user_id: str | None = None,
+        name: str | None = None,
         guests: bool = True,
         deactivated: bool = False,
-        admins: Optional[bool] = None,
+        admins: bool | None = None,
         order_by: str = UserSortOrder.NAME.value,
         direction: Direction = Direction.FORWARDS,
         approved: bool = True,
-        not_user_types: Optional[list[str]] = None,
+        not_user_types: list[str] | None = None,
         locked: bool = False,
     ) -> tuple[list[UserPaginateResponse], int]:
         """Function to retrieve a paginated list of users from
@@ -331,9 +331,7 @@ class DataStore(
 
     async def search_users(
         self, term: str
-    ) -> list[
-        tuple[str, Optional[str], Union[int, bool], Union[int, bool], Optional[str]]
-    ]:
+    ) -> list[tuple[str, str | None, int | bool, int | bool, str | None]]:
         """Function to search users list for one or more users with
         the matched term.
 
@@ -346,9 +344,7 @@ class DataStore(
 
         def search_users(
             txn: LoggingTransaction,
-        ) -> list[
-            tuple[str, Optional[str], Union[int, bool], Union[int, bool], Optional[str]]
-        ]:
+        ) -> list[tuple[str, str | None, int | bool, int | bool, str | None]]:
             search_term = "%%" + term + "%%"
 
             sql = """
@@ -362,10 +358,10 @@ class DataStore(
                 list[
                     tuple[
                         str,
-                        Optional[str],
-                        Union[int, bool],
-                        Union[int, bool],
-                        Optional[str],
+                        str | None,
+                        int | bool,
+                        int | bool,
+                        str | None,
                     ]
                 ],
                 txn.fetchall(),

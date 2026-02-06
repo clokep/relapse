@@ -15,7 +15,7 @@ import logging
 import random
 import re
 from collections.abc import Collection, Sequence
-from typing import Any, Optional, Union
+from typing import Any
 from urllib.parse import urlparse
 from urllib.request import (  # type: ignore[attr-defined]
     getproxies_environment,
@@ -113,14 +113,14 @@ class ProxyAgent(_AgentBase):
     def __init__(
         self,
         reactor: IRelapseReactor,
-        proxy_reactor: Optional[IRelapseReactor] = None,
-        contextFactory: Optional[IPolicyForHTTPS] = None,
-        connectTimeout: Optional[float] = None,
-        bindAddress: Optional[bytes] = None,
-        pool: Optional[HTTPConnectionPool] = None,
+        proxy_reactor: IRelapseReactor | None = None,
+        contextFactory: IPolicyForHTTPS | None = None,
+        connectTimeout: float | None = None,
+        bindAddress: bytes | None = None,
+        pool: HTTPConnectionPool | None = None,
         use_proxy: bool = False,
         federation_proxy_locations: Collection[InstanceLocationConfig] = (),
-        federation_proxy_credentials: Optional[ProxyCredentials] = None,
+        federation_proxy_credentials: ProxyCredentials | None = None,
     ):
         contextFactory = contextFactory or BrowserLikePolicyForHTTPS()
 
@@ -159,8 +159,8 @@ class ProxyAgent(_AgentBase):
         self._policy_for_https = contextFactory
         self._reactor = reactor
 
-        self._federation_proxy_endpoint: Optional[IStreamClientEndpoint] = None
-        self._federation_proxy_credentials: Optional[ProxyCredentials] = None
+        self._federation_proxy_endpoint: IStreamClientEndpoint | None = None
+        self._federation_proxy_credentials: ProxyCredentials | None = None
         if federation_proxy_locations:
             assert federation_proxy_credentials is not None, (
                 "`federation_proxy_credentials` are required when using `federation_proxy_locations`"
@@ -204,8 +204,8 @@ class ProxyAgent(_AgentBase):
         self,
         method: bytes,
         uri: bytes,
-        headers: Optional[Headers] = None,
-        bodyProducer: Optional[IBodyProducer] = None,
+        headers: Headers | None = None,
+        bodyProducer: IBodyProducer | None = None,
     ) -> "defer.Deferred[IResponse]":
         """
         Issue a request to the server indicated by the given uri.
@@ -343,13 +343,13 @@ class ProxyAgent(_AgentBase):
 
 
 def http_proxy_endpoint(
-    proxy: Optional[bytes],
+    proxy: bytes | None,
     reactor: IReactorCore,
-    tls_options_factory: Optional[IPolicyForHTTPS],
+    tls_options_factory: IPolicyForHTTPS | None,
     timeout: float = 30,
-    bindAddress: Optional[Union[bytes, str, tuple[Union[bytes, str], int]]] = None,
-    attemptDelay: Optional[float] = None,
-) -> tuple[Optional[IStreamClientEndpoint], Optional[ProxyCredentials]]:
+    bindAddress: bytes | str | tuple[bytes | str, int] | None = None,
+    attemptDelay: float | None = None,
+) -> tuple[IStreamClientEndpoint | None, ProxyCredentials | None]:
     """Parses an http proxy setting and returns an endpoint for the proxy
 
     Args:
@@ -397,7 +397,7 @@ def http_proxy_endpoint(
 
 def parse_proxy(
     proxy: bytes, default_scheme: bytes = b"http", default_port: int = 1080
-) -> tuple[bytes, bytes, int, Optional[ProxyCredentials]]:
+) -> tuple[bytes, bytes, int, ProxyCredentials | None]:
     """
     Parse a proxy connection string.
 

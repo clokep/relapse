@@ -17,7 +17,7 @@ import hashlib
 import logging
 import os
 from collections.abc import Iterator
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 import attr
 import jsonschema
@@ -79,7 +79,7 @@ class TrustedKeyServer:
     server_name: str
 
     # map from key id to key object, or None to disable signature verification.
-    verify_keys: Optional[dict[str, VerifyKey]] = None
+    verify_keys: dict[str, VerifyKey] | None = None
 
 
 class KeyConfig(Config):
@@ -133,7 +133,7 @@ class KeyConfig(Config):
             )
         )
 
-        macaroon_secret_key: Optional[str] = config.get(
+        macaroon_secret_key: str | None = config.get(
             "macaroon_secret_key", self.root.registration.registration_shared_secret
         )
 
@@ -204,7 +204,7 @@ class KeyConfig(Config):
             raise ConfigError(f"Error reading {name}: {str(e)}")
 
     def read_old_signing_keys(
-        self, old_signing_keys: Optional[JsonDict]
+        self, old_signing_keys: JsonDict | None
     ) -> dict[str, "VerifyKeyWithExpiry"]:
         if old_signing_keys is None:
             return {}
@@ -288,7 +288,7 @@ def _parse_key_servers(
         server_name = server["server_name"]
         result = TrustedKeyServer(server_name=server_name)
 
-        verify_keys: Optional[dict[str, str]] = server.get("verify_keys")
+        verify_keys: dict[str, str] | None = server.get("verify_keys")
         if verify_keys is not None:
             result.verify_keys = {}
             for key_id, key_base64 in verify_keys.items():

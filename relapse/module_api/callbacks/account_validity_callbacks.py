@@ -13,15 +13,14 @@
 # limitations under the License.
 
 import logging
-from collections.abc import Awaitable
-from typing import Callable, Optional
+from collections.abc import Awaitable, Callable
 
 logger = logging.getLogger(__name__)
 
 # Types for callbacks to be registered via the module api
-IS_USER_EXPIRED_CALLBACK = Callable[[str], Awaitable[Optional[bool]]]
+IS_USER_EXPIRED_CALLBACK = Callable[[str], Awaitable[bool | None]]
 ON_USER_REGISTRATION_CALLBACK = Callable[[str], Awaitable]
-ON_USER_LOGIN_CALLBACK = Callable[[str, Optional[str], Optional[str]], Awaitable]
+ON_USER_LOGIN_CALLBACK = Callable[[str, str | None, str | None], Awaitable]
 
 
 class AccountValidityModuleApiCallbacks:
@@ -32,9 +31,9 @@ class AccountValidityModuleApiCallbacks:
 
     def register_callbacks(
         self,
-        is_user_expired: Optional[IS_USER_EXPIRED_CALLBACK] = None,
-        on_user_registration: Optional[ON_USER_REGISTRATION_CALLBACK] = None,
-        on_user_login: Optional[ON_USER_LOGIN_CALLBACK] = None,
+        is_user_expired: IS_USER_EXPIRED_CALLBACK | None = None,
+        on_user_registration: ON_USER_REGISTRATION_CALLBACK | None = None,
+        on_user_login: ON_USER_LOGIN_CALLBACK | None = None,
     ) -> None:
         """Register callbacks from module for each hook."""
         if is_user_expired is not None:

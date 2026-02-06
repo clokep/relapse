@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Optional
+from typing import Any
 from unittest.mock import AsyncMock, patch
 
 from parameterized import parameterized
@@ -199,7 +199,7 @@ class TestBulkPushRuleEvaluator(HomeserverTestCase):
         bulk_evaluator._action_for_event_by_user.assert_not_called()
 
     def _create_and_process(
-        self, bulk_evaluator: BulkPushRuleEvaluator, content: Optional[JsonDict] = None
+        self, bulk_evaluator: BulkPushRuleEvaluator, content: JsonDict | None = None
     ) -> bool:
         """Returns true iff the `mentions` trigger an event push action."""
         # Create a new message event which should cause a notification.

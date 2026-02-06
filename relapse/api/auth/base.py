@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from netaddr import IPAddress
 
@@ -55,7 +55,7 @@ class BaseAuth:
         room_id: str,
         requester: Requester,
         allow_departed_users: bool = False,
-    ) -> tuple[str, Optional[str]]:
+    ) -> tuple[str, str | None]:
         """Check if the user is in the room, or was at some point.
         Args:
             room_id: The room to check.
@@ -105,7 +105,7 @@ class BaseAuth:
     @trace
     async def check_user_in_room_or_world_readable(
         self, room_id: str, requester: Requester, allow_departed_users: bool = False
-    ) -> tuple[str, Optional[str]]:
+    ) -> tuple[str, str | None]:
         """Checks that the user is or was in the room or the room is world
         readable. If it isn't then an exception is raised.
 
@@ -282,7 +282,7 @@ class BaseAuth:
     @cancellable
     async def get_appservice_user(
         self, request: Request, access_token: str
-    ) -> Optional[Requester]:
+    ) -> Requester | None:
         """
         Given a request, reads the request parameters to determine:
         - whether it's an application service that's making this request
@@ -329,7 +329,7 @@ class BaseAuth:
         else:
             effective_user_id = app_service.sender
 
-        effective_device_id: Optional[str] = None
+        effective_device_id: str | None = None
 
         if (
             self.hs.config.experimental.msc3202_device_masquerading_enabled

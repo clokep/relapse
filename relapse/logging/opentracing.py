@@ -168,14 +168,14 @@ import enum
 import inspect
 import logging
 import re
-from collections.abc import Awaitable, Collection, Generator, Iterable
+from collections.abc import Awaitable, Callable, Collection, Generator, Iterable
+from contextlib import AbstractContextManager
 from functools import wraps
 from re import Pattern
 from typing import (
     TYPE_CHECKING,
     Any,
-    Callable,
-    ContextManager,
+    Concatenate,
     Optional,
     TypeVar,
     Union,
@@ -184,7 +184,7 @@ from typing import (
 )
 
 import attr
-from typing_extensions import Concatenate, ParamSpec
+from typing_extensions import ParamSpec
 
 from twisted.internet import defer
 from twisted.web.http import Request
@@ -279,7 +279,7 @@ try:
             except Exception:
                 logger.exception("Failed to report span")
 
-    RustReporter: Optional[type[_WrappedRustReporter]] = _WrappedRustReporter
+    RustReporter: type[_WrappedRustReporter] | None = _WrappedRustReporter
 except ImportError:
     RustReporter = None
 
@@ -344,7 +344,7 @@ class RelapseBaggage:
 # Block everything by default
 # A regex which matches the server_names to expose traces for.
 # None means 'block everything'.
-_homeserver_whitelist: Optional[Pattern[str]] = None
+_homeserver_whitelist: Pattern[str] | None = None
 
 # Util methods
 
@@ -360,11 +360,11 @@ R = TypeVar("R")
 T = TypeVar("T")
 
 
-def only_if_tracing(func: Callable[P, R]) -> Callable[P, Optional[R]]:
+def only_if_tracing(func: Callable[P, R]) -> Callable[P, R | None]:
     """Executes the function only if we're tracing. Otherwise returns None."""
 
     @wraps(func)
-    def _only_if_tracing_inner(*args: P.args, **kwargs: P.kwargs) -> Optional[R]:
+    def _only_if_tracing_inner(*args: P.args, **kwargs: P.kwargs) -> R | None:
         if opentracing:
             return func(*args, **kwargs)
         else:
@@ -376,18 +376,18 @@ def only_if_tracing(func: Callable[P, R]) -> Callable[P, Optional[R]]:
 @overload
 def ensure_active_span(
     message: str,
-) -> Callable[[Callable[P, R]], Callable[P, Optional[R]]]: ...
+) -> Callable[[Callable[P, R]], Callable[P, R | None]]: ...
 
 
 @overload
 def ensure_active_span(
     message: str, ret: T
-) -> Callable[[Callable[P, R]], Callable[P, Union[T, R]]]: ...
+) -> Callable[[Callable[P, R]], Callable[P, T | R]]: ...
 
 
 def ensure_active_span(
-    message: str, ret: Optional[T] = None
-) -> Callable[[Callable[P, R]], Callable[P, Union[Optional[T], R]]]:
+    message: str, ret: T | None = None
+) -> Callable[[Callable[P, R]], Callable[P, T | None | R]]:
     """Executes the operation only if opentracing is enabled and there is an active span.
     If there is no active span it logs message at the error level.
 
@@ -403,11 +403,11 @@ def ensure_active_span(
 
     def ensure_active_span_inner_1(
         func: Callable[P, R],
-    ) -> Callable[P, Union[Optional[T], R]]:
+    ) -> Callable[P, T | None | R]:
         @wraps(func)
         def ensure_active_span_inner_2(
             *args: P.args, **kwargs: P.kwargs
-        ) -> Union[Optional[T], R]:
+        ) -> T | None | R:
             if not opentracing:
                 return ret
 
@@ -522,10 +522,10 @@ def whitelisted_homeserver(destination: str) -> bool:
 # Could use kwargs but I want these to be explicit
 def start_active_span(
     operation_name: str,
-    child_of: Optional[Union["opentracing.Span", "opentracing.SpanContext"]] = None,
-    references: Optional[list["opentracing.Reference"]] = None,
-    tags: Optional[dict[str, str]] = None,
-    start_time: Optional[float] = None,
+    child_of: Union["opentracing.Span", "opentracing.SpanContext"] | None = None,
+    references: list["opentracing.Reference"] | None = None,
+    tags: dict[str, str] | None = None,
+    start_time: float | None = None,
     ignore_active_span: bool = False,
     finish_on_close: bool = True,
     *,
@@ -563,8 +563,8 @@ def start_active_span(
 def start_active_span_follows_from(
     operation_name: str,
     contexts: Collection,
-    child_of: Optional[Union["opentracing.Span", "opentracing.SpanContext"]] = None,
-    start_time: Optional[float] = None,
+    child_of: Union["opentracing.Span", "opentracing.SpanContext"] | None = None,
+    start_time: float | None = None,
     *,
     inherit_force_tracing: bool = False,
     tracer: Optional["opentracing.Tracer"] = None,
@@ -609,9 +609,9 @@ def start_active_span_follows_from(
 def start_active_span_from_edu(
     edu_content: dict[str, Any],
     operation_name: str,
-    references: Optional[list["opentracing.Reference"]] = None,
-    tags: Optional[dict[str, str]] = None,
-    start_time: Optional[float] = None,
+    references: list["opentracing.Reference"] | None = None,
+    tags: dict[str, str] | None = None,
+    start_time: float | None = None,
     ignore_active_span: bool = False,
     finish_on_close: bool = True,
 ) -> "opentracing.Scope":
@@ -666,14 +666,14 @@ def active_span() -> Optional["opentracing.Span"]:
 
 
 @ensure_active_span("set a tag")
-def set_tag(key: str, value: Union[str, bool, int, float]) -> None:
+def set_tag(key: str, value: str | bool | int | float) -> None:
     """Sets a tag on the active span"""
     assert opentracing.tracer.active_span is not None
     opentracing.tracer.active_span.set_tag(key, value)
 
 
 @ensure_active_span("log")
-def log_kv(key_values: dict[str, Any], timestamp: Optional[float] = None) -> None:
+def log_kv(key_values: dict[str, Any], timestamp: float | None = None) -> None:
     """Log to the active span"""
     assert opentracing.tracer.active_span is not None
     opentracing.tracer.active_span.log_kv(key_values, timestamp)
@@ -725,7 +725,7 @@ def is_context_forced_tracing(
 @ensure_active_span("inject the span into a header dict")
 def inject_header_dict(
     headers: dict[bytes, list[bytes]],
-    destination: Optional[str] = None,
+    destination: str | None = None,
     check_destination: bool = True,
 ) -> None:
     """
@@ -786,7 +786,7 @@ def inject_response_headers(response_headers: Headers) -> None:
 @ensure_active_span(
     "get the active span context as a dict", ret=cast(dict[str, str], {})
 )
-def get_active_span_text_map(destination: Optional[str] = None) -> dict[str, str]:
+def get_active_span_text_map(destination: str | None = None) -> dict[str, str]:
     """
     Gets a span context as a dict. This can be used instead of manually
     injecting a span into an empty carrier.
@@ -825,7 +825,7 @@ def active_span_context_as_string() -> str:
     return json_encoder.encode(carrier)
 
 
-def span_context_from_request(request: Request) -> "Optional[opentracing.SpanContext]":
+def span_context_from_request(request: Request) -> "opentracing.SpanContext | None":
     """Extract an opentracing context from the headers on an HTTP request
 
     This is useful when we have received an HTTP request from another part of our
@@ -867,7 +867,9 @@ def extract_text_map(carrier: dict[str, str]) -> Optional["opentracing.SpanConte
 
 def _custom_sync_async_decorator(
     func: Callable[P, R],
-    wrapping_logic: Callable[Concatenate[Callable[P, R], P], ContextManager[None]],
+    wrapping_logic: Callable[
+        Concatenate[Callable[P, R], P], AbstractContextManager[None]
+    ],
 ) -> Callable[P, R]:
     """
     Decorates a function that is sync or async (coroutines), or that returns a Twisted
@@ -892,7 +894,7 @@ def _custom_sync_async_decorator(
     Args:
         func: The function to be decorated
         wrapping_logic: The business logic of your custom decorator.
-            This should be a ContextManager so you are able to run your logic
+            This should be a AbstractContextManager so you are able to run your logic
             before/after the function as desired.
     """
 

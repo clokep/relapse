@@ -18,10 +18,10 @@
 import enum
 import itertools
 import logging
-from collections.abc import Iterable
+from collections.abc import Iterable, Set
 from enum import Enum
 from http import HTTPStatus
-from typing import TYPE_CHECKING, AbstractSet, Optional, Union
+from typing import TYPE_CHECKING
 
 import attr
 from prometheus_client import Histogram
@@ -173,7 +173,7 @@ class FederationHandler:
         # A dictionary mapping room IDs to (initial destination, other destinations)
         # tuples.
         self._partial_state_syncs_maybe_needing_restart: dict[
-            str, tuple[Optional[str], AbstractSet[str]]
+            str, tuple[str | None, Set[str]]
         ] = {}
         # A lock guarding the partial state flag for rooms.
         # When the lock is held for a given room, no other concurrent code may
@@ -234,7 +234,7 @@ class FederationHandler:
         current_depth: int,
         limit: int,
         *,
-        processing_start_time: Optional[int],
+        processing_start_time: int | None,
     ) -> bool:
         """
         Checks whether the `current_depth` is at or approaching any backfill
@@ -1146,7 +1146,7 @@ class FederationHandler:
         user_id: str,
         membership: str,
         content: JsonDict,
-        params: Optional[dict[str, Union[str, Iterable[str]]]] = None,
+        params: dict[str, str | Iterable[str]] | None = None,
     ) -> tuple[str, EventBase, RoomVersion]:
         (
             origin,
@@ -1337,9 +1337,7 @@ class FederationHandler:
 
         return events
 
-    async def get_persisted_pdu(
-        self, origin: str, event_id: str
-    ) -> Optional[EventBase]:
+    async def get_persisted_pdu(self, origin: str, event_id: str) -> EventBase | None:
         """Get an event from the database for the given server.
 
         Args:
@@ -1636,7 +1634,7 @@ class FederationHandler:
 
         logger.debug("Checking auth on event %r", event.content)
 
-        last_exception: Optional[Exception] = None
+        last_exception: Exception | None = None
 
         # for each public key in the 3pid invite event
         for public_key_object in event_auth.get_public_keys(invite_event):
@@ -1733,7 +1731,7 @@ class FederationHandler:
 
     async def get_room_complexity(
         self, remote_room_hosts: list[str], room_id: str
-    ) -> Optional[dict]:
+    ) -> dict | None:
         """
         Fetch the complexity of a remote room over federation.
 
@@ -1771,8 +1769,8 @@ class FederationHandler:
 
     def _start_partial_state_room_sync(
         self,
-        initial_destination: Optional[str],
-        other_destinations: AbstractSet[str],
+        initial_destination: str | None,
+        other_destinations: Set[str],
         room_id: str,
     ) -> None:
         """Starts the background process to resync the state of a partial state room,
@@ -1853,8 +1851,8 @@ class FederationHandler:
 
     async def _sync_partial_state_room(
         self,
-        initial_destination: Optional[str],
-        other_destinations: AbstractSet[str],
+        initial_destination: str | None,
+        other_destinations: Set[str],
         room_id: str,
     ) -> None:
         """Background process to resync the state of a partial-state room
@@ -1995,8 +1993,8 @@ class FederationHandler:
 
 
 def _prioritise_destinations_for_partial_state_resync(
-    initial_destination: Optional[str],
-    other_destinations: AbstractSet[str],
+    initial_destination: str | None,
+    other_destinations: Set[str],
     room_id: str,
 ) -> StrCollection:
     """Work out the order in which we should ask servers to resync events.

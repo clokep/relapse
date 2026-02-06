@@ -15,7 +15,7 @@
 import logging
 import re
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from relapse.api.constants import EventTypes, Membership
 from relapse.events import EventBase
@@ -39,7 +39,7 @@ async def calculate_room_name(
     user_id: str,
     fallback_to_members: bool = True,
     fallback_to_single_member: bool = True,
-) -> Optional[str]:
+) -> str | None:
     """
     Works out a user-facing name for the given room as per Matrix
     spec recommendations.

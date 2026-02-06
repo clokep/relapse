@@ -14,7 +14,7 @@
 # limitations under the License.
 import logging
 from collections.abc import Collection, Iterable, Mapping, Sequence
-from typing import TYPE_CHECKING, Any, Optional, Union, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from twisted.internet import defer
 
@@ -200,7 +200,7 @@ class PushRulesWorkerStore(
 
     async def get_push_rules_enabled_for_user(self, user_id: str) -> dict[str, bool]:
         results = cast(
-            list[tuple[str, Optional[Union[int, bool]]]],
+            list[tuple[str, int | bool | None]],
             await self.db_pool.simple_select_list(
                 table="push_rules_enable",
                 keyvalues={"user_name": user_id},
@@ -296,7 +296,7 @@ class PushRulesWorkerStore(
         results: dict[str, dict[str, bool]] = {user_id: {} for user_id in user_ids}
 
         rows = cast(
-            list[tuple[str, str, Optional[int]]],
+            list[tuple[str, str, int | None]],
             await self.db_pool.simple_select_many_batch(
                 table="push_rules_enable",
                 column="user_name",
@@ -388,9 +388,9 @@ class PushRuleStore(PushRulesWorkerStore):
         rule_id: str,
         priority_class: int,
         conditions: Sequence[Mapping[str, str]],
-        actions: Sequence[Union[Mapping[str, Any], str]],
-        before: Optional[str] = None,
-        after: Optional[str] = None,
+        actions: Sequence[Mapping[str, Any] | str],
+        before: str | None = None,
+        after: str | None = None,
     ) -> None:
         conditions_json = json_encoder.encode(conditions)
         actions_json = json_encoder.encode(actions)
@@ -754,7 +754,7 @@ class PushRuleStore(PushRulesWorkerStore):
         self,
         user_id: str,
         rule_id: str,
-        actions: list[Union[dict, str]],
+        actions: list[dict | str],
         is_default_rule: bool,
     ) -> None:
         """
@@ -842,7 +842,7 @@ class PushRuleStore(PushRulesWorkerStore):
         user_id: str,
         rule_id: str,
         op: str,
-        data: Optional[JsonDict] = None,
+        data: JsonDict | None = None,
     ) -> None:
         values = {
             "stream_id": stream_id,

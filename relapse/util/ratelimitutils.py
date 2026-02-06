@@ -17,8 +17,9 @@ import contextlib
 import logging
 import threading
 import typing
-from collections.abc import Iterator, Mapping, MutableSet
-from typing import Any, Callable, ContextManager, Optional
+from collections.abc import Callable, Iterator, Mapping, MutableSet
+from contextlib import AbstractContextManager
+from typing import Any
 from weakref import WeakSet
 
 from prometheus_client.core import Counter
@@ -140,7 +141,7 @@ class FederationRateLimiter:
         self,
         clock: Clock,
         config: FederationRatelimitSettings,
-        metrics_name: Optional[str] = None,
+        metrics_name: str | None = None,
     ):
         """
         Args:
@@ -188,7 +189,7 @@ class _PerHostRatelimiter:
         self,
         clock: Clock,
         config: FederationRatelimitSettings,
-        metrics_name: Optional[str] = None,
+        metrics_name: str | None = None,
     ):
         """
         Args:
@@ -256,7 +257,7 @@ class _PerHostRatelimiter:
         return len(self.request_times) > self.sleep_limit
 
     async def _on_enter_with_tracing(self, request_id: object) -> None:
-        maybe_metrics_cm: ContextManager = contextlib.nullcontext()
+        maybe_metrics_cm: AbstractContextManager = contextlib.nullcontext()
         if self.metrics_name:
             maybe_metrics_cm = queue_wait_timer.labels(self.metrics_name).time()
         with start_active_span("ratelimit wait"), maybe_metrics_cm:

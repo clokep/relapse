@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from collections.abc import Iterable
-from typing import Any, Optional
+from typing import Any
 
 from relapse.api.constants import EventTypes
 from relapse.config._base import Config
@@ -37,7 +37,7 @@ class ApiConfig(Config):
 
     def _get_prejoin_state_entries(
         self, config: JsonDict
-    ) -> Iterable[tuple[str, Optional[str]]]:
+    ) -> Iterable[tuple[str, str | None]]:
         """Get the event types and state keys to include in the prejoin state."""
         room_prejoin_state_config = config.get("room_prejoin_state") or {}
 

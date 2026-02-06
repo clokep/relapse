@@ -16,7 +16,7 @@ import sqlite3
 import struct
 import threading
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 from relapse.storage.engines import BaseDatabaseEngine
 from relapse.storage.types import Cursor
@@ -38,7 +38,7 @@ class Sqlite3Engine(BaseDatabaseEngine[sqlite3.Connection, sqlite3.Cursor]):
         # A connection to a database that has already been prepared, to use as a
         # base for an in-memory connection. This is used during unit tests to
         # speed up setting up the DB.
-        self._prepped_conn: Optional[sqlite3.Connection] = database_config.get(
+        self._prepped_conn: sqlite3.Connection | None = database_config.get(
             "_TEST_PREPPED_CONN"
         )
 
@@ -139,7 +139,7 @@ class Sqlite3Engine(BaseDatabaseEngine[sqlite3.Connection, sqlite3.Cursor]):
         pass
 
     def attempt_to_set_isolation_level(
-        self, conn: sqlite3.Connection, isolation_level: Optional[int]
+        self, conn: sqlite3.Connection, isolation_level: int | None
     ) -> None:
         # All transactions are SERIALIZABLE by default in sqlite
         pass

@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import logging
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from relapse.api.constants import LimitBlockingTypes, UserTypes
 from relapse.api.errors import Codes, ResourceLimitError
@@ -44,10 +44,10 @@ class AuthBlocking:
 
     async def check_auth_blocking(
         self,
-        user_id: Optional[str] = None,
-        threepid: Optional[dict] = None,
-        user_type: Optional[str] = None,
-        requester: Optional[Requester] = None,
+        user_id: str | None = None,
+        threepid: dict | None = None,
+        user_type: str | None = None,
+        requester: Requester | None = None,
     ) -> None:
         """Checks if the user should be rejected for some external reason,
         such as monthly active user limiting or global disable flag

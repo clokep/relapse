@@ -14,7 +14,6 @@
 
 import logging
 from types import TracebackType
-from typing import Optional
 
 from opentracing import Scope, ScopeManager, Span
 
@@ -43,7 +42,7 @@ class LogContextScopeManager(ScopeManager):
         pass
 
     @property
-    def active(self) -> Optional[Scope]:
+    def active(self) -> Scope | None:
         """
         Returns the currently active Scope which can be used to access the
         currently active Scope.span.
@@ -141,9 +140,9 @@ class _LogContextScope(Scope):
 
     def __exit__(
         self,
-        exc_type: Optional[type[BaseException]],
-        value: Optional[BaseException],
-        traceback: Optional[TracebackType],
+        exc_type: type[BaseException] | None,
+        value: BaseException | None,
+        traceback: TracebackType | None,
     ) -> None:
         if exc_type == twisted.internet.defer._DefGen_Return:
             # filter out defer.returnValue() calls

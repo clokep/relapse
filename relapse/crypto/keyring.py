@@ -14,8 +14,8 @@
 
 import abc
 import logging
-from collections.abc import Iterable
-from typing import TYPE_CHECKING, Callable, Optional
+from collections.abc import Callable, Iterable
+from typing import TYPE_CHECKING
 
 import attr
 from signedjson.key import (
@@ -144,7 +144,7 @@ class Keyring:
     """
 
     def __init__(
-        self, hs: "HomeServer", key_fetchers: "Optional[Iterable[KeyFetcher]]" = None
+        self, hs: "HomeServer", key_fetchers: "Iterable[KeyFetcher] | None" = None
     ):
         if key_fetchers is None:
             # Always fetch keys from the database.

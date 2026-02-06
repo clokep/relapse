@@ -22,27 +22,26 @@ import typing
 from collections.abc import (
     AsyncIterator,
     Awaitable,
+    Callable,
     Collection,
     Coroutine,
     Generator,
     Hashable,
     Iterable,
 )
-from contextlib import asynccontextmanager
+from contextlib import AbstractAsyncContextManager, asynccontextmanager
 from typing import (
     Any,
-    AsyncContextManager,
-    Callable,
+    Concatenate,
     Generic,
-    Optional,
+    Literal,
     TypeVar,
-    Union,
     cast,
     overload,
 )
 
 import attr
-from typing_extensions import Concatenate, Literal, ParamSpec
+from typing_extensions import ParamSpec
 
 from twisted.internet import defer
 from twisted.internet.defer import CancelledError
@@ -99,8 +98,8 @@ class ObservableDeferred(Generic[_T], AbstractObservableDeferred[_T]):
     __slots__ = ["_deferred", "_observers", "_result"]
 
     _deferred: "defer.Deferred[_T]"
-    _observers: Union[list["defer.Deferred[_T]"], tuple[()]]
-    _result: Union[None, tuple[Literal[True], _T], tuple[Literal[False], Failure]]
+    _observers: list["defer.Deferred[_T]"] | tuple[()]
+    _result: None | tuple[Literal[True], _T] | tuple[Literal[False], Failure]
 
     def __init__(self, deferred: "defer.Deferred[_T]", consumeErrors: bool = False):
         object.__setattr__(self, "_deferred", deferred)
@@ -127,7 +126,7 @@ class ObservableDeferred(Generic[_T], AbstractObservableDeferred[_T]):
                     )
             return r
 
-        def errback(f: Failure) -> Optional[Failure]:
+        def errback(f: Failure) -> Failure | None:
             object.__setattr__(self, "_result", (False, f))
 
             # once we have set _result, no more entries will be added to _observers,
@@ -182,7 +181,7 @@ class ObservableDeferred(Generic[_T], AbstractObservableDeferred[_T]):
     def has_succeeded(self) -> bool:
         return self._result is not None and self._result[0] is True
 
-    def get_result(self) -> Union[_T, Failure]:
+    def get_result(self) -> _T | Failure:
         if self._result is None:
             raise ValueError(f"{self!r} has no result yet")
         return self._result[1]
@@ -418,16 +417,16 @@ class Linearizer:
 
     def __init__(
         self,
-        name: Optional[str] = None,
+        name: str | None = None,
         max_count: int = 1,
-        clock: Optional[Clock] = None,
+        clock: Clock | None = None,
     ):
         """
         Args:
             max_count: The maximum number of concurrent accesses
         """
         if name is None:
-            self.name: Union[str, int] = id(self)
+            self.name: str | int = id(self)
         else:
             self.name = name
 
@@ -452,7 +451,7 @@ class Linearizer:
         # non-empty.
         return bool(entry.deferreds)
 
-    def queue(self, key: Hashable) -> AsyncContextManager[None]:
+    def queue(self, key: Hashable) -> AbstractAsyncContextManager[None]:
         @asynccontextmanager
         async def _ctx_manager() -> AsyncIterator[None]:
             entry = await self._acquire_lock(key)
@@ -579,7 +578,7 @@ class ReadWriteLock:
         # Latest writer queued
         self.key_to_current_writer: dict[str, defer.Deferred] = {}
 
-    def read(self, key: str) -> AsyncContextManager:
+    def read(self, key: str) -> AbstractAsyncContextManager:
         @asynccontextmanager
         async def _ctx_manager() -> AsyncIterator[None]:
             new_defer: defer.Deferred[None] = defer.Deferred()
@@ -605,7 +604,7 @@ class ReadWriteLock:
 
         return _ctx_manager()
 
-    def write(self, key: str) -> AsyncContextManager:
+    def write(self, key: str) -> AbstractAsyncContextManager:
         @asynccontextmanager
         async def _ctx_manager() -> AsyncIterator[None]:
             new_defer: defer.Deferred[None] = defer.Deferred()
@@ -732,7 +731,7 @@ class DoneAwaitable(Awaitable[R]):
         return self.value
 
 
-def maybe_awaitable(value: Union[Awaitable[R], R]) -> Awaitable[R]:
+def maybe_awaitable(value: Awaitable[R] | R) -> Awaitable[R]:
     """Convert a value to an awaitable if not already an awaitable."""
     if inspect.isawaitable(value):
         return value

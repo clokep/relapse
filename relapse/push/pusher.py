@@ -13,7 +13,8 @@
 # limitations under the License.
 
 import logging
-from typing import TYPE_CHECKING, Callable, Optional
+from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 from relapse.push import Pusher, PusherConfig
 from relapse.push.emailpusher import EmailPusher
@@ -46,7 +47,7 @@ class PusherFactory:
 
             logger.info("defined email pusher type")
 
-    def create_pusher(self, pusher_config: PusherConfig) -> Optional[Pusher]:
+    def create_pusher(self, pusher_config: PusherConfig) -> Pusher | None:
         kind = pusher_config.kind
         f = self.pusher_types.get(kind, None)
         if not f:

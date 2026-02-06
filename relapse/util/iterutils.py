@@ -13,9 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import heapq
-from collections.abc import Collection, Generator, Iterable, Iterator, Mapping, Sized
+from collections.abc import (
+    Callable,
+    Collection,
+    Generator,
+    Iterable,
+    Iterator,
+    Mapping,
+    Sized,
+)
 from itertools import islice
-from typing import Callable, TypeVar
+from typing import TypeVar
 
 from typing_extensions import Protocol
 

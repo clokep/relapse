@@ -14,7 +14,7 @@
 import itertools
 import logging
 from collections import defaultdict
-from typing import TYPE_CHECKING, Any, Optional, Union
+from typing import TYPE_CHECKING, Any
 
 from relapse.api.constants import AccountDataTypes, EduTypes, Membership, PresenceState
 from relapse.api.errors import Codes, RelapseError, StoreError
@@ -146,7 +146,7 @@ class SyncRestServlet(RestServlet):
         # in the response cache once the set of ignored users has changed.
         # (We filter out ignored users from timeline events, so our sync response
         # is invalid once the set of ignored users changes.)
-        last_ignore_accdata_streampos: Optional[int] = None
+        last_ignore_accdata_streampos: int | None = None
         if not since:
             # No `since`, so this is an initial sync.
             last_ignore_accdata_streampos = await self.store.get_latest_stream_id_for_global_account_data_by_type_for_user(
@@ -471,7 +471,7 @@ class SyncRestServlet(RestServlet):
 
     async def encode_room(
         self,
-        room: Union[JoinedSyncResult, ArchivedSyncResult],
+        room: JoinedSyncResult | ArchivedSyncResult,
         time_now: int,
         joined: bool,
         serialize_options: SerializeEventConfig,

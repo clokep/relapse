@@ -13,7 +13,6 @@
 #  limitations under the License.
 
 from io import BytesIO
-from typing import Union
 from unittest.mock import Mock
 
 from netaddr import IPSet
@@ -40,7 +39,7 @@ from tests.unittest import TestCase
 
 class ReadBodyWithMaxSizeTests(TestCase):
     def _build_response(
-        self, length: Union[int, str] = UNKNOWN_LENGTH
+        self, length: int | str = UNKNOWN_LENGTH
     ) -> tuple[BytesIO, "Deferred[int]", _DiscardBodyWithMaxSizeProtocol]:
         """Start reading the body, returns the response, result and proto"""
         response = Mock(length=length)

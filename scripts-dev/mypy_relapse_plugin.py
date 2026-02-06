@@ -16,7 +16,7 @@
 can crop up, e.g the cache descriptors.
 """
 
-from typing import Callable, Optional, Union
+from collections.abc import Callable
 
 import mypy.types
 from mypy.erasetype import remove_instance_last_known_values
@@ -39,7 +39,7 @@ from mypy.types import (
 class RelapsePlugin(Plugin):
     def get_method_signature_hook(
         self, fullname: str
-    ) -> Optional[Callable[[MethodSigContext], CallableType]]:
+    ) -> Callable[[MethodSigContext], CallableType] | None:
         if fullname.startswith(
             (
                 "relapse.util.caches.descriptors.CachedFunction.__call__",
@@ -179,7 +179,7 @@ def check_is_cacheable_wrapper(ctx: MethodSigContext) -> CallableType:
 
 def check_is_cacheable(
     signature: CallableType,
-    ctx: Union[MethodSigContext, FunctionSigContext],
+    ctx: MethodSigContext | FunctionSigContext,
 ) -> None:
     """
     Check if a callable returns a type which can be cached.
@@ -252,7 +252,7 @@ AT_CACHED_MUTABLE_RETURN = ErrorCode(
 
 def is_cacheable(
     rt: mypy.types.Type, signature: CallableType, verbose: bool
-) -> tuple[bool, Optional[str]]:
+) -> tuple[bool, str | None]:
     """
     Check if a particular type is cachable.
 

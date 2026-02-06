@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import collections.abc
-from typing import Union, cast
+from typing import cast
 
 import jsonschema
 from pydantic import Field
@@ -177,7 +177,7 @@ class EventValidator:
                 errcode=Codes.BAD_JSON,
             )
 
-    def validate_builder(self, event: Union[EventBase, EventBuilder]) -> None:
+    def validate_builder(self, event: EventBase | EventBuilder) -> None:
         """Validates that the builder/event has roughly the right format. Only
         checks values that we expect a proto event to have, rather than all the
         fields an event would have
@@ -232,7 +232,7 @@ class EventValidator:
             if not isinstance(d[s], str):
                 raise RelapseError(400, f"'{s}' not a string type")
 
-    def _ensure_state_event(self, event: Union[EventBase, EventBuilder]) -> None:
+    def _ensure_state_event(self, event: EventBase | EventBuilder) -> None:
         if not event.is_state():
             raise RelapseError(400, f"'{event.type}' must be state events")
 

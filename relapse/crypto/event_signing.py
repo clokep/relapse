@@ -17,7 +17,8 @@
 import collections.abc
 import hashlib
 import logging
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from canonicaljson import encode_canonical_json
 from signedjson.sign import sign_json

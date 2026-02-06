@@ -15,9 +15,9 @@
 
 import logging
 from abc import abstractmethod
-from collections.abc import Awaitable, Collection, Mapping
+from collections.abc import Awaitable, Collection, Mapping, Set
 from enum import Enum
-from typing import TYPE_CHECKING, AbstractSet, Any, Optional, Union, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import attr
 
@@ -68,24 +68,24 @@ class RatelimitOverride:
 @attr.s(slots=True, frozen=True, auto_attribs=True)
 class LargestRoomStats:
     room_id: str
-    name: Optional[str]
-    canonical_alias: Optional[str]
+    name: str | None
+    canonical_alias: str | None
     joined_members: int
-    join_rules: Optional[str]
-    guest_access: Optional[str]
-    history_visibility: Optional[str]
+    join_rules: str | None
+    guest_access: str | None
+    history_visibility: str | None
     state_events: int
-    avatar: Optional[str]
-    topic: Optional[str]
-    room_type: Optional[str]
+    avatar: str | None
+    topic: str | None
+    room_type: str | None
 
 
 @attr.s(slots=True, frozen=True, auto_attribs=True)
 class RoomStats(LargestRoomStats):
     joined_local_members: int
-    version: Optional[str]
-    creator: Optional[str]
-    encryption: Optional[str]
+    version: str | None
+    creator: str | None
+    encryption: str | None
     federatable: bool
     public: bool
 
@@ -120,7 +120,7 @@ class RoomSortOrder(Enum):
 
 @attr.s(slots=True, frozen=True, auto_attribs=True)
 class PartialStateResyncInfo:
-    joined_via: Optional[str]
+    joined_via: str | None
     servers_in_room: set[str] = attr.ib(factory=set)
 
 
@@ -200,7 +200,7 @@ class RoomWorkerStore(CacheInvalidationWorkerStore):
             logger.error("store_room with room_id=%s failed: %s", room_id, e)
             raise StoreError(500, "Problem creating room.")
 
-    async def get_room(self, room_id: str) -> Optional[tuple[bool, bool]]:
+    async def get_room(self, room_id: str) -> tuple[bool, bool] | None:
         """Retrieve a room.
 
         Args:
@@ -213,7 +213,7 @@ class RoomWorkerStore(CacheInvalidationWorkerStore):
             or None if the room is unknown.
         """
         row = cast(
-            Optional[tuple[Optional[Union[int, bool]], Optional[Union[int, bool]]]],
+            tuple[int | bool | None, int | bool | None] | None,
             await self.db_pool.simple_select_one(
                 table="rooms",
                 keyvalues={"room_id": room_id},
@@ -226,7 +226,7 @@ class RoomWorkerStore(CacheInvalidationWorkerStore):
             return row
         return bool(row[0]), bool(row[1])
 
-    async def get_room_with_stats(self, room_id: str) -> Optional[RoomStats]:
+    async def get_room_with_stats(self, room_id: str) -> RoomStats | None:
         """Retrieve room with statistics.
 
         Args:
@@ -237,7 +237,7 @@ class RoomWorkerStore(CacheInvalidationWorkerStore):
 
         def get_room_with_stats_txn(
             txn: LoggingTransaction, room_id: str
-        ) -> Optional[RoomStats]:
+        ) -> RoomStats | None:
             sql = """
                 SELECT room_id, state.name, state.canonical_alias, curr.joined_members,
                   curr.local_users_in_room AS joined_local_members, rooms.room_version AS version,
@@ -287,8 +287,8 @@ class RoomWorkerStore(CacheInvalidationWorkerStore):
         )
 
     def _construct_room_type_where_clause(
-        self, room_types: Union[list[Union[str, None]], None]
-    ) -> tuple[Union[str, None], list]:
+        self, room_types: list[str | None] | None
+    ) -> tuple[str | None, list]:
         if not room_types:
             return None, []
 
@@ -315,9 +315,9 @@ class RoomWorkerStore(CacheInvalidationWorkerStore):
 
     async def count_public_rooms(
         self,
-        network_tuple: Optional[ThirdPartyInstanceID],
+        network_tuple: ThirdPartyInstanceID | None,
         ignore_non_federatable: bool,
-        search_filter: Optional[dict],
+        search_filter: dict | None,
     ) -> int:
         """Counts the number of public rooms as tracked in the room_stats_current
         and room_stats_state table.
@@ -397,10 +397,10 @@ class RoomWorkerStore(CacheInvalidationWorkerStore):
 
     async def get_largest_public_rooms(
         self,
-        network_tuple: Optional[ThirdPartyInstanceID],
-        search_filter: Optional[dict],
-        limit: Optional[int],
-        bounds: Optional[tuple[int, str]],
+        network_tuple: ThirdPartyInstanceID | None,
+        search_filter: dict | None,
+        limit: int | None,
+        bounds: tuple[int, str] | None,
         forwards: bool,
         ignore_non_federatable: bool = False,
     ) -> list[LargestRoomStats]:
@@ -424,7 +424,7 @@ class RoomWorkerStore(CacheInvalidationWorkerStore):
         """
 
         where_clauses = []
-        query_args: list[Union[str, int]] = []
+        query_args: list[str | int] = []
 
         if network_tuple:
             if network_tuple.appservice_id:
@@ -570,7 +570,7 @@ class RoomWorkerStore(CacheInvalidationWorkerStore):
         )
 
     @cached(max_entries=10000)
-    async def is_room_blocked(self, room_id: str) -> Optional[bool]:
+    async def is_room_blocked(self, room_id: str) -> bool | None:
         return await self.db_pool.simple_select_one_onecol(
             table="blocked_rooms",
             keyvalues={"room_id": room_id},
@@ -579,7 +579,7 @@ class RoomWorkerStore(CacheInvalidationWorkerStore):
             desc="is_room_blocked",
         )
 
-    async def room_is_blocked_by(self, room_id: str) -> Optional[str]:
+    async def room_is_blocked_by(self, room_id: str) -> str | None:
         """
         Function to retrieve user who has blocked the room.
         user_id is non-nullable
@@ -599,7 +599,7 @@ class RoomWorkerStore(CacheInvalidationWorkerStore):
         limit: int,
         order_by: str,
         reverse_order: bool,
-        search_term: Optional[str],
+        search_term: str | None,
     ) -> tuple[list[dict[str, Any]], int]:
         """Function to retrieve a paginated list of rooms as json.
 
@@ -768,7 +768,7 @@ class RoomWorkerStore(CacheInvalidationWorkerStore):
         )
 
     @cached(max_entries=10000)
-    async def get_ratelimit_for_user(self, user_id: str) -> Optional[RatelimitOverride]:
+    async def get_ratelimit_for_user(self, user_id: str) -> RatelimitOverride | None:
         """Check if there are any overrides for ratelimiting for the given user
 
         Args:
@@ -873,7 +873,7 @@ class RoomWorkerStore(CacheInvalidationWorkerStore):
 
         def get_retention_policy_for_room_txn(
             txn: LoggingTransaction,
-        ) -> Optional[tuple[Optional[int], Optional[int]]]:
+        ) -> tuple[int | None, int | None] | None:
             txn.execute(
                 """
                 SELECT min_lifetime, max_lifetime FROM room_retention
@@ -883,7 +883,7 @@ class RoomWorkerStore(CacheInvalidationWorkerStore):
                 (room_id,),
             )
 
-            return cast(Optional[tuple[Optional[int], Optional[int]]], txn.fetchone())
+            return cast(tuple[int | None, int | None] | None, txn.fetchone())
 
         ret = await self.db_pool.runInteraction(
             "get_retention_policy_for_room",
@@ -1026,7 +1026,7 @@ class RoomWorkerStore(CacheInvalidationWorkerStore):
         self,
         server_name: str,
         media_id: str,
-        quarantined_by: Optional[str],
+        quarantined_by: str | None,
     ) -> int:
         """quarantines or unquarantines a single local or remote media id
 
@@ -1103,7 +1103,7 @@ class RoomWorkerStore(CacheInvalidationWorkerStore):
         txn: LoggingTransaction,
         local_mxcs: list[str],
         remote_mxcs: list[tuple[str, str]],
-        quarantined_by: Optional[str],
+        quarantined_by: str | None,
     ) -> int:
         """Quarantine and unquarantine local and remote media items
 
@@ -1153,7 +1153,7 @@ class RoomWorkerStore(CacheInvalidationWorkerStore):
         return total_media_quarantined
 
     async def get_rooms_for_retention_period_in_range(
-        self, min_ms: Optional[int], max_ms: Optional[int], include_null: bool = False
+        self, min_ms: int | None, max_ms: int | None, include_null: bool = False
     ) -> dict[str, RetentionPolicy]:
         """Retrieves all of the rooms within the given retention range.
 
@@ -1231,9 +1231,7 @@ class RoomWorkerStore(CacheInvalidationWorkerStore):
             get_rooms_for_retention_period_in_range_txn,
         )
 
-    async def get_partial_state_servers_at_join(
-        self, room_id: str
-    ) -> Optional[AbstractSet[str]]:
+    async def get_partial_state_servers_at_join(self, room_id: str) -> Set[str] | None:
         """Gets the set of servers in a partial state room at the time we joined it.
 
         Returns:
@@ -1250,9 +1248,7 @@ class RoomWorkerStore(CacheInvalidationWorkerStore):
         return servers_in_room
 
     @cached(iterable=True)
-    async def _get_partial_state_servers_at_join(
-        self, room_id: str
-    ) -> AbstractSet[str]:
+    async def _get_partial_state_servers_at_join(self, room_id: str) -> Set[str]:
         return frozenset(
             await self.db_pool.simple_select_onecol(
                 "partial_state_rooms_servers",
@@ -1462,7 +1458,7 @@ class RoomWorkerStore(CacheInvalidationWorkerStore):
             get_un_partial_stated_rooms_from_stream_txn,
         )
 
-    async def get_event_report(self, report_id: int) -> Optional[dict[str, Any]]:
+    async def get_event_report(self, report_id: int) -> dict[str, Any] | None:
         """Retrieve an event report
 
         Args:
@@ -1474,7 +1470,7 @@ class RoomWorkerStore(CacheInvalidationWorkerStore):
 
         def _get_event_report_txn(
             txn: LoggingTransaction, report_id: int
-        ) -> Optional[dict[str, Any]]:
+        ) -> dict[str, Any] | None:
             sql = """
                 SELECT
                     er.id,
@@ -1528,8 +1524,8 @@ class RoomWorkerStore(CacheInvalidationWorkerStore):
         start: int,
         limit: int,
         direction: Direction = Direction.BACKWARDS,
-        user_id: Optional[str] = None,
-        room_id: Optional[str] = None,
+        user_id: str | None = None,
+        room_id: str | None = None,
     ) -> tuple[list[dict[str, Any]], int]:
         """Retrieve a paginated list of event reports
 
@@ -2199,7 +2195,7 @@ class RoomStore(RoomBackgroundUpdateStore, RoomWorkerStore):
     async def store_partial_state_room(
         self,
         room_id: str,
-        servers: AbstractSet[str],
+        servers: Set[str],
         device_lists_stream_id: int,
         joined_via: str,
     ) -> None:
@@ -2234,7 +2230,7 @@ class RoomStore(RoomBackgroundUpdateStore, RoomWorkerStore):
         self,
         txn: LoggingTransaction,
         room_id: str,
-        servers: AbstractSet[str],
+        servers: Set[str],
         device_lists_stream_id: int,
         joined_via: str,
     ) -> None:
@@ -2379,7 +2375,7 @@ class RoomStore(RoomBackgroundUpdateStore, RoomWorkerStore):
         room_id: str,
         event_id: str,
         user_id: str,
-        reason: Optional[str],
+        reason: str | None,
         content: JsonDict,
         received_ts: int,
     ) -> int:
@@ -2455,7 +2451,7 @@ class RoomStore(RoomBackgroundUpdateStore, RoomWorkerStore):
             (room_id,),
         )
 
-    async def clear_partial_state_room(self, room_id: str) -> Optional[int]:
+    async def clear_partial_state_room(self, room_id: str) -> int | None:
         """Clears the partial state flag for a room.
 
         Args:

@@ -17,7 +17,7 @@
 
 import logging
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from prometheus_client import Counter
 from typing_extensions import TypedDict
@@ -88,8 +88,8 @@ def init_counters_for_auth_provider(auth_provider_id: str) -> None:
 class LoginDict(TypedDict):
     device_id: str
     access_token: str
-    valid_until_ms: Optional[int]
-    refresh_token: Optional[str]
+    valid_until_ms: int | None
+    refresh_token: str | None
 
 
 class RegistrationHandler:
@@ -140,8 +140,8 @@ class RegistrationHandler:
     async def check_username(
         self,
         localpart: str,
-        guest_access_token: Optional[str] = None,
-        assigned_user_id: Optional[str] = None,
+        guest_access_token: str | None = None,
+        assigned_user_id: str | None = None,
         inhibit_user_in_use_error: bool = False,
     ) -> None:
         if types.contains_invalid_mxid_characters(localpart):
@@ -205,19 +205,19 @@ class RegistrationHandler:
 
     async def register_user(
         self,
-        localpart: Optional[str] = None,
-        password_hash: Optional[str] = None,
-        guest_access_token: Optional[str] = None,
+        localpart: str | None = None,
+        password_hash: str | None = None,
+        guest_access_token: str | None = None,
         make_guest: bool = False,
         admin: bool = False,
-        threepid: Optional[dict] = None,
-        user_type: Optional[str] = None,
-        default_display_name: Optional[str] = None,
-        address: Optional[str] = None,
-        bind_emails: Optional[Iterable[str]] = None,
+        threepid: dict | None = None,
+        user_type: str | None = None,
+        default_display_name: str | None = None,
+        address: str | None = None,
+        bind_emails: Iterable[str] | None = None,
         by_admin: bool = False,
-        user_agent_ips: Optional[list[tuple[str, str]]] = None,
-        auth_provider_id: Optional[str] = None,
+        user_agent_ips: list[tuple[str, str]] | None = None,
+        auth_provider_id: str | None = None,
         approved: bool = False,
     ) -> str:
         """Registers a new client on the server.
@@ -648,7 +648,7 @@ class RegistrationHandler:
         return user_id
 
     def check_user_id_not_appservice_exclusive(
-        self, user_id: str, allowed_appservice: Optional[ApplicationService] = None
+        self, user_id: str, allowed_appservice: ApplicationService | None = None
     ) -> None:
         # don't allow people to register the server notices mxid
         if self._server_notices_mxid is not None:
@@ -673,7 +673,7 @@ class RegistrationHandler:
                     errcode=Codes.EXCLUSIVE,
                 )
 
-    async def check_registration_ratelimit(self, address: Optional[str]) -> None:
+    async def check_registration_ratelimit(self, address: str | None) -> None:
         """A simple helper method to check whether the registration rate limit has been hit
         for a given IP address
 
@@ -692,14 +692,14 @@ class RegistrationHandler:
     async def register_with_store(
         self,
         user_id: str,
-        password_hash: Optional[str] = None,
+        password_hash: str | None = None,
         was_guest: bool = False,
         make_guest: bool = False,
-        appservice_id: Optional[str] = None,
-        create_profile_with_displayname: Optional[str] = None,
+        appservice_id: str | None = None,
+        create_profile_with_displayname: str | None = None,
         admin: bool = False,
-        user_type: Optional[str] = None,
-        address: Optional[str] = None,
+        user_type: str | None = None,
+        address: str | None = None,
         shadow_banned: bool = False,
         approved: bool = False,
     ) -> None:
@@ -757,14 +757,14 @@ class RegistrationHandler:
     async def register_device(
         self,
         user_id: str,
-        device_id: Optional[str],
-        initial_display_name: Optional[str],
+        device_id: str | None,
+        initial_display_name: str | None,
         is_guest: bool = False,
         is_appservice_ghost: bool = False,
-        auth_provider_id: Optional[str] = None,
+        auth_provider_id: str | None = None,
         should_issue_refresh_token: bool = False,
-        auth_provider_session_id: Optional[str] = None,
-    ) -> tuple[str, str, Optional[int], Optional[str]]:
+        auth_provider_session_id: str | None = None,
+    ) -> tuple[str, str, int | None, str | None]:
         """Register a device for a user and generate an access token.
 
         The access token will be limited by the homeserver's session_lifetime config.
@@ -806,13 +806,13 @@ class RegistrationHandler:
     async def register_device_inner(
         self,
         user_id: str,
-        device_id: Optional[str],
-        initial_display_name: Optional[str],
+        device_id: str | None,
+        initial_display_name: str | None,
         is_guest: bool = False,
         is_appservice_ghost: bool = False,
         should_issue_refresh_token: bool = False,
-        auth_provider_id: Optional[str] = None,
-        auth_provider_session_id: Optional[str] = None,
+        auth_provider_id: str | None = None,
+        auth_provider_session_id: str | None = None,
     ) -> LoginDict:
         """Helper for register_device
 
@@ -915,7 +915,7 @@ class RegistrationHandler:
         }
 
     async def post_registration_actions(
-        self, user_id: str, auth_result: dict, access_token: Optional[str]
+        self, user_id: str, auth_result: dict, access_token: str | None
     ) -> None:
         """A user has completed registration
 
@@ -965,7 +965,7 @@ class RegistrationHandler:
         await self.post_consent_actions(user_id)
 
     async def _register_email_threepid(
-        self, user_id: str, threepid: dict, token: Optional[str]
+        self, user_id: str, threepid: dict, token: str | None
     ) -> None:
         """Add an email address as a 3pid identifier
 

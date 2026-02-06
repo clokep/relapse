@@ -16,7 +16,8 @@ import abc
 import logging
 import os
 import shutil
-from typing import TYPE_CHECKING, Callable, Optional
+from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 from relapse.config._base import Config
 from relapse.logging.context import defer_to_thread, run_in_background
@@ -48,7 +49,7 @@ class StorageProvider(metaclass=abc.ABCMeta):
         """
 
     @abc.abstractmethod
-    async def fetch(self, path: str, file_info: FileInfo) -> Optional[Responder]:
+    async def fetch(self, path: str, file_info: FileInfo) -> Responder | None:
         """Attempt to fetch the file described by file_info and stream it
         into writer.
 
@@ -117,7 +118,7 @@ class StorageProviderWrapper(StorageProvider):
             run_in_background(store)
 
     @trace_with_opname("StorageProviderWrapper.fetch")
-    async def fetch(self, path: str, file_info: FileInfo) -> Optional[Responder]:
+    async def fetch(self, path: str, file_info: FileInfo) -> Responder | None:
         if file_info.url_cache:
             # Files in the URL preview cache definitely aren't stored here,
             # so avoid any potentially slow I/O or network access.
@@ -165,7 +166,7 @@ class FileStorageProviderBackend(StorageProvider):
             )
 
     @trace_with_opname("FileStorageProviderBackend.fetch")
-    async def fetch(self, path: str, file_info: FileInfo) -> Optional[Responder]:
+    async def fetch(self, path: str, file_info: FileInfo) -> Responder | None:
         """See StorageProvider.fetch"""
 
         backup_fname = os.path.join(self.base_directory, path)

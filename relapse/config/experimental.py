@@ -45,7 +45,7 @@ class ClientAuthMethod(enum.Enum):
     PRIVATE_KEY_JWT = "private_key_jwt"
 
 
-def _parse_jwks(jwks: Optional[JsonDict]) -> Optional["JsonWebKey"]:
+def _parse_jwks(jwks: JsonDict | None) -> Optional["JsonWebKey"]:
     """A helper function to parse a JWK dict into a JsonWebKey."""
 
     if jwks is None:
@@ -76,7 +76,7 @@ class MSC3861:
     issuer: str = attr.ib(default="", validator=attr.validators.instance_of(str))
     """The URL of the OIDC Provider."""
 
-    issuer_metadata: Optional[JsonDict] = attr.ib(default=None)
+    issuer_metadata: JsonDict | None = attr.ib(default=None)
     """The issuer metadata to use, otherwise discovered from /.well-known/openid-configuration as per MSC2965."""
 
     client_id: str = attr.ib(
@@ -90,7 +90,7 @@ class MSC3861:
     )
     """The auth method used when calling the introspection endpoint."""
 
-    client_secret: Optional[str] = attr.ib(
+    client_secret: str | None = attr.ib(
         default=None,
         validator=attr.validators.optional(attr.validators.instance_of(str)),
     )
@@ -133,13 +133,13 @@ class MSC3861:
                 ("experimental", "msc3861", "client_auth_method"),
             )
 
-    account_management_url: Optional[str] = attr.ib(
+    account_management_url: str | None = attr.ib(
         default=None,
         validator=attr.validators.optional(attr.validators.instance_of(str)),
     )
     """The URL of the My Account page on the OIDC Provider as per MSC2965."""
 
-    admin_token: Optional[str] = attr.ib(
+    admin_token: str | None = attr.ib(
         default=None,
         validator=attr.validators.optional(attr.validators.instance_of(str)),
     )

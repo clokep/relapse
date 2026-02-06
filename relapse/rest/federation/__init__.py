@@ -14,9 +14,7 @@
 # limitations under the License.
 import logging
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, Optional
-
-from typing_extensions import Literal
+from typing import TYPE_CHECKING, Literal
 
 from relapse.api.errors import FederationDeniedError, RelapseError
 from relapse.http.server import HttpServer
@@ -126,7 +124,7 @@ class PublicRoomList(BaseFederationServlet):
         if not self.allow_access:
             raise FederationDeniedError(origin)
 
-        limit: Optional[int] = int(content.get("limit", 100))
+        limit: int | None = int(content.get("limit", 100))
         since_token = content.get("since", None)
         search_filter = content.get("filter", None)
 
@@ -196,7 +194,7 @@ class OpenIdUserInfo(BaseFederationServlet):
 
     async def on_GET(
         self,
-        origin: Optional[str],
+        origin: str | None,
         content: Literal[None],
         query: dict[bytes, list[bytes]],
     ) -> tuple[int, JsonDict]:
@@ -231,7 +229,7 @@ SERVLET_GROUPS: dict[str, Iterable[type[BaseFederationServlet]]] = {
 def register_servlets(
     hs: "HomeServer",
     http_server: HttpServer,
-    servlet_groups: Optional[StrCollection] = None,
+    servlet_groups: StrCollection | None = None,
 ) -> None:
     """Initialize and register servlet classes.
 

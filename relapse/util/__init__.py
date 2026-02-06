@@ -15,8 +15,8 @@
 import json
 import logging
 import typing
-from collections.abc import Generator, Sequence
-from typing import Any, Callable, Optional
+from collections.abc import Callable, Generator, Sequence
+from typing import Any
 
 import attr
 from immutabledict import immutabledict
@@ -167,7 +167,7 @@ class Clock:
 
 def log_failure(
     failure: Failure, msg: str, consumeErrors: bool = True
-) -> Optional[Failure]:
+) -> Failure | None:
     """Creates a function suitable for passing to `Deferred.addErrback` that
     logs any failures that occur.
 

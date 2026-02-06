@@ -14,7 +14,7 @@
 # limitations under the License.
 import logging
 import re
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from relapse.http.server import set_corp_headers, set_cors_headers
 from relapse.http.servlet import RestServlet, parse_boolean, parse_integer
@@ -50,7 +50,7 @@ class DownloadServlet(RestServlet):
         request: RelapseRequest,
         server_name: str,
         media_id: str,
-        file_name: Optional[str] = None,
+        file_name: str | None = None,
     ) -> None:
         # Validate the server name, raising if invalid
         parse_and_validate_server_name(server_name)

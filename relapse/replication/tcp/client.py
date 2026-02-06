@@ -15,7 +15,7 @@
 
 import logging
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from sortedcontainers import SortedList
 
@@ -81,7 +81,7 @@ class ReplicationDataHandler:
         self._pusher_pool = hs.get_pusherpool()
         self._presence_handler = hs.get_presence_handler()
 
-        self.send_handler: Optional[FederationSenderHandler] = None
+        self.send_handler: FederationSenderHandler | None = None
         if hs.should_send_federation():
             self.send_handler = FederationSenderHandler(hs)
 
@@ -395,7 +395,7 @@ class FederationSenderHandler:
 
         # Stores the latest position in the federation stream we've gotten up
         # to. This is always set before we use it.
-        self.federation_position: Optional[int] = None
+        self.federation_position: int | None = None
 
         self._fed_position_linearizer = Linearizer(name="_fed_position_linearizer")
 

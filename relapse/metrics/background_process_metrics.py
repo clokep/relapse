@@ -14,11 +14,11 @@
 
 import logging
 import threading
-from collections.abc import Awaitable, Iterable
+from collections.abc import Awaitable, Callable, Iterable
 from contextlib import nullcontext
 from functools import wraps
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, Callable, Optional, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from prometheus_client import Metric
 from prometheus_client.core import REGISTRY, Counter, Gauge
@@ -155,7 +155,7 @@ class _BackgroundProcess:
     def __init__(self, desc: str, ctx: LoggingContext):
         self.desc = desc
         self._context = ctx
-        self._reported_stats: Optional[ContextResourceUsage] = None
+        self._reported_stats: ContextResourceUsage | None = None
 
     def update_metrics(self) -> None:
         """Updates the metrics with values from this process."""
@@ -184,11 +184,11 @@ R = TypeVar("R")
 
 def run_as_background_process(
     desc: "LiteralString",
-    func: Callable[..., Awaitable[Optional[R]]],
+    func: Callable[..., Awaitable[R | None]],
     *args: Any,
     bg_start_span: bool = True,
     **kwargs: Any,
-) -> "defer.Deferred[Optional[R]]":
+) -> "defer.Deferred[R | None]":
     """Run the given function in its own logcontext, with resource metrics
 
     This should be used to wrap processes which are fired off to run in the
@@ -214,7 +214,7 @@ def run_as_background_process(
         rules.
     """
 
-    async def run() -> Optional[R]:
+    async def run() -> R | None:
         with _bg_metrics_lock:
             count = _background_process_counts.get(desc, 0)
             _background_process_counts[desc] = count + 1
@@ -253,8 +253,8 @@ P = ParamSpec("P")
 def wrap_as_background_process(
     desc: "LiteralString",
 ) -> Callable[
-    [Callable[P, Awaitable[Optional[R]]]],
-    Callable[P, "defer.Deferred[Optional[R]]"],
+    [Callable[P, Awaitable[R | None]]],
+    Callable[P, "defer.Deferred[R | None]"],
 ]:
     """Decorator that wraps an asynchronous function `func`, returning a synchronous
     decorated function. Calling the decorated version runs `func` as a background
@@ -276,12 +276,12 @@ def wrap_as_background_process(
     """
 
     def wrap_as_background_process_inner(
-        func: Callable[P, Awaitable[Optional[R]]],
-    ) -> Callable[P, "defer.Deferred[Optional[R]]"]:
+        func: Callable[P, Awaitable[R | None]],
+    ) -> Callable[P, "defer.Deferred[R | None]"]:
         @wraps(func)
         def wrap_as_background_process_inner_2(
             *args: P.args, **kwargs: P.kwargs
-        ) -> "defer.Deferred[Optional[R]]":
+        ) -> "defer.Deferred[R | None]":
             # type-ignore: mypy is confusing kwargs with the bg_start_span kwarg.
             #     Argument 4 to "run_as_background_process" has incompatible type
             #     "**P.kwargs"; expected "bool"
@@ -300,7 +300,7 @@ class BackgroundProcessLoggingContext(LoggingContext):
 
     __slots__ = ["_proc"]
 
-    def __init__(self, name: str, instance_id: Optional[Union[int, str]] = None):
+    def __init__(self, name: str, instance_id: int | str | None = None):
         """
 
         Args:
@@ -314,9 +314,9 @@ class BackgroundProcessLoggingContext(LoggingContext):
         if instance_id is None:
             instance_id = id(self)
         super().__init__(f"{name}-{instance_id}")
-        self._proc: Optional[_BackgroundProcess] = _BackgroundProcess(name, self)
+        self._proc: _BackgroundProcess | None = _BackgroundProcess(name, self)
 
-    def start(self, rusage: "Optional[resource.struct_rusage]") -> None:
+    def start(self, rusage: "resource.struct_rusage | None") -> None:
         """Log context has started running (again)."""
 
         super().start(rusage)
@@ -337,9 +337,9 @@ class BackgroundProcessLoggingContext(LoggingContext):
 
     def __exit__(
         self,
-        type: Optional[type[BaseException]],
-        value: Optional[BaseException],
-        traceback: Optional[TracebackType],
+        type: type[BaseException] | None,
+        value: BaseException | None,
+        traceback: TracebackType | None,
     ) -> None:
         """Log context has finished."""
 

@@ -15,7 +15,7 @@ import base64
 import logging
 import os
 from collections.abc import Generator
-from typing import Optional, cast
+from typing import cast
 from unittest.mock import AsyncMock, call, patch
 
 import treq
@@ -79,7 +79,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
 
         self.tls_factory = FederationPolicyForHTTPS(config)
 
-        self.well_known_cache: TTLCache[bytes, Optional[bytes]] = TTLCache(
+        self.well_known_cache: TTLCache[bytes, bytes | None] = TTLCache(
             "test_cache", timer=self.reactor.seconds
         )
         self.had_well_known_cache: TTLCache[bytes, bool] = TTLCache(
@@ -97,8 +97,8 @@ class MatrixFederationAgentTests(unittest.TestCase):
         self,
         client_factory: IProtocolFactory,
         ssl: bool = True,
-        expected_sni: Optional[bytes] = None,
-        tls_sanlist: Optional[list[bytes]] = None,
+        expected_sni: bytes | None = None,
+        tls_sanlist: list[bytes] | None = None,
     ) -> HTTPChannel:
         """Builds a test server, and completes the outgoing client connection
         Args:
@@ -213,7 +213,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
         client_factory: IProtocolFactory,
         expected_sni: bytes,
         content: bytes,
-        response_headers: Optional[dict] = None,
+        response_headers: dict | None = None,
     ) -> HTTPChannel:
         """Handle an outgoing HTTPs connection: wire it up to a server, check that the
         request is for a .well-known, and send the response.
@@ -242,7 +242,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
         self,
         request: Request,
         content: bytes,
-        headers: Optional[dict] = None,
+        headers: dict | None = None,
     ) -> None:
         """Check that an incoming request looks like a valid .well-known request, and
         send back the response.
@@ -379,7 +379,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
     def _do_get_via_proxy(
         self,
         expect_proxy_ssl: bool = False,
-        expected_auth_credentials: Optional[bytes] = None,
+        expected_auth_credentials: bytes | None = None,
     ) -> None:
         """Send a https federation request via an agent and check that it is correctly
             received at the proxy and client. The proxy can use either http or https.

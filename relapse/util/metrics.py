@@ -13,13 +13,13 @@
 # limitations under the License.
 
 import logging
-from collections.abc import Awaitable, Generator
+from collections.abc import Awaitable, Callable, Generator
 from functools import wraps
 from types import TracebackType
-from typing import Callable, Optional, TypeVar
+from typing import Concatenate, TypeVar
 
 from prometheus_client import CollectorRegistry, Counter, Metric
-from typing_extensions import Concatenate, ParamSpec, Protocol
+from typing_extensions import ParamSpec, Protocol
 
 from relapse.logging.context import (
     ContextResourceUsage,
@@ -82,7 +82,7 @@ class HasClock(Protocol):
 
 
 def measure_func(
-    name: Optional[str] = None,
+    name: str | None = None,
 ) -> Callable[[Callable[P, Awaitable[R]]], Callable[P, Awaitable[R]]]:
     """Decorate an async method with a `Measure` context manager.
 
@@ -151,7 +151,7 @@ class Measure:
             assert isinstance(curr_context, LoggingContext)
             parent_context = curr_context
         self._logging_context = LoggingContext(str(curr_context), parent_context)
-        self.start: Optional[float] = None
+        self.start: float | None = None
 
     def __enter__(self) -> "Measure":
         if self.start is not None:
@@ -167,9 +167,9 @@ class Measure:
 
     def __exit__(
         self,
-        exc_type: Optional[type[BaseException]],
-        exc_val: Optional[BaseException],
-        exc_tb: Optional[TracebackType],
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
     ) -> None:
         if self.start is None:
             raise RuntimeError("Measure() block exited without being entered")

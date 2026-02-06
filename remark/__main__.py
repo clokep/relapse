@@ -13,10 +13,10 @@
 # limitations under the License.
 import sys
 from argparse import REMAINDER, Namespace
-from collections.abc import Coroutine
+from collections.abc import Callable, Coroutine
 from contextlib import redirect_stderr
 from io import StringIO
-from typing import Any, Callable, TypeVar
+from typing import Any, TypeVar
 
 import pyperf
 

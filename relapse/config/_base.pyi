@@ -1,14 +1,9 @@
 import argparse
+from collections.abc import Collection, Iterable, Iterator, MutableMapping
 from typing import (
     Any,
-    Collection,
-    Iterable,
-    Iterator,
     Literal,
-    MutableMapping,
-    Optional,
     TypeVar,
-    Union,
     overload,
 )
 
@@ -57,7 +52,7 @@ from relapse.config import (  # noqa: F401
 from relapse.types import StrSequence
 
 class ConfigError(Exception):
-    def __init__(self, msg: str, path: Optional[StrSequence] = None):
+    def __init__(self, msg: str, path: StrSequence | None = None):
         self.msg = msg
         self.path = path
 
@@ -128,16 +123,16 @@ class RootConfig:
         data_dir_path: str,
         server_name: str,
         generate_secrets: bool = ...,
-        report_stats: Optional[bool] = ...,
+        report_stats: bool | None = ...,
         open_private_ports: bool = ...,
-        listeners: Optional[Any] = ...,
-        tls_certificate_path: Optional[str] = ...,
-        tls_private_key_path: Optional[str] = ...,
+        listeners: Any | None = ...,
+        tls_certificate_path: str | None = ...,
+        tls_private_key_path: str | None = ...,
     ) -> str: ...
     @classmethod
     def load_or_generate_config(
         cls: type[TRootConfig], description: str, argv: list[str]
-    ) -> Optional[TRootConfig]: ...
+    ) -> TRootConfig | None: ...
     @classmethod
     def load_config(
         cls: type[TRootConfig], description: str, argv: list[str]
@@ -163,13 +158,13 @@ class RootConfig:
 class Config:
     root: RootConfig
     default_template_dir: str
-    def __init__(self, root_config: Optional[RootConfig] = ...) -> None: ...
+    def __init__(self, root_config: RootConfig | None = ...) -> None: ...
     @staticmethod
-    def parse_size(value: Union[str, int]) -> int: ...
+    def parse_size(value: str | int) -> int: ...
     @staticmethod
-    def parse_duration(value: Union[str, int]) -> int: ...
+    def parse_duration(value: str | int) -> int: ...
     @staticmethod
-    def abspath(file_path: Optional[str]) -> str: ...
+    def abspath(file_path: str | None) -> str: ...
     @classmethod
     def path_exists(cls, file_path: str) -> bool: ...
     @classmethod
@@ -182,7 +177,7 @@ class Config:
     def read_templates(
         self,
         filenames: list[str],
-        custom_template_directories: Optional[Iterable[str]] = None,
+        custom_template_directories: Iterable[str] | None = None,
     ) -> list[jinja2.Template]: ...
 
 def read_config_files(config_files: Iterable[str]) -> dict[str, Any]: ...

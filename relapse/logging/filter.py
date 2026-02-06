@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-
-from typing_extensions import Literal
+from typing import Literal
 
 
 class MetadataFilter(logging.Filter):

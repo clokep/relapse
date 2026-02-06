@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-from typing import TYPE_CHECKING, Optional, cast
+from typing import TYPE_CHECKING, cast
 
 from twisted.python.failure import Failure
 
@@ -127,7 +127,7 @@ class PaginationHandler:
         )
 
     async def purge_history_for_rooms_in_range(
-        self, min_ms: Optional[int], max_ms: Optional[int]
+        self, min_ms: int | None, max_ms: int | None
     ) -> None:
         """Purge outdated events from rooms within the given retention range.
 
@@ -274,7 +274,7 @@ class PaginationHandler:
     async def _purge_history(
         self,
         task: ScheduledTask,
-    ) -> tuple[TaskStatus, Optional[JsonMapping], Optional[str]]:
+    ) -> tuple[TaskStatus, JsonMapping | None, str | None]:
         """
         Scheduler action to purge some history of a room.
         """
@@ -303,7 +303,7 @@ class PaginationHandler:
         room_id: str,
         token: str,
         delete_local_events: bool,
-    ) -> Optional[str]:
+    ) -> str | None:
         """Carry out a history purge on a room.
 
         Args:
@@ -327,7 +327,7 @@ class PaginationHandler:
             )
             return f.getErrorMessage()
 
-    async def get_delete_task(self, delete_id: str) -> Optional[ScheduledTask]:
+    async def get_delete_task(self, delete_id: str) -> ScheduledTask | None:
         """Get the current status of an active deleting
 
         Args:
@@ -337,7 +337,7 @@ class PaginationHandler:
         return await self._task_scheduler.get_task(delete_id)
 
     async def get_delete_tasks_by_room(
-        self, room_id: str, only_active: Optional[bool] = False
+        self, room_id: str, only_active: bool | None = False
     ) -> list[ScheduledTask]:
         """Get complete, failed or active delete tasks by room
 
@@ -358,7 +358,7 @@ class PaginationHandler:
     async def _purge_room(
         self,
         task: ScheduledTask,
-    ) -> tuple[TaskStatus, Optional[JsonMapping], Optional[str]]:
+    ) -> tuple[TaskStatus, JsonMapping | None, str | None]:
         """
         Scheduler action to purge a room.
         """
@@ -410,7 +410,7 @@ class PaginationHandler:
         room_id: str,
         pagin_config: PaginationConfig,
         as_client_event: bool = True,
-        event_filter: Optional[Filter] = None,
+        event_filter: Filter | None = None,
         use_admin_priviledge: bool = False,
     ) -> JsonDict:
         """Get messages in a room.
@@ -678,7 +678,7 @@ class PaginationHandler:
     async def _shutdown_and_purge_room(
         self,
         task: ScheduledTask,
-    ) -> tuple[TaskStatus, Optional[JsonMapping], Optional[str]]:
+    ) -> tuple[TaskStatus, JsonMapping | None, str | None]:
         """
         Scheduler action to shutdown and purge a room.
         """
@@ -689,7 +689,7 @@ class PaginationHandler:
 
         room_id = task.resource_id
 
-        async def update_result(result: Optional[JsonMapping]) -> None:
+        async def update_result(result: JsonMapping | None) -> None:
             await self._task_scheduler.update_task(task.id, result=result)
 
         shutdown_result = (

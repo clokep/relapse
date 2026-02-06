@@ -13,10 +13,9 @@
 #  limitations under the License.
 #
 from collections.abc import Iterable, Mapping
-from typing import Union
 
 # the type of the query params, to be passed into `urlencode` with `doseq=True`.
-QueryParamValue = Union[str, bytes, Iterable[Union[str, bytes]]]
-QueryParams = Union[Mapping[str, QueryParamValue], Mapping[bytes, QueryParamValue]]
+QueryParamValue = str | bytes | Iterable[str | bytes]
+QueryParams = Mapping[str, QueryParamValue] | Mapping[bytes, QueryParamValue]
 
 __all__ = ["QueryParams"]

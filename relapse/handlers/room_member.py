@@ -17,7 +17,7 @@ import logging
 import random
 from collections.abc import Iterable
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from relapse import types
 from relapse.api.constants import (
@@ -233,7 +233,7 @@ class RoomMemberHandler(metaclass=abc.ABCMeta):
     async def remote_reject_invite(
         self,
         invite_event_id: str,
-        txn_id: Optional[str],
+        txn_id: str | None,
         requester: Requester,
         content: JsonDict,
     ) -> tuple[str, int]:
@@ -256,7 +256,7 @@ class RoomMemberHandler(metaclass=abc.ABCMeta):
     async def remote_rescind_knock(
         self,
         knock_event_id: str,
-        txn_id: Optional[str],
+        txn_id: str | None,
         requester: Requester,
         content: JsonDict,
     ) -> tuple[str, int]:
@@ -322,8 +322,8 @@ class RoomMemberHandler(metaclass=abc.ABCMeta):
 
     async def ratelimit_multiple_invites(
         self,
-        requester: Optional[Requester],
-        room_id: Optional[str],
+        requester: Requester | None,
+        room_id: str | None,
         n_invites: int,
         update: bool = True,
     ) -> None:
@@ -347,8 +347,8 @@ class RoomMemberHandler(metaclass=abc.ABCMeta):
 
     async def ratelimit_invite(
         self,
-        requester: Optional[Requester],
-        room_id: Optional[str],
+        requester: Requester | None,
+        room_id: str | None,
         invitee_user_id: str,
     ) -> None:
         """Ratelimit invites by room and by target user.
@@ -369,15 +369,15 @@ class RoomMemberHandler(metaclass=abc.ABCMeta):
         room_id: str,
         membership: str,
         allow_no_prev_events: bool = False,
-        prev_event_ids: Optional[list[str]] = None,
-        state_event_ids: Optional[list[str]] = None,
-        depth: Optional[int] = None,
-        txn_id: Optional[str] = None,
+        prev_event_ids: list[str] | None = None,
+        state_event_ids: list[str] | None = None,
+        depth: int | None = None,
+        txn_id: str | None = None,
         ratelimit: bool = True,
-        content: Optional[dict] = None,
+        content: dict | None = None,
         require_consent: bool = True,
         outlier: bool = False,
-        origin_server_ts: Optional[int] = None,
+        origin_server_ts: int | None = None,
     ) -> tuple[str, int]:
         """
         Internal membership update function to get an existing event or create
@@ -551,19 +551,19 @@ class RoomMemberHandler(metaclass=abc.ABCMeta):
         target: UserID,
         room_id: str,
         action: str,
-        txn_id: Optional[str] = None,
-        remote_room_hosts: Optional[list[str]] = None,
-        third_party_signed: Optional[dict] = None,
+        txn_id: str | None = None,
+        remote_room_hosts: list[str] | None = None,
+        third_party_signed: dict | None = None,
         ratelimit: bool = True,
-        content: Optional[dict] = None,
+        content: dict | None = None,
         new_room: bool = False,
         require_consent: bool = True,
         outlier: bool = False,
         allow_no_prev_events: bool = False,
-        prev_event_ids: Optional[list[str]] = None,
-        state_event_ids: Optional[list[str]] = None,
-        depth: Optional[int] = None,
-        origin_server_ts: Optional[int] = None,
+        prev_event_ids: list[str] | None = None,
+        state_event_ids: list[str] | None = None,
+        depth: int | None = None,
+        origin_server_ts: int | None = None,
     ) -> tuple[str, int]:
         """Update a user's membership in a room.
 
@@ -671,19 +671,19 @@ class RoomMemberHandler(metaclass=abc.ABCMeta):
         target: UserID,
         room_id: str,
         action: str,
-        txn_id: Optional[str] = None,
-        remote_room_hosts: Optional[list[str]] = None,
-        third_party_signed: Optional[dict] = None,
+        txn_id: str | None = None,
+        remote_room_hosts: list[str] | None = None,
+        third_party_signed: dict | None = None,
         ratelimit: bool = True,
-        content: Optional[dict] = None,
+        content: dict | None = None,
         new_room: bool = False,
         require_consent: bool = True,
         outlier: bool = False,
         allow_no_prev_events: bool = False,
-        prev_event_ids: Optional[list[str]] = None,
-        state_event_ids: Optional[list[str]] = None,
-        depth: Optional[int] = None,
-        origin_server_ts: Optional[int] = None,
+        prev_event_ids: list[str] | None = None,
+        state_event_ids: list[str] | None = None,
+        depth: int | None = None,
+        origin_server_ts: int | None = None,
     ) -> tuple[str, int]:
         """Helper for update_membership.
 
@@ -805,7 +805,7 @@ class RoomMemberHandler(metaclass=abc.ABCMeta):
             if target_id == self._server_notices_mxid:
                 raise RelapseError(HTTPStatus.FORBIDDEN, "Cannot invite this user")
 
-            block_invite_result: Optional[tuple[Codes, dict]] = None
+            block_invite_result: tuple[Codes, dict] | None = None
 
             if (
                 self._server_notices_mxid is not None
@@ -1310,7 +1310,7 @@ class RoomMemberHandler(metaclass=abc.ABCMeta):
 
     async def send_membership_event(
         self,
-        requester: Optional[Requester],
+        requester: Requester | None,
         event: EventBase,
         context: EventContext,
         ratelimit: bool = True,
@@ -1484,7 +1484,7 @@ class RoomMemberHandler(metaclass=abc.ABCMeta):
 
         return RoomID.from_string(room_id), servers
 
-    async def _get_inviter(self, user_id: str, room_id: str) -> Optional[UserID]:
+    async def _get_inviter(self, user_id: str, room_id: str) -> UserID | None:
         invite = await self.store.get_invite_for_local_user_in_room(
             user_id=user_id, room_id=room_id
         )
@@ -1500,10 +1500,10 @@ class RoomMemberHandler(metaclass=abc.ABCMeta):
         address: str,
         id_server: str,
         requester: Requester,
-        txn_id: Optional[str],
+        txn_id: str | None,
         id_access_token: str,
-        prev_event_ids: Optional[list[str]] = None,
-        depth: Optional[int] = None,
+        prev_event_ids: list[str] | None = None,
+        depth: int | None = None,
     ) -> tuple[str, int]:
         """Invite a 3PID to a room.
 
@@ -1614,10 +1614,10 @@ class RoomMemberHandler(metaclass=abc.ABCMeta):
         address: str,
         room_id: str,
         user: UserID,
-        txn_id: Optional[str],
+        txn_id: str | None,
         id_access_token: str,
-        prev_event_ids: Optional[list[str]] = None,
-        depth: Optional[int] = None,
+        prev_event_ids: list[str] | None = None,
+        depth: int | None = None,
     ) -> tuple[EventBase, int]:
         room_state = await self._storage_controllers.state.get_current_state(
             room_id,
@@ -1754,7 +1754,7 @@ class RoomMemberMasterHandler(RoomMemberHandler):
 
     async def _is_remote_room_too_complex(
         self, room_id: str, remote_room_hosts: list[str]
-    ) -> Optional[bool]:
+    ) -> bool | None:
         """
         Check if complexity of a remote room is too great.
 
@@ -1867,7 +1867,7 @@ class RoomMemberMasterHandler(RoomMemberHandler):
     async def remote_reject_invite(
         self,
         invite_event_id: str,
-        txn_id: Optional[str],
+        txn_id: str | None,
         requester: Requester,
         content: JsonDict,
     ) -> tuple[str, int]:
@@ -1904,7 +1904,7 @@ class RoomMemberMasterHandler(RoomMemberHandler):
     async def remote_rescind_knock(
         self,
         knock_event_id: str,
-        txn_id: Optional[str],
+        txn_id: str | None,
         requester: Requester,
         content: JsonDict,
     ) -> tuple[str, int]:
@@ -1933,7 +1933,7 @@ class RoomMemberMasterHandler(RoomMemberHandler):
     async def _generate_local_out_of_band_leave(
         self,
         previous_membership_event: EventBase,
-        txn_id: Optional[str],
+        txn_id: str | None,
         requester: Requester,
         content: JsonDict,
     ) -> tuple[str, int]:
@@ -2069,7 +2069,7 @@ class RoomForgetterHandler(StateDeltasHandler):
         self._room_member_handler = hs.get_room_member_handler()
 
         # The current position in the current_state_delta stream
-        self.pos: Optional[int] = None
+        self.pos: int | None = None
 
         # Guard to ensure we only process deltas one at a time
         self._is_processing = False

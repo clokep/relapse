@@ -14,7 +14,7 @@
 # limitations under the License.
 import logging
 import random
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from twisted.web.server import Request
 
@@ -822,7 +822,7 @@ class RegisterRestServlet(RestServlet):
         return result
 
     async def _do_guest_registration(
-        self, params: JsonDict, address: Optional[str] = None
+        self, params: JsonDict, address: str | None = None
     ) -> tuple[int, JsonDict]:
         if not self.hs.config.registration.allow_guest_access:
             raise RelapseError(403, "Guest access is disabled")

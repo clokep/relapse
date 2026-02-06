@@ -20,7 +20,6 @@ from collections import defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass
 from re import Pattern
-from typing import Optional
 
 import yaml
 
@@ -36,7 +35,7 @@ logger = logging.getLogger("generate_workers_map")
 class MockHomeserver(HomeServer):
     DATASTORE_CLASS = DataStore
 
-    def __init__(self, config: HomeServerConfig, worker_app: Optional[str]) -> None:
+    def __init__(self, config: HomeServerConfig, worker_app: str | None) -> None:
         super().__init__(config.server.server_name, config=config)
         self.config.worker.worker_app = worker_app
 
@@ -55,7 +54,7 @@ class EndpointDescription:
 
     # The category of this endpoint. Is read from the `CATEGORY` constant in the servlet
     # class.
-    category: Optional[str]
+    category: str | None
 
     # TODO:
     #  - does it need to be routed based on a stream writer config?
@@ -120,7 +119,7 @@ def get_registered_paths_for_hs(
 
 
 def get_registered_paths_for_default(
-    worker_app: Optional[str], base_config: HomeServerConfig
+    worker_app: str | None, base_config: HomeServerConfig
 ) -> dict[tuple[str, str], EndpointDescription]:
     """
     Given the name of a worker application and a base homeserver configuration,
@@ -241,7 +240,7 @@ def main() -> None:
     # TODO SSO endpoints (pick_idp etc) NOT REGISTERED BY THIS SCRIPT
 
     categories_to_methods_and_paths: dict[
-        Optional[str], dict[tuple[str, str], EndpointDescription]
+        str | None, dict[tuple[str, str], EndpointDescription]
     ] = defaultdict(dict)
 
     for (method, path), desc in elided_worker_paths.items():
@@ -252,7 +251,7 @@ def main() -> None:
 
 
 def print_category(
-    category_name: Optional[str],
+    category_name: str | None,
     elided_worker_paths: dict[tuple[str, str], EndpointDescription],
 ) -> None:
     """

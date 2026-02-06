@@ -14,7 +14,7 @@
 
 from http import HTTPStatus
 from io import BytesIO
-from typing import Any, Optional, Union
+from typing import Any
 from unittest.mock import ANY, AsyncMock, Mock
 from urllib.parse import parse_qs
 
@@ -544,14 +544,14 @@ class MSC3861OAuthDelegation(HomeserverTestCase):
         self.assertEqual(channel.code, HTTPStatus.NOT_IMPLEMENTED, channel.json_body)
 
     def expect_unauthorized(
-        self, method: str, path: str, content: Union[bytes, str, JsonDict] = ""
+        self, method: str, path: str, content: bytes | str | JsonDict = ""
     ) -> None:
         channel = self.make_request(method, path, content, shorthand=False)
 
         self.assertEqual(channel.code, 401, channel.json_body)
 
     def expect_unrecognized(
-        self, method: str, path: str, content: Union[bytes, str, JsonDict] = ""
+        self, method: str, path: str, content: bytes | str | JsonDict = ""
     ) -> None:
         channel = self.make_request(method, path, content)
 
@@ -701,8 +701,8 @@ class MSC3861OAuthDelegation(HomeserverTestCase):
         async def mock_http_client_request(
             method: str,
             uri: str,
-            data: Optional[bytes] = None,
-            headers: Optional[Headers] = None,
+            data: bytes | None = None,
+            headers: Headers | None = None,
         ) -> IResponse:
             """Mocked auth provider response."""
             assert method == "POST"

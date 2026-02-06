@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Optional, cast
+from typing import Any, cast
 
 import attr
 
@@ -32,7 +32,7 @@ class RatelimitSettings:
         cls,
         config: dict[str, Any],
         key: str,
-        defaults: Optional[dict[str, float]] = None,
+        defaults: dict[str, float] | None = None,
     ) -> "RatelimitSettings":
         """Parse config[key] as a new-style rate limiter config.
 

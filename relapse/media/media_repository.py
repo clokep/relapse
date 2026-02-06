@@ -17,7 +17,7 @@ import logging
 import os
 import shutil
 from io import BytesIO
-from typing import IO, TYPE_CHECKING, Optional
+from typing import IO, TYPE_CHECKING
 
 import attr
 from matrix_common.types.mxc_uri import MXCUri
@@ -151,7 +151,7 @@ class MediaRepository:
             )
 
         if hs.config.media.url_preview_enabled:
-            self.url_previewer: Optional[UrlPreviewer] = UrlPreviewer(
+            self.url_previewer: UrlPreviewer | None = UrlPreviewer(
                 hs, self, self.media_storage
             )
         else:
@@ -178,7 +178,7 @@ class MediaRepository:
             local_media, remote_media, self.clock.time_msec()
         )
 
-    def mark_recently_accessed(self, server_name: Optional[str], media_id: str) -> None:
+    def mark_recently_accessed(self, server_name: str | None, media_id: str) -> None:
         """Mark the given media as recently accessed.
 
         Args:
@@ -269,7 +269,7 @@ class MediaRepository:
         self,
         media_id: str,
         media_type: str,
-        upload_name: Optional[str],
+        upload_name: str | None,
         content: IO,
         content_length: int,
         auth_user: UserID,
@@ -305,7 +305,7 @@ class MediaRepository:
     async def create_content(
         self,
         media_type: str,
-        upload_name: Optional[str],
+        upload_name: str | None,
         content: IO,
         content_length: int,
         auth_user: UserID,
@@ -357,7 +357,7 @@ class MediaRepository:
 
     async def get_local_media_info(
         self, request: RelapseRequest, media_id: str, max_timeout_ms: int
-    ) -> Optional[LocalMedia]:
+    ) -> LocalMedia | None:
         """Gets the info dictionary for given local media ID. If the media has
         not been uploaded yet, this function will wait up to ``max_timeout_ms``
         milliseconds for the media to be uploaded.
@@ -413,7 +413,7 @@ class MediaRepository:
         self,
         request: RelapseRequest,
         media_id: str,
-        name: Optional[str],
+        name: str | None,
         max_timeout_ms: int,
     ) -> None:
         """Responds to requests for local media, if exists, or returns 404.
@@ -455,7 +455,7 @@ class MediaRepository:
         request: RelapseRequest,
         server_name: str,
         media_id: str,
-        name: Optional[str],
+        name: str | None,
         max_timeout_ms: int,
     ) -> None:
         """Respond to requests for remote media.
@@ -547,7 +547,7 @@ class MediaRepository:
 
     async def _get_remote_media_impl(
         self, server_name: str, media_id: str, max_timeout_ms: int
-    ) -> tuple[Optional[Responder], RemoteMedia]:
+    ) -> tuple[Responder | None, RemoteMedia]:
         """Looks for media in local cache, if not there then attempt to
         download from remote server.
 
@@ -744,7 +744,7 @@ class MediaRepository:
         t_height: int,
         t_method: str,
         t_type: str,
-    ) -> Optional[BytesIO]:
+    ) -> BytesIO | None:
         m_width = thumbnailer.width
         m_height = thumbnailer.height
 
@@ -778,7 +778,7 @@ class MediaRepository:
         t_method: str,
         t_type: str,
         url_cache: bool,
-    ) -> Optional[str]:
+    ) -> str | None:
         input_path = await self.media_storage.ensure_media_is_in_local_cache(
             FileInfo(None, media_id, url_cache=url_cache)
         )
@@ -849,7 +849,7 @@ class MediaRepository:
         t_height: int,
         t_method: str,
         t_type: str,
-    ) -> Optional[str]:
+    ) -> str | None:
         input_path = await self.media_storage.ensure_media_is_in_local_cache(
             FileInfo(server_name, file_id)
         )
@@ -921,12 +921,12 @@ class MediaRepository:
     @trace
     async def _generate_thumbnails(
         self,
-        server_name: Optional[str],
+        server_name: str | None,
         media_id: str,
         file_id: str,
         media_type: str,
         url_cache: bool = False,
-    ) -> Optional[dict]:
+    ) -> dict | None:
         """Generate and store thumbnails for an image.
 
         Args:

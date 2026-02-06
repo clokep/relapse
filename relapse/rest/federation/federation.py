@@ -14,9 +14,7 @@
 import logging
 from collections import Counter
 from collections.abc import Mapping, Sequence
-from typing import TYPE_CHECKING, Optional, Union
-
-from typing_extensions import Literal
+from typing import TYPE_CHECKING, Literal
 
 from relapse.api.constants import Direction, EduTypes
 from relapse.api.errors import Codes, RelapseError
@@ -140,7 +138,7 @@ class FederationEventServlet(BaseFederationServerServlet):
         content: Literal[None],
         query: dict[bytes, list[bytes]],
         event_id: str,
-    ) -> tuple[int, Union[JsonDict, str]]:
+    ) -> tuple[int, JsonDict | str]:
         return await self.handler.on_pdu_request(origin, event_id)
 
 
@@ -623,7 +621,7 @@ class On3pidBindServlet(BaseFederationServerServlet):
     REQUIRE_AUTH = False
 
     async def on_POST(
-        self, origin: Optional[str], content: JsonDict, query: dict[bytes, list[bytes]]
+        self, origin: str | None, content: JsonDict, query: dict[bytes, list[bytes]]
     ) -> tuple[int, JsonDict]:
         if "invites" in content:
             last_exception = None
@@ -657,7 +655,7 @@ class FederationVersionServlet(BaseFederationServlet):
 
     async def on_GET(
         self,
-        origin: Optional[str],
+        origin: str | None,
         content: Literal[None],
         query: dict[bytes, list[bytes]],
     ) -> tuple[int, JsonDict]:

@@ -17,7 +17,6 @@ server protocol.
 """
 
 import logging
-from typing import Optional
 
 import attr
 
@@ -61,7 +60,7 @@ class Edu:
         getattr(self, "content", {})["org.matrix.opentracing_context"] = "{}"
 
 
-def _none_to_list(edus: Optional[list[JsonDict]]) -> list[JsonDict]:
+def _none_to_list(edus: list[JsonDict] | None) -> list[JsonDict]:
     if edus is None:
         return []
     return edus

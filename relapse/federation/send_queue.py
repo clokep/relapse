@@ -31,7 +31,7 @@ Events are replicated via a separate events stream.
 
 import logging
 from collections.abc import Hashable, Iterable, Sized
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 import attr
 from sortedcontainers import SortedDict
@@ -187,7 +187,7 @@ class FederationRemoteSendQueue(AbstractFederationSender):
         destination: str,
         edu_type: str,
         content: JsonDict,
-        key: Optional[Hashable] = None,
+        key: Hashable | None = None,
     ) -> None:
         """As per FederationSender"""
         if self.is_mine_server_name(destination):

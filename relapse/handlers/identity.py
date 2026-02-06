@@ -18,8 +18,8 @@
 
 import logging
 import urllib.parse
-from collections.abc import Awaitable
-from typing import TYPE_CHECKING, Callable, Optional
+from collections.abc import Awaitable, Callable
+from typing import TYPE_CHECKING
 
 import attr
 
@@ -101,7 +101,7 @@ class IdentityHandler:
 
     async def threepid_from_creds(
         self, id_server: str, creds: dict[str, str]
-    ) -> Optional[JsonDict]:
+    ) -> JsonDict | None:
         """
         Retrieve and validate a threepid identifier from a "credentials" dictionary against a
         given identity server
@@ -222,7 +222,7 @@ class IdentityHandler:
             return data
 
     async def try_unbind_threepid(
-        self, mxid: str, medium: str, address: str, id_server: Optional[str]
+        self, mxid: str, medium: str, address: str, id_server: str | None
     ) -> bool:
         """Attempt to remove a 3PID from one or more identity servers.
 
@@ -333,7 +333,7 @@ class IdentityHandler:
         client_secret: str,
         send_attempt: int,
         send_email_func: Callable[[str, str, str, str], Awaitable],
-        next_link: Optional[str] = None,
+        next_link: str | None = None,
     ) -> str:
         """Send a threepid validation email for password reset or
         registration purposes
@@ -421,7 +421,7 @@ class IdentityHandler:
         phone_number: str,
         client_secret: str,
         send_attempt: int,
-        next_link: Optional[str] = None,
+        next_link: str | None = None,
     ) -> JsonDict:
         """
         Request an external server send an SMS message on our behalf for the purposes of
@@ -468,7 +468,7 @@ class IdentityHandler:
 
     async def validate_threepid_session(
         self, client_secret: str, sid: str
-    ) -> Optional[JsonDict]:
+    ) -> JsonDict | None:
         """Validates a threepid session with only the client secret and session ID
         Tries validating against any configured account_threepid_delegates as well as locally.
 
@@ -536,7 +536,7 @@ class IdentityHandler:
 
     async def lookup_3pid(
         self, id_server: str, medium: str, address: str, id_access_token: str
-    ) -> Optional[str]:
+    ) -> str | None:
         """Looks up a 3pid in the passed identity server.
 
         Args:
@@ -562,7 +562,7 @@ class IdentityHandler:
 
     async def _lookup_3pid_v2(
         self, id_server: str, id_access_token: str, medium: str, address: str
-    ) -> Optional[str]:
+    ) -> str | None:
         """Looks up a 3pid in the passed identity server using v2 lookup.
 
         Args:
@@ -682,7 +682,7 @@ class IdentityHandler:
         room_avatar_url: str,
         room_join_rules: str,
         room_name: str,
-        room_type: Optional[str],
+        room_type: str | None,
         inviter_display_name: str,
         inviter_avatar_url: str,
         id_access_token: str,

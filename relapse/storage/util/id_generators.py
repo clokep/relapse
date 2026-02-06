@@ -18,18 +18,13 @@ import logging
 import threading
 from collections import OrderedDict
 from collections.abc import Generator, Iterable, Sequence
-from contextlib import contextmanager
-from types import TracebackType
-from typing import (
-    TYPE_CHECKING,
-    AsyncContextManager,
-    ContextManager,
-    Generic,
-    Optional,
-    TypeVar,
-    Union,
-    cast,
+from contextlib import (
+    AbstractAsyncContextManager,
+    AbstractContextManager,
+    contextmanager,
 )
+from types import TracebackType
+from typing import TYPE_CHECKING, Generic, TypeVar, cast
 
 import attr
 from sortedcontainers import SortedList, SortedSet
@@ -136,7 +131,7 @@ class AbstractStreamIdGenerator(metaclass=abc.ABCMeta):
         """
 
     @abc.abstractmethod
-    def get_next(self) -> AsyncContextManager[int]:
+    def get_next(self) -> AbstractAsyncContextManager[int]:
         """
         Usage:
             async with stream_id_gen.get_next() as stream_id:
@@ -145,7 +140,7 @@ class AbstractStreamIdGenerator(metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def get_next_mult(self, n: int) -> AsyncContextManager[Sequence[int]]:
+    def get_next_mult(self, n: int) -> AbstractAsyncContextManager[Sequence[int]]:
         """
         Usage:
             async with stream_id_gen.get_next(n) as stream_ids:
@@ -223,7 +218,7 @@ class StreamIdGenerator(AbstractStreamIdGenerator):
 
         self._current = (max if self._step > 0 else min)(self._current, new_id)
 
-    def get_next(self) -> AsyncContextManager[int]:
+    def get_next(self) -> AbstractAsyncContextManager[int]:
         with self._lock:
             self._current += self._step
             next_id = self._current
@@ -242,7 +237,7 @@ class StreamIdGenerator(AbstractStreamIdGenerator):
 
         return _AsyncCtxManagerWrapper(manager())
 
-    def get_next_mult(self, n: int) -> AsyncContextManager[Sequence[int]]:
+    def get_next_mult(self, n: int) -> AbstractAsyncContextManager[Sequence[int]]:
         with self._lock:
             next_ids = range(
                 self._current + self._step,
@@ -603,7 +598,7 @@ class MultiWriterIdGenerator(AbstractStreamIdGenerator):
 
         return stream_ids
 
-    def get_next(self) -> AsyncContextManager[int]:
+    def get_next(self) -> AbstractAsyncContextManager[int]:
         # If we have a list of instances that are allowed to write to this
         # stream, make sure we're in it.
         if self._writers and self._instance_name not in self._writers:
@@ -613,10 +608,11 @@ class MultiWriterIdGenerator(AbstractStreamIdGenerator):
         # controls the return type. If `None` or omitted, the context manager yields
         # a single integer stream_id; otherwise it yields a list of stream_ids.
         return cast(
-            AsyncContextManager[int], _MultiWriterCtxManager(self, self._notifier)
+            AbstractAsyncContextManager[int],
+            _MultiWriterCtxManager(self, self._notifier),
         )
 
-    def get_next_mult(self, n: int) -> AsyncContextManager[list[int]]:
+    def get_next_mult(self, n: int) -> AbstractAsyncContextManager[list[int]]:
         # If we have a list of instances that are allowed to write to this
         # stream, make sure we're in it.
         if self._writers and self._instance_name not in self._writers:
@@ -624,7 +620,7 @@ class MultiWriterIdGenerator(AbstractStreamIdGenerator):
 
         # Cast safety: see get_next.
         return cast(
-            AsyncContextManager[list[int]],
+            AbstractAsyncContextManager[list[int]],
             _MultiWriterCtxManager(self, self._notifier, n),
         )
 
@@ -709,7 +705,7 @@ class MultiWriterIdGenerator(AbstractStreamIdGenerator):
             self._unfinished_ids.difference_update(next_ids)
             self._finished_ids.update(next_ids)
 
-            new_cur: Optional[int] = None
+            new_cur: int | None = None
 
             if self._unfinished_ids or self._in_flight_fetches:
                 # If there are unfinished IDs then the new position will be the
@@ -921,17 +917,17 @@ class _AsyncCtxManagerWrapper(Generic[T]):
     requires an async one.
     """
 
-    inner: ContextManager[T]
+    inner: AbstractContextManager[T]
 
     async def __aenter__(self) -> T:
         return self.inner.__enter__()
 
     async def __aexit__(
         self,
-        exc_type: Optional[type[BaseException]],
-        exc: Optional[BaseException],
-        tb: Optional[TracebackType],
-    ) -> Optional[bool]:
+        exc_type: type[BaseException] | None,
+        exc: BaseException | None,
+        tb: TracebackType | None,
+    ) -> bool | None:
         return self.inner.__exit__(exc_type, exc, tb)
 
 
@@ -941,10 +937,10 @@ class _MultiWriterCtxManager:
 
     id_gen: MultiWriterIdGenerator
     notifier: "ReplicationNotifier"
-    multiple_ids: Optional[int] = None
+    multiple_ids: int | None = None
     stream_ids: list[int] = attr.Factory(list)
 
-    async def __aenter__(self) -> Union[int, list[int]]:
+    async def __aenter__(self) -> int | list[int]:
         # It's safe to run this in autocommit mode as fetching values from a
         # sequence ignores transaction semantics anyway.
         self.stream_ids = await self.id_gen._db.runInteraction(
@@ -961,9 +957,9 @@ class _MultiWriterCtxManager:
 
     async def __aexit__(
         self,
-        exc_type: Optional[type[BaseException]],
-        exc: Optional[BaseException],
-        tb: Optional[TracebackType],
+        exc_type: type[BaseException] | None,
+        exc: BaseException | None,
+        tb: TracebackType | None,
     ) -> bool:
         self.id_gen._mark_ids_as_finished(self.stream_ids)
 

@@ -18,7 +18,7 @@ import logging
 import re
 from collections import Counter
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 from relapse.api.errors import Codes, InvalidAPICallError, RelapseError
 from relapse.http.server import HttpServer
@@ -108,7 +108,7 @@ class KeyUploadServlet(RestServlet):
             self.key_uploader = ReplicationUploadKeysForUserRestServlet.make_client(hs)
 
     async def on_POST(
-        self, request: RelapseRequest, device_id: Optional[str]
+        self, request: RelapseRequest, device_id: str | None
     ) -> tuple[int, JsonDict]:
         requester = await self.auth.get_user_by_req(request, allow_guest=True)
         user_id = requester.user.to_string()

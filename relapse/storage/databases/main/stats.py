@@ -18,7 +18,7 @@ from collections import Counter
 from collections.abc import Iterable
 from enum import Enum
 from itertools import chain
-from typing import TYPE_CHECKING, Any, Optional, Union, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from twisted.internet.defer import DeferredLock
 
@@ -283,7 +283,7 @@ class StatsStore(StateDeltasStore):
     @cached()
     async def get_earliest_token_for_stats(
         self, stats_type: str, id: str
-    ) -> Optional[int]:
+    ) -> int | None:
         """
         Fetch the "earliest token". This is used by the room stats delta
         processor to ignore deltas that have been processed between the
@@ -349,7 +349,7 @@ class StatsStore(StateDeltasStore):
         stats_id: str,
         fields: dict[str, int],
         complete_with_stream_id: int,
-        absolute_field_overrides: Optional[dict[str, int]] = None,
+        absolute_field_overrides: dict[str, int] | None = None,
     ) -> None:
         """
         Updates the statistics for a subject, with a delta (difference/relative
@@ -387,7 +387,7 @@ class StatsStore(StateDeltasStore):
         stats_id: str,
         fields: dict[str, int],
         complete_with_stream_id: int,
-        absolute_field_overrides: Optional[dict[str, int]] = None,
+        absolute_field_overrides: dict[str, int] | None = None,
     ) -> None:
         if absolute_field_overrides is None:
             absolute_field_overrides = {}
@@ -567,7 +567,7 @@ class StatsStore(StateDeltasStore):
             )
             return
 
-        room_state: dict[str, Union[None, bool, str]] = {
+        room_state: dict[str, None | bool | str] = {
             "join_rules": None,
             "history_visibility": None,
             "encryption": None,
@@ -660,12 +660,12 @@ class StatsStore(StateDeltasStore):
         self,
         start: int,
         limit: int,
-        from_ts: Optional[int] = None,
-        until_ts: Optional[int] = None,
-        order_by: Optional[str] = UserSortOrder.USER_ID.value,
+        from_ts: int | None = None,
+        until_ts: int | None = None,
+        order_by: str | None = UserSortOrder.USER_ID.value,
         direction: Direction = Direction.FORWARDS,
-        search_term: Optional[str] = None,
-    ) -> tuple[list[tuple[str, Optional[str], int, int]], int]:
+        search_term: str | None = None,
+    ) -> tuple[list[tuple[str, str | None, int, int]], int]:
         """Function to retrieve a paginated list of users and their uploaded local media
         (size and number). This will return a json list of users and the
         total number of users matching the filter criteria.
@@ -690,7 +690,7 @@ class StatsStore(StateDeltasStore):
 
         def get_users_media_usage_paginate_txn(
             txn: LoggingTransaction,
-        ) -> tuple[list[tuple[str, Optional[str], int, int]], int]:
+        ) -> tuple[list[tuple[str, str | None, int, int]], int]:
             filters = []
             args: list = []
 
@@ -756,7 +756,7 @@ class StatsStore(StateDeltasStore):
 
             args += [limit, start]
             txn.execute(sql, args)
-            users = cast(list[tuple[str, Optional[str], int, int]], txn.fetchall())
+            users = cast(list[tuple[str, str | None, int, int]], txn.fetchall())
 
             return users, count
 

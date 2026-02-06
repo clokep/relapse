@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional
 
 from relapse.storage._base import SQLBaseStore
 from relapse.storage.database import LoggingTransaction
@@ -34,8 +33,8 @@ class OpenIdStore(SQLBaseStore):
 
     async def get_user_id_for_open_id_token(
         self, token: str, ts_now_ms: int
-    ) -> Optional[str]:
-        def get_user_id_for_token_txn(txn: LoggingTransaction) -> Optional[str]:
+    ) -> str | None:
+        def get_user_id_for_token_txn(txn: LoggingTransaction) -> str | None:
             sql = (
                 "SELECT user_id FROM open_id_tokens"
                 " WHERE token = ? AND ? <= ts_valid_until_ms"

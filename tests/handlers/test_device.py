@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional
 from unittest import mock
 
 from twisted.internet.defer import ensureDeferred
@@ -306,8 +305,8 @@ class DeviceTestCase(unittest.HomeserverTestCase):
         user_id: str,
         device_id: str,
         display_name: str,
-        access_token: Optional[str] = None,
-        ip: Optional[str] = None,
+        access_token: str | None = None,
+        ip: str | None = None,
     ) -> None:
         device_id = self.get_success(
             self.handler.check_device_registered(

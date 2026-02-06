@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import copy
-from typing import Any, Optional
+from typing import Any
 
 from relapse.push.rulekinds import PRIORITY_CLASS_INVERSE_MAP, PRIORITY_CLASS_MAP
 from relapse.relapse_rust.push import FilteredPushRules, PushRule
@@ -78,7 +78,7 @@ def _add_empty_priority_class_arrays(d: dict[str, list]) -> dict[str, list]:
     return d
 
 
-def _rule_to_template(rule: PushRule) -> Optional[dict[str, Any]]:
+def _rule_to_template(rule: PushRule) -> dict[str, Any] | None:
     templaterule: dict[str, Any]
 
     unscoped_rule_id = _rule_id_from_namespaced(rule.rule_id)

@@ -26,19 +26,18 @@ See doc/log_contexts.rst for details on how this works.
 import logging
 import threading
 import typing
-from collections.abc import Awaitable
+from collections.abc import Awaitable, Callable
 from types import TracebackType
 from typing import (
     TYPE_CHECKING,
-    Callable,
-    Optional,
+    Literal,
     TypeVar,
     Union,
     overload,
 )
 
 import attr
-from typing_extensions import Literal, ParamSpec
+from typing_extensions import ParamSpec
 
 from twisted.internet import defer, threads
 from twisted.python.threadpool import ThreadPool
@@ -62,7 +61,7 @@ try:
 
     is_thread_resource_usage_supported = True
 
-    def get_thread_resource_usage() -> "Optional[resource.struct_rusage]":
+    def get_thread_resource_usage() -> "resource.struct_rusage | None":
         return resource.getrusage(RUSAGE_THREAD)
 
 except Exception:
@@ -70,7 +69,7 @@ except Exception:
     # won't track resource usage.
     is_thread_resource_usage_supported = False
 
-    def get_thread_resource_usage() -> "Optional[resource.struct_rusage]":
+    def get_thread_resource_usage() -> "resource.struct_rusage | None":
         return None
 
 
@@ -111,7 +110,7 @@ class ContextResourceUsage:
         "evt_db_fetch_count",
     ]
 
-    def __init__(self, copy_from: "Optional[ContextResourceUsage]" = None) -> None:
+    def __init__(self, copy_from: "ContextResourceUsage | None" = None) -> None:
         """Create a new ContextResourceUsage
 
         Args:
@@ -197,8 +196,8 @@ class ContextRequest:
     request_id: str
     ip_address: str
     site_tag: str
-    requester: Optional[str]
-    authenticated_entity: Optional[str]
+    requester: str | None
+    authenticated_entity: str | None
     method: str
     url: str
     protocol: str
@@ -224,10 +223,10 @@ class _Sentinel:
     def __str__(self) -> str:
         return "sentinel"
 
-    def start(self, rusage: "Optional[resource.struct_rusage]") -> None:
+    def start(self, rusage: "resource.struct_rusage | None") -> None:
         pass
 
-    def stop(self, rusage: "Optional[resource.struct_rusage]") -> None:
+    def stop(self, rusage: "resource.struct_rusage | None") -> None:
         pass
 
     def add_database_transaction(self, duration_sec: float) -> None:
@@ -276,9 +275,9 @@ class LoggingContext:
 
     def __init__(
         self,
-        name: Optional[str] = None,
-        parent_context: "Optional[LoggingContext]" = None,
-        request: Optional[ContextRequest] = None,
+        name: str | None = None,
+        parent_context: "LoggingContext | None" = None,
+        request: ContextRequest | None = None,
     ) -> None:
         self.previous_context = current_context()
 
@@ -287,12 +286,12 @@ class LoggingContext:
 
         # The thread resource usage when the logcontext became active. None
         # if the context is not currently active.
-        self.usage_start: Optional[resource.struct_rusage] = None
+        self.usage_start: resource.struct_rusage | None = None
 
         self.main_thread = get_thread_id()
         self.request = None
         self.tag = ""
-        self.scope: Optional[_LogContextScope] = None
+        self.scope: _LogContextScope | None = None
 
         # keep track of whether we have hit the __exit__ block for this context
         # (suggesting that the the thing that created the context thinks it should
@@ -335,9 +334,9 @@ class LoggingContext:
 
     def __exit__(
         self,
-        type: Optional[type[BaseException]],
-        value: Optional[BaseException],
-        traceback: Optional[TracebackType],
+        type: type[BaseException] | None,
+        value: BaseException | None,
+        traceback: TracebackType | None,
     ) -> None:
         """Restore the logging context in thread local storage to the state it
         was before this context was entered.
@@ -356,7 +355,7 @@ class LoggingContext:
         # recorded against the correct metrics.
         self.finished = True
 
-    def start(self, rusage: "Optional[resource.struct_rusage]") -> None:
+    def start(self, rusage: "resource.struct_rusage | None") -> None:
         """
         Record that this logcontext is currently running.
 
@@ -381,7 +380,7 @@ class LoggingContext:
         else:
             self.usage_start = rusage
 
-    def stop(self, rusage: "Optional[resource.struct_rusage]") -> None:
+    def stop(self, rusage: "resource.struct_rusage | None") -> None:
         """
         Record that this logcontext is no longer running.
 
@@ -572,9 +571,9 @@ class PreserveLoggingContext:
 
     def __exit__(
         self,
-        type: Optional[type[BaseException]],
-        value: Optional[BaseException],
-        traceback: Optional[TracebackType],
+        type: type[BaseException] | None,
+        value: BaseException | None,
+        traceback: TracebackType | None,
     ) -> None:
         context = set_current_context(self._old_context)
 
@@ -680,10 +679,7 @@ def preserve_fn(f: Callable[P, R]) -> Callable[P, "defer.Deferred[R]"]: ...
 
 
 def preserve_fn(
-    f: Union[
-        Callable[P, R],
-        Callable[P, Awaitable[R]],
-    ],
+    f: Callable[P, R] | Callable[P, Awaitable[R]],
 ) -> Callable[P, "defer.Deferred[R]"]:
     """Function decorator which wraps the function with run_in_background"""
 
@@ -706,10 +702,7 @@ def run_in_background(
 
 
 def run_in_background(
-    f: Union[
-        Callable[P, R],
-        Callable[P, Awaitable[R]],
-    ],
+    f: Callable[P, R] | Callable[P, Awaitable[R]],
     *args: P.args,
     **kwargs: P.kwargs,
 ) -> "defer.Deferred[R]":

@@ -15,7 +15,7 @@
 
 import logging
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from pydantic import ConfigDict
 
@@ -90,7 +90,7 @@ class DeleteDevicesRestServlet(RestServlet):
         self.auth_handler = hs.get_auth_handler()
 
     class PostBody(RequestBodyModel):
-        auth: Optional[AuthenticationData] = None
+        auth: AuthenticationData | None = None
         devices: list[str]
 
     @interactive_auth_handler
@@ -163,7 +163,7 @@ class DeviceRestServlet(RestServlet):
         return 200, device
 
     class DeleteBody(RequestBodyModel):
-        auth: Optional[AuthenticationData] = None
+        auth: AuthenticationData | None = None
 
     @interactive_auth_handler
     async def on_DELETE(
@@ -202,7 +202,7 @@ class DeviceRestServlet(RestServlet):
         return 200, {}
 
     class PutBody(RequestBodyModel):
-        display_name: Optional[str] = None
+        display_name: str | None = None
 
     async def on_PUT(
         self, request: RelapseRequest, device_id: str
@@ -240,7 +240,7 @@ class DehydratedDeviceEventsServlet(RestServlet):
         self.store = hs.get_datastores().main
 
     class PostBody(RequestBodyModel):
-        next_batch: Optional[str] = None
+        next_batch: str | None = None
 
     async def on_POST(
         self, request: RelapseRequest, device_id: str
@@ -388,7 +388,7 @@ class DehydratedDeviceV2Servlet(RestServlet):
     class PutBody(RequestBodyModel):
         device_data: DehydratedDeviceDataModel
         device_id: str
-        initial_device_display_name: Optional[str] = None
+        initial_device_display_name: str | None = None
         model_config = ConfigDict(extra="allow")
 
     async def on_PUT(self, request: RelapseRequest) -> tuple[int, JsonDict]:

@@ -15,7 +15,7 @@
 import abc
 import base64
 import logging
-from typing import Optional, Union
+from typing import Union
 
 import attr
 from zope.interface import implementer
@@ -98,7 +98,7 @@ class HTTPConnectProxyEndpoint:
         proxy_endpoint: IStreamClientEndpoint,
         host: bytes,
         port: int,
-        proxy_creds: Optional[ProxyCredentials],
+        proxy_creds: ProxyCredentials | None,
     ):
         self._reactor = reactor
         self._proxy_endpoint = proxy_endpoint
@@ -142,7 +142,7 @@ class HTTPProxiedClientFactory(protocol.ClientFactory):
         dst_host: bytes,
         dst_port: int,
         wrapped_factory: ClientFactory,
-        proxy_creds: Optional[ProxyCredentials],
+        proxy_creds: ProxyCredentials | None,
     ):
         self.dst_host = dst_host
         self.dst_port = dst_port
@@ -203,7 +203,7 @@ class HTTPConnectProtocol(protocol.Protocol):
         port: int,
         wrapped_protocol: Protocol,
         connected_deferred: defer.Deferred,
-        proxy_creds: Optional[ProxyCredentials],
+        proxy_creds: ProxyCredentials | None,
     ):
         self.host = host
         self.port = port
@@ -261,7 +261,7 @@ class HTTPConnectSetupClient(http.HTTPClient):
         self,
         host: bytes,
         port: int,
-        proxy_creds: Optional[ProxyCredentials],
+        proxy_creds: ProxyCredentials | None,
     ):
         self.host = host
         self.port = port

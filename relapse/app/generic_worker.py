@@ -14,7 +14,7 @@
 # limitations under the License.
 import logging
 import sys
-from typing import Iterable
+from collections.abc import Iterable
 
 from twisted.internet.tcp import Port
 from twisted.web.resource import Resource

@@ -14,7 +14,8 @@
 import abc
 import logging
 import threading
-from typing import TYPE_CHECKING, Callable, Optional
+from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 from relapse.storage.engines import (
     BaseDatabaseEngine,
@@ -79,7 +80,7 @@ class SequenceGenerator(metaclass=abc.ABCMeta):
         db_conn: "LoggingDatabaseConnection",
         table: str,
         id_column: str,
-        stream_name: Optional[str] = None,
+        stream_name: str | None = None,
         positive: bool = True,
     ) -> None:
         """Should be called during start up to test that the current value of
@@ -120,7 +121,7 @@ class PostgresSequenceGenerator(SequenceGenerator):
         db_conn: "LoggingDatabaseConnection",
         table: str,
         id_column: str,
-        stream_name: Optional[str] = None,
+        stream_name: str | None = None,
         positive: bool = True,
     ) -> None:
         """See SequenceGenerator.check_consistency for docstring."""
@@ -206,10 +207,10 @@ class LocalSequenceGenerator(SequenceGenerator):
                  get_next_id_txn; should return the current maximum id
         """
         # the callback. this is cleared after it is called, so that it can be GCed.
-        self._callback: Optional[GetFirstCallbackType] = get_first_callback
+        self._callback: GetFirstCallbackType | None = get_first_callback
 
         # The current max value, or None if we haven't looked in the DB yet.
-        self._current_max_id: Optional[int] = None
+        self._current_max_id: int | None = None
         self._lock = threading.Lock()
 
     def get_next_id_txn(self, txn: Cursor) -> int:
@@ -240,7 +241,7 @@ class LocalSequenceGenerator(SequenceGenerator):
         db_conn: Connection,
         table: str,
         id_column: str,
-        stream_name: Optional[str] = None,
+        stream_name: str | None = None,
         positive: bool = True,
     ) -> None:
         # There is nothing to do for in memory sequences
@@ -252,9 +253,9 @@ def build_sequence_generator(
     database_engine: BaseDatabaseEngine,
     get_first_callback: GetFirstCallbackType,
     sequence_name: str,
-    table: Optional[str],
-    id_column: Optional[str],
-    stream_name: Optional[str] = None,
+    table: str | None,
+    id_column: str | None,
+    stream_name: str | None = None,
     positive: bool = True,
 ) -> SequenceGenerator:
     """Get the best impl of SequenceGenerator available

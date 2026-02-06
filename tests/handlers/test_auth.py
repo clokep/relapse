@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Optional
 from unittest.mock import AsyncMock
 
 import pymacaroons
@@ -48,7 +47,7 @@ class AuthTestCase(unittest.HomeserverTestCase):
 
         self.user1 = self.register_user("a_user", "pass")
 
-    def token_login(self, token: str) -> Optional[str]:
+    def token_login(self, token: str) -> str | None:
         body = {
             "type": "m.login.token",
             "token": token,

@@ -16,9 +16,9 @@
 
 import logging
 import re
-from collections.abc import Awaitable, Iterable
+from collections.abc import Awaitable, Callable, Iterable
 from re import Pattern
-from typing import Any, Callable, TypeVar, cast
+from typing import Any, TypeVar, cast
 
 from relapse.api.errors import InteractiveAuthIncompleteError
 from relapse.api.urls import CLIENT_API_PREFIX

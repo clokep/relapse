@@ -13,7 +13,6 @@
 # limitations under the License.
 import logging
 import os
-from typing import Optional
 
 from twisted.internet.protocol import Factory
 from twisted.internet.testing import MemoryReactor
@@ -36,7 +35,7 @@ from tests.test_utils import SMALL_PNG
 
 logger = logging.getLogger(__name__)
 
-test_server_connection_factory: Optional[TestServerTLSConnectionFactory] = None
+test_server_connection_factory: TestServerTLSConnectionFactory | None = None
 
 
 class MediaRepoShardTestCase(BaseMultiWorkerStreamTestCase):

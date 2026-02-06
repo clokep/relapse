@@ -9,8 +9,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from collections.abc import Callable
 from http import HTTPStatus
-from typing import BinaryIO, Callable, Optional
+from typing import BinaryIO
 from unittest.mock import Mock
 
 from twisted.internet.testing import MemoryReactor
@@ -109,9 +110,9 @@ class TestSSOHandler(unittest.HomeserverTestCase):
 async def mock_get_file(
     url: str,
     output_stream: BinaryIO,
-    max_size: Optional[int] = None,
-    headers: Optional[RawHeaders] = None,
-    is_allowed_content_type: Optional[Callable[[str], bool]] = None,
+    max_size: int | None = None,
+    headers: RawHeaders | None = None,
+    is_allowed_content_type: Callable[[str], bool] | None = None,
 ) -> tuple[int, dict[bytes, list[bytes]], str, int]:
     fake_response = FakeResponse(code=404)
     if url == "http://my.server/me.png":

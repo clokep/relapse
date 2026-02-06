@@ -15,7 +15,7 @@
 # limitations under the License.
 import logging
 from collections.abc import Iterable, Mapping
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 import attr
 from canonicaljson import encode_canonical_json
@@ -104,7 +104,7 @@ class E2eKeysHandler:
         query_body: JsonDict,
         timeout: int,
         from_user_id: str,
-        from_device_id: Optional[str],
+        from_device_id: str | None,
     ) -> JsonDict:
         """Handle a device key query from a client
 
@@ -405,7 +405,7 @@ class E2eKeysHandler:
 
     @cancellable
     async def get_cross_signing_keys_from_cache(
-        self, query: Iterable[str], from_user_id: Optional[str]
+        self, query: Iterable[str], from_user_id: str | None
     ) -> dict[str, dict[str, JsonMapping]]:
         """Get cross-signing keys for users from the database
 
@@ -453,7 +453,7 @@ class E2eKeysHandler:
     @cancellable
     async def query_local_devices(
         self,
-        query: Mapping[str, Optional[list[str]]],
+        query: Mapping[str, list[str] | None],
         include_displaynames: bool = True,
     ) -> dict[str, dict[str, dict]]:
         """Get E2E device keys for local users
@@ -468,7 +468,7 @@ class E2eKeysHandler:
             A map from user_id -> device_id -> device details
         """
         set_tag("local_query", str(query))
-        local_query: list[tuple[str, Optional[str]]] = []
+        local_query: list[tuple[str, str | None]] = []
 
         result_dict: dict[str, dict[str, dict]] = {}
         for user_id, device_ids in query.items():
@@ -520,7 +520,7 @@ class E2eKeysHandler:
         return result_dict
 
     async def on_federation_query_client_keys(
-        self, query_body: dict[str, dict[str, Optional[list[str]]]]
+        self, query_body: dict[str, dict[str, list[str] | None]]
     ) -> JsonDict:
         """Handle a device key query from a federated server:
 
@@ -540,7 +540,7 @@ class E2eKeysHandler:
                 - self_signing_key: An optional dictionary of user ID -> self-signing
                     key info.
         """
-        device_keys_query: dict[str, Optional[list[str]]] = query_body.get(
+        device_keys_query: dict[str, list[str] | None] = query_body.get(
             "device_keys", {}
         )
         if any(
@@ -663,7 +663,7 @@ class E2eKeysHandler:
         self,
         query: dict[str, dict[str, dict[str, int]]],
         user: UserID,
-        timeout: Optional[int],
+        timeout: int | None,
         always_include_fallback_keys: bool,
     ) -> JsonDict:
         """
@@ -1296,7 +1296,7 @@ class E2eKeysHandler:
         return signature_list, failures
 
     async def _get_e2e_cross_signing_verify_key(
-        self, user_id: str, key_type: str, from_user_id: Optional[str] = None
+        self, user_id: str, key_type: str, from_user_id: str | None = None
     ) -> tuple[JsonMapping, str, VerifyKey]:
         """Fetch locally or remotely query for a cross-signing public key.
 
@@ -1352,7 +1352,7 @@ class E2eKeysHandler:
         self,
         user: UserID,
         desired_key_type: str,
-    ) -> Optional[tuple[JsonMapping, str, VerifyKey]]:
+    ) -> tuple[JsonMapping, str, VerifyKey] | None:
         """Queries cross-signing keys for a remote user and saves them to the database
 
         Only the key specified by `key_type` will be returned, while all retrieved keys
@@ -1467,7 +1467,7 @@ class E2eKeysHandler:
 
 
 def _check_cross_signing_key(
-    key: JsonDict, user_id: str, key_type: str, signing_key: Optional[VerifyKey] = None
+    key: JsonDict, user_id: str, key_type: str, signing_key: VerifyKey | None = None
 ) -> None:
     """Check a cross-signing key uploaded by a user.  Performs some basic sanity
     checking, and ensures that it is signed, if a signature is required.

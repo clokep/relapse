@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Optional
+from collections.abc import Callable
 
 import attr
 
@@ -358,7 +358,7 @@ class RoomVersionCapability:
     """An object which describes the unique attributes of a room version."""
 
     identifier: str  # the identifier for this capability
-    preferred_version: Optional[RoomVersion]
+    preferred_version: RoomVersion | None
     support_check_lambda: Callable[[RoomVersion], bool]
 
 

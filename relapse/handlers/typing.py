@@ -14,7 +14,7 @@
 import logging
 import random
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 import attr
 
@@ -558,7 +558,7 @@ class TypingNotificationEventSource(EventSource[int, JsonMapping]):
         limit: int,
         room_ids: Iterable[str],
         is_guest: bool,
-        explicit_room_id: Optional[str] = None,
+        explicit_room_id: str | None = None,
     ) -> tuple[list[JsonMapping], int]:
         with Measure(self.clock, "typing.get_new_events"):
             from_key = int(from_key)

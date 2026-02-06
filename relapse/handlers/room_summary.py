@@ -64,7 +64,7 @@ class _PaginationKey:
     # during a pagination session).
     room_id: str
     suggested_only: bool
-    max_depth: Optional[int]
+    max_depth: int | None
     # The randomly generated token.
     token: str
 
@@ -104,7 +104,7 @@ class RoomSummaryHandler:
         # If a user tries to fetch the same page multiple times in quick succession,
         # only process the first attempt and return its result to subsequent requests.
         self._pagination_response_cache: ResponseCache[
-            tuple[str, str, bool, Optional[int], Optional[int], Optional[str]]
+            tuple[str, str, bool, int | None, int | None, str | None]
         ] = ResponseCache(
             hs.get_clock(),
             "get_room_hierarchy",
@@ -116,9 +116,9 @@ class RoomSummaryHandler:
         requester: Requester,
         requested_room_id: str,
         suggested_only: bool = False,
-        max_depth: Optional[int] = None,
-        limit: Optional[int] = None,
-        from_token: Optional[str] = None,
+        max_depth: int | None = None,
+        limit: int | None = None,
+        from_token: str | None = None,
     ) -> JsonDict:
         """
         Implementation of the room hierarchy C-S API.
@@ -170,9 +170,9 @@ class RoomSummaryHandler:
         requester: str,
         requested_room_id: str,
         suggested_only: bool = False,
-        max_depth: Optional[int] = None,
-        limit: Optional[int] = None,
-        from_token: Optional[str] = None,
+        max_depth: int | None = None,
+        limit: int | None = None,
+        from_token: str | None = None,
     ) -> JsonDict:
         """See docstring for SpaceSummaryHandler.get_room_hierarchy."""
 
@@ -409,8 +409,8 @@ class RoomSummaryHandler:
 
     async def _summarize_local_room(
         self,
-        requester: Optional[str],
-        origin: Optional[str],
+        requester: str | None,
+        origin: str | None,
         room_id: str,
         suggested_only: bool,
         include_children: bool = True,
@@ -517,7 +517,7 @@ class RoomSummaryHandler:
         )
 
     async def _is_local_room_accessible(
-        self, room_id: str, requester: Optional[str], origin: Optional[str] = None
+        self, room_id: str, requester: str | None, origin: str | None = None
     ) -> bool:
         """
         Calculate whether the room should be shown to the requester.
@@ -637,7 +637,7 @@ class RoomSummaryHandler:
         return False
 
     async def _is_remote_room_accessible(
-        self, requester: Optional[str], room_id: str, room: JsonDict
+        self, requester: str | None, room_id: str, room: JsonDict
     ) -> bool:
         """
         Calculate whether the room received over federation should be shown to the requester.
@@ -778,9 +778,9 @@ class RoomSummaryHandler:
 
     async def get_room_summary(
         self,
-        requester: Optional[str],
+        requester: str | None,
         room_id: str,
-        remote_room_hosts: Optional[list[str]] = None,
+        remote_room_hosts: list[str] | None = None,
     ) -> JsonDict:
         """
         Implementation of the room summary C-S API from MSC3266
@@ -879,7 +879,7 @@ class _RoomQueueEntry:
     depth: int = 0
     # The room summary for this room returned via federation. This will only be
     # used if the room is not known locally (and is not a space).
-    remote_room: Optional[JsonDict] = None
+    remote_room: JsonDict | None = None
 
 
 @attr.s(frozen=True, slots=True, auto_attribs=True)
@@ -940,7 +940,7 @@ _INVALID_ORDER_CHARS_RE = re.compile(r"[^\x20-\x7E]")
 
 def _child_events_comparison_key(
     child: EventBase,
-) -> tuple[bool, Optional[str], int, str]:
+) -> tuple[bool, str | None, int, str]:
     """
     Generate a value for comparing two child events for ordering.
 

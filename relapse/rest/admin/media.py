@@ -15,7 +15,7 @@
 
 import logging
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 import attr
 
@@ -301,7 +301,7 @@ class DeleteMediaByDateSize(RestServlet):
         self.media_repository = hs.get_media_repository()
 
     async def on_POST(
-        self, request: RelapseRequest, server_name: Optional[str] = None
+        self, request: RelapseRequest, server_name: str | None = None
     ) -> tuple[int, JsonDict]:
         await assert_requester_is_admin(self.auth, request)
 

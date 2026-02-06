@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-from collections.abc import Awaitable
-from typing import Any, Callable, Generic, Optional, TypeVar, Union
+from collections.abc import Awaitable, Callable
+from typing import Any, Generic, TypeVar
 
 from typing_extensions import ParamSpec
 
@@ -111,7 +111,7 @@ class Signal(Generic[P]):
         Returns a Deferred that will complete when all the observers have
         completed."""
 
-        async def do(observer: Callable[P, Union[R, Awaitable[R]]]) -> Optional[R]:
+        async def do(observer: Callable[P, R | Awaitable[R]]) -> R | None:
             try:
                 return await maybe_awaitable(observer(*args, **kwargs))
             except Exception as e:

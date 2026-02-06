@@ -13,7 +13,7 @@
 # limitations under the License.
 import logging
 import re
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from twisted.web.server import Request
 
@@ -38,7 +38,7 @@ class WellKnownBuilder:
     def __init__(self, hs: "HomeServer"):
         self._config = hs.config
 
-    def get_well_known(self) -> Optional[JsonDict]:
+    def get_well_known(self) -> JsonDict | None:
         if not self._config.server.serve_client_wellknown:
             return None
 

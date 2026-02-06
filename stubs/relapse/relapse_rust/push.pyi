@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Collection, Mapping, Optional, Sequence, Union
+from collections.abc import Collection, Mapping, Sequence
+from typing import Any
 
 from relapse.types import JsonDict, JsonValue
 
@@ -24,7 +25,7 @@ class PushRule:
     @property
     def conditions(self) -> Sequence[Mapping[str, str]]: ...
     @property
-    def actions(self) -> Sequence[Union[Mapping[str, Any], str]]: ...
+    def actions(self) -> Sequence[Mapping[str, Any] | str]: ...
     @property
     def default(self) -> bool: ...
     @property
@@ -58,7 +59,7 @@ class PushRuleEvaluator:
         flattened_keys: Mapping[str, JsonValue],
         has_mentions: bool,
         room_member_count: int,
-        sender_power_level: Optional[int],
+        sender_power_level: int | None,
         notification_power_levels: Mapping[str, int],
         related_events_flattened: Mapping[str, Mapping[str, JsonValue]],
         related_event_match_enabled: bool,
@@ -68,9 +69,9 @@ class PushRuleEvaluator:
     def run(
         self,
         push_rules: FilteredPushRules,
-        user_id: Optional[str],
-        display_name: Optional[str],
-    ) -> Collection[Union[Mapping, str]]: ...
+        user_id: str | None,
+        display_name: str | None,
+    ) -> Collection[Mapping | str]: ...
     def matches(
-        self, condition: JsonDict, user_id: Optional[str], display_name: Optional[str]
+        self, condition: JsonDict, user_id: str | None, display_name: str | None
     ) -> bool: ...

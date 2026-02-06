@@ -17,18 +17,8 @@
 import itertools
 import logging
 from collections import deque
-from collections.abc import Awaitable, Collection, Generator, Iterable
-from typing import (
-    TYPE_CHECKING,
-    AbstractSet,
-    Any,
-    Callable,
-    ClassVar,
-    Generic,
-    Optional,
-    TypeVar,
-    Union,
-)
+from collections.abc import Awaitable, Callable, Collection, Generator, Iterable, Set
+from typing import TYPE_CHECKING, Any, ClassVar, Generic, TypeVar
 
 import attr
 from prometheus_client import Counter, Histogram
@@ -146,7 +136,7 @@ class _UpdateCurrentStateTask:
         return isinstance(task, _UpdateCurrentStateTask)
 
 
-_EventPersistQueueTask = Union[_PersistEventsTask, _UpdateCurrentStateTask]
+_EventPersistQueueTask = _PersistEventsTask | _UpdateCurrentStateTask
 _PersistResult = TypeVar("_PersistResult")
 
 
@@ -616,7 +606,7 @@ class EventsPersistenceStorageController:
 
     async def _calculate_new_forward_extremities_and_state_delta(
         self, room_id: str, ev_ctx_rm: list[tuple[EventBase, EventContext]]
-    ) -> tuple[Optional[set[str]], Optional[DeltaState]]:
+    ) -> tuple[set[str] | None, DeltaState | None]:
         """Calculates the new forward extremities and state delta for a room
         given events to persist.
 
@@ -729,7 +719,7 @@ class EventsPersistenceStorageController:
         self,
         room_id: str,
         event_contexts: list[tuple[EventBase, EventContext]],
-        latest_event_ids: AbstractSet[str],
+        latest_event_ids: Set[str],
     ) -> set[str]:
         """Calculates the new forward extremities for a room given events to
         persist.
@@ -785,9 +775,9 @@ class EventsPersistenceStorageController:
         self,
         room_id: str,
         events_context: list[tuple[EventBase, EventContext]],
-        old_latest_event_ids: AbstractSet[str],
+        old_latest_event_ids: Set[str],
         new_latest_event_ids: set[str],
-    ) -> tuple[Optional[StateMap[str]], Optional[StateMap[str]], set[str]]:
+    ) -> tuple[StateMap[str] | None, StateMap[str] | None, set[str]]:
         """Calculate the current state dict after adding some new events to
         a room
 

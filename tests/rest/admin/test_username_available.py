@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Optional
 
 from twisted.internet.testing import MemoryReactor
 
@@ -37,8 +36,8 @@ class UsernameAvailableTestCase(unittest.HomeserverTestCase):
 
         async def check_username(
             localpart: str,
-            guest_access_token: Optional[str] = None,
-            assigned_user_id: Optional[str] = None,
+            guest_access_token: str | None = None,
+            assigned_user_id: str | None = None,
             inhibit_user_in_use_error: bool = False,
         ) -> None:
             if localpart == "allowed":

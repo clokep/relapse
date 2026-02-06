@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 
 from relapse.api.errors import (
     NotFoundError,
@@ -229,7 +229,7 @@ def _rule_spec_from_path(path: list[str]) -> RuleSpec:
 
 def _rule_tuple_from_request_object(
     rule_template: str, rule_id: str, req_obj: JsonDict
-) -> tuple[list[JsonDict], list[Union[str, JsonDict]]]:
+) -> tuple[list[JsonDict], list[str | JsonDict]]:
     if rule_template in ["override", "underride"]:
         if "conditions" not in req_obj:
             raise InvalidRuleException("Missing 'conditions'")

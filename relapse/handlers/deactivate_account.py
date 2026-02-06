@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from relapse.api.errors import RelapseError
 from relapse.handlers.device import DeviceHandler
@@ -59,7 +59,7 @@ class DeactivateAccountHandler:
         user_id: str,
         erase_data: bool,
         requester: Requester,
-        id_server: Optional[str] = None,
+        id_server: str | None = None,
         by_admin: bool = False,
     ) -> bool:
         """Deactivate a user's account

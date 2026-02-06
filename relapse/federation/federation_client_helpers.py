@@ -16,7 +16,7 @@
 import logging
 import urllib
 from collections.abc import Generator, Iterable
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 import attr
 import ijson
@@ -151,13 +151,13 @@ class SendJoinResponse:
     event_dict: JsonDict
     # The parsed join event from the /send_join response. This will be None if
     # "event" is not included in the response.
-    event: Optional[EventBase] = None
+    event: EventBase | None = None
 
     # The room state is incomplete
     members_omitted: bool = False
 
     # List of servers in the room
-    servers_in_room: Optional[list[str]] = None
+    servers_in_room: list[str] | None = None
 
 
 @attr.s(slots=True, auto_attribs=True)

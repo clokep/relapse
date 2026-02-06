@@ -17,7 +17,7 @@ import datetime
 import logging
 from collections.abc import Hashable, Iterable
 from types import TracebackType
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 import attr
 from prometheus_client import Counter
@@ -123,7 +123,7 @@ class PerDestinationQueue:
 
         # Cache of the last successfully-transmitted stream ordering for this
         # destination (we are the only updater so this is safe)
-        self._last_successful_stream_ordering: Optional[int] = None
+        self._last_successful_stream_ordering: int | None = None
 
         # a queue of pending PDUs
         self._pending_pdus: list[EventBase] = []
@@ -692,9 +692,9 @@ class _TransactionQueueManager:
 
     queue: PerDestinationQueue
 
-    _device_stream_id: Optional[int] = None
-    _device_list_id: Optional[int] = None
-    _last_stream_ordering: Optional[int] = None
+    _device_stream_id: int | None = None
+    _device_list_id: int | None = None
+    _last_stream_ordering: int | None = None
     _pdus: list[EventBase] = attr.Factory(list)
 
     async def __aenter__(self) -> tuple[list[EventBase], list[Edu]]:
@@ -798,9 +798,9 @@ class _TransactionQueueManager:
 
     async def __aexit__(
         self,
-        exc_type: Optional[type[BaseException]],
-        exc: Optional[BaseException],
-        tb: Optional[TracebackType],
+        exc_type: type[BaseException] | None,
+        exc: BaseException | None,
+        tb: TracebackType | None,
     ) -> None:
         if exc_type is not None:
             # Failed to send transaction, so we bail out.

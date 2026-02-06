@@ -14,7 +14,7 @@
 import abc
 from collections.abc import Mapping
 from enum import IntEnum
-from typing import TYPE_CHECKING, Any, Generic, Optional, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 from relapse.storage.types import Connection, Cursor, DBAPI2Module
 
@@ -118,7 +118,7 @@ class BaseDatabaseEngine(Generic[ConnectionType, CursorType], metaclass=abc.ABCM
 
     @abc.abstractmethod
     def attempt_to_set_isolation_level(
-        self, conn: ConnectionType, isolation_level: Optional[int]
+        self, conn: ConnectionType, isolation_level: int | None
     ) -> None:
         """Attempt to set the connections isolation level.
 

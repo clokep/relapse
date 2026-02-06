@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Optional
+from typing import Any
 
 from relapse.config._base import Config
 from relapse.config._util import validate_config
@@ -25,7 +25,7 @@ class FederationConfig(Config):
         federation_config = config.setdefault("federation", {})
 
         # FIXME: federation_domain_whitelist needs sytests
-        self.federation_domain_whitelist: Optional[dict] = None
+        self.federation_domain_whitelist: dict | None = None
         federation_domain_whitelist = config.get("federation_domain_whitelist", None)
 
         if federation_domain_whitelist is not None:

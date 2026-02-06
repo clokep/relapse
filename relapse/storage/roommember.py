@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import logging
-from typing import Optional
 
 import attr
 
@@ -41,8 +40,8 @@ class GetRoomsForUserWithStreamOrdering:
 
 @attr.s(slots=True, frozen=True, weakref_slot=False, auto_attribs=True)
 class ProfileInfo:
-    avatar_url: Optional[str]
-    display_name: Optional[str]
+    avatar_url: str | None
+    display_name: str | None
 
 
 # TODO This is used as a cached value and is mutable.

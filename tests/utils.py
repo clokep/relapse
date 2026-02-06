@@ -15,10 +15,11 @@
 
 import atexit
 import os
-from typing import Any, Callable, TypeVar, Union, overload
+from collections.abc import Callable
+from typing import Any, Literal, TypeVar, overload
 
 import attr
-from typing_extensions import Literal, ParamSpec
+from typing_extensions import ParamSpec
 
 from relapse.api.constants import EventTypes
 from relapse.api.room_versions import RoomVersions
@@ -124,7 +125,7 @@ def default_config(name: str, parse: Literal[True]) -> HomeServerConfig: ...
 
 def default_config(
     name: str, parse: bool = False
-) -> Union[dict[str, object], HomeServerConfig]:
+) -> dict[str, object] | HomeServerConfig:
     """
     Create a reasonable test config.
     """

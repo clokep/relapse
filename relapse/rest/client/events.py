@@ -15,7 +15,7 @@
 """This module contains REST servlets to do with event streaming, /events."""
 
 import logging
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 
 from relapse.api.errors import RelapseError
 from relapse.events.utils import SerializeEventConfig
@@ -89,7 +89,7 @@ class EventRestServlet(RestServlet):
 
     async def on_GET(
         self, request: RelapseRequest, event_id: str
-    ) -> tuple[int, Union[str, JsonDict]]:
+    ) -> tuple[int, str | JsonDict]:
         requester = await self.auth.get_user_by_req(request)
         event = await self.event_handler.get_event(requester.user, None, event_id)
 

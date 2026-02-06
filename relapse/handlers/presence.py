@@ -70,18 +70,10 @@ import contextlib
 import itertools
 import logging
 from bisect import bisect
-from collections.abc import Collection, Generator, Iterable
-from contextlib import contextmanager
+from collections.abc import Callable, Collection, Generator, Iterable, Set
+from contextlib import AbstractContextManager, contextmanager
 from types import TracebackType
-from typing import (
-    TYPE_CHECKING,
-    AbstractSet,
-    Any,
-    Callable,
-    ContextManager,
-    Optional,
-    Union,
-)
+from typing import TYPE_CHECKING, Any
 
 from prometheus_client import Counter
 
@@ -213,10 +205,10 @@ class BasePresenceHandler(abc.ABC):
     async def user_syncing(
         self,
         user_id: str,
-        device_id: Optional[str],
+        device_id: str | None,
         affect_presence: bool,
         presence_state: str,
-    ) -> ContextManager[None]:
+    ) -> AbstractContextManager[None]:
         """Returns a context manager that should surround any stream requests
         from the user.
 
@@ -236,7 +228,7 @@ class BasePresenceHandler(abc.ABC):
     @abc.abstractmethod
     def get_currently_syncing_users_for_replication(
         self,
-    ) -> Iterable[tuple[str, Optional[str]]]:
+    ) -> Iterable[tuple[str, str | None]]:
         """Get an iterable of syncing users and devices on this worker, to send to the presence handler
 
         This is called when a replication connection is established. It should return
@@ -305,7 +297,7 @@ class BasePresenceHandler(abc.ABC):
     async def set_state(
         self,
         target_user: UserID,
-        device_id: Optional[str],
+        device_id: str | None,
         state: JsonDict,
         force_notify: bool = False,
         is_sync: bool = False,
@@ -325,7 +317,7 @@ class BasePresenceHandler(abc.ABC):
 
     @abc.abstractmethod
     async def bump_presence_active_time(
-        self, user: UserID, device_id: Optional[str]
+        self, user: UserID, device_id: str | None
     ) -> None:
         """We've seen the user do something that indicates they're interacting
         with the app.
@@ -335,7 +327,7 @@ class BasePresenceHandler(abc.ABC):
         self,
         process_id: str,
         user_id: str,
-        device_id: Optional[str],
+        device_id: str | None,
         is_syncing: bool,
         sync_time_msec: int,
     ) -> None:
@@ -456,14 +448,14 @@ class BasePresenceHandler(abc.ABC):
         )
 
 
-class _NullContextManager(ContextManager[None]):
+class _NullContextManager(AbstractContextManager[None]):
     """A context manager which does nothing."""
 
     def __exit__(
         self,
-        exc_type: Optional[type[BaseException]],
-        exc_val: Optional[BaseException],
-        exc_tb: Optional[TracebackType],
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
     ) -> None:
         pass
 
@@ -481,16 +473,14 @@ class WorkerPresenceHandler(BasePresenceHandler):
 
         # The number of ongoing syncs on this process, by (user ID, device ID).
         # Empty if _presence_enabled is false.
-        self._user_device_to_num_current_syncs: dict[
-            tuple[str, Optional[str]], int
-        ] = {}
+        self._user_device_to_num_current_syncs: dict[tuple[str, str | None], int] = {}
 
         self.notifier = hs.get_notifier()
         self.instance_id = hs.get_instance_id()
 
         # (user_id, device_id) -> last_sync_ms. Lists the devices that have stopped
         # syncing but we haven't notified the presence writer of that yet
-        self._user_devices_going_offline: dict[tuple[str, Optional[str]], int] = {}
+        self._user_devices_going_offline: dict[tuple[str, str | None], int] = {}
 
         self._bump_active_client = ReplicationBumpPresenceActiveTime.make_client(hs)
         self._set_state_client = ReplicationPresenceSetState.make_client(hs)
@@ -516,7 +506,7 @@ class WorkerPresenceHandler(BasePresenceHandler):
     def send_user_sync(
         self,
         user_id: str,
-        device_id: Optional[str],
+        device_id: str | None,
         is_syncing: bool,
         last_sync_ms: int,
     ) -> None:
@@ -525,7 +515,7 @@ class WorkerPresenceHandler(BasePresenceHandler):
                 self.instance_id, user_id, device_id, is_syncing, last_sync_ms
             )
 
-    def mark_as_coming_online(self, user_id: str, device_id: Optional[str]) -> None:
+    def mark_as_coming_online(self, user_id: str, device_id: str | None) -> None:
         """A user has started syncing. Send a UserSync to the presence writer,
         unless they had recently stopped syncing.
         """
@@ -535,7 +525,7 @@ class WorkerPresenceHandler(BasePresenceHandler):
             # were offline
             self.send_user_sync(user_id, device_id, True, self.clock.time_msec())
 
-    def mark_as_going_offline(self, user_id: str, device_id: Optional[str]) -> None:
+    def mark_as_going_offline(self, user_id: str, device_id: str | None) -> None:
         """A user has stopped syncing. We wait before notifying the presence
         writer as its likely they'll come back soon. This allows us to avoid
         sending a stopped syncing immediately followed by a started syncing
@@ -558,10 +548,10 @@ class WorkerPresenceHandler(BasePresenceHandler):
     async def user_syncing(
         self,
         user_id: str,
-        device_id: Optional[str],
+        device_id: str | None,
         affect_presence: bool,
         presence_state: str,
-    ) -> ContextManager[None]:
+    ) -> AbstractContextManager[None]:
         """Record that a user is syncing.
 
         Called by the sync and events servlets to record that a user has connected to
@@ -664,7 +654,7 @@ class WorkerPresenceHandler(BasePresenceHandler):
 
     def get_currently_syncing_users_for_replication(
         self,
-    ) -> Iterable[tuple[str, Optional[str]]]:
+    ) -> Iterable[tuple[str, str | None]]:
         return [
             user_id_device_id
             for user_id_device_id, count in self._user_device_to_num_current_syncs.items()
@@ -674,7 +664,7 @@ class WorkerPresenceHandler(BasePresenceHandler):
     async def set_state(
         self,
         target_user: UserID,
-        device_id: Optional[str],
+        device_id: str | None,
         state: JsonDict,
         force_notify: bool = False,
         is_sync: bool = False,
@@ -713,7 +703,7 @@ class WorkerPresenceHandler(BasePresenceHandler):
         )
 
     async def bump_presence_active_time(
-        self, user: UserID, device_id: Optional[str]
+        self, user: UserID, device_id: str | None
     ) -> None:
         """We've seen the user do something that indicates they're interacting
         with the app.
@@ -752,7 +742,7 @@ class PresenceHandler(BasePresenceHandler):
 
         # The per-device presence state, maps user to devices to per-device presence state.
         self._user_to_device_to_current_state: dict[
-            str, dict[Optional[str], UserDevicePresenceState]
+            str, dict[str | None, UserDevicePresenceState]
         ] = {}
 
         now = self.clock.time_msec()
@@ -806,9 +796,7 @@ class PresenceHandler(BasePresenceHandler):
 
         # Keeps track of the number of *ongoing* syncs on this process. While
         # this is non zero a user will never go offline.
-        self._user_device_to_num_current_syncs: dict[
-            tuple[str, Optional[str]], int
-        ] = {}
+        self._user_device_to_num_current_syncs: dict[tuple[str, str | None], int] = {}
 
         # Keeps track of the number of *ongoing* syncs on other processes.
         #
@@ -821,7 +809,7 @@ class PresenceHandler(BasePresenceHandler):
         # Stored as a dict from process_id to set of (user_id, device_id), and
         # a dict of process_id to millisecond timestamp last updated.
         self.external_process_to_current_syncs: dict[
-            str, set[tuple[str, Optional[str]]]
+            str, set[tuple[str, str | None]]
         ] = {}
         self.external_process_last_updated_ms: dict[str, int] = {}
 
@@ -1070,7 +1058,7 @@ class PresenceHandler(BasePresenceHandler):
         return await self._update_states(changes)
 
     async def bump_presence_active_time(
-        self, user: UserID, device_id: Optional[str]
+        self, user: UserID, device_id: str | None
     ) -> None:
         """We've seen the user do something that indicates they're interacting
         with the app.
@@ -1109,10 +1097,10 @@ class PresenceHandler(BasePresenceHandler):
     async def user_syncing(
         self,
         user_id: str,
-        device_id: Optional[str],
+        device_id: str | None,
         affect_presence: bool = True,
         presence_state: str = PresenceState.ONLINE,
-    ) -> ContextManager[None]:
+    ) -> AbstractContextManager[None]:
         """Returns a context manager that should surround any stream requests
         from the user.
 
@@ -1169,7 +1157,7 @@ class PresenceHandler(BasePresenceHandler):
 
     def get_currently_syncing_users_for_replication(
         self,
-    ) -> Iterable[tuple[str, Optional[str]]]:
+    ) -> Iterable[tuple[str, str | None]]:
         # since we are the process handling presence, there is nothing to do here.
         return []
 
@@ -1177,7 +1165,7 @@ class PresenceHandler(BasePresenceHandler):
         self,
         process_id: str,
         user_id: str,
-        device_id: Optional[str],
+        device_id: str | None,
         is_syncing: bool,
         sync_time_msec: int,
     ) -> None:
@@ -1339,7 +1327,7 @@ class PresenceHandler(BasePresenceHandler):
     async def set_state(
         self,
         target_user: UserID,
-        device_id: Optional[str],
+        device_id: str | None,
         state: JsonDict,
         force_notify: bool = False,
         is_sync: bool = False,
@@ -1392,7 +1380,7 @@ class PresenceHandler(BasePresenceHandler):
         # Based on the state of each user's device calculate the new presence state.
         presence = _combine_device_states(devices.values())
 
-        new_fields: dict[str, Optional[Union[str, int]]] = {"state": presence}
+        new_fields: dict[str, str | int | None] = {"state": presence}
 
         if presence == PresenceState.ONLINE or presence == PresenceState.BUSY:
             new_fields["last_active_ts"] = now
@@ -1754,15 +1742,15 @@ class PresenceEventSource(EventSource[int, UserPresenceState]):
     async def get_new_events(
         self,
         user: UserID,
-        from_key: Optional[int],
+        from_key: int | None,
         # Having a default limit doesn't match the EventSource API, but some
         # callers do not provide it. It is unused in this class.
         limit: int = 0,
-        room_ids: Optional[StrCollection] = None,
+        room_ids: StrCollection | None = None,
         is_guest: bool = False,
-        explicit_room_id: Optional[str] = None,
+        explicit_room_id: str | None = None,
         include_offline: bool = True,
-        service: Optional[ApplicationService] = None,
+        service: ApplicationService | None = None,
     ) -> tuple[list[UserPresenceState], int]:
         # The process for getting presence events are:
         #  1. Get the rooms the user is in.
@@ -1906,7 +1894,7 @@ class PresenceEventSource(EventSource[int, UserPresenceState]):
         self,
         user_id: str,
         include_offline: bool,
-        from_key: Optional[int] = None,
+        from_key: int | None = None,
     ) -> list[UserPresenceState]:
         """
         Computes the presence updates a user should receive.
@@ -1987,8 +1975,8 @@ class PresenceEventSource(EventSource[int, UserPresenceState]):
 def handle_timeouts(
     user_states: list[UserPresenceState],
     is_mine_fn: Callable[[str], bool],
-    syncing_user_devices: AbstractSet[tuple[str, Optional[str]]],
-    user_to_devices: dict[str, dict[Optional[str], UserDevicePresenceState]],
+    syncing_user_devices: Set[tuple[str, str | None]],
+    user_to_devices: dict[str, dict[str | None, UserDevicePresenceState]],
     now: int,
 ) -> list[UserPresenceState]:
     """Checks the presence of users that have timed out and updates as
@@ -2026,10 +2014,10 @@ def handle_timeouts(
 def handle_timeout(
     state: UserPresenceState,
     is_mine: bool,
-    syncing_device_ids: AbstractSet[tuple[str, Optional[str]]],
-    user_devices: dict[Optional[str], UserDevicePresenceState],
+    syncing_device_ids: Set[tuple[str, str | None]],
+    user_devices: dict[str | None, UserDevicePresenceState],
     now: int,
-) -> Optional[UserPresenceState]:
+) -> UserPresenceState | None:
     """Checks the presence of the user to see if any of the timers have elapsed
 
     Args:

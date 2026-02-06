@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 
 from relapse.server_notices.consent_server_notices import ConsentServerNotices
 from relapse.server_notices.resource_limits_server_notices import (
@@ -34,7 +34,7 @@ class ServerNoticesSender(WorkerServerNoticesSender):
     def __init__(self, hs: "HomeServer"):
         super().__init__(hs)
         self._server_notices: Iterable[
-            Union[ConsentServerNotices, ResourceLimitsServerNotices]
+            ConsentServerNotices | ResourceLimitsServerNotices
         ] = (
             ConsentServerNotices(hs),
             ResourceLimitsServerNotices(hs),

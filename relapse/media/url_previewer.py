@@ -22,7 +22,7 @@ import shutil
 import sys
 import traceback
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, BinaryIO, Optional
+from typing import TYPE_CHECKING, BinaryIO
 from urllib.parse import urljoin, urlparse, urlsplit
 from urllib.request import urlopen
 
@@ -65,9 +65,9 @@ class DownloadResult:
     uri: str
     response_code: int
     media_type: str
-    download_name: Optional[str]
+    download_name: str | None
     expires: int
-    etag: Optional[str]
+    etag: str | None
 
 
 @attr.s(slots=True, frozen=True, auto_attribs=True)
@@ -82,7 +82,7 @@ class MediaInfo:
     media_length: int
     # The media filename, according to the server. This is parsed from the
     # returned headers, if possible.
-    download_name: Optional[str]
+    download_name: str | None
     # The time of the preview.
     created_ts_ms: int
     # Information from the media storage provider about where the file is stored
@@ -96,7 +96,7 @@ class MediaInfo:
     # The timestamp (in milliseconds) of when this preview expires.
     expires: int
     # The ETag header of the response.
-    etag: Optional[str]
+    etag: str | None
 
 
 class UrlPreviewer:
@@ -262,7 +262,7 @@ class UrlPreviewer:
 
         # The number of milliseconds that the response should be considered valid.
         expiration_ms = media_info.expires
-        author_name: Optional[str] = None
+        author_name: str | None = None
 
         if _is_media(media_info.media_type):
             file_id = media_info.filesystem_id
@@ -688,7 +688,7 @@ class UrlPreviewer:
 
     async def _handle_oembed_response(
         self, url: str, media_info: MediaInfo, expiration_ms: int
-    ) -> tuple[JsonDict, Optional[str], int]:
+    ) -> tuple[JsonDict, str | None, int]:
         """
         Parse the downloaded oEmbed info.
 

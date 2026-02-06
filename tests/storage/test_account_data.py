@@ -13,7 +13,6 @@
 # limitations under the License.
 
 from collections.abc import Iterable
-from typing import Optional
 
 from twisted.internet.testing import MemoryReactor
 
@@ -30,7 +29,7 @@ class IgnoredUsersTestCase(unittest.HomeserverTestCase):
         self.user = "@user:test"
 
     def _update_ignore_list(
-        self, *ignored_user_ids: Iterable[str], ignorer_user_id: Optional[str] = None
+        self, *ignored_user_ids: Iterable[str], ignorer_user_id: str | None = None
     ) -> None:
         """Update the account data to block the given users."""
         if ignorer_user_id is None:
@@ -146,7 +145,7 @@ class IgnoredUsersTestCase(unittest.HomeserverTestCase):
         """Test that ignoring users updates the latest stream ID for the ignored
         user list account data."""
 
-        def get_latest_ignore_streampos(user_id: str) -> Optional[int]:
+        def get_latest_ignore_streampos(user_id: str) -> int | None:
             return self.get_success(
                 self.store.get_latest_stream_id_for_global_account_data_by_type_for_user(
                     user_id, AccountDataTypes.IGNORED_USER_LIST

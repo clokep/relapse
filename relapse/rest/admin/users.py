@@ -16,7 +16,7 @@ import hmac
 import logging
 import secrets
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 import attr
 
@@ -302,7 +302,7 @@ class UserRestServletV2(RestServlet):
                 HTTPStatus.BAD_REQUEST, "An user can't be deactivated and locked"
             )
 
-        approved: Optional[bool] = None
+        approved: bool | None = None
         if "approved" in body and self._msc3866_enabled:
             approved = body["approved"]
             if not isinstance(approved, bool):
@@ -796,7 +796,7 @@ class SearchUsersRestServlet(RestServlet):
 
     async def on_GET(
         self, request: RelapseRequest, target_user_id: str
-    ) -> tuple[int, Optional[list[JsonDict]]]:
+    ) -> tuple[int, list[JsonDict] | None]:
         """Get request to search user table for specific users according to
         search term.
         This needs user to have a administrator access in Relapse.

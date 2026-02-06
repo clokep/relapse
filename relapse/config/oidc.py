@@ -15,7 +15,7 @@
 
 from collections import Counter
 from collections.abc import Collection, Iterable, Mapping
-from typing import Any, Optional
+from typing import Any
 
 import attr
 
@@ -226,7 +226,7 @@ def _parse_oidc_providers_dict(
             ) from e
 
     client_secret_jwt_key_config = oidc_provider.get("client_secret_jwt_key")
-    client_secret_jwt_key: Optional[OidcProviderClientSecretJwtKey] = None
+    client_secret_jwt_key: OidcProviderClientSecretJwtKey | None = None
     if client_secret_jwt_key_config is not None:
         keyfile = client_secret_jwt_key_config.get("key_file")
         if keyfile:
@@ -315,10 +315,10 @@ class OidcProviderConfig:
     idp_name: str
 
     # Optional MXC URI for icon for this IdP.
-    idp_icon: Optional[str]
+    idp_icon: str | None
 
     # Optional brand identifier for this IdP.
-    idp_brand: Optional[str]
+    idp_brand: str | None
 
     # whether the OIDC discovery mechanism is used to discover endpoints
     discover: bool
@@ -332,11 +332,11 @@ class OidcProviderConfig:
 
     # oauth2 client secret to use. if `None`, use client_secret_jwt_key to generate
     # a secret.
-    client_secret: Optional[str]
+    client_secret: str | None
 
     # key to use to construct a JWT to use as a client secret. May be `None` if
     # `client_secret` is set.
-    client_secret_jwt_key: Optional[OidcProviderClientSecretJwtKey]
+    client_secret_jwt_key: OidcProviderClientSecretJwtKey | None
 
     # auth method to use when exchanging the token.
     # Valid values are 'client_secret_basic', 'client_secret_post' and
@@ -351,18 +351,18 @@ class OidcProviderConfig:
     scopes: Collection[str]
 
     # the oauth2 authorization endpoint. Required if discovery is disabled.
-    authorization_endpoint: Optional[str]
+    authorization_endpoint: str | None
 
     # the oauth2 token endpoint. Required if discovery is disabled.
-    token_endpoint: Optional[str]
+    token_endpoint: str | None
 
     # the OIDC userinfo endpoint. Required if discovery is disabled and the
     # "openid" scope is not requested.
-    userinfo_endpoint: Optional[str]
+    userinfo_endpoint: str | None
 
     # URI where to fetch the JWKS. Required if discovery is disabled and the
     # "openid" scope is used.
-    jwks_uri: Optional[str]
+    jwks_uri: str | None
 
     # Whether Relapse should react to backchannel logouts
     backchannel_logout_enabled: bool

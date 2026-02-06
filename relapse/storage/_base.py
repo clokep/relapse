@@ -16,7 +16,7 @@
 import logging
 from abc import ABCMeta
 from collections.abc import Collection, Iterable
-from typing import TYPE_CHECKING, Any, Optional, Union
+from typing import TYPE_CHECKING, Any
 
 from relapse.storage.database import (
     DatabasePool,
@@ -153,7 +153,7 @@ class SQLBaseStore(metaclass=ABCMeta):
         self._attempt_to_invalidate_cache("get_room_summary", (room_id,))
 
     def _attempt_to_invalidate_cache(
-        self, cache_name: str, key: Optional[Collection[Any]]
+        self, cache_name: str, key: Collection[Any] | None
     ) -> bool:
         """Attempts to invalidate the cache of the given name, ignoring if the
         cache doesn't exist. Mainly used for invalidating caches on workers,
@@ -195,7 +195,7 @@ class SQLBaseStore(metaclass=ABCMeta):
         self.external_cached_functions[cache_name] = func
 
 
-def db_to_json(db_content: Union[memoryview, bytes, bytearray, str]) -> Any:
+def db_to_json(db_content: memoryview | bytes | bytearray | str) -> Any:
     """
     Take some data from a database row and return a JSON-decoded object.
 
