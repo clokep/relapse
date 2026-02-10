@@ -28,11 +28,10 @@ from relapse.api.errors import Codes, RelapseError
 from relapse.push.emailpusher import EmailPusher
 from relapse.rest import admin
 from relapse.rest.client import login, room
-from relapse.rest.relapse.client.unsubscribe import UnsubscribeResource
+from relapse.rest.relapse import client as relapse_client
 from relapse.server import HomeServer
 from relapse.util import Clock
 
-from tests.server import FakeSite, make_request
 from tests.unittest import HomeserverTestCase
 
 
@@ -49,6 +48,7 @@ class EmailPusherTests(HomeserverTestCase):
         admin.register_servlets,
         room.register_servlets,
         login.register_servlets,
+        relapse_client.register_servlets,
     ]
     hijack_auth = False
 
@@ -224,12 +224,10 @@ class EmailPusherTests(HomeserverTestCase):
 
         # Open the unsubscribe link.
         unsubscribe_link = multipart_msg["List-Unsubscribe"].strip("<>")
-        unsubscribe_resource = UnsubscribeResource(self.hs)
-        channel = make_request(
-            self.reactor,
-            FakeSite(unsubscribe_resource, self.reactor),
+        unsubscribe_path = unsubscribe_link[unsubscribe_link.find("/_relapse"):]
+        channel = self.make_request(
             "POST" if use_post else "GET",
-            unsubscribe_link,
+            unsubscribe_path,
             shorthand=False,
         )
         self.assertEqual(HTTPStatus.OK, channel.code, channel.result)

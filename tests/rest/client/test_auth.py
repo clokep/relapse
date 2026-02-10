@@ -18,14 +18,13 @@ from typing import Any
 
 from twisted.internet.defer import succeed
 from twisted.internet.testing import MemoryReactor
-from twisted.web.resource import Resource
 
 from relapse.api.constants import ApprovalNoticeMedium, LoginType
 from relapse.api.errors import Codes, RelapseError
 from relapse.handlers.ui_auth.checkers import UserInteractiveAuthChecker
 from relapse.rest import admin
 from relapse.rest.client import account, auth, devices, login, logout, register
-from relapse.rest.relapse.client import build_relapse_client_resource_tree
+from relapse.rest.relapse import client as relapse_client
 from relapse.server import HomeServer
 from relapse.storage.database import LoggingTransaction
 from relapse.types import JsonDict, UserID
@@ -170,6 +169,7 @@ class UIAuthTests(unittest.HomeserverTestCase):
         login.register_servlets,
         admin.register_servlets,
         register.register_servlets,
+        relapse_client.register_servlets,
     ]
 
     def default_config(self) -> dict[str, Any]:
@@ -187,11 +187,6 @@ class UIAuthTests(unittest.HomeserverTestCase):
             ]
 
         return config
-
-    def create_resource_dict(self) -> dict[str, Resource]:
-        resource_dict = super().create_resource_dict()
-        resource_dict.update(build_relapse_client_resource_tree(self.hs))
-        return resource_dict
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.user_pass = "pass"
@@ -1204,6 +1199,7 @@ class OidcBackchannelLogoutTests(unittest.HomeserverTestCase):
     servlets = [
         account.register_servlets,
         login.register_servlets,
+        relapse_client.register_servlets,
     ]
 
     def default_config(self) -> dict[str, Any]:
@@ -1215,11 +1211,6 @@ class OidcBackchannelLogoutTests(unittest.HomeserverTestCase):
         config["public_baseurl"] = "http://relapse.test"
 
         return config
-
-    def create_resource_dict(self) -> dict[str, Resource]:
-        resource_dict = super().create_resource_dict()
-        resource_dict.update(build_relapse_client_resource_tree(self.hs))
-        return resource_dict
 
     def submit_logout_token(self, logout_token: str) -> FakeChannel:
         return self.make_request(

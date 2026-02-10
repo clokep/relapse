@@ -21,7 +21,6 @@ from urllib.parse import urlencode
 import pymacaroons
 
 from twisted.internet.testing import MemoryReactor
-from twisted.web.resource import Resource
 
 from relapse.api.constants import ApprovalNoticeMedium, LoginType
 from relapse.api.errors import Codes
@@ -30,7 +29,7 @@ from relapse.module_api import ModuleApi
 from relapse.rest import admin
 from relapse.rest.client import devices, login, logout, register
 from relapse.rest.client.account import WhoamiRestServlet
-from relapse.rest.relapse.client import build_relapse_client_resource_tree
+from relapse.rest.relapse import client as relapse_client
 from relapse.server import HomeServer
 from relapse.types import JsonDict, create_requester
 from relapse.util import Clock
@@ -582,6 +581,7 @@ class MultiSSOTestCase(unittest.HomeserverTestCase):
 
     servlets = [
         login.register_servlets,
+        relapse_client.register_servlets,
     ]
 
     def default_config(self) -> dict[str, Any]:
@@ -623,11 +623,6 @@ class MultiSSOTestCase(unittest.HomeserverTestCase):
             },
         ]
         return config
-
-    def create_resource_dict(self) -> dict[str, Resource]:
-        d = super().create_resource_dict()
-        d.update(build_relapse_client_resource_tree(self.hs))
-        return d
 
     def test_get_login_flows(self) -> None:
         """GET /login should return password and SSO flows"""
@@ -1400,7 +1395,7 @@ class AppserviceLoginRestServletTestCase(unittest.HomeserverTestCase):
 class UsernamePickerTestCase(HomeserverTestCase):
     """Tests for the username picker flow of SSO login"""
 
-    servlets = [login.register_servlets]
+    servlets = [login.register_servlets, relapse_client.register_servlets]
 
     def default_config(self) -> dict[str, Any]:
         config = super().default_config()
@@ -1419,11 +1414,6 @@ class UsernamePickerTestCase(HomeserverTestCase):
         # serving a confirmation page
         config["sso"] = {"client_whitelist": ["https://x"]}
         return config
-
-    def create_resource_dict(self) -> dict[str, Resource]:
-        d = super().create_resource_dict()
-        d.update(build_relapse_client_resource_tree(self.hs))
-        return d
 
     def test_username_picker(self) -> None:
         """Test the happy path of a username picker flow."""

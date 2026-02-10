@@ -12,14 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
+import re
 from typing import TYPE_CHECKING
 
-from relapse.http.server import (
-    DirectServeHtmlResource,
-    finish_request,
-    respond_with_html,
-)
-from relapse.http.servlet import parse_string
+from relapse.http.server import finish_request, respond_with_html
+from relapse.http.servlet import RestServlet, parse_string
 from relapse.http.site import RelapseRequest
 
 if TYPE_CHECKING:
@@ -28,22 +25,23 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class PickIdpResource(DirectServeHtmlResource):
-    """IdP picker resource.
+class PickIdpServlet(RestServlet):
+    """IdP picker.
 
-    This resource gets mounted under /_relapse/client/pick_idp. It serves an HTML page
+    This servlet gets mounted under /_relapse/client/pick_idp. It serves an HTML page
     which prompts the user to choose an Identity Provider from the list.
     """
 
+    PATTERNS = [re.compile(r"/_relapse/client/pick_idp$")]
+
     def __init__(self, hs: "HomeServer"):
-        super().__init__()
         self._sso_handler = hs.get_sso_handler()
         self._sso_login_idp_picker_template = (
             hs.config.sso.sso_login_idp_picker_template
         )
         self._server_name = hs.hostname
 
-    async def _async_render_GET(self, request: RelapseRequest) -> None:
+    async def on_GET(self, request: RelapseRequest) -> None:
         client_redirect_url = parse_string(
             request, "redirectUrl", required=True, encoding="utf-8"
         )

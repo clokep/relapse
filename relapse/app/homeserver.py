@@ -59,7 +59,7 @@ from relapse.replication.http import (
 )
 from relapse.rest import admin, client, federation, key, media, well_known
 from relapse.rest.health import HealthServlet
-from relapse.rest.relapse.client import build_relapse_client_resource_tree
+from relapse.rest.relapse import client as relapse_client
 from relapse.rest.relapse.metrics import MetricsServlet
 from relapse.server import HomeServer
 from relapse.storage import DataStore
@@ -163,9 +163,13 @@ class RelapseHomeServer(HomeServer):
         if name == "client":
             client_server = JsonResource(self, canonical_json=False)
             client.register_servlets(self, client_server)
+            client.register_servlets(self, client_server)
             client_resource: Resource = client_server
             if compress:
                 client_resource = gz_wrap(client_resource)
+
+            relapse_resource = JsonResource(self, canonical_json=False)
+            relapse_client.register_servlets(self, relapse_resource)
 
             well_known_resource = JsonResource(self, canonical_json=False)
             well_known.register_servlets(self, well_known_resource)
@@ -178,18 +182,16 @@ class RelapseHomeServer(HomeServer):
                     CLIENT_API_PREFIX: client_resource,
                     "/.well-known": well_known_resource,
                     "/_relapse/admin": admin_resource,
-                    **build_relapse_client_resource_tree(self),
+                    "/_relapse": relapse_resource,
                 }
             )
 
             if self.config.email.can_verify_email:
                 from relapse.rest.relapse.client.password_reset import (
-                    PasswordResetSubmitTokenResource,
+                    PasswordResetSubmitTokenServlet,
                 )
 
-                resources["/_relapse/client/password_reset/email/submit_token"] = (
-                    PasswordResetSubmitTokenResource(self)
-                )
+                PasswordResetSubmitTokenServlet(self).register(relapse_resource)
 
         if name == "consent":
             from relapse.rest.consent.consent_resource import ConsentResource
