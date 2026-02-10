@@ -33,7 +33,7 @@ def admin_patterns(path_regex: str, version: str = "v1") -> Iterable[Pattern]:
     Returns:
         A list of regex patterns.
     """
-    admin_prefix = "^/_relapse/admin/" + version
+    admin_prefix = "^/_(syn|rel)apse/admin/" + version
     patterns = [re.compile(admin_prefix + path_regex)]
     return patterns
 
