@@ -70,10 +70,12 @@ def build_relapse_client_resource_tree(hs: "HomeServer") -> Mapping[str, Resourc
         resources["/_relapse/client/oidc"] = resource
 
     if hs.config.saml2.saml2_enabled:
-        from relapse.rest.relapse.client.saml2 import SAML2Resource
+        from relapse.rest.relapse.client.saml2 import SAML2MetadataServlet, SAML2ResponseServlet
 
-        res = SAML2Resource(hs)
-        resources["/_relapse/client/saml2"] = res
+        resource = JsonResource(hs, canonical_json=False)
+        SAML2MetadataServlet(hs).register(resource)
+        SAML2ResponseServlet(hs).register(resource)
+        resources["/_relapse/client/saml2"] = resource
 
     return resources
 

@@ -12,29 +12,28 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import re
 from typing import TYPE_CHECKING
 
 from twisted.web.server import Request
 
-from relapse.http.server import DirectServeHtmlResource
+from relapse.http.servlet import RestServlet
 from relapse.http.site import RelapseRequest
 
 if TYPE_CHECKING:
     from relapse.server import HomeServer
 
 
-class SAML2ResponseResource(DirectServeHtmlResource):
-    """A Twisted web resource which handles the SAML response"""
+class SAML2ResponseServlet(RestServlet):
+    """A servlet which handles the SAML response"""
 
-    isLeaf = 1
+    PATTERNS = [re.compile(r"/_relapse/client/saml2/authn_response$")]
 
     def __init__(self, hs: "HomeServer"):
-        super().__init__()
         self._saml_handler = hs.get_saml_handler()
         self._sso_handler = hs.get_sso_handler()
 
-    async def _async_render_GET(self, request: Request) -> None:
+    async def on_GET(self, request: Request) -> None:
         # We're not expecting any GET request on that resource if everything goes right,
         # but some IdPs sometimes end up responding with a 302 redirect on this endpoint.
         # In this case, just tell the user that something went wrong and they should
@@ -43,5 +42,5 @@ class SAML2ResponseResource(DirectServeHtmlResource):
             request, "unexpected_get", "Unexpected GET request on /saml2/authn_response"
         )
 
-    async def _async_render_POST(self, request: RelapseRequest) -> None:
+    async def on_POST(self, request: RelapseRequest) -> None:
         await self._saml_handler.handle_saml_response(request)
