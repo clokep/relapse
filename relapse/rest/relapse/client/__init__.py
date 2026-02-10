@@ -59,9 +59,15 @@ def build_relapse_client_resource_tree(hs: "HomeServer") -> Mapping[str, Resourc
     # provider-specific SSO bits. Only load these if they are enabled, since they
     # rely on optional dependencies.
     if hs.config.oidc.oidc_enabled:
-        from relapse.rest.relapse.client.oidc import OIDCResource
+        from relapse.rest.relapse.client.oidc import (
+            OIDCBackchannelLogoutServlet,
+            OIDCCallbackServlet,
+        )
 
-        resources["/_relapse/client/oidc"] = OIDCResource(hs)
+        resource = JsonResource(hs, canonical_json=False)
+        OIDCCallbackServlet(hs).register(resource)
+        OIDCBackchannelLogoutServlet(hs).register(resource)
+        resources["/_relapse/client/oidc"] = resource
 
     if hs.config.saml2.saml2_enabled:
         from relapse.rest.relapse.client.saml2 import SAML2Resource

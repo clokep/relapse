@@ -12,27 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
-from typing import TYPE_CHECKING
-
-from twisted.web.resource import Resource
-
-from relapse.rest.relapse.client.oidc.backchannel_logout_resource import (
-    OIDCBackchannelLogoutResource,
+from relapse.rest.relapse.client.oidc.backchannel_logout import (
+    OIDCBackchannelLogoutServlet,
 )
-from relapse.rest.relapse.client.oidc.callback_resource import OIDCCallbackResource
+from relapse.rest.relapse.client.oidc.callback import OIDCCallbackServlet
 
-if TYPE_CHECKING:
-    from relapse.server import HomeServer
-
-logger = logging.getLogger(__name__)
-
-
-class OIDCResource(Resource):
-    def __init__(self, hs: "HomeServer"):
-        Resource.__init__(self)
-        self.putChild(b"callback", OIDCCallbackResource(hs))
-        self.putChild(b"backchannel_logout", OIDCBackchannelLogoutResource(hs))
-
-
-__all__ = ["OIDCResource"]
+__all__ = ["OIDCBackchannelLogoutServlet", "OIDCCallbackServlet"]

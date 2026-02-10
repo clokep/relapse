@@ -1,4 +1,4 @@
-# Copyright 2022 The Matrix.org Foundation C.I.C.
+# Copyright 2020 Quentin Gliech
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,9 +13,10 @@
 # limitations under the License.
 
 import logging
+import re
 from typing import TYPE_CHECKING
 
-from relapse.http.server import DirectServeJsonResource
+from relapse.http.servlet import RestServlet
 from relapse.http.site import RelapseRequest
 
 if TYPE_CHECKING:
@@ -24,12 +25,18 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class OIDCBackchannelLogoutResource(DirectServeJsonResource):
-    isLeaf = 1
+class OIDCCallbackServlet(RestServlet):
+    PATTERNS = [re.compile(r"/_relapse/client/oidc/callback")]
 
     def __init__(self, hs: "HomeServer"):
         super().__init__()
         self._oidc_handler = hs.get_oidc_handler()
 
-    async def _async_render_POST(self, request: RelapseRequest) -> None:
-        await self._oidc_handler.handle_backchannel_logout(request)
+    async def on_GET(self, request: RelapseRequest) -> None:
+        await self._oidc_handler.handle_oidc_callback(request)
+
+    async def on_POST(self, request: RelapseRequest) -> None:
+        # the auth response can be returned via an x-www-form-urlencoded form instead
+        # of GET params, as per
+        # https://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html.
+        await self._oidc_handler.handle_oidc_callback(request)
