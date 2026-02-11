@@ -33,7 +33,6 @@ from relapse.types import JsonDict, UserID
 from relapse.util import Clock
 
 from tests import unittest
-from tests.server import FakeSite, make_request
 from tests.unittest import override_config
 
 
