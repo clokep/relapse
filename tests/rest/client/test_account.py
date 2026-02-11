@@ -43,7 +43,9 @@ class PasswordResetTestCase(unittest.HomeserverTestCase):
         admin.register_servlets,
         register.register_servlets,
         login.register_servlets,
-        lambda hs, http_server: PasswordResetSubmitTokenServlet(hs).register(http_server)
+        lambda hs, http_server: PasswordResetSubmitTokenServlet(hs).register(
+            http_server
+        ),
     ]
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:

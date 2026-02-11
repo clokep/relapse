@@ -224,7 +224,7 @@ class EmailPusherTests(HomeserverTestCase):
 
         # Open the unsubscribe link.
         unsubscribe_link = multipart_msg["List-Unsubscribe"].strip("<>")
-        unsubscribe_path = unsubscribe_link[unsubscribe_link.find("/_relapse"):]
+        unsubscribe_path = unsubscribe_link[unsubscribe_link.find("/_relapse") :]
         channel = self.make_request(
             "POST" if use_post else "GET",
             unsubscribe_path,
