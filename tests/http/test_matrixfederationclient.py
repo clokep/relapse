@@ -694,8 +694,8 @@ class FederationClientProxyTests(BaseMultiWorkerStreamTestCase):
         )
 
         # Fake `remoteserv:8008` responding to requests
-        mock_agent_on_federation_sender.request.side_effect = (
-            lambda *args, **kwargs: defer.succeed(
+        mock_agent_on_federation_sender.request.side_effect = lambda *args, **kwargs: (
+            defer.succeed(
                 FakeResponse.json(
                     payload={
                         "foo": "bar",
@@ -752,8 +752,8 @@ class FederationClientProxyTests(BaseMultiWorkerStreamTestCase):
         )
 
         # Fake `remoteserv:8008` responding to requests
-        mock_agent_on_federation_sender.request.side_effect = (
-            lambda *args, **kwargs: defer.fail(ResponseNeverReceived("fake error"))
+        mock_agent_on_federation_sender.request.side_effect = lambda *args, **kwargs: (
+            defer.fail(ResponseNeverReceived("fake error"))
         )
 
         # This federation request from the main process should be proxied through the
@@ -806,8 +806,8 @@ class FederationClientProxyTests(BaseMultiWorkerStreamTestCase):
         )
 
         # Fake `remoteserv:8008` responding to requests
-        mock_agent_on_federation_sender.request.side_effect = (
-            lambda *args, **kwargs: defer.succeed(
+        mock_agent_on_federation_sender.request.side_effect = lambda *args, **kwargs: (
+            defer.succeed(
                 FakeResponse(
                     code=200,
                     body=b'{"foo": "bar"}',

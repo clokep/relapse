@@ -262,13 +262,13 @@ def parse_html_to_open_graph(soup: "BeautifulSoup") -> dict[str, str | None]:
         )
         images = sorted(
             filter(
-                lambda tag: int(cast(str, tag["width"])) > 10
-                and int(cast(str, tag["height"])) > 10,
+                lambda tag: (
+                    int(cast(str, tag["width"])) > 10
+                    and int(cast(str, tag["height"])) > 10
+                ),
                 raw_images,
             ),
-            key=lambda i: (
-                float(cast(str, i["width"])) * float(cast(str, i["height"]))
-            ),
+            key=lambda i: float(cast(str, i["width"])) * float(cast(str, i["height"])),
         )
         # If no images were found, try to find *any* images.
         if not images:
