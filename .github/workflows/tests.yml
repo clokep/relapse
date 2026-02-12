@@ -335,7 +335,7 @@ jobs:
         timeout-minutes: 2
         run: until pg_isready -h localhost; do sleep 1; done
       - run: |
-          pip freeze
+          poetry run pip freeze
           poetry run trial --reactor=asyncio --jobs=6 tests
         env:
           RELAPSE_POSTGRES: ${{ matrix.job.database == 'postgres' || '' }}
