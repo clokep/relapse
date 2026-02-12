@@ -163,7 +163,6 @@ class RelapseHomeServer(HomeServer):
         if name == "client":
             client_server = JsonResource(self, canonical_json=False)
             client.register_servlets(self, client_server)
-            client.register_servlets(self, client_server)
             client_resource: Resource = client_server
             if compress:
                 client_resource = gz_wrap(client_resource)
