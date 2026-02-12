@@ -87,7 +87,7 @@ jobs:
           poetry remove twisted
           poetry add --extras tls git+https://github.com/twisted/twisted.git#trunk
           poetry install --no-interaction --extras "all test"
-      - run: poetry run trial --jobs 2 tests
+      - run: poetry run trial --reactor=asyncio --jobs 2 tests
 
       - name: Dump logs
         # Logs are most useful when the command fails, always include them.

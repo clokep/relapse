@@ -337,7 +337,7 @@ jobs:
       - run: |
           ls
           pip freeze
-          poetry run trial --jobs=6 tests
+          poetry run trial --reactor=asyncio --jobs=6 tests
         env:
           RELAPSE_POSTGRES: ${{ matrix.job.database == 'postgres' || '' }}
           RELAPSE_POSTGRES_HOST: /var/run/postgresql
@@ -431,7 +431,7 @@ jobs:
         with:
           python-version: "pypy-${{ env.MIN_PYTHON_VERSION }}"
           extras: "all"
-      - run: poetry run trial --jobs=2 tests
+      - run: poetry run trial --reactor=asyncio --jobs=2 tests
       - name: Dump logs
         # Logs are most useful when the command fails, always include them.
         if: ${{ always() }}
