@@ -336,7 +336,7 @@ jobs:
         run: until pg_isready -h localhost; do sleep 1; done
       - run: |
           poetry run trial --help-reactors
-          pip freese | grep -i twisted
+          pip freeze | grep -i twisted
           poetry run trial --reactor=asyncio --jobs=6 tests
         env:
           RELAPSE_POSTGRES: ${{ matrix.job.database == 'postgres' || '' }}
