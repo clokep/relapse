@@ -334,9 +334,7 @@ jobs:
         if: ${{ matrix.job.postgres-version }}
         timeout-minutes: 2
         run: until pg_isready -h localhost; do sleep 1; done
-      - run: |
-          poetry run pip freeze
-          poetry run trial --reactor=asyncio --jobs=6 tests
+      - run: poetry run trial tests
         env:
           RELAPSE_POSTGRES: ${{ matrix.job.database == 'postgres' || '' }}
           RELAPSE_POSTGRES_HOST: /var/run/postgresql
