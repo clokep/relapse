@@ -441,6 +441,8 @@ class JsonResource(DirectServeJsonResource):
     The JsonResource is primarily intended for returning JSON, but callbacks
     may send something other than JSON, they may do so by using the methods
     on the request object and instead returning None.
+
+    TODO Better handling of HTML error templates and redirects.
     """
 
     isLeaf = True
@@ -553,36 +555,6 @@ class JsonResource(DirectServeJsonResource):
     ) -> None:
         """Implements _AsyncResource._send_error_response"""
         return_json_error(f, request, self.hs.config)
-
-
-class DirectServeHtmlResource(_AsyncResource):
-    """A resource that will call `self._async_on_<METHOD>` on new requests,
-    formatting responses and errors as HTML.
-    """
-
-    # The error template to use for this resource
-    ERROR_TEMPLATE = HTML_ERROR_TEMPLATE
-
-    def _send_response(
-        self,
-        request: "RelapseRequest",
-        code: int,
-        response_object: Any,
-    ) -> None:
-        """Implements _AsyncResource._send_response"""
-        # We expect to get bytes for us to write
-        assert isinstance(response_object, bytes)
-        html_bytes = response_object
-
-        respond_with_html_bytes(request, 200, html_bytes)
-
-    def _send_error_response(
-        self,
-        f: failure.Failure,
-        request: "RelapseRequest",
-    ) -> None:
-        """Implements _AsyncResource._send_error_response"""
-        return_html_error(f, request, self.ERROR_TEMPLATE)
 
 
 class StaticResource(File):
