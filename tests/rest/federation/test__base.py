@@ -63,15 +63,15 @@ class BaseFederationServletCancellationTests(unittest.FederatingHomeserverTestCa
 
     path = f"{CancellableFederationServlet.PREFIX}{CancellableFederationServlet.PATH}"
 
-    def create_test_resource(self) -> Resource:
+    def create_test_resource(self, hs: HomeServer) -> Resource:
         """Overrides `HomeserverTestCase.create_test_resource`."""
-        resource = JsonResource(self.hs)
+        resource = JsonResource(hs)
 
         CancellableFederationServlet(
             hs=self.hs,
-            authenticator=Authenticator(self.hs),
-            ratelimiter=self.hs.get_federation_ratelimiter(),
-            server_name=self.hs.hostname,
+            authenticator=Authenticator(hs),
+            ratelimiter=hs.get_federation_ratelimiter(),
+            server_name=hs.hostname,
         ).register(resource)
 
         return resource

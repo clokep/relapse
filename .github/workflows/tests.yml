@@ -334,7 +334,12 @@ jobs:
         if: ${{ matrix.job.postgres-version }}
         timeout-minutes: 2
         run: until pg_isready -h localhost; do sleep 1; done
-      - run: poetry run trial --jobs=6 tests
+      # Twisted doesn't yet properly setup the asyncio reactor for Python 3.14, so
+      # don't run trial in multi-process mode.
+      - run: poetry run trial --reactor=asyncio --jobs=6 tests
+        if: ${{ matrix.job.python-version != '3.14' }}
+      - run: poetry run trial tests
+        if: ${{ matrix.job.python-version == '3.14' }}
         env:
           RELAPSE_POSTGRES: ${{ matrix.job.database == 'postgres' || '' }}
           RELAPSE_POSTGRES_HOST: /var/run/postgresql
@@ -428,7 +433,7 @@ jobs:
         with:
           python-version: "pypy-${{ env.MIN_PYTHON_VERSION }}"
           extras: "all"
-      - run: poetry run trial --jobs=2 tests
+      - run: poetry run trial --reactor=asyncio --jobs=2 tests
       - name: Dump logs
         # Logs are most useful when the command fails, always include them.
         if: ${{ always() }}

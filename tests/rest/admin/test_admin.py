@@ -32,9 +32,9 @@ from tests.test_utils import SMALL_PNG
 class VersionTestCase(unittest.HomeserverTestCase):
     url = "/_relapse/admin/v1/server_version"
 
-    def create_test_resource(self) -> JsonResource:
-        resource = JsonResource(self.hs)
-        VersionServlet(self.hs).register(resource)
+    def create_test_resource(self, hs: HomeServer) -> JsonResource:
+        resource = JsonResource(hs)
+        VersionServlet(hs).register(resource)
         return resource
 
     def test_version_string(self) -> None:

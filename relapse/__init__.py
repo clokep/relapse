@@ -44,6 +44,7 @@ if "twisted.internet.reactor" in sys.modules:
     from twisted.internet import reactor
 
     if not isinstance(reactor, asyncioreactor.AsyncioSelectorReactor):
+        print(reactor)
         print("Relapse requires using the asyncioreactor.")
         sys.exit(1)
 
