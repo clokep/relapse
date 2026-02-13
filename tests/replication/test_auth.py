@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 class WorkerAuthenticationTestCase(BaseMultiWorkerStreamTestCase):
     """Test the authentication of HTTP calls between workers."""
 
-    servlets = [register.register_servlets]
+    servlets = [register.register_servlets] + BaseMultiWorkerStreamTestCase.servlets
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         config = self.default_config()

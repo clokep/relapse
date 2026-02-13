@@ -17,7 +17,7 @@ from http import HTTPStatus
 from twisted.web.server import Request
 
 from relapse.api.errors import Codes
-from relapse.http.server import JsonResource
+from relapse.http.server import HttpServer
 from relapse.replication.http import REPLICATION_PREFIX
 from relapse.replication.http._base import ReplicationEndpoint
 from relapse.server import HomeServer
@@ -70,17 +70,15 @@ class UncancellableReplicationEndpoint(ReplicationEndpoint):
         return HTTPStatus.OK, {"result": True}
 
 
+def register_test_servlets(hs: HomeServer, http_server: HttpServer) -> None:
+    CancellableReplicationEndpoint(hs).register(http_server)
+    UncancellableReplicationEndpoint(hs).register(http_server)
+
+
 class ReplicationEndpointCancellationTestCase(unittest.HomeserverTestCase):
     """Tests for `ReplicationEndpoint` cancellation."""
 
-    def create_test_resource(self) -> JsonResource:
-        """Overrides `HomeserverTestCase.create_test_resource`."""
-        resource = JsonResource(self.hs)
-
-        CancellableReplicationEndpoint(self.hs).register(resource)
-        UncancellableReplicationEndpoint(self.hs).register(resource)
-
-        return resource
+    servlets = [register_test_servlets]
 
     def test_cancellable_disconnect(self) -> None:
         """Test that handlers with the `@cancellable` flag can be cancelled."""

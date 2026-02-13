@@ -188,9 +188,9 @@ class UIAuthTests(unittest.HomeserverTestCase):
 
         return config
 
-    def create_resource_dict(self) -> dict[str, Resource]:
-        resource_dict = super().create_resource_dict()
-        resource_dict.update(build_relapse_client_resource_tree(self.hs))
+    def create_resource_dict(self, hs: HomeServer) -> dict[str, Resource]:
+        resource_dict = super().create_resource_dict(hs)
+        resource_dict.update(build_relapse_client_resource_tree(hs))
         return resource_dict
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
@@ -1216,9 +1216,9 @@ class OidcBackchannelLogoutTests(unittest.HomeserverTestCase):
 
         return config
 
-    def create_resource_dict(self) -> dict[str, Resource]:
-        resource_dict = super().create_resource_dict()
-        resource_dict.update(build_relapse_client_resource_tree(self.hs))
+    def create_resource_dict(self, hs: HomeServer) -> dict[str, Resource]:
+        resource_dict = super().create_resource_dict(hs)
+        resource_dict.update(build_relapse_client_resource_tree(hs))
         return resource_dict
 
     def submit_logout_token(self, logout_token: str) -> FakeChannel:

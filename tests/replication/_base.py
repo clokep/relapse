@@ -22,7 +22,6 @@ from twisted.python.failure import Failure
 
 from relapse.app.generic_worker import GenericWorkerServer
 from relapse.config.workers import InstanceTcpLocationConfig, InstanceUnixLocationConfig
-from relapse.http.server import JsonResource
 from relapse.http.site import RelapseRequest, RelapseSite
 from relapse.replication.http import register_servlets
 from relapse.replication.tcp.client import ReplicationDataHandler
@@ -235,6 +234,8 @@ class BaseMultiWorkerStreamTestCase(unittest.HomeserverTestCase):
         # Redis replication only takes place on Postgres
         skip = "Requires Postgres"
 
+    servlets = [register_servlets]
+
     def default_config(self) -> dict[str, Any]:
         """
         Overrides the default config to enable Redis.
@@ -348,10 +349,7 @@ class BaseMultiWorkerStreamTestCase(unittest.HomeserverTestCase):
         store.db_pool._db_pool = self.database_pool._db_pool
 
         # Set up a resource for the worker
-        resource = JsonResource(self.hs)
-
-        for servlet in self.servlets:
-            servlet(worker_hs, resource)
+        resource = self.create_test_resource(worker_hs)
 
         self._hs_to_site[worker_hs] = RelapseSite(
             logger_name="relapse.access.http.fake",
@@ -370,6 +368,7 @@ class BaseMultiWorkerStreamTestCase(unittest.HomeserverTestCase):
 
     def _get_worker_hs_config(self) -> dict:
         config = self.default_config()
+        config["worker_app"] = "relapse.app.generic_worker"
         return config
 
     def replicate(self) -> None:

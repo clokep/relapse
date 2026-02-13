@@ -16,6 +16,7 @@
 from twisted.web.resource import Resource
 
 from relapse.rest.relapse.client import build_relapse_client_resource_tree
+from relapse.server import HomeServer
 
 from tests.unittest import HomeserverTestCase, override_config, skip_unless
 from tests.utils import HAS_AUTHLIB
@@ -25,9 +26,9 @@ from tests.utils import HAS_AUTHLIB
 class JWKSTestCase(HomeserverTestCase):
     """Test /_relapse/jwks JWKS data."""
 
-    def create_resource_dict(self) -> dict[str, Resource]:
-        d = super().create_resource_dict()
-        d.update(build_relapse_client_resource_tree(self.hs))
+    def create_resource_dict(self, hs: HomeServer) -> dict[str, Resource]:
+        d = super().create_resource_dict(hs)
+        d.update(build_relapse_client_resource_tree(hs))
         return d
 
     def test_empty_jwks(self) -> None:

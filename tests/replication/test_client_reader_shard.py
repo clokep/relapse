@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 class ClientReaderTestCase(BaseMultiWorkerStreamTestCase):
     """Test using one or more generic workers for registration."""
 
-    servlets = [register.register_servlets]
+    servlets = [register.register_servlets] + BaseMultiWorkerStreamTestCase.servlets
 
     def _get_worker_hs_config(self) -> dict:
         config = self.default_config()
