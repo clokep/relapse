@@ -193,9 +193,11 @@ class RelapseHomeServer(HomeServer):
                 PasswordResetSubmitTokenServlet(self).register(relapse_resource)
 
         if name == "consent":
-            from relapse.rest.consent.consent_resource import ConsentResource
+            from relapse.rest.consent import ConsentServlet
 
-            consent_resource: Resource = ConsentResource(self)
+            consent_server = JsonResource(self, canonical_json=False)
+            ConsentServlet(self).register(consent_server)
+            consent_resource: Resource = consent_server
             if compress:
                 consent_resource = gz_wrap(consent_resource)
             resources["/_matrix/consent"] = consent_resource
