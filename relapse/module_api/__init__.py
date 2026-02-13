@@ -49,7 +49,7 @@ from relapse.handlers.auth import (
 from relapse.handlers.device import DeviceHandler
 from relapse.handlers.push_rules import RuleSpec, check_actions
 from relapse.http.client import SimpleHttpClient
-from relapse.http.server import DirectServeJsonResource, respond_with_html
+from relapse.http.server import respond_with_html
 from relapse.http.servlet import parse_json_object_from_request
 from relapse.http.site import RelapseRequest
 from relapse.logging.context import (
@@ -150,7 +150,6 @@ __all__ = [
     "UserID",
     "DatabasePool",
     "LoggingTransaction",
-    "DirectServeJsonResource",
     "ModuleApi",
     "PRESENCE_ALL_USERS",
     "LoginResponse",

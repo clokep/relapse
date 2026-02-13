@@ -483,9 +483,6 @@ See the docs [request log format](../administration/request_log.md).
    * `compress`: set to true to enable gzip compression on HTTP bodies for this resource. This is currently only supported with the
      `client`, `consent`, `metrics` and `federation` resources.
 
-* `additional_resources`: Only valid for an 'http' listener. A map of
-   additional endpoints which should be loaded via dynamic modules.
-
 Unix socket support (_Added in Relapse 1.89.0_):
 * `path`: A path and filename for a Unix socket. Make sure it is located in a
   directory with read and write permissions, and that it already exists (the directory

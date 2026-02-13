@@ -80,7 +80,6 @@ class RelapseHomeServer(HomeServer):
     def listen_http(self, listener_config: ListenerConfig) -> Iterable[Port]:
         # Must exist since this is an HTTP listener.
         assert listener_config.http_options is not None
-        site_tag = listener_config.get_site_tag()
 
         # We always include a health resource.
         health_resource = JsonResource(self, canonical_json=False)
@@ -97,27 +96,6 @@ class RelapseHomeServer(HomeServer):
                     # Skip loading, health resource is always included
                     continue
                 resources.update(self._configure_named_resource(name, res.compress))
-
-        additional_resources = listener_config.http_options.additional_resources
-        logger.debug("Configuring additional resources: %r", additional_resources)
-        module_api = self.get_module_api()
-        for path, resmodule in additional_resources.items():
-            handler_cls, config = load_module(
-                resmodule,
-                ("listeners", site_tag, "additional_resources", f"<{path}>"),
-            )
-            handler = handler_cls(config, module_api)
-            if isinstance(handler, Resource):
-                resource = handler
-            elif hasattr(handler, "handle_request"):
-                resource = AdditionalResource(self, handler.handle_request)
-            else:
-                raise ConfigError(
-                    "additional_resource {} does not implement a known interface".format(
-                        resmodule["module"]
-                    )
-                )
-            resources[path] = resource
 
         # Attach additional resources registered by modules.
         resources.update(self._module_web_resources)

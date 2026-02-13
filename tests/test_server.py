@@ -22,9 +22,8 @@ from twisted.web.resource import Resource
 from relapse.api.errors import Codes, RelapseError
 from relapse.config.server import parse_listener_def
 from relapse.http.server import (
-    DirectServeJsonResource,
     JsonResource,
-    OptionsResource,
+    OptionsResource
 )
 from relapse.http.site import RelapseRequest, RelapseSite
 from relapse.logging.context import make_deferred_yieldable
@@ -300,7 +299,7 @@ class OptionsResourceTests(unittest.TestCase):
         self.assertEqual(channel.result["body"], b"/res/")
 
 
-class CancellableDirectServeJsonResource(DirectServeJsonResource):
+class CancellableJsonResource(JsonResource):
     def __init__(self, clock: Clock):
         super().__init__()
         self.clock = clock
@@ -315,13 +314,13 @@ class CancellableDirectServeJsonResource(DirectServeJsonResource):
         return HTTPStatus.OK, {"result": True}
 
 
-class DirectServeJsonResourceCancellationTests(unittest.TestCase):
-    """Tests for `DirectServeJsonResource` cancellation."""
+class JsonResourceCancellationTests(unittest.TestCase):
+    """Tests for `JsonResource` cancellation."""
 
     def setUp(self) -> None:
         reactor, clock = get_clock()
         self.reactor = reactor
-        self.resource = CancellableDirectServeJsonResource(clock)
+        self.resource = CancellableJsonResource(clock)
         self.site = FakeSite(self.resource, self.reactor)
 
     def test_cancellable_disconnect(self) -> None:

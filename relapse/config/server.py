@@ -190,7 +190,6 @@ class HttpListenerConfig:
 
     x_forwarded: bool = False
     resources: list[HttpResourceConfig] = attr.Factory(list)
-    additional_resources: dict[str, dict] = attr.Factory(dict)
     tag: str | None = None
     request_id_header: str | None = None
 
@@ -907,7 +906,6 @@ def parse_listener_def(num: int, listener: Any) -> ListenerConfig:
         http_config = HttpListenerConfig(
             x_forwarded=listener.get("x_forwarded", (True if socket_path else False)),
             resources=resources,
-            additional_resources=listener.get("additional_resources", {}),
             tag=listener.get("tag"),
             request_id_header=listener.get("request_id_header"),
         )
