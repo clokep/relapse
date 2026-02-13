@@ -337,9 +337,9 @@ jobs:
       # Twisted doesn't yet properly setup the asyncio reactor for Python 3.14, so
       # don't run trial in multi-process mode.
       - run: poetry run trial --reactor=asyncio --jobs=6 trial tests
-        if: ${{ matrix.job.python-version != '3.14.x' }}
+        if: ${{ matrix.job.python-version != '3.14' }}
       - run: poetry run trial tests
-        if: ${{ matrix.job.python-version == '3.14.x' }}
+        if: ${{ matrix.job.python-version == '3.14' }}
         env:
           RELAPSE_POSTGRES: ${{ matrix.job.database == 'postgres' || '' }}
           RELAPSE_POSTGRES_HOST: /var/run/postgresql
