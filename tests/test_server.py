@@ -316,7 +316,9 @@ class CancellableRestServlet(RestServlet):
 class JsonResourceCancellationTests(unittest.HomeserverTestCase):
     """Tests for `JsonResource` cancellation."""
 
-    servlets = [lambda hs, http_server: CancellableRestServlet(hs).register(http_server)]
+    servlets = [
+        lambda hs, http_server: CancellableRestServlet(hs).register(http_server)
+    ]
 
     def test_cancellable_disconnect(self) -> None:
         """Test that handlers with the `@cancellable` flag can be cancelled."""
