@@ -624,9 +624,9 @@ class MultiSSOTestCase(unittest.HomeserverTestCase):
         ]
         return config
 
-    def create_resource_dict(self) -> dict[str, Resource]:
-        d = super().create_resource_dict()
-        d.update(build_relapse_client_resource_tree(self.hs))
+    def create_resource_dict(self, hs: HomeServer) -> dict[str, Resource]:
+        d = super().create_resource_dict(hs)
+        d.update(build_relapse_client_resource_tree(hs))
         return d
 
     def test_get_login_flows(self) -> None:
@@ -1420,9 +1420,9 @@ class UsernamePickerTestCase(HomeserverTestCase):
         config["sso"] = {"client_whitelist": ["https://x"]}
         return config
 
-    def create_resource_dict(self) -> dict[str, Resource]:
-        d = super().create_resource_dict()
-        d.update(build_relapse_client_resource_tree(self.hs))
+    def create_resource_dict(self, hs: HomeServer) -> dict[str, Resource]:
+        d = super().create_resource_dict(hs)
+        d.update(build_relapse_client_resource_tree(hs))
         return d
 
     def test_username_picker(self) -> None:

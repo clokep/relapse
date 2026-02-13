@@ -342,7 +342,7 @@ class HomeserverTestCase(TestCase):
             raise Exception(f"A homeserver wasn't returned, but {self.hs!r}")
 
         # create the root resource, and a site to wrap it.
-        self.resource = self.create_test_resource()
+        self.resource = self.create_test_resource(self.hs)
         self.site = RelapseSite(
             logger_name="relapse.access.http.fake",
             site_tag=self.hs.config.server.server_name,
@@ -446,18 +446,18 @@ class HomeserverTestCase(TestCase):
         hs = self.setup_test_homeserver()
         return hs
 
-    def create_test_resource(self) -> Resource:
+    def create_test_resource(self, hs: HomeServer) -> Resource:
         """
-        Create a the root resource for the test server.
+        Create the root resource for the test server.
 
         The default calls `self.create_resource_dict` and builds the resultant dict
         into a tree.
         """
         root_resource = OptionsResource()
-        create_resource_tree(self.create_resource_dict(), root_resource)
+        create_resource_tree(self.create_resource_dict(hs), root_resource)
         return root_resource
 
-    def create_resource_dict(self) -> dict[str, Resource]:
+    def create_resource_dict(self, hs: HomeServer) -> dict[str, Resource]:
         """Create a resource tree for the test server
 
         A resource tree is a mapping from path to twisted.web.resource.
@@ -465,9 +465,9 @@ class HomeserverTestCase(TestCase):
         The default implementation creates a JsonResource and calls each function in
         `servlets` to register servlets against it.
         """
-        servlet_resource = JsonResource(self.hs)
+        servlet_resource = JsonResource(hs)
         for servlet in self.servlets:
-            servlet(self.hs, servlet_resource)
+            servlet(hs, servlet_resource)
         return {
             "/.well-known": servlet_resource,
             "/health": servlet_resource,
@@ -875,10 +875,10 @@ class FederatingHomeserverTestCase(HomeserverTestCase):
             )
         )
 
-    def create_resource_dict(self) -> dict[str, Resource]:
-        d = super().create_resource_dict()
-        federation_resource = JsonResource(self.hs)
-        federation.register_servlets(self.hs, federation_resource)
+    def create_resource_dict(self, hs: HomeServer) -> dict[str, Resource]:
+        d = super().create_resource_dict(hs)
+        federation_resource = JsonResource(hs)
+        federation.register_servlets(hs, federation_resource)
         d["/_matrix/federation"] = federation_resource
         return d
 
