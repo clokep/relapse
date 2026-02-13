@@ -107,7 +107,7 @@ jobs:
       # don't do this then python can't find the native lib.
       - run: rm -rf relapse/
 
-      - run: python -m twisted.trial --reactor=asyncio --jobs=2 tests
+      - run: python -m twisted.trial tests
         env:
           RELAPSE_POSTGRES: ${{ matrix.database == 'postgres' || '' }}
           RELAPSE_POSTGRES_HOST: localhost
