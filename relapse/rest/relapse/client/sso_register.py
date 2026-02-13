@@ -13,13 +13,14 @@
 # limitations under the License.
 
 import logging
+import re
 from typing import TYPE_CHECKING
 
 from twisted.web.server import Request
 
 from relapse.api.errors import RelapseError
 from relapse.handlers.sso import get_username_mapping_session_cookie_from_request
-from relapse.http.server import DirectServeHtmlResource
+from relapse.http.servlet import RestServlet
 
 if TYPE_CHECKING:
     from relapse.server import HomeServer
@@ -27,19 +28,20 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class SsoRegisterResource(DirectServeHtmlResource):
-    """A resource which completes SSO registration
+class SsoRegisterServlet(RestServlet):
+    """A servlet which completes SSO registration
 
-    This resource gets mounted at /_relapse/client/sso_register, and is shown
+    This servlet gets mounted at /_relapse/client/sso_register, and is shown
     after we collect username and/or consent for a new SSO user. It (finally) registers
     the user, and confirms redirect to the client
     """
 
+    PATTERNS = [re.compile(r"/_relapse/client/sso_register$")]
+
     def __init__(self, hs: "HomeServer"):
-        super().__init__()
         self._sso_handler = hs.get_sso_handler()
 
-    async def _async_render_GET(self, request: Request) -> None:
+    async def on_GET(self, request: Request) -> None:
         try:
             session_id = get_username_mapping_session_cookie_from_request(request)
         except RelapseError as e:

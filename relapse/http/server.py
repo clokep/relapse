@@ -99,21 +99,38 @@ def return_json_error(
 ) -> None:
     """Sends a JSON error response to clients."""
 
-    if f.check(RelapseError):
+    if f.check(CodeMessageException):
         # mypy doesn't understand that f.check asserts the type.
-        exc: RelapseError = f.value
+        exc: CodeMessageException = f.value
         error_code = exc.code
-        error_dict = exc.error_dict(config)
+        error_dict = {}
         if exc.headers is not None:
             for header, value in exc.headers.items():
                 request.setHeader(header, value)
-        error_ctx = exc.debug_context
-        if error_ctx:
-            logger.info(
-                "%s RelapseError: %s - %s (%s)", request, error_code, exc.msg, error_ctx
-            )
+
+        if isinstance(exc, RedirectException):
+            logger.info("%s redirect to %s", request, exc.location)
+            request.setHeader(b"location", exc.location)
+            request.cookies.extend(exc.cookies)
+        elif isinstance(exc, RelapseError):
+            error_dict = exc.error_dict(config)
+            error_ctx = exc.debug_context
+            if error_ctx:
+                logger.info(
+                    "%s RelapseError: %s - %s (%s)",
+                    request,
+                    error_code,
+                    exc.msg,
+                    error_ctx,
+                )
+            else:
+                logger.info("%s RelapseError: %s - %s", request, error_code, exc.msg)
         else:
-            logger.info("%s RelapseError: %s - %s", request, error_code, exc.msg)
+            logger.error(
+                "Failed handle request %r",
+                request,
+                exc_info=(f.type, f.value, f.getTracebackObject()),
+            )
     elif f.check(CancelledError):
         error_code = HTTP_STATUS_REQUEST_CANCELLED
         error_dict = {"error": "Request cancelled", "errcode": Codes.UNKNOWN}

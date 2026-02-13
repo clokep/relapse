@@ -1,4 +1,4 @@
-# Copyright 2018 New Vector Ltd
+# Copyright 2022 The Matrix.org Foundation C.I.C.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,29 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
+import re
 from typing import TYPE_CHECKING
 
-import saml2.metadata
-
-from twisted.web.resource import Resource
-from twisted.web.server import Request
+from relapse.http.servlet import RestServlet
+from relapse.http.site import RelapseRequest
 
 if TYPE_CHECKING:
     from relapse.server import HomeServer
 
+logger = logging.getLogger(__name__)
 
-class SAML2MetadataResource(Resource):
-    """A Twisted web resource which renders the SAML metadata"""
 
-    isLeaf = 1
+class OIDCBackchannelLogoutServlet(RestServlet):
+    PATTERNS = [re.compile(r"/_relapse/client/oidc/backchannel_logout$")]
 
     def __init__(self, hs: "HomeServer"):
-        Resource.__init__(self)
-        self.sp_config = hs.config.saml2.saml2_sp_config
+        super().__init__()
+        self._oidc_handler = hs.get_oidc_handler()
 
-    def render_GET(self, request: Request) -> bytes:
-        metadata_xml = saml2.metadata.create_metadata_string(
-            configfile=None, config=self.sp_config
-        )
-        request.setHeader(b"Content-Type", b"text/xml; charset=utf-8")
-        return metadata_xml
+    async def on_POST(self, request: RelapseRequest) -> None:
+        await self._oidc_handler.handle_backchannel_logout(request)

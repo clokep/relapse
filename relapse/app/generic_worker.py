@@ -49,7 +49,7 @@ from relapse.replication.http import (
 from relapse.rest import client, federation, key, media, well_known
 from relapse.rest.admin import register_servlets_for_media_repo
 from relapse.rest.health import HealthServlet
-from relapse.rest.relapse.client import build_relapse_client_resource_tree
+from relapse.rest.relapse import client as relapse_client
 from relapse.rest.relapse.metrics import MetricsServlet
 from relapse.server import HomeServer
 from relapse.storage.databases.main.account_data import AccountDataWorkerStore
@@ -178,7 +178,9 @@ class GenericWorkerServer(HomeServer):
                     client.register_servlets(self, resource)
                     resources[CLIENT_API_PREFIX] = resource
 
-                    resources.update(build_relapse_client_resource_tree(self))
+                    relapse_resource = JsonResource(self, canonical_json=False)
+                    relapse_client.register_servlets(self, relapse_resource)
+                    resources["/_relapse"] = relapse_resource
 
                     well_known_resource = JsonResource(self, canonical_json=False)
                     well_known.register_servlets(self, well_known_resource)

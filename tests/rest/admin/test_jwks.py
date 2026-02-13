@@ -13,10 +13,7 @@
 # limitations under the License.
 
 
-from twisted.web.resource import Resource
-
-from relapse.rest.relapse.client import build_relapse_client_resource_tree
-from relapse.server import HomeServer
+from relapse.rest.relapse import client as relapse_client
 
 from tests.unittest import HomeserverTestCase, override_config, skip_unless
 from tests.utils import HAS_AUTHLIB
@@ -26,10 +23,7 @@ from tests.utils import HAS_AUTHLIB
 class JWKSTestCase(HomeserverTestCase):
     """Test /_relapse/jwks JWKS data."""
 
-    def create_resource_dict(self, hs: HomeServer) -> dict[str, Resource]:
-        d = super().create_resource_dict(hs)
-        d.update(build_relapse_client_resource_tree(hs))
-        return d
+    servlets = [relapse_client.register_servlets]
 
     def test_empty_jwks(self) -> None:
         """Test that the JWKS endpoint is not present by default."""

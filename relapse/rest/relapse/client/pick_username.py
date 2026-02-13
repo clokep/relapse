@@ -13,20 +13,16 @@
 # limitations under the License.
 
 import logging
+import re
 from collections.abc import Generator
 from typing import TYPE_CHECKING
 
-from twisted.web.resource import Resource
 from twisted.web.server import Request
 
 from relapse.api.errors import RelapseError
 from relapse.handlers.sso import get_username_mapping_session_cookie_from_request
-from relapse.http.server import (
-    DirectServeHtmlResource,
-    DirectServeJsonResource,
-    respond_with_html,
-)
-from relapse.http.servlet import parse_boolean, parse_string
+from relapse.http.server import respond_with_html
+from relapse.http.servlet import RestServlet, parse_boolean, parse_string
 from relapse.http.site import RelapseRequest
 from relapse.types import JsonDict
 from relapse.util.templates import build_jinja_env
@@ -37,29 +33,13 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-def pick_username_resource(hs: "HomeServer") -> Resource:
-    """Factory method to generate the username picker resource.
+class AvailabilityCheckServlet(RestServlet):
+    PATTERNS = [re.compile(r"/_relapse/client/pick_username/check")]
 
-    This resource gets mounted under /_relapse/client/pick_username and has two
-       children:
-
-      * "account_details": renders the form and handles the POSTed response
-      * "check": a JSON endpoint which checks if a userid is free.
-    """
-
-    res = Resource()
-    res.putChild(b"account_details", AccountDetailsResource(hs))
-    res.putChild(b"check", AvailabilityCheckResource(hs))
-
-    return res
-
-
-class AvailabilityCheckResource(DirectServeJsonResource):
     def __init__(self, hs: "HomeServer"):
-        super().__init__()
         self._sso_handler = hs.get_sso_handler()
 
-    async def _async_render_GET(self, request: Request) -> tuple[int, JsonDict]:
+    async def on_GET(self, request: Request) -> tuple[int, JsonDict]:
         localpart = parse_string(request, "username", required=True)
 
         session_id = get_username_mapping_session_cookie_from_request(request)
@@ -70,9 +50,10 @@ class AvailabilityCheckResource(DirectServeJsonResource):
         return 200, {"available": is_available}
 
 
-class AccountDetailsResource(DirectServeHtmlResource):
+class AccountDetailsServlet(RestServlet):
+    PATTERNS = [re.compile(r"/_relapse/client/pick_username/account_details$")]
+
     def __init__(self, hs: "HomeServer"):
-        super().__init__()
         self._sso_handler = hs.get_sso_handler()
 
         def template_search_dirs() -> Generator[str, None, None]:
@@ -82,7 +63,7 @@ class AccountDetailsResource(DirectServeHtmlResource):
 
         self._jinja_env = build_jinja_env(list(template_search_dirs()), hs.config)
 
-    async def _async_render_GET(self, request: Request) -> None:
+    async def on_GET(self, request: Request) -> None:
         try:
             session_id = get_username_mapping_session_cookie_from_request(request)
             session = self._sso_handler.get_mapping_session(session_id)
@@ -112,7 +93,7 @@ class AccountDetailsResource(DirectServeHtmlResource):
         html = template.render(template_params)
         respond_with_html(request, 200, html)
 
-    async def _async_render_POST(self, request: RelapseRequest) -> None:
+    async def on_POST(self, request: RelapseRequest) -> None:
         # This will always be set by the time Twisted calls us.
         assert request.args is not None
 

@@ -26,14 +26,13 @@ from relapse.api.errors import Codes, HttpResponseException
 from relapse.appservice import ApplicationService
 from relapse.rest import admin
 from relapse.rest.client import account, login, register, room
-from relapse.rest.relapse.client.password_reset import PasswordResetSubmitTokenResource
+from relapse.rest.relapse.client.password_reset import PasswordResetSubmitTokenServlet
 from relapse.server import HomeServer
 from relapse.storage._base import db_to_json
 from relapse.types import JsonDict, UserID
 from relapse.util import Clock
 
 from tests import unittest
-from tests.server import FakeSite, make_request
 from tests.unittest import override_config
 
 
@@ -43,6 +42,9 @@ class PasswordResetTestCase(unittest.HomeserverTestCase):
         admin.register_servlets,
         register.register_servlets,
         login.register_servlets,
+        lambda hs, http_server: PasswordResetSubmitTokenServlet(hs).register(
+            http_server
+        ),
     ]
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
@@ -86,7 +88,6 @@ class PasswordResetTestCase(unittest.HomeserverTestCase):
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = hs.get_datastores().main
-        self.submit_token_resource = PasswordResetSubmitTokenResource(hs)
 
     def attempt_wrong_password_login(self, username: str, password: str) -> None:
         """Attempts to login as the user with the given password, asserting
@@ -348,9 +349,7 @@ class PasswordResetTestCase(unittest.HomeserverTestCase):
         path = link.replace("https://example.com", "")
 
         # Load the password reset confirmation page
-        channel = make_request(
-            self.reactor,
-            FakeSite(self.submit_token_resource, self.reactor),
+        channel = self.make_request(
             "GET",
             path,
             shorthand=False,
@@ -362,9 +361,7 @@ class PasswordResetTestCase(unittest.HomeserverTestCase):
         # password reset confirm button
 
         # Confirm the password reset
-        channel = make_request(
-            self.reactor,
-            FakeSite(self.submit_token_resource, self.reactor),
+        channel = self.make_request(
             "POST",
             path,
             content=b"",

@@ -12,13 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
+import re
 from typing import TYPE_CHECKING
 
 from twisted.web.server import Request
 
-from relapse.api.errors import ThreepidValidationError
-from relapse.http.server import DirectServeHtmlResource
-from relapse.http.servlet import parse_string
+from relapse.api.errors import RedirectException, ThreepidValidationError
+from relapse.http.server import respond_with_html
+from relapse.http.servlet import RestServlet, parse_string
 from relapse.util.stringutils import assert_valid_client_secret
 
 if TYPE_CHECKING:
@@ -27,13 +28,13 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class PasswordResetSubmitTokenResource(DirectServeHtmlResource):
+class PasswordResetSubmitTokenServlet(RestServlet):
     """Handles 3PID validation token submission
 
-    This resource gets mounted under /_relapse/client/password_reset/email/submit_token
+    This servlet gets mounted under /_relapse/client/password_reset/email/submit_token
     """
 
-    isLeaf = 1
+    PATTERNS = [re.compile(r"/_relapse/client/password_reset/email/submit_token$")]
 
     def __init__(self, hs: "HomeServer"):
         """
@@ -58,7 +59,7 @@ class PasswordResetSubmitTokenResource(DirectServeHtmlResource):
         # This resource should only be mounted if email validation is enabled
         assert hs.config.email.can_verify_email
 
-    async def _async_render_GET(self, request: Request) -> tuple[int, bytes]:
+    async def on_GET(self, request: Request) -> None:
         sid = parse_string(request, "sid", required=True)
         token = parse_string(request, "token", required=True)
         client_secret = parse_string(request, "client_secret", required=True)
@@ -71,12 +72,12 @@ class PasswordResetSubmitTokenResource(DirectServeHtmlResource):
             "token": token,
             "client_secret": client_secret,
         }
-        return (
-            200,
-            self._confirmation_email_template.render(**template_vars).encode("utf-8"),
+
+        respond_with_html(
+            request, 200, self._confirmation_email_template.render(**template_vars)
         )
 
-    async def _async_render_POST(self, request: Request) -> tuple[int, bytes]:
+    async def on_POST(self, request: Request) -> None:
         sid = parse_string(request, "sid", required=True)
         token = parse_string(request, "token", required=True)
         client_secret = parse_string(request, "client_secret", required=True)
@@ -96,27 +97,16 @@ class PasswordResetSubmitTokenResource(DirectServeHtmlResource):
                     )
                 else:
                     next_link_bytes = next_link.encode("utf-8")
-                    request.setHeader("Location", next_link_bytes)
-                    return (
-                        302,
-                        (
-                            b'You are being redirected to <a src="%s">%s</a>.'
-                            % (next_link_bytes, next_link_bytes)
-                        ),
-                    )
+                    raise RedirectException(next_link_bytes)
 
             # Otherwise show the success template
-            html_bytes = self._email_password_reset_template_success_html.encode(
-                "utf-8"
-            )
+            html = self._email_password_reset_template_success_html
             status_code = 200
         except ThreepidValidationError as e:
             status_code = e.code
 
             # Show a failure page with a reason
             template_vars = {"failure_reason": e.msg}
-            html_bytes = self._failure_email_template.render(**template_vars).encode(
-                "utf-8"
-            )
+            html = self._failure_email_template.render(**template_vars)
 
-        return status_code, html_bytes
+        respond_with_html(request, status_code, html)

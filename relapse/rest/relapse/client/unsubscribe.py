@@ -11,33 +11,34 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import re
 from typing import TYPE_CHECKING
 
 from relapse.api.errors import StoreError
-from relapse.http.server import DirectServeHtmlResource, respond_with_html_bytes
-from relapse.http.servlet import parse_string
+from relapse.http.server import respond_with_html_bytes
+from relapse.http.servlet import RestServlet, parse_string
 from relapse.http.site import RelapseRequest
 
 if TYPE_CHECKING:
     from relapse.server import HomeServer
 
 
-class UnsubscribeResource(DirectServeHtmlResource):
+class UnsubscribeServlet(RestServlet):
     """
     To allow pusher to be delete by clicking a link (ie. GET request)
     """
 
+    PATTERNS = [re.compile(r"/_relapse/client/unsubscribe$")]
+
     SUCCESS_HTML = b"<html><body>You have been unsubscribed</body><html>"
 
     def __init__(self, hs: "HomeServer"):
-        super().__init__()
         self.notifier = hs.get_notifier()
         self.auth = hs.get_auth()
         self.pusher_pool = hs.get_pusherpool()
         self.macaroon_generator = hs.get_macaroon_generator()
 
-    async def _async_render_GET(self, request: RelapseRequest) -> None:
+    async def on_GET(self, request: RelapseRequest) -> None:
         """
         Handle a user opening an unsubscribe link in the browser, either via an
         HTML/Text email or via the List-Unsubscribe header.
@@ -64,10 +65,10 @@ class UnsubscribeResource(DirectServeHtmlResource):
         respond_with_html_bytes(
             request,
             200,
-            UnsubscribeResource.SUCCESS_HTML,
+            UnsubscribeServlet.SUCCESS_HTML,
         )
 
-    async def _async_render_POST(self, request: RelapseRequest) -> None:
+    async def on_POST(self, request: RelapseRequest) -> None:
         """
         Handle a mail user agent POSTing to the unsubscribe URL via the
         List-Unsubscribe & List-Unsubscribe-Post headers.
@@ -78,4 +79,4 @@ class UnsubscribeResource(DirectServeHtmlResource):
         # Assert the body has form encoded key/value pair of
         # List-Unsubscribe=One-Click.
 
-        await self._async_render_GET(request)
+        await self.on_GET(request)
