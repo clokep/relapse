@@ -336,7 +336,7 @@ jobs:
         run: until pg_isready -h localhost; do sleep 1; done
       # Twisted doesn't yet properly setup the asyncio reactor for Python 3.14, so
       # don't run trial in multi-process mode.
-      - run: poetry run trial --reactor=async --jobs=6 trial tests
+      - run: poetry run trial --reactor=asyncio --jobs=6 trial tests
         if: ${{ matrix.job.python-version != '3.14.x' }}
       - run: poetry run trial tests
         if: ${{ matrix.job.python-version == '3.14.x' }}
