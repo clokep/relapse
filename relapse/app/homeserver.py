@@ -44,7 +44,6 @@ from relapse.app._base import (
 from relapse.config._base import ConfigError, format_config_error
 from relapse.config.homeserver import HomeServerConfig
 from relapse.config.server import ListenerConfig, TCPListenerConfig
-from relapse.http.additional_resource import AdditionalResource
 from relapse.http.server import (
     JsonResource,
     OptionsResource,
@@ -65,7 +64,6 @@ from relapse.server import HomeServer
 from relapse.storage import DataStore
 from relapse.util.check_dependencies import VERSION, check_requirements
 from relapse.util.httpresourcetree import create_resource_tree
-from relapse.util.module_loader import load_module
 
 logger = logging.getLogger("relapse.app.homeserver")
 

@@ -21,14 +21,12 @@ from twisted.web.resource import Resource
 
 from relapse.api.errors import Codes, RelapseError
 from relapse.config.server import parse_listener_def
-from relapse.http.server import (
-    JsonResource,
-    OptionsResource
-)
+from relapse.http.server import JsonResource, OptionsResource
+from relapse.http.servlet import RestServlet
 from relapse.http.site import RelapseRequest, RelapseSite
 from relapse.logging.context import make_deferred_yieldable
+from relapse.server import HomeServer
 from relapse.types import JsonDict
-from relapse.util import Clock
 from relapse.util.cancellation import cancellable
 
 from tests import unittest
@@ -299,34 +297,34 @@ class OptionsResourceTests(unittest.TestCase):
         self.assertEqual(channel.result["body"], b"/res/")
 
 
-class CancellableJsonResource(JsonResource):
-    def __init__(self, clock: Clock):
-        super().__init__()
-        self.clock = clock
+class CancellableRestServlet(RestServlet):
+    PATTERNS = [re.compile(r"/_matrix/client/sleep")]
+
+    def __init__(self, hs: HomeServer) -> None:
+        self.clock = hs.get_clock()
 
     @cancellable
-    async def _async_render_GET(self, request: RelapseRequest) -> tuple[int, JsonDict]:
+    async def on_GET(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         await self.clock.sleep(1.0)
         return HTTPStatus.OK, {"result": True}
 
-    async def _async_render_POST(self, request: RelapseRequest) -> tuple[int, JsonDict]:
+    async def on_POST(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         await self.clock.sleep(1.0)
         return HTTPStatus.OK, {"result": True}
 
 
-class JsonResourceCancellationTests(unittest.TestCase):
+class JsonResourceCancellationTests(unittest.HomeserverTestCase):
     """Tests for `JsonResource` cancellation."""
 
-    def setUp(self) -> None:
-        reactor, clock = get_clock()
-        self.reactor = reactor
-        self.resource = CancellableJsonResource(clock)
-        self.site = FakeSite(self.resource, self.reactor)
+    servlets = [lambda hs, http_server: CancellableRestServlet(hs).register(http_server)]
 
     def test_cancellable_disconnect(self) -> None:
         """Test that handlers with the `@cancellable` flag can be cancelled."""
-        channel = make_request(
-            self.reactor, self.site, "GET", "/sleep", await_result=False
+        channel = self.make_request(
+            "GET",
+            "/_matrix/client/sleep",
+            await_result=False,
+            shorthand=False,
         )
         test_disconnect(
             self.reactor,
@@ -337,8 +335,11 @@ class JsonResourceCancellationTests(unittest.TestCase):
 
     def test_uncancellable_disconnect(self) -> None:
         """Test that handlers without the `@cancellable` flag cannot be cancelled."""
-        channel = make_request(
-            self.reactor, self.site, "POST", "/sleep", await_result=False
+        channel = self.make_request(
+            "POST",
+            "/_matrix/client/sleep",
+            await_result=False,
+            shorthand=False,
         )
         test_disconnect(
             self.reactor,
