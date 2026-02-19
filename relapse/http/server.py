@@ -389,47 +389,13 @@ class _AsyncResource(resource.Resource, metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
 
-class DirectServeJsonResource(_AsyncResource):
-    """A resource that will call `self._async_on_<METHOD>` on new requests,
-    formatting responses and errors as JSON.
-    """
-
-    def __init__(self, canonical_json: bool = False, extract_context: bool = False):
-        super().__init__(extract_context)
-        self.canonical_json = canonical_json
-
-    def _send_response(
-        self,
-        request: "RelapseRequest",
-        code: int,
-        response_object: Any,
-    ) -> None:
-        """Implements _AsyncResource._send_response"""
-        # TODO: Only enable CORS for the requests that need it.
-        respond_with_json(
-            request,
-            code,
-            response_object,
-            send_cors=True,
-            canonical_json=self.canonical_json,
-        )
-
-    def _send_error_response(
-        self,
-        f: failure.Failure,
-        request: "RelapseRequest",
-    ) -> None:
-        """Implements _AsyncResource._send_error_response"""
-        return_json_error(f, request, None)
-
-
 @attr.s(slots=True, frozen=True, auto_attribs=True)
 class _PathEntry:
     callback: ServletCallback
     servlet_classname: str
 
 
-class JsonResource(DirectServeJsonResource):
+class JsonResource(_AsyncResource):
     """This implements the HttpServer interface and provides JSON support for
     Resources.
 
@@ -441,6 +407,8 @@ class JsonResource(DirectServeJsonResource):
     The JsonResource is primarily intended for returning JSON, but callbacks
     may send something other than JSON, they may do so by using the methods
     on the request object and instead returning None.
+
+    TODO Better handling of HTML error templates and redirects.
     """
 
     isLeaf = True
@@ -451,7 +419,8 @@ class JsonResource(DirectServeJsonResource):
         canonical_json: bool = True,
         extract_context: bool = False,
     ):
-        super().__init__(canonical_json, extract_context)
+        super().__init__(extract_context)
+        self.canonical_json = canonical_json
         self.clock = hs.get_clock()
         # Map of path regex -> method -> callback.
         self._routes: dict[Pattern[str], dict[bytes, _PathEntry]] = {}
@@ -546,23 +515,6 @@ class JsonResource(DirectServeJsonResource):
 
         return callback_return
 
-    def _send_error_response(
-        self,
-        f: failure.Failure,
-        request: "RelapseRequest",
-    ) -> None:
-        """Implements _AsyncResource._send_error_response"""
-        return_json_error(f, request, self.hs.config)
-
-
-class DirectServeHtmlResource(_AsyncResource):
-    """A resource that will call `self._async_on_<METHOD>` on new requests,
-    formatting responses and errors as HTML.
-    """
-
-    # The error template to use for this resource
-    ERROR_TEMPLATE = HTML_ERROR_TEMPLATE
-
     def _send_response(
         self,
         request: "RelapseRequest",
@@ -570,11 +522,14 @@ class DirectServeHtmlResource(_AsyncResource):
         response_object: Any,
     ) -> None:
         """Implements _AsyncResource._send_response"""
-        # We expect to get bytes for us to write
-        assert isinstance(response_object, bytes)
-        html_bytes = response_object
-
-        respond_with_html_bytes(request, 200, html_bytes)
+        # TODO: Only enable CORS for the requests that need it.
+        respond_with_json(
+            request,
+            code,
+            response_object,
+            send_cors=True,
+            canonical_json=self.canonical_json,
+        )
 
     def _send_error_response(
         self,
@@ -582,7 +537,7 @@ class DirectServeHtmlResource(_AsyncResource):
         request: "RelapseRequest",
     ) -> None:
         """Implements _AsyncResource._send_error_response"""
-        return_html_error(f, request, self.ERROR_TEMPLATE)
+        return_json_error(f, request, self.hs.config)
 
 
 class StaticResource(File):

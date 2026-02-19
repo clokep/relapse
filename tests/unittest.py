@@ -472,6 +472,7 @@ class HomeserverTestCase(TestCase):
             "/.well-known": servlet_resource,
             "/health": servlet_resource,
             "/_matrix/client": servlet_resource,
+            "/_matrix/consent": servlet_resource,
             "/_matrix/key": servlet_resource,
             "/_matrix/media": servlet_resource,
             "/_relapse": servlet_resource,

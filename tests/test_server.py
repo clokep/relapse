@@ -13,25 +13,20 @@
 # limitations under the License.
 
 import re
-from collections.abc import Awaitable, Callable
 from http import HTTPStatus
 from typing import NoReturn
 
 from twisted.internet.defer import Deferred
 from twisted.web.resource import Resource
 
-from relapse.api.errors import Codes, RedirectException, RelapseError
+from relapse.api.errors import Codes, RelapseError
 from relapse.config.server import parse_listener_def
-from relapse.http.server import (
-    DirectServeHtmlResource,
-    DirectServeJsonResource,
-    JsonResource,
-    OptionsResource,
-)
+from relapse.http.server import JsonResource, OptionsResource
+from relapse.http.servlet import RestServlet
 from relapse.http.site import RelapseRequest, RelapseSite
 from relapse.logging.context import make_deferred_yieldable
+from relapse.server import HomeServer
 from relapse.types import JsonDict
-from relapse.util import Clock
 from relapse.util.cancellation import cancellable
 
 from tests import unittest
@@ -302,141 +297,36 @@ class OptionsResourceTests(unittest.TestCase):
         self.assertEqual(channel.result["body"], b"/res/")
 
 
-class WrapHtmlRequestHandlerTests(unittest.TestCase):
-    class TestResource(DirectServeHtmlResource):
-        callback: Callable[..., Awaitable[None]] | None
+class CancellableRestServlet(RestServlet):
+    PATTERNS = [re.compile(r"/_matrix/client/sleep")]
 
-        async def _async_render_GET(self, request: RelapseRequest) -> None:
-            assert self.callback is not None
-            await self.callback(request)
-
-    def setUp(self) -> None:
-        reactor, _ = get_clock()
-        self.reactor = reactor
-
-    def test_good_response(self) -> None:
-        async def callback(request: RelapseRequest) -> None:
-            request.write(b"response")
-            request.finish()
-
-        res = WrapHtmlRequestHandlerTests.TestResource()
-        res.callback = callback
-
-        channel = make_request(
-            self.reactor, FakeSite(res, self.reactor), b"GET", b"/path"
-        )
-
-        self.assertEqual(channel.code, 200)
-        body = channel.result["body"]
-        self.assertEqual(body, b"response")
-
-    def test_redirect_exception(self) -> None:
-        """
-        If the callback raises a RedirectException, it is turned into a 30x
-        with the right location.
-        """
-
-        async def callback(request: RelapseRequest, **kwargs: object) -> None:
-            raise RedirectException(b"/look/an/eagle", 301)
-
-        res = WrapHtmlRequestHandlerTests.TestResource()
-        res.callback = callback
-
-        channel = make_request(
-            self.reactor, FakeSite(res, self.reactor), b"GET", b"/path"
-        )
-
-        self.assertEqual(channel.code, 301)
-        location_headers = channel.headers.getRawHeaders(b"Location")
-        self.assertEqual(location_headers, [b"/look/an/eagle"])
-
-    def test_redirect_exception_with_cookie(self) -> None:
-        """
-        If the callback raises a RedirectException which sets a cookie, that is
-        returned too
-        """
-
-        async def callback(request: RelapseRequest, **kwargs: object) -> NoReturn:
-            e = RedirectException(b"/no/over/there", 304)
-            e.cookies.append(b"session=yespls")
-            raise e
-
-        res = WrapHtmlRequestHandlerTests.TestResource()
-        res.callback = callback
-
-        channel = make_request(
-            self.reactor, FakeSite(res, self.reactor), b"GET", b"/path"
-        )
-
-        self.assertEqual(channel.code, 304)
-        location_headers = channel.headers.getRawHeaders(b"Location")
-        self.assertEqual(location_headers, [b"/no/over/there"])
-        cookies_headers = channel.headers.getRawHeaders(b"Set-Cookie")
-        self.assertEqual(cookies_headers, [b"session=yespls"])
-
-    def test_head_request(self) -> None:
-        """A head request should work by being turned into a GET request."""
-
-        async def callback(request: RelapseRequest) -> None:
-            request.write(b"response")
-            request.finish()
-
-        res = WrapHtmlRequestHandlerTests.TestResource()
-        res.callback = callback
-
-        channel = make_request(
-            self.reactor, FakeSite(res, self.reactor), b"HEAD", b"/path"
-        )
-
-        self.assertEqual(channel.code, 200)
-        self.assertNotIn("body", channel.result)
-
-
-class CancellableDirectServeJsonResource(DirectServeJsonResource):
-    def __init__(self, clock: Clock):
-        super().__init__()
-        self.clock = clock
+    def __init__(self, hs: HomeServer) -> None:
+        self.clock = hs.get_clock()
 
     @cancellable
-    async def _async_render_GET(self, request: RelapseRequest) -> tuple[int, JsonDict]:
+    async def on_GET(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         await self.clock.sleep(1.0)
         return HTTPStatus.OK, {"result": True}
 
-    async def _async_render_POST(self, request: RelapseRequest) -> tuple[int, JsonDict]:
+    async def on_POST(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         await self.clock.sleep(1.0)
         return HTTPStatus.OK, {"result": True}
 
 
-class CancellableDirectServeHtmlResource(DirectServeHtmlResource):
-    ERROR_TEMPLATE = "{code} {msg}"
+class JsonResourceCancellationTests(unittest.HomeserverTestCase):
+    """Tests for `JsonResource` cancellation."""
 
-    def __init__(self, clock: Clock):
-        super().__init__()
-        self.clock = clock
-
-    @cancellable
-    async def _async_render_GET(self, request: RelapseRequest) -> tuple[int, bytes]:
-        await self.clock.sleep(1.0)
-        return HTTPStatus.OK, b"ok"
-
-    async def _async_render_POST(self, request: RelapseRequest) -> tuple[int, bytes]:
-        await self.clock.sleep(1.0)
-        return HTTPStatus.OK, b"ok"
-
-
-class DirectServeJsonResourceCancellationTests(unittest.TestCase):
-    """Tests for `DirectServeJsonResource` cancellation."""
-
-    def setUp(self) -> None:
-        reactor, clock = get_clock()
-        self.reactor = reactor
-        self.resource = CancellableDirectServeJsonResource(clock)
-        self.site = FakeSite(self.resource, self.reactor)
+    servlets = [
+        lambda hs, http_server: CancellableRestServlet(hs).register(http_server)
+    ]
 
     def test_cancellable_disconnect(self) -> None:
         """Test that handlers with the `@cancellable` flag can be cancelled."""
-        channel = make_request(
-            self.reactor, self.site, "GET", "/sleep", await_result=False
+        channel = self.make_request(
+            "GET",
+            "/_matrix/client/sleep",
+            await_result=False,
+            shorthand=False,
         )
         test_disconnect(
             self.reactor,
@@ -447,43 +337,15 @@ class DirectServeJsonResourceCancellationTests(unittest.TestCase):
 
     def test_uncancellable_disconnect(self) -> None:
         """Test that handlers without the `@cancellable` flag cannot be cancelled."""
-        channel = make_request(
-            self.reactor, self.site, "POST", "/sleep", await_result=False
+        channel = self.make_request(
+            "POST",
+            "/_matrix/client/sleep",
+            await_result=False,
+            shorthand=False,
         )
         test_disconnect(
             self.reactor,
             channel,
             expect_cancellation=False,
             expected_body={"result": True},
-        )
-
-
-class DirectServeHtmlResourceCancellationTests(unittest.TestCase):
-    """Tests for `DirectServeHtmlResource` cancellation."""
-
-    def setUp(self) -> None:
-        reactor, clock = get_clock()
-        self.reactor = reactor
-        self.resource = CancellableDirectServeHtmlResource(clock)
-        self.site = FakeSite(self.resource, self.reactor)
-
-    def test_cancellable_disconnect(self) -> None:
-        """Test that handlers with the `@cancellable` flag can be cancelled."""
-        channel = make_request(
-            self.reactor, self.site, "GET", "/sleep", await_result=False
-        )
-        test_disconnect(
-            self.reactor,
-            channel,
-            expect_cancellation=True,
-            expected_body=b"499 Request cancelled",
-        )
-
-    def test_uncancellable_disconnect(self) -> None:
-        """Test that handlers without the `@cancellable` flag cannot be cancelled."""
-        channel = make_request(
-            self.reactor, self.site, "POST", "/sleep", await_result=False
-        )
-        test_disconnect(
-            self.reactor, channel, expect_cancellation=False, expected_body=b"ok"
         )

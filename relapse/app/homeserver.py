@@ -44,7 +44,6 @@ from relapse.app._base import (
 from relapse.config._base import ConfigError, format_config_error
 from relapse.config.homeserver import HomeServerConfig
 from relapse.config.server import ListenerConfig, TCPListenerConfig
-from relapse.http.additional_resource import AdditionalResource
 from relapse.http.server import (
     JsonResource,
     OptionsResource,
@@ -65,7 +64,6 @@ from relapse.server import HomeServer
 from relapse.storage import DataStore
 from relapse.util.check_dependencies import VERSION, check_requirements
 from relapse.util.httpresourcetree import create_resource_tree
-from relapse.util.module_loader import load_module
 
 logger = logging.getLogger("relapse.app.homeserver")
 
@@ -80,7 +78,6 @@ class RelapseHomeServer(HomeServer):
     def listen_http(self, listener_config: ListenerConfig) -> Iterable[Port]:
         # Must exist since this is an HTTP listener.
         assert listener_config.http_options is not None
-        site_tag = listener_config.get_site_tag()
 
         # We always include a health resource.
         health_resource = JsonResource(self, canonical_json=False)
@@ -97,27 +94,6 @@ class RelapseHomeServer(HomeServer):
                     # Skip loading, health resource is always included
                     continue
                 resources.update(self._configure_named_resource(name, res.compress))
-
-        additional_resources = listener_config.http_options.additional_resources
-        logger.debug("Configuring additional resources: %r", additional_resources)
-        module_api = self.get_module_api()
-        for path, resmodule in additional_resources.items():
-            handler_cls, config = load_module(
-                resmodule,
-                ("listeners", site_tag, "additional_resources", f"<{path}>"),
-            )
-            handler = handler_cls(config, module_api)
-            if isinstance(handler, Resource):
-                resource = handler
-            elif hasattr(handler, "handle_request"):
-                resource = AdditionalResource(self, handler.handle_request)
-            else:
-                raise ConfigError(
-                    "additional_resource {} does not implement a known interface".format(
-                        resmodule["module"]
-                    )
-                )
-            resources[path] = resource
 
         # Attach additional resources registered by modules.
         resources.update(self._module_web_resources)
@@ -193,9 +169,11 @@ class RelapseHomeServer(HomeServer):
                 PasswordResetSubmitTokenServlet(self).register(relapse_resource)
 
         if name == "consent":
-            from relapse.rest.consent.consent_resource import ConsentResource
+            from relapse.rest.consent import ConsentServlet
 
-            consent_resource: Resource = ConsentResource(self)
+            consent_server = JsonResource(self, canonical_json=False)
+            ConsentServlet(self).register(consent_server)
+            consent_resource: Resource = consent_server
             if compress:
                 consent_resource = gz_wrap(consent_resource)
             resources["/_matrix/consent"] = consent_resource

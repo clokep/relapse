@@ -27,7 +27,7 @@ CONTENT_TYPE_LATEST = "text/plain; version=0.0.4; charset=utf-8"
 
 class MetricsServlet(RestServlet):
     """
-    Twisted ``Resource`` that serves prometheus metrics.
+    Servlet that serves prometheus metrics.
     """
 
     PATTERNS = [re.compile(r"/_relapse/metrics")]
