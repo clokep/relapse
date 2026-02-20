@@ -17,7 +17,7 @@ except Exception:
         """\
     Lockfile is not version 2.1. You probably need to upgrade poetry on your local box
     and re-run `poetry lock`. See the Poetry cheat sheet at
-    https://clokep.github.io/relapse/develop/development/dependencies.html
+    https://clokep.github.io/relapse/main/development/dependencies.html
     """
     )
     raise

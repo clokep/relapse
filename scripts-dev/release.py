@@ -169,10 +169,8 @@ def _prepare() -> None:
         # release type.
         if current_version.is_prerelease:
             default = release_branch_name
-        elif release_type == "minor":
-            default = "develop"
         else:
-            default = "master"
+            default = "main"
 
         branch_name = click.prompt(
             "Which branch should the release be based on?", default=default
@@ -464,41 +462,6 @@ def _upload(gh_token: str | None) -> None:
     )
 
 
-def _merge_into(repo: Repo, source: str, target: str) -> None:
-    """
-    Merges branch `source` into branch `target`.
-    Pulls both before merging and pushes the result.
-    """
-
-    # Update our branches and switch to the target branch
-    for branch in [source, target]:
-        click.echo(f"Switching to {branch} and pulling...")
-        repo.heads[branch].checkout()
-        # Pull so we're up to date
-        repo.remote().pull()
-
-    assert repo.active_branch.name == target
-
-    try:
-        # TODO This seemed easier than using GitPython directly
-        click.echo(f"Merging {source}...")
-        repo.git.merge(source)
-    except GitCommandError as exc:
-        # If a merge conflict occurs, give some context and try to
-        # make it easy to abort if necessary.
-        click.echo(exc)
-        if not click.confirm(
-            f"Likely merge conflict whilst merging ({source} → {target}). "
-            f"Have you resolved it?"
-        ):
-            repo.git.merge("--abort")
-            return
-
-    # Push result.
-    click.echo("Pushing...")
-    repo.remote().push()
-
-
 @cli.command()
 @click.option("--gh-token", envvar=["GH_TOKEN", "GITHUB_TOKEN"], required=False)
 def wait_for_actions(gh_token: str | None) -> None:
@@ -568,48 +531,6 @@ def _notify(message: str) -> None:
                 message,
             ]
         )
-
-
-@cli.command()
-def merge_back() -> None:
-    _merge_back()
-
-
-def _merge_back() -> None:
-    """Merge the release branch back into the appropriate branches.
-    All branches will be automatically pulled from the remote and the results
-    will be pushed to the remote."""
-
-    relapse_repo = get_repo_and_check_clean_checkout()
-    branch_name = relapse_repo.active_branch.name
-
-    if not branch_name.startswith("release-v"):
-        raise RuntimeError("Not on a release branch. This does not seem sensible.")
-
-    # Pull so we're up to date
-    relapse_repo.remote().pull()
-
-    current_version = get_package_version()
-
-    if current_version.is_prerelease:
-        # Release candidate
-        if click.confirm(f"Merge {branch_name} → develop?", default=True):
-            _merge_into(relapse_repo, branch_name, "develop")
-    else:
-        # Full release
-        sytest_repo = get_repo_and_check_clean_checkout("../sytest", "sytest")
-
-        if click.confirm(f"Merge {branch_name} → master?", default=True):
-            _merge_into(relapse_repo, branch_name, "master")
-
-        if click.confirm("Merge master → develop?", default=True):
-            _merge_into(relapse_repo, "master", "develop")
-
-        if click.confirm(f"On SyTest, merge {branch_name} → master?", default=True):
-            _merge_into(sytest_repo, branch_name, "master")
-
-        if click.confirm("On SyTest, merge master → develop?", default=True):
-            _merge_into(sytest_repo, "master", "develop")
 
 
 @cli.command()
@@ -684,9 +605,6 @@ def full(gh_token: str) -> None:
 
     click.echo("\n*** upload ***")
     _upload(gh_token)
-
-    click.echo("\n*** merge back ***")
-    _merge_back()
 
     click.echo("\nUpdate the Debian repository")
     click.confirm("Started updating Debian repository?", abort=True)
