@@ -33,7 +33,7 @@ import click
 import commonmark
 import git
 from click.exceptions import ClickException
-from git import GitCommandError, Repo
+from git import Repo
 from github import Github
 from packaging import version
 
