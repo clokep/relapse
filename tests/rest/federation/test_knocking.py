@@ -199,7 +199,7 @@ class FederationKnockingTestCase(
         admin.register_servlets,
         room.register_servlets,
         login.register_servlets,
-    ]
+    ] + FederatingHomeserverTestCase.servlets
 
     def prepare(
         self, reactor: MemoryReactor, clock: Clock, homeserver: HomeServer

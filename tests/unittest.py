@@ -52,7 +52,7 @@ from relapse.config._base import Config, RootConfig
 from relapse.config.homeserver import HomeServerConfig
 from relapse.config.server import DEFAULT_ROOM_VERSION
 from relapse.crypto.event_signing import add_hashes_and_signatures
-from relapse.http.server import HttpServer, JsonResource, OptionsResource
+from relapse.http.server import HttpServer, OptionsResource
 from relapse.http.site import RelapseRequest, RelapseSite
 from relapse.logging.context import (
     SENTINEL_CONTEXT,
@@ -65,7 +65,6 @@ from relapse.server import HomeServer
 from relapse.storage.keys import FetchKeyResult
 from relapse.types import JsonDict, Requester, UserID, create_requester
 from relapse.util import Clock
-from relapse.util.httpresourcetree import create_resource_tree
 
 from tests.server import (
     CustomHeaderType,
@@ -449,34 +448,11 @@ class HomeserverTestCase(TestCase):
     def create_test_resource(self, hs: HomeServer) -> Resource:
         """
         Create the root resource for the test server.
-
-        The default calls `self.create_resource_dict` and builds the resultant dict
-        into a tree.
         """
-        root_resource = OptionsResource()
-        create_resource_tree(self.create_resource_dict(hs), root_resource)
-        return root_resource
-
-    def create_resource_dict(self, hs: HomeServer) -> dict[str, Resource]:
-        """Create a resource tree for the test server
-
-        A resource tree is a mapping from path to twisted.web.resource.
-
-        The default implementation creates a JsonResource and calls each function in
-        `servlets` to register servlets against it.
-        """
-        servlet_resource = JsonResource(hs)
+        root_resource = OptionsResource(hs)
         for servlet in self.servlets:
-            servlet(hs, servlet_resource)
-        return {
-            "/.well-known": servlet_resource,
-            "/health": servlet_resource,
-            "/_matrix/client": servlet_resource,
-            "/_matrix/consent": servlet_resource,
-            "/_matrix/key": servlet_resource,
-            "/_matrix/media": servlet_resource,
-            "/_relapse": servlet_resource,
-        }
+            servlet(hs, root_resource)
+        return root_resource
 
     def default_config(self) -> JsonDict:
         """
@@ -847,6 +823,8 @@ class FederatingHomeserverTestCase(HomeserverTestCase):
     OTHER_SERVER_NAME = "other.example.com"
     OTHER_SERVER_SIGNATURE_KEY = signedjson.key.generate_signing_key("test")
 
+    servlets = [federation.register_servlets]
+
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         super().prepare(reactor, clock, hs)
 
@@ -874,13 +852,6 @@ class FederatingHomeserverTestCase(HomeserverTestCase):
                 },
             )
         )
-
-    def create_resource_dict(self, hs: HomeServer) -> dict[str, Resource]:
-        d = super().create_resource_dict(hs)
-        federation_resource = JsonResource(hs)
-        federation.register_servlets(hs, federation_resource)
-        d["/_matrix/federation"] = federation_resource
-        return d
 
     def make_signed_federation_request(
         self,

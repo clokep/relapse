@@ -17,13 +17,11 @@ from http import HTTPStatus
 from typing import NoReturn
 
 from twisted.internet.defer import Deferred
-from twisted.web.resource import Resource
 
 from relapse.api.errors import Codes, RelapseError
-from relapse.config.server import parse_listener_def
-from relapse.http.server import JsonResource, OptionsResource
+from relapse.http.server import JsonResource, respond_with_html_bytes
 from relapse.http.servlet import RestServlet
-from relapse.http.site import RelapseRequest, RelapseSite
+from relapse.http.site import RelapseRequest
 from relapse.logging.context import make_deferred_yieldable
 from relapse.server import HomeServer
 from relapse.types import JsonDict
@@ -202,49 +200,18 @@ class JsonResourceTests(unittest.TestCase):
         self.assertNotIn("body", channel.result)
 
 
-class OptionsResourceTests(unittest.TestCase):
-    def setUp(self) -> None:
-        reactor, clock = get_clock()
-        self.reactor = reactor
-        self.homeserver = setup_test_homeserver(
-            self.addCleanup,
-            clock=clock,
-            reactor=self.reactor,
+class OptionsResourceTests(unittest.HomeserverTestCase):
+    class DummyServlet(RestServlet):
+        PATTERNS = [re.compile(r"^/_matrix/res/$")]
+
+        async def on_GET(self, request: RelapseRequest) -> None:
+            respond_with_html_bytes(request, 200, request.path)
+
+    servlets = [
+        lambda hs, http_server: OptionsResourceTests.DummyServlet().register(
+            http_server
         )
-
-        class DummyResource(Resource):
-            isLeaf = True
-
-            def render(self, request: RelapseRequest) -> bytes:
-                return request.path
-
-        # Setup a resource with some children.
-        self.resource = OptionsResource()
-        self.resource.putChild(b"res", DummyResource())
-
-    def _make_request(self, method: bytes, path: bytes) -> FakeChannel:
-        """Create a request from the method/path and return a channel with the response."""
-        # Create a site and query for the resource.
-        site = RelapseSite(
-            "test",
-            "site_tag",
-            parse_listener_def(
-                0,
-                {
-                    "type": "http",
-                    "port": 0,
-                },
-            ),
-            self.resource,
-            "1.0",
-            max_request_body_size=4096,
-            reactor=self.reactor,
-            hs=self.homeserver,
-        )
-
-        # render the request and return the channel
-        channel = make_request(self.reactor, site, method, path, shorthand=False)
-        return channel
+    ]
 
     def _check_cors_standard_headers(self, channel: FakeChannel) -> None:
         # Ensure the correct CORS headers have been added
@@ -271,7 +238,7 @@ class OptionsResourceTests(unittest.TestCase):
 
     def test_unknown_options_request(self) -> None:
         """An OPTIONS requests to an unknown URL still returns 204 No Content."""
-        channel = self._make_request(b"OPTIONS", b"/foo/")
+        channel = self.make_request(b"OPTIONS", b"/_matrix/foo/")
         self.assertEqual(channel.code, 204)
         self.assertNotIn("body", channel.result)
 
@@ -279,7 +246,7 @@ class OptionsResourceTests(unittest.TestCase):
 
     def test_known_options_request(self) -> None:
         """An OPTIONS requests to an known URL still returns 204 No Content."""
-        channel = self._make_request(b"OPTIONS", b"/res/")
+        channel = self.make_request(b"OPTIONS", b"/_matrix/res/")
         self.assertEqual(channel.code, 204)
         self.assertNotIn("body", channel.result)
 
@@ -287,14 +254,14 @@ class OptionsResourceTests(unittest.TestCase):
 
     def test_unknown_request(self) -> None:
         """A non-OPTIONS request to an unknown URL should 404."""
-        channel = self._make_request(b"GET", b"/foo/")
+        channel = self.make_request(b"GET", b"/_matrix/foo/")
         self.assertEqual(channel.code, 404)
 
     def test_known_request(self) -> None:
         """A non-OPTIONS request to an known URL should query the proper resource."""
-        channel = self._make_request(b"GET", b"/res/")
+        channel = self.make_request(b"GET", b"/_matrix/res/")
         self.assertEqual(channel.code, 200)
-        self.assertEqual(channel.result["body"], b"/res/")
+        self.assertEqual(channel.result["body"], b"/_matrix/res/")
 
 
 class CancellableRestServlet(RestServlet):

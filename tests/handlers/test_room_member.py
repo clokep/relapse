@@ -28,7 +28,7 @@ class TestJoinsLimitedByPerRoomRateLimiter(FederatingHomeserverTestCase):
         admin.register_servlets,
         relapse.rest.client.login.register_servlets,
         relapse.rest.client.room.register_servlets,
-    ]
+    ] + FederatingHomeserverTestCase.servlets
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.handler = hs.get_room_member_handler()

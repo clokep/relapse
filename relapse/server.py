@@ -289,6 +289,7 @@ class HomeServer(metaclass=abc.ABCMeta):
         # This attribute is set by the free function `refresh_certificate`.
         self.tls_server_context_factory: IOpenSSLContextFactory | None = None
 
+    # XXX Remove this
     def register_module_web_resource(self, path: str, resource: Resource) -> None:
         """Allows a module to register a web resource to be served at the given path.
 

@@ -16,17 +16,19 @@
 
 import enum
 import logging
+import re
 from collections.abc import Mapping, Sequence
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Literal, TypeVar, overload
+from typing import TYPE_CHECKING, Literal, NoReturn, TypeVar, overload
 
 from pydantic import BaseModel, ValidationError
 
 from twisted.web.server import Request
+from twisted.web.static import File
 
-from relapse.api.errors import Codes, RelapseError
+from relapse.api.errors import Codes, RedirectException, RelapseError
 from relapse.http import redact_uri
-from relapse.http.server import HttpServer
+from relapse.http.server import HttpServer, set_clickjacking_protection_headers
 from relapse.types import JsonDict, RoomAlias, RoomID, StrCollection
 from relapse.util import json_decoder
 
@@ -827,6 +829,27 @@ class RestServlet:
 
         else:
             raise NotImplementedError("RestServlet must register something.")
+
+
+class RedirectServlet(RestServlet):
+    """Redirects the path to another path."""
+
+    def __init__(self, pattern: re.Pattern[str], path: str):
+        self.PATTERNS = [pattern]
+        self.url = path
+
+    async def on_GET(self, request: Request) -> NoReturn:
+        raise RedirectException(self.url.encode("ascii"))
+
+
+class StaticServlet(RestServlet):
+    def __init__(self, pattern: re.Pattern[str], path: str):
+        self.PATTERNS = [pattern]
+        self._file = File(path)
+
+    async def on_GET(self, request: Request) -> int:
+        set_clickjacking_protection_headers(request)
+        return self._file.render_GET(request)
 
 
 class ResolveRoomIdMixin:

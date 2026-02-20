@@ -22,16 +22,12 @@ from urllib.parse import urlencode
 from relapse.config import ConfigError
 from relapse.config.homeserver import HomeServerConfig
 
-RELAPSE_CLIENT_API_PREFIX = "/_relapse/client"
 CLIENT_API_PREFIX = "/_matrix/client"
 FEDERATION_PREFIX = "/_matrix/federation"
 FEDERATION_V1_PREFIX = FEDERATION_PREFIX + "/v1"
 FEDERATION_V2_PREFIX = FEDERATION_PREFIX + "/v2"
 FEDERATION_UNSTABLE_PREFIX = FEDERATION_PREFIX + "/unstable"
 STATIC_PREFIX = "/_relapse/static"
-SERVER_KEY_PREFIX = "/_matrix/key"
-MEDIA_R0_PREFIX = "/_matrix/media/r0"
-MEDIA_V3_PREFIX = "/_matrix/media/v3"
 
 
 class ConsentURIBuilder:
