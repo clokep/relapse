@@ -7,7 +7,7 @@ env:
 
 on:
   push:
-    branches: ["develop", "release-*"]
+    branches: ["main", "release-*"]
   pull_request:
   merge_group:
   workflow_dispatch:
@@ -194,7 +194,7 @@ jobs:
         run: scripts-dev/check_line_terminators.sh
 
   lint-newsfile:
-    if: ${{ (github.base_ref == 'develop'  || contains(github.base_ref, 'release-')) && github.actor != 'dependabot[bot]' }}
+    if: ${{ (github.base_ref == 'main' || contains(github.base_ref, 'release-')) && github.actor != 'dependabot[bot]' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6

@@ -4,7 +4,7 @@
 # that it is ready for testing via Complement.
 #
 # Instructions for building this image from those it depends on is detailed in this guide:
-# https://github.com/clokep/relapse/blob/develop/docker/README-testing.md#testing-with-postgresql-and-single-or-multi-process-relapse
+# https://github.com/clokep/relapse/blob/main/docker/README-testing.md#testing-with-postgresql-and-single-or-multi-process-relapse
 
 ARG RELAPSE_VERSION=latest
 # This is an intermediate image, to be built locally (not pulled from a registry).

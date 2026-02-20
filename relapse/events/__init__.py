@@ -214,7 +214,7 @@ class _EventInternalMetadata:
         processed as if they're new regular events (e.g. updating membership state in
         the database, relaying to clients via /sync, etc) despite being outliers.
 
-        See also https://clokep.github.io/relapse/develop/development/room-dag-concepts.html#out-of-band-membership-events.
+        See also https://clokep.github.io/relapse/main/development/room-dag-concepts.html#out-of-band-membership-events.
 
         (Added in relapse 0.99.0, so may be unreliable for events received before that)
         """

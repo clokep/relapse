@@ -162,7 +162,7 @@ Internal Changes
 Synapse 1.72.0 (2022-11-22)
 ===========================
 
-Please note that Synapse now only supports PostgreSQL 11+, because PostgreSQL 10 has reached end-of-life, c.f. our [Deprecation Policy](https://github.com/matrix-org/synapse/blob/develop/docs/deprecation_policy.md).
+Please note that Synapse now only supports PostgreSQL 11+, because PostgreSQL 10 has reached end-of-life, c.f. our [Deprecation Policy](https://github.com/matrix-org/synapse/blob/main/docs/deprecation_policy.md).
 
 Bugfixes
 --------
@@ -1440,13 +1440,13 @@ Synapse 1.61.0 (2022-06-14)
 
 This release removes support for the non-standard feature known both as 'groups' and as 'communities', which have been superseded by *Spaces*.
 
-See [the upgrade notes](https://github.com/matrix-org/synapse/blob/develop/docs/upgrade.md#upgrading-to-v1610)
+See [the upgrade notes](https://github.com/matrix-org/synapse/blob/main/docs/upgrade.md#upgrading-to-v1610)
 for more details.
 
 Improved Documentation
 ----------------------
 
-- Mention removed community/group worker endpoints in [the upgrade notes](https://github.com/matrix-org/synapse/blob/develop/docs/upgrade.md#upgrading-to-v1610). Contributed by @olmari. ([\#13023](https://github.com/matrix-org/synapse/issues/13023))
+- Mention removed community/group worker endpoints in [the upgrade notes](https://github.com/matrix-org/synapse/blob/main/docs/upgrade.md#upgrading-to-v1610). Contributed by @olmari. ([\#13023](https://github.com/matrix-org/synapse/issues/13023))
 
 
 Synapse 1.61.0rc1 (2022-06-07)
@@ -1548,7 +1548,7 @@ Additionally, the signature of the `check_event_for_spam` module callback has ch
 The previous signature has been deprecated and remains working for now. Module authors
 should update their modules to use the new signature where possible.
 
-See [the upgrade notes](https://github.com/matrix-org/synapse/blob/develop/docs/upgrade.md#upgrading-to-v1600)
+See [the upgrade notes](https://github.com/matrix-org/synapse/blob/main/docs/upgrade.md#upgrading-to-v1600)
 for more details.
 
 Bugfixes
@@ -1696,7 +1696,7 @@ Synapse 1.59 makes several changes that server administrators should be aware of
 - Device name lookup over federation is now disabled by default. ([\#12616](https://github.com/matrix-org/synapse/issues/12616))
 - The `synapse.app.appservice` and `synapse.app.user_dir` worker application types are now deprecated. ([\#12452](https://github.com/matrix-org/synapse/issues/12452), [\#12654](https://github.com/matrix-org/synapse/issues/12654))
 
-See [the upgrade notes](https://github.com/matrix-org/synapse/blob/develop/docs/upgrade.md#upgrading-to-v1590) for more details.
+See [the upgrade notes](https://github.com/matrix-org/synapse/blob/main/docs/upgrade.md#upgrading-to-v1590) for more details.
 
 Additionally, this release removes the non-standard `m.login.jwt` login type from Synapse. It can be replaced with `org.matrix.login.jwt` for identical behaviour. This is only used if `jwt_config.enabled` is set to `true` in the configuration. ([\#12597](https://github.com/matrix-org/synapse/issues/12597))
 
@@ -1827,7 +1827,7 @@ Otherwise, no significant changes since 1.58.0.
 Synapse 1.58.0 (2022-05-03)
 ===========================
 
-As of this release, the groups/communities feature in Synapse is now disabled by default. See [\#11584](https://github.com/matrix-org/synapse/issues/11584) for details. As mentioned in [the upgrade notes](https://github.com/matrix-org/synapse/blob/develop/docs/upgrade.md#upgrading-to-v1580), this feature will be removed in Synapse 1.61.
+As of this release, the groups/communities feature in Synapse is now disabled by default. See [\#11584](https://github.com/matrix-org/synapse/issues/11584) for details. As mentioned in [the upgrade notes](https://github.com/matrix-org/synapse/blob/main/docs/upgrade.md#upgrading-to-v1580), this feature will be removed in Synapse 1.61.
 
 No significant changes since 1.58.0rc2.
 
@@ -2159,7 +2159,7 @@ Synapse 1.55.0 (2022-03-22)
 
 This release removes a workaround introduced in Synapse 1.50.0 for Mjolnir compatibility. **This breaks compatibility with Mjolnir 1.3.1 and earlier. ([\#11700](https://github.com/matrix-org/synapse/issues/11700))**; Mjolnir users should upgrade Mjolnir before upgrading Synapse to this version.
 
-This release also moves the location of the `synctl` script; see the [upgrade notes](https://github.com/matrix-org/synapse/blob/develop/docs/upgrade.md#synctl-script-has-been-moved) for more details.
+This release also moves the location of the `synctl` script; see the [upgrade notes](https://github.com/matrix-org/synapse/blob/main/docs/upgrade.md#synctl-script-has-been-moved) for more details.
 
 
 Internal Changes
@@ -2206,7 +2206,7 @@ Deprecations and Removals
 -------------------------
 
 - **Remove workaround introduced in Synapse 1.50.0 for Mjolnir compatibility. Breaks compatibility with Mjolnir 1.3.1 and earlier. ([\#11700](https://github.com/matrix-org/synapse/issues/11700))**
-- **`synctl` has been moved into into `synapse._scripts` and is exposed as an entry point; see [upgrade notes](https://github.com/matrix-org/synapse/blob/develop/docs/upgrade.md#synctl-script-has-been-moved). ([\#12140](https://github.com/matrix-org/synapse/issues/12140))
+- **`synctl` has been moved into into `synapse._scripts` and is exposed as an entry point; see [upgrade notes](https://github.com/matrix-org/synapse/blob/main/docs/upgrade.md#synctl-script-has-been-moved). ([\#12140](https://github.com/matrix-org/synapse/issues/12140))
 - Remove backwards compatibility with pagination tokens from the `/relations` and `/aggregations` endpoints generated from Synapse < v1.52.0. ([\#12138](https://github.com/matrix-org/synapse/issues/12138))
 - The groups/communities feature in Synapse has been deprecated. ([\#12200](https://github.com/matrix-org/synapse/issues/12200))
 

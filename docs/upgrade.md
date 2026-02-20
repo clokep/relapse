@@ -1663,7 +1663,7 @@ update your reverse proxy configuration to reflect this change.
 ## New HTML templates
 
 A new HTML template,
-[password_reset_confirmation.html](https://github.com/clokep/relapse/blob/develop/relapse/res/templates/password_reset_confirmation.html),
+[password_reset_confirmation.html](https://github.com/clokep/relapse/blob/main/relapse/res/templates/password_reset_confirmation.html),
 has been added to the `relapse/res/templates` directory. If you are
 using a custom template directory, you may want to copy the template
 over and modify it.

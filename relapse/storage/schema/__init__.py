@@ -19,7 +19,7 @@ This should be incremented whenever the codebase changes its requirements on the
 shape of the database schema (even if those requirements are backwards-compatible with
 older versions of Relapse).
 
-See https://clokep.github.io/relapse/develop/development/database_schema.html
+See https://clokep.github.io/relapse/main/development/database_schema.html
 for more information on how this works.
 
 Changes in SCHEMA_VERSION = 61:

@@ -78,7 +78,7 @@ The following environment variables are supported in `generate` mode:
 
 ## Postgres
 
-By default the config will use SQLite. See the [docs on using Postgres](https://github.com/clokep/relapse/blob/develop/docs/postgres.md) for more info on how to use Postgres. Until this section is improved [this issue](https://github.com/clokep/relapse/issues/8304) may provide useful information.
+By default the config will use SQLite. See the [docs on using Postgres](https://github.com/clokep/relapse/blob/main/docs/postgres.md) for more info on how to use Postgres. Until this section is improved [this issue](https://github.com/matrix-org/synapse/issues/8304) may provide useful information.
 
 ## Running relapse
 

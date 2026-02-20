@@ -11,7 +11,7 @@ follow a simple 'inbound=outbound' model for contributions: the act of
 submitting an 'inbound' contribution means that the contributor agrees to
 license the code under the same terms as the project's overall 'outbound'
 license - in our case, this is almost always Apache Software License v2 (see
-[LICENSE](https://github.com/clokep/relapse/blob/develop/LICENSE)).
+[LICENSE](https://github.com/clokep/relapse/blob/main/LICENSE)).
 
 # 2. What do I need?
 
@@ -331,7 +331,7 @@ This configuration should generally cover your needs.
 - To run with Postgres, supply the `-e POSTGRES=1 -e MULTI_POSTGRES=1` environment flags.
 - To run with Relapse in worker mode, supply the `-e WORKERS=1 -e REDIS=1` environment flags (in addition to the Postgres flags).
 
-For more details about other configurations, see the [Docker-specific documentation in the SyTest repo](https://github.com/matrix-org/sytest/blob/develop/docker/README.md).
+For more details about other configurations, see the [Docker-specific documentation in the SyTest repo](https://github.com/matrix-org/sytest/blob/main/docker/README.md).
 
 
 ## Run the integration tests ([Complement](https://github.com/matrix-org/complement)).
@@ -365,7 +365,7 @@ The above will run a monolithic (single-process) Relapse with SQLite as the data
   - If setting `WORKERS=1`, optionally set `WORKER_TYPES=` to declare which worker
     types you wish to test. A simple comma-delimited string containing the worker types
     defined from the `WORKERS_CONFIG` template in
-    [here](https://github.com/clokep/relapse/blob/develop/docker/configure_workers_and_start.py#L54).
+    [here](https://github.com/clokep/relapse/blob/main/docker/configure_workers_and_start.py#L54).
     A safe example would be `WORKER_TYPES="federation_inbound, federation_sender, synchrotron"`.
     See the [worker documentation](../workers.md) for additional information on workers.
 - Passing `PODMAN=1` will use the [podman](https://podman.io/) container runtime, instead of docker.

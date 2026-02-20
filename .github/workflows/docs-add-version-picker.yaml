@@ -30,10 +30,10 @@ jobs:
             git fetch
             git checkout -b release-$version origin/release-$version
 
-            git checkout develop -- ./book.toml
-            git checkout develop -- ./docs/website_files/version-picker.js
-            git checkout develop -- ./docs/website_files/version-picker.css
-            git checkout develop -- ./docs/website_files/README.md
+            git checkout main -- ./book.toml
+            git checkout main -- ./docs/website_files/version-picker.js
+            git checkout main -- ./docs/website_files/version-picker.css
+            git checkout main -- ./docs/website_files/README.md
 
             echo "window.RELAPSE_VERSION = '$version';" > ./docs/website_files/version.js
 

@@ -4,7 +4,7 @@
 # know if there's an upcoming breaking change.
 #
 # As an overview this workflow:
-# - checks out develop,
+# - checks out main,
 # - installs from source, pulling in the dependencies like a fresh `pip install` would, and
 # - runs mypy and test suites in that checkout.
 #

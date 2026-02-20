@@ -34,15 +34,15 @@ def main(force_colors: bool) -> None:
 
     click.secho("Getting current schema version...")
 
-    r = repo.git.show("origin/develop:relapse/storage/schema/__init__.py")
+    r = repo.git.show("origin/main:relapse/storage/schema/__init__.py")
 
     locals: dict[str, Any] = {}
     exec(r, locals)
     current_schema_version = locals["SCHEMA_VERSION"]
 
-    diffs: list[git.Diff] = repo.remote().refs.develop.commit.diff(None)
+    diffs: list[git.Diff] = repo.remote().refs.main.commit.diff(None)
 
-    # Get the schema version of the local file to check against current schema on develop
+    # Get the schema version of the local file to check against current schema on main
     with open("relapse/storage/schema/__init__.py") as file:
         local_schema = file.read()
     new_locals: dict[str, Any] = {}
@@ -50,10 +50,10 @@ def main(force_colors: bool) -> None:
     local_schema_version = new_locals["SCHEMA_VERSION"]
 
     if local_schema_version != current_schema_version:
-        # local schema version must be +/-1 the current schema version on develop
+        # local schema version must be +/-1 the current schema version on main
         if abs(local_schema_version - current_schema_version) != 1:
             click.secho(
-                "The proposed schema version has diverged more than one version from develop, please fix!",
+                "The proposed schema version has diverged more than one version from main, please fix!",
                 fg="red",
                 bold=True,
                 color=force_colors,

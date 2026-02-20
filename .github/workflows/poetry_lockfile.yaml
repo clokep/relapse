@@ -1,6 +1,6 @@
 on:
   push:
-    branches: ["develop", "release-*"]
+    branches: ["main", "release-*"]
     paths:
       - poetry.lock
   pull_request:

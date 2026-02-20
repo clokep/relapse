@@ -8,11 +8,9 @@ on:
   push:
     branches:
       # For bleeding-edge documentation
-      - develop
+      - main
       # For documentation specific to a release
       - 'release-v*'
-      # stable docs
-      - master
 
   workflow_dispatch:
 
@@ -35,10 +33,6 @@ jobs:
               release-*)
                   # strip 'release-' from the name for release branches.
                   branch="${branch#release-}"
-                  ;;
-              master)
-                  # deploy to "latest" for the master branch.
-                  branch="latest"
                   ;;
           esac
 
