@@ -37,17 +37,7 @@ from twisted.internet.defer import CancelledError
 from twisted.internet.interfaces import ITCPTransport
 from twisted.python import failure
 from twisted.web import resource
-
-from relapse.types import IRelapseReactor
-
-try:
-    from twisted.web.pages import notFound
-except ImportError:
-    from twisted.web.resource import NoResource as notFound  # type: ignore[assignment]
-
-from twisted.web.resource import IResource
 from twisted.web.server import NOT_DONE_YET, Request
-from twisted.web.static import File
 
 from relapse.api.errors import (
     CodeMessageException,
@@ -58,6 +48,7 @@ from relapse.api.errors import (
 )
 from relapse.logging.context import defer_to_thread, preserve_fn, run_in_background
 from relapse.logging.opentracing import active_span, start_active_span, trace_servlet
+from relapse.types import IRelapseReactor
 from relapse.util import json_encoder
 from relapse.util.caches import intern_dict
 from relapse.util.cancellation import is_function_cancellable

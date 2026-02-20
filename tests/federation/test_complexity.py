@@ -27,7 +27,7 @@ class RoomComplexityTests(FederatingHomeserverTestCase):
         admin.register_servlets,
         room.register_servlets,
         login.register_servlets,
-    ] +FederatingHomeserverTestCase.servlets
+    ] + FederatingHomeserverTestCase.servlets
 
     def default_config(self) -> JsonDict:
         config = super().default_config()

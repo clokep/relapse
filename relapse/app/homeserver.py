@@ -150,7 +150,6 @@ class RelapseHomeServer(HomeServer):
                 os.path.join(os.path.dirname(relapse.__file__), "static"),
             ).register(resource)
 
-
         if name in ["media", "federation", "client"]:
             if self.config.server.enable_media_repo:
                 media.register_servlets(self, resource)

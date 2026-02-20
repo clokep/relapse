@@ -30,7 +30,7 @@ from relapse.types import JsonDict
 from relapse.util import Clock
 
 from tests import unittest
-from tests.unittest import override_config, FederatingHomeserverTestCase
+from tests.unittest import FederatingHomeserverTestCase, override_config
 
 
 class FederationServerTests(FederatingHomeserverTestCase):
