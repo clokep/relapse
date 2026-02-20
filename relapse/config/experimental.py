@@ -308,9 +308,6 @@ class ExperimentalConfig(Config):
         # MSC3664: Pushrules to match on related events
         self.msc3664_enabled: bool = experimental.get("msc3664_enabled", False)
 
-        # MSC3848: Introduce errcodes for specific event sending failures
-        self.msc3848_enabled: bool = experimental.get("msc3848_enabled", False)
-
         # MSC3852: Expose last seen user agent field on /_matrix/client/v3/devices.
         self.msc3852_enabled: bool = experimental.get("msc3852_enabled", False)
 

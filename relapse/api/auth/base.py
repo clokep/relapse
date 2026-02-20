@@ -20,12 +20,7 @@ from twisted.web.server import Request
 
 from relapse import event_auth
 from relapse.api.constants import EventTypes, HistoryVisibility, Membership
-from relapse.api.errors import (
-    AuthError,
-    Codes,
-    MissingClientTokenError,
-    UnstableSpecAuthError,
-)
+from relapse.api.errors import AuthError, Codes, MissingClientTokenError
 from relapse.appservice import ApplicationService
 from relapse.http import get_request_user_agent
 from relapse.http.site import RelapseRequest
@@ -96,11 +91,7 @@ class BaseAuth:
                 forgot = await self.store.did_forget(user_id, room_id)
                 if not forgot:
                     return membership, member_event_id
-        raise UnstableSpecAuthError(
-            403,
-            f"User {user_id} not in room {room_id}",
-            errcode=Codes.NOT_JOINED,
-        )
+        raise AuthError(403, f"User {user_id} not in room {room_id}")
 
     @trace
     async def check_user_in_room_or_world_readable(

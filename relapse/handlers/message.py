@@ -42,7 +42,6 @@ from relapse.api.errors import (
     PartialStateConflictError,
     RelapseError,
     ShadowBanError,
-    UnstableSpecAuthError,
     UnsupportedRoomVersionError,
 )
 from relapse.api.room_versions import KNOWN_ROOM_VERSIONS
@@ -154,11 +153,7 @@ class MessageHandler:
                 "Attempted to retrieve data from a room for a user that has never been in it. "
                 "This should not have happened."
             )
-            raise UnstableSpecAuthError(
-                403,
-                "User not in room",
-                errcode=Codes.NOT_JOINED,
-            )
+            raise AuthError(403, "User not in room")
 
         return data
 
@@ -352,11 +347,7 @@ class MessageHandler:
                     break
             else:
                 # Loop fell through, AS has no interested users in room
-                raise UnstableSpecAuthError(
-                    403,
-                    "Appservice not in room",
-                    errcode=Codes.NOT_JOINED,
-                )
+                raise AuthError(403, "Appservice not in room")
 
         return {
             user_id: {
