@@ -115,7 +115,7 @@ A custom mapping provider must specify the following methods:
 
 Relapse has a built-in OpenID mapping provider if a custom provider isn't
 specified in the config. It is located at
-[`relapse.handlers.oidc.JinjaOidcMappingProvider`](https://github.com/clokep/relapse/blob/develop/relapse/handlers/oidc.py).
+[`relapse.handlers.oidc.JinjaOidcMappingProvider`](https://github.com/clokep/relapse/blob/main/relapse/handlers/oidc.py).
 
 ## SAML Mapping Providers
 
@@ -202,4 +202,4 @@ A custom mapping provider must specify the following methods:
 
 Relapse has a built-in SAML mapping provider if a custom provider isn't
 specified in the config. It is located at
-[`relapse.handlers.saml.DefaultSamlMappingProvider`](https://github.com/clokep/relapse/blob/develop/relapse/handlers/saml.py).
+[`relapse.handlers.saml.DefaultSamlMappingProvider`](https://github.com/clokep/relapse/blob/main/relapse/handlers/saml.py).

@@ -1,7 +1,7 @@
 ## Streams
 
 Relapse has a concept of "streams", which are roughly described in [`id_generators.py`](
-    https://github.com/clokep/relapse/blob/develop/relapse/storage/util/id_generators.py
+    https://github.com/clokep/relapse/blob/main/relapse/storage/util/id_generators.py
 ).
 Generally speaking, streams are a series of notifications that something in Relapse's database has changed that the application might need to respond to.
 For example:
@@ -11,7 +11,7 @@ For example:
 - The to-device stream reports when a device has a new [to-device message](https://spec.matrix.org/v1.7/client-server-api/#send-to-device-messaging).
 
 See [`relapse.replication.tcp.streams`](
-    https://github.com/clokep/relapse/blob/develop/relapse/replication/tcp/streams/__init__.py
+    https://github.com/clokep/relapse/blob/main/relapse/replication/tcp/streams/__init__.py
 ) for the full list of streams.
 
 It is very helpful to understand the streams mechanism when working on any part of Relapse that needs to respond to changes—especially if those changes are made by different workers.

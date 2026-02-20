@@ -1410,7 +1410,7 @@ kill -HUP [PID_OF_RELAPSE_PROCESS]
 If you are running multiple workers, you must individually update the worker
 config file and send this signal to each worker process.
 
-If you're using the [example systemd service](https://github.com/clokep/relapse/blob/develop/contrib/systemd/matrix-relapse.service)
+If you're using the [example systemd service](https://github.com/clokep/relapse/blob/main/contrib/systemd/matrix-relapse.service)
 file in Relapse's `contrib` directory, you can send a `SIGHUP` signal by using
 `systemctl reload matrix-relapse`.
 

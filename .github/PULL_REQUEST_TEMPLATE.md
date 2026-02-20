@@ -2,7 +2,7 @@
 
 <!-- Please read https://clokep.github.io/relapse/latest/development/contributing_guide.html before submitting your pull request -->
 
-* [ ] Pull request is based on the develop branch
+* [ ] Pull request is based on the main branch
 * [ ] Pull request includes a [changelog file](https://clokep.github.io/relapse/latest/development/contributing_guide.html#changelog). The entry should:
   - Be a short description of your change which makes sense to users. "Fixed a bug that prevented receiving messages from other servers." instead of "Moved X method from `EventStore` to `EventWorkerStore`.".
   - Use markdown where necessary, mostly for `code blocks`.

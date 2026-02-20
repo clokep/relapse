@@ -147,7 +147,7 @@ Improved Documentation
 - Update `turn-howto.md` with troubleshooting notes. ([\#8779](https://github.com/matrix-org/synapse/issues/8779))
 - Fix the example on how to set the `Content-Type` header in nginx for the Client Well-Known URI. ([\#8793](https://github.com/matrix-org/synapse/issues/8793))
 - Improve the documentation for the admin API to list all media in a room with respect to encrypted events. ([\#8795](https://github.com/matrix-org/synapse/issues/8795))
-- Update the formatting of the `push` section of the homeserver config file to better align with the [code style guidelines](https://github.com/matrix-org/synapse/blob/develop/docs/code_style.md#configuration-file-format). ([\#8818](https://github.com/matrix-org/synapse/issues/8818))
+- Update the formatting of the `push` section of the homeserver config file to better align with the [code style guidelines](https://github.com/matrix-org/synapse/blob/main/docs/code_style.md#configuration-file-format). ([\#8818](https://github.com/matrix-org/synapse/issues/8818))
 - Improve documentation how to configure prometheus for workers. ([\#8822](https://github.com/matrix-org/synapse/issues/8822))
 - Update example prometheus console. ([\#8824](https://github.com/matrix-org/synapse/issues/8824))
 
@@ -792,7 +792,7 @@ Removal warning
 As outlined in the [previous release](https://github.com/matrix-org/synapse/releases/tag/v1.18.0),
 we are no longer publishing Docker images with the `-py3` tag suffix. On top of that, we have also removed the
 `latest-py3` tag. Please see
-[the announcement in the upgrade notes for 1.18.0](https://github.com/matrix-org/synapse/blob/develop/docs/upgrade.md#upgrading-to-v1180).
+[the announcement in the upgrade notes for 1.18.0](https://github.com/matrix-org/synapse/blob/main/docs/upgrade.md#upgrading-to-v1180).
 
 
 Synapse 1.19.0rc1 (2020-08-13)
@@ -823,7 +823,7 @@ Bugfixes
 Updates to the Docker image
 ---------------------------
 
-- We no longer publish Docker images with the `-py3` tag suffix, as [announced in the upgrade notes](https://github.com/matrix-org/synapse/blob/develop/docs/upgrade.md#upgrading-to-v1180). ([\#8056](https://github.com/matrix-org/synapse/issues/8056))
+- We no longer publish Docker images with the `-py3` tag suffix, as [announced in the upgrade notes](https://github.com/matrix-org/synapse/blob/main/docs/upgrade.md#upgrading-to-v1180). ([\#8056](https://github.com/matrix-org/synapse/issues/8056))
 
 
 Improved Documentation

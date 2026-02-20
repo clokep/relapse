@@ -4,18 +4,10 @@
 name: Store complement-relapse image in ghcr.io
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "main" ]
   schedule:
     - cron: '0 5 * * *'
   workflow_dispatch:
-    inputs:
-      branch:
-        required: true
-        default: 'develop'
-        type: choice
-        options:
-          - develop
-          - master
 
 # Only run this action once per pull request/branch; restart if a new commit arrives.
 # C.f. https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#concurrency
@@ -36,17 +28,17 @@ jobs:
         uses: actions/checkout@v6
         if: github.event_name == 'workflow_dispatch'
         with:
-          ref: ${{ inputs.branch }}
-      - name: Checkout clean copy of develop (scheduled build)
+          ref: main
+      - name: Checkout clean copy of main (scheduled build)
         uses: actions/checkout@v6
         if: github.event_name == 'schedule'
         with:
-          ref: develop
-      - name: Checkout clean copy of master (on-push)
+          ref: main
+      - name: Checkout clean copy of main (on-push)
         uses: actions/checkout@v6
         if: github.event_name == 'push'
         with:
-          ref: master
+          ref: main
       - name: Login to registry
         uses: docker/login-action@v3
         with:
@@ -60,8 +52,8 @@ jobs:
           images: ghcr.io/${{ github.repository }}/complement-relapse
           tags: |
             type=schedule,pattern=nightly,enable=${{ github.event_name == 'schedule'}}
-            type=raw,value=develop,enable=${{ github.event_name == 'schedule' || inputs.branch == 'develop' }}
-            type=raw,value=latest,enable=${{ github.event_name == 'push' || inputs.branch == 'master' }}
+            type=raw,value=develop,enable=${{ github.event_name == 'schedule' || inputs.branch == 'main' }}
+            type=raw,value=latest,enable=${{ github.event_name == 'push' || inputs.branch == 'main' }}
             type=sha,format=long
       - name: Run scripts-dev/complement.sh to generate complement-relapse:latest image.
         run: scripts-dev/complement.sh --build-only
