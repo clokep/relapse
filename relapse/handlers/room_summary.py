@@ -28,11 +28,11 @@ from relapse.api.constants import (
     RoomTypes,
 )
 from relapse.api.errors import (
+    AuthError,
     Codes,
     NotFoundError,
     RelapseError,
     StoreError,
-    UnstableSpecAuthError,
     UnsupportedRoomVersionError,
 )
 from relapse.api.ratelimiting import Ratelimiter
@@ -178,10 +178,9 @@ class RoomSummaryHandler:
 
         # First of all, check that the room is accessible.
         if not await self._is_local_room_accessible(requested_room_id, requester):
-            raise UnstableSpecAuthError(
+            raise AuthError(
                 403,
                 f"User {requester} not in room {requested_room_id}, and room previews are disabled",
-                errcode=Codes.NOT_JOINED,
             )
 
         # If this is continuing a previous session, pull the persisted data.

@@ -32,13 +32,7 @@ from relapse.api.constants import (
     JoinRules,
     Membership,
 )
-from relapse.api.errors import (
-    AuthError,
-    Codes,
-    EventSizeError,
-    RelapseError,
-    UnstableSpecAuthError,
-)
+from relapse.api.errors import AuthError, EventSizeError, RelapseError
 from relapse.api.room_versions import (
     KNOWN_ROOM_VERSIONS,
     EventFormatVersions,
@@ -320,11 +314,7 @@ def check_state_dependent_auth_rules(
         invite_level = get_named_level(auth_dict, "invite", 0)
 
         if user_level < invite_level:
-            raise UnstableSpecAuthError(
-                403,
-                "You don't have permission to invite users",
-                errcode=Codes.INSUFFICIENT_POWER,
-            )
+            raise AuthError(403, "You don't have permission to invite users")
         else:
             logger.debug("Allowing! %s", event)
             return
@@ -565,11 +555,7 @@ def _is_membership_change_allowed(
             return
 
         if not caller_in_room:  # caller isn't joined
-            raise UnstableSpecAuthError(
-                403,
-                f"{event.user_id} not in room {event.room_id}.",
-                errcode=Codes.NOT_JOINED,
-            )
+            raise AuthError(403, f"{event.user_id} not in room {event.room_id}.")
 
     if Membership.INVITE == membership:
         # TODO (erikj): We should probably handle this more intelligently
@@ -579,18 +565,10 @@ def _is_membership_change_allowed(
         if target_banned:
             raise AuthError(403, f"{target_user_id} is banned from the room")
         elif target_in_room:  # the target is already in the room.
-            raise UnstableSpecAuthError(
-                403,
-                f"{target_user_id} is already in the room.",
-                errcode=Codes.ALREADY_JOINED,
-            )
+            raise AuthError(403, f"{target_user_id} is already in the room.")
         else:
             if user_level < invite_level:
-                raise UnstableSpecAuthError(
-                    403,
-                    "You don't have permission to invite users",
-                    errcode=Codes.INSUFFICIENT_POWER,
-                )
+                raise AuthError(403, "You don't have permission to invite users")
     elif Membership.JOIN == membership:
         # Joins are valid iff caller == target and:
         # * They are not banned.
@@ -652,33 +630,17 @@ def _is_membership_change_allowed(
     elif Membership.LEAVE == membership:
         # TODO (erikj): Implement kicks.
         if target_banned and user_level < ban_level:
-            raise UnstableSpecAuthError(
-                403,
-                f"You cannot unban user {target_user_id}.",
-                errcode=Codes.INSUFFICIENT_POWER,
-            )
+            raise AuthError(403, f"You cannot unban user {target_user_id}.")
         elif target_user_id != event.user_id:
             kick_level = get_named_level(auth_events, "kick", 50)
 
             if user_level < kick_level or user_level <= target_level:
-                raise UnstableSpecAuthError(
-                    403,
-                    f"You cannot kick user {target_user_id}.",
-                    errcode=Codes.INSUFFICIENT_POWER,
-                )
+                raise AuthError(403, f"You cannot kick user {target_user_id}.")
     elif Membership.BAN == membership:
         if user_level < ban_level:
-            raise UnstableSpecAuthError(
-                403,
-                "You don't have permission to ban",
-                errcode=Codes.INSUFFICIENT_POWER,
-            )
+            raise AuthError(403, "You don't have permission to ban")
         elif user_level <= target_level:
-            raise UnstableSpecAuthError(
-                403,
-                "You don't have permission to ban this user",
-                errcode=Codes.INSUFFICIENT_POWER,
-            )
+            raise AuthError(403, "You don't have permission to ban this user")
     elif room_version.knock_join_rule and Membership.KNOCK == membership:
         if join_rule != JoinRules.KNOCK and (
             not room_version.knock_restricted_join_rule
@@ -688,11 +650,7 @@ def _is_membership_change_allowed(
         elif target_user_id != event.user_id:
             raise AuthError(403, "You cannot knock for other users")
         elif target_in_room:
-            raise UnstableSpecAuthError(
-                403,
-                "You cannot knock on a room you are already in",
-                errcode=Codes.ALREADY_JOINED,
-            )
+            raise AuthError(403, "You cannot knock on a room you are already in")
         elif caller_invited:
             raise AuthError(403, "You are already invited to this room")
         elif target_banned:
@@ -761,10 +719,9 @@ def _can_send_event(event: "EventBase", auth_events: StateMap["EventBase"]) -> b
     user_level = get_user_power_level(event.user_id, auth_events)
 
     if user_level < send_level:
-        raise UnstableSpecAuthError(
+        raise AuthError(
             403,
             f"You don't have permission to post that to the room. user_level ({user_level}) < send_level ({send_level})",
-            errcode=Codes.INSUFFICIENT_POWER,
         )
 
     # Check state_key

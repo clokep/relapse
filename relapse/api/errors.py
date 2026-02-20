@@ -20,14 +20,13 @@ import math
 import typing
 from enum import Enum
 from http import HTTPStatus
-from typing import Any, Optional
+from typing import Any
 
 from twisted.web import http
 
 from relapse.util import json_decoder
 
 if typing.TYPE_CHECKING:
-    from relapse.config.homeserver import HomeServerConfig
     from relapse.types import JsonDict, StrCollection
 
 logger = logging.getLogger(__name__)
@@ -85,12 +84,6 @@ class Codes(str, Enum):
     USER_LOCKED = "ORG_MATRIX_MSC3939_USER_LOCKED"
     NOT_YET_UPLOADED = "M_NOT_YET_UPLOADED"
     CANNOT_OVERWRITE_MEDIA = "M_CANNOT_OVERWRITE_MEDIA"
-
-    # Part of MSC3848
-    # https://github.com/matrix-org/matrix-spec-proposals/pull/3848
-    ALREADY_JOINED = "ORG.MATRIX.MSC3848.ALREADY_JOINED"
-    NOT_JOINED = "ORG.MATRIX.MSC3848.NOT_JOINED"
-    INSUFFICIENT_POWER = "ORG.MATRIX.MSC3848.INSUFFICIENT_POWER"
 
     # The account has been suspended on the server.
     # By opposition to `USER_DEACTIVATED`, this is a reversible measure
@@ -210,7 +203,7 @@ class RelapseError(CodeMessageException):
         else:
             self._additional_fields = dict(additional_fields)
 
-    def error_dict(self, config: Optional["HomeServerConfig"]) -> "JsonDict":
+    def error_dict(self) -> "JsonDict":
         return cs_error(self.msg, self.errcode, **self._additional_fields)
 
     @property
@@ -261,14 +254,14 @@ class ConsentNotGivenError(RelapseError):
 
         Args:
             msg: The human-readable error message
-            consent_url: The URL where the user can give their consent
+            consent_uri: The URL where the user can give their consent
         """
         super().__init__(
             code=HTTPStatus.FORBIDDEN, msg=msg, errcode=Codes.CONSENT_NOT_GIVEN
         )
         self._consent_uri = consent_uri
 
-    def error_dict(self, config: Optional["HomeServerConfig"]) -> "JsonDict":
+    def error_dict(self) -> "JsonDict":
         return cs_error(self.msg, self.errcode, consent_uri=self._consent_uri)
 
 
@@ -375,37 +368,6 @@ class OAuthInsufficientScopeError(RelapseError):
         super().__init__(401, "Insufficient scope", Codes.FORBIDDEN, None, headers)
 
 
-class UnstableSpecAuthError(AuthError):
-    """An error raised when a new error code is being proposed to replace a previous one.
-    This error will return a "org.matrix.unstable.errcode" property with the new error code,
-    with the previous error code still being defined in the "errcode" property.
-
-    This error will include `org.matrix.msc3848.unstable.errcode` in the C-S error body.
-    """
-
-    def __init__(
-        self,
-        code: int,
-        msg: str,
-        errcode: str,
-        previous_errcode: str = Codes.FORBIDDEN,
-        additional_fields: dict | None = None,
-    ):
-        self.previous_errcode = previous_errcode
-        super().__init__(code, msg, errcode, additional_fields)
-
-    def error_dict(self, config: Optional["HomeServerConfig"]) -> "JsonDict":
-        fields = {}
-        if config is not None and config.experimental.msc3848_enabled:
-            fields["org.matrix.msc3848.unstable.errcode"] = self.errcode
-        return cs_error(
-            self.msg,
-            self.previous_errcode,
-            **fields,
-            **self._additional_fields,
-        )
-
-
 class InvalidClientCredentialsError(RelapseError):
     """An error raised when there was a problem with the authorisation credentials
     in a client request.
@@ -437,8 +399,8 @@ class InvalidClientTokenError(InvalidClientCredentialsError):
         super().__init__(msg=msg, errcode="M_UNKNOWN_TOKEN")
         self._soft_logout = soft_logout
 
-    def error_dict(self, config: Optional["HomeServerConfig"]) -> "JsonDict":
-        d = super().error_dict(config)
+    def error_dict(self) -> "JsonDict":
+        d = super().error_dict()
         d["soft_logout"] = self._soft_logout
         return d
 
@@ -461,7 +423,7 @@ class ResourceLimitError(RelapseError):
         self.limit_type = limit_type
         super().__init__(code, msg, errcode=errcode)
 
-    def error_dict(self, config: Optional["HomeServerConfig"]) -> "JsonDict":
+    def error_dict(self) -> "JsonDict":
         return cs_error(
             self.msg,
             self.errcode,
@@ -505,7 +467,7 @@ class InvalidCaptchaError(RelapseError):
         super().__init__(code, msg, errcode)
         self.error_url = error_url
 
-    def error_dict(self, config: Optional["HomeServerConfig"]) -> "JsonDict":
+    def error_dict(self) -> "JsonDict":
         return cs_error(self.msg, self.errcode, error_url=self.error_url)
 
 
@@ -528,7 +490,7 @@ class LimitExceededError(RelapseError):
         self.retry_after_ms = retry_after_ms
         self.limiter_name = limiter_name
 
-    def error_dict(self, config: Optional["HomeServerConfig"]) -> "JsonDict":
+    def error_dict(self) -> "JsonDict":
         return cs_error(self.msg, self.errcode, retry_after_ms=self.retry_after_ms)
 
     @property
@@ -547,7 +509,7 @@ class RoomKeysVersionError(RelapseError):
         super().__init__(403, "Wrong room_keys version", Codes.WRONG_ROOM_KEYS_VERSION)
         self.current_version = current_version
 
-    def error_dict(self, config: Optional["HomeServerConfig"]) -> "JsonDict":
+    def error_dict(self) -> "JsonDict":
         return cs_error(self.msg, self.errcode, current_version=self.current_version)
 
 
@@ -587,7 +549,7 @@ class IncompatibleRoomVersionError(RelapseError):
 
         self._room_version = room_version
 
-    def error_dict(self, config: Optional["HomeServerConfig"]) -> "JsonDict":
+    def error_dict(self) -> "JsonDict":
         return cs_error(self.msg, self.errcode, room_version=self._room_version)
 
 
@@ -632,7 +594,7 @@ class UnredactedContentDeletedError(RelapseError):
         )
         self.content_keep_ms = content_keep_ms
 
-    def error_dict(self, config: Optional["HomeServerConfig"]) -> "JsonDict":
+    def error_dict(self) -> "JsonDict":
         extra = {}
         if self.content_keep_ms is not None:
             extra = {"fi.mau.msc2815.content_keep_ms": self.content_keep_ms}
@@ -729,7 +691,7 @@ class FederationPullAttemptBackoffError(RuntimeError):
     event over federation because we've already done so recently and are backing off.
 
     Attributes:
-        event_id: The event_id which we are refusing to pull
+        event_ids: The event_ids which we are refusing to pull
         message: A custom error message that gives more context
         retry_after_ms: The remaining backoff interval, in milliseconds
     """

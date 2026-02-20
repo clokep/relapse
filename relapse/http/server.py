@@ -57,7 +57,6 @@ from relapse.api.errors import (
     RelapseError,
     UnrecognizedRequestError,
 )
-from relapse.config.homeserver import HomeServerConfig
 from relapse.logging.context import defer_to_thread, preserve_fn, run_in_background
 from relapse.logging.opentracing import active_span, start_active_span, trace_servlet
 from relapse.util import json_encoder
@@ -94,9 +93,7 @@ HTML_ERROR_TEMPLATE = """<!DOCTYPE html>
 HTTP_STATUS_REQUEST_CANCELLED = 499
 
 
-def return_json_error(
-    f: failure.Failure, request: "RelapseRequest", config: HomeServerConfig | None
-) -> None:
+def return_json_error(f: failure.Failure, request: "RelapseRequest") -> None:
     """Sends a JSON error response to clients."""
 
     if f.check(CodeMessageException):
@@ -113,7 +110,7 @@ def return_json_error(
             request.setHeader(b"location", exc.location)
             request.cookies.extend(exc.cookies)
         elif isinstance(exc, RelapseError):
-            error_dict = exc.error_dict(config)
+            error_dict = exc.error_dict()
             error_ctx = exc.debug_context
             if error_ctx:
                 logger.info(
@@ -537,7 +534,7 @@ class JsonResource(_AsyncResource):
         request: "RelapseRequest",
     ) -> None:
         """Implements _AsyncResource._send_error_response"""
-        return_json_error(f, request, self.hs.config)
+        return_json_error(f, request)
 
 
 class StaticResource(File):
@@ -563,7 +560,7 @@ class UnrecognizedRequestResource(resource.Resource):
 
     def render(self, request: "RelapseRequest") -> int:
         f = failure.Failure(UnrecognizedRequestError(code=404))
-        return_json_error(f, request, None)
+        return_json_error(f, request)
         # A response has already been sent but Twisted requires either NOT_DONE_YET
         # or the response bytes as a return value.
         return NOT_DONE_YET

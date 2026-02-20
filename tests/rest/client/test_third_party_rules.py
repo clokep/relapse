@@ -19,7 +19,6 @@ from twisted.internet.testing import MemoryReactor
 from relapse.api.constants import EventTypes, LoginType, Membership
 from relapse.api.errors import RelapseError
 from relapse.api.room_versions import RoomVersion
-from relapse.config.homeserver import HomeServerConfig
 from relapse.events import EventBase
 from relapse.rest import admin
 from relapse.rest.client import account, login, profile, room
@@ -134,12 +133,12 @@ class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
         """
 
         class NastyHackException(RelapseError):
-            def error_dict(self, config: HomeServerConfig | None) -> JsonDict:
+            def error_dict(self) -> JsonDict:
                 """
                 This overrides RelapseError's `error_dict` to nastily inject
                 JSON into the error response.
                 """
-                result = super().error_dict(config)
+                result = super().error_dict()
                 result["nasty"] = "very"
                 return result
 

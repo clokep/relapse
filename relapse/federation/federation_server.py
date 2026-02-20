@@ -476,7 +476,7 @@ class FederationServer(FederationBase):
                     )
                     for pdu in pdus_by_room[room_id]:
                         event_id = pdu.event_id
-                        pdu_results[event_id] = e.error_dict(self.hs.config)
+                        pdu_results[event_id] = e.error_dict()
                     return
 
                 for pdu in pdus_by_room[room_id]:
