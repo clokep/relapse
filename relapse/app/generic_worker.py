@@ -17,17 +17,9 @@ import sys
 from collections.abc import Iterable
 
 from twisted.internet.tcp import Port
-from twisted.web.resource import Resource
 
 import relapse
 import relapse.events
-from relapse.api.urls import (
-    CLIENT_API_PREFIX,
-    FEDERATION_PREFIX,
-    MEDIA_R0_PREFIX,
-    MEDIA_V3_PREFIX,
-    SERVER_KEY_PREFIX,
-)
 from relapse.app import _base
 from relapse.app._base import (
     handle_startup_exception,
@@ -39,11 +31,10 @@ from relapse.config._base import ConfigError
 from relapse.config.homeserver import HomeServerConfig
 from relapse.config.logger import setup_logging
 from relapse.config.server import ListenerConfig, TCPListenerConfig
-from relapse.http.server import JsonResource, OptionsResource
+from relapse.http.server import OptionsResource
 from relapse.logging.context import LoggingContext
-from relapse.metrics import METRICS_PREFIX, RegistryProxy
+from relapse.metrics import RegistryProxy
 from relapse.replication.http import (
-    REPLICATION_PREFIX,
     register_servlets as register_replication_servlets,
 )
 from relapse.rest import client, federation, key, media, well_known
@@ -99,7 +90,6 @@ from relapse.storage.databases.main.ui_auth import UIAuthWorkerStore
 from relapse.storage.databases.main.user_directory import UserDirectoryStore
 from relapse.storage.databases.main.user_erasure_store import UserErasureWorkerStore
 from relapse.util import RELAPSE_VERSION
-from relapse.util.httpresourcetree import create_resource_tree
 
 logger = logging.getLogger("relapse.app.generic_worker")
 
@@ -162,51 +152,30 @@ class GenericWorkerServer(HomeServer):
     def listen_http(self, listener_config: ListenerConfig) -> Iterable[Port]:
         assert listener_config.http_options is not None
 
+        matrix_resource = OptionsResource(self)
+
         # We always include a health resource.
-        health_resource = JsonResource(self, canonical_json=False)
-        HealthServlet().register(health_resource)
-        resources: dict[str, Resource] = {"/health": health_resource}
+        HealthServlet().register(matrix_resource)
 
         for res in listener_config.http_options.resources:
             for name in res.names:
                 if name == "metrics":
-                    metrics_resource = JsonResource(self, canonical_json=False)
-                    MetricsServlet(RegistryProxy).register(metrics_resource)
-                    resources[METRICS_PREFIX] = metrics_resource
+                    MetricsServlet(RegistryProxy).register(matrix_resource)
                 elif name == "client":
-                    resource = JsonResource(self, canonical_json=False)
-                    client.register_servlets(self, resource)
-                    resources[CLIENT_API_PREFIX] = resource
-
-                    relapse_resource = JsonResource(self, canonical_json=False)
-                    relapse_client.register_servlets(self, relapse_resource)
-                    resources["/_relapse"] = relapse_resource
-
-                    well_known_resource = JsonResource(self, canonical_json=False)
-                    well_known.register_servlets(self, well_known_resource)
-                    resources["/.well-known"] = well_known_resource
+                    client.register_servlets(self, matrix_resource)
+                    relapse_client.register_servlets(self, matrix_resource)
+                    well_known.register_servlets(self, matrix_resource)
 
                 elif name == "federation":
-                    federation_resource = JsonResource(self, canonical_json=False)
-                    federation.register_servlets(self, federation_resource)
-                    resources[FEDERATION_PREFIX] = federation_resource
+                    federation.register_servlets(self, matrix_resource)
                 elif name == "media":
                     if self.config.media.can_load_media_repo:
-                        media_resource = JsonResource(self, canonical_json=False)
-                        media.register_servlets(self, media_resource)
+                        media.register_servlets(self, matrix_resource)
 
                         # We need to serve the admin servlets for media on the
                         # worker.
-                        admin_resource = JsonResource(self, canonical_json=False)
-                        register_servlets_for_media_repo(self, admin_resource)
+                        register_servlets_for_media_repo(self, matrix_resource)
 
-                        resources.update(
-                            {
-                                MEDIA_R0_PREFIX: media_resource,
-                                MEDIA_V3_PREFIX: media_resource,
-                                "/_relapse/admin": admin_resource,
-                            }
-                        )
                     else:
                         logger.warning(
                             "A 'media' listener is configured but the media"
@@ -220,32 +189,20 @@ class GenericWorkerServer(HomeServer):
                     # Only load the openid resource separately if federation resource
                     # is not specified since federation resource includes openid
                     # resource.
-                    federation_resource = JsonResource(self, canonical_json=False)
                     federation.register_servlets(
-                        self, federation_resource, servlet_groups=["openid"]
+                        self, matrix_resource, servlet_groups=["openid"]
                     )
-                    resources[FEDERATION_PREFIX] = federation_resource
 
                 if name in ["keys", "federation"]:
-                    key_resource = JsonResource(self, canonical_json=True)
-                    key.register_servlets(self, key_resource)
-                    resources[SERVER_KEY_PREFIX] = key_resource
+                    key.register_servlets(self, matrix_resource)
 
                 if name == "replication":
-                    replication_resource = JsonResource(self, canonical_json=False)
-                    register_replication_servlets(self, replication_resource)
-                    resources[REPLICATION_PREFIX] = replication_resource
-
-        # Attach additional resources registered by modules.
-        resources.update(self._module_web_resources)
-        self._module_web_resources_consumed = True
-
-        root_resource = create_resource_tree(resources, OptionsResource())
+                    register_replication_servlets(self, matrix_resource)
 
         return _base.listen_http(
             self,
             listener_config,
-            root_resource,
+            matrix_resource,
             self.version_string,
             max_request_body_size(self.config),
             self.tls_server_context_factory,

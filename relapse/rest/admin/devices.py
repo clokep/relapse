@@ -42,7 +42,6 @@ class DeviceRestServlet(RestServlet):
     )
 
     def __init__(self, hs: "HomeServer"):
-        super().__init__()
         self.auth = hs.get_auth()
         handler = hs.get_device_handler()
         assert isinstance(handler, DeviceHandler)

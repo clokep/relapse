@@ -27,20 +27,20 @@ from relapse.types import JsonDict, Requester, StateMap
 from relapse.util import Clock
 from relapse.util.frozenutils import unfreeze
 
-from tests import unittest
+from tests.unittest import FederatingHomeserverTestCase
 
 if TYPE_CHECKING:
     pass
 
 
-class ThirdPartyRulesTestCase(unittest.FederatingHomeserverTestCase):
+class ThirdPartyRulesTestCase(FederatingHomeserverTestCase):
     servlets = [
         admin.register_servlets,
         login.register_servlets,
         room.register_servlets,
         profile.register_servlets,
         account.register_servlets,
-    ]
+    ] + FederatingHomeserverTestCase.servlets
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         hs = self.setup_test_homeserver()

@@ -105,7 +105,7 @@ class PresenceRouterTestCase(FederatingHomeserverTestCase):
         login.register_servlets,
         room.register_servlets,
         presence.register_servlets,
-    ]
+    ] + FederatingHomeserverTestCase.servlets
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         # Mock out the calls over federation.

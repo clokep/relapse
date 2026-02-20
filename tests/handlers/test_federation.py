@@ -42,6 +42,7 @@ from relapse.util.stringutils import random_string
 
 from tests import unittest
 from tests.test_utils import event_injection
+from tests.unittest import FederatingHomeserverTestCase
 
 logger = logging.getLogger(__name__)
 
@@ -50,12 +51,12 @@ def generate_fake_event_id() -> str:
     return "$fake_" + random_string(43)
 
 
-class FederationTestCase(unittest.FederatingHomeserverTestCase):
+class FederationTestCase(FederatingHomeserverTestCase):
     servlets = [
         admin.register_servlets,
         login.register_servlets,
         room.register_servlets,
-    ]
+    ] + FederatingHomeserverTestCase.servlets
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         hs = self.setup_test_homeserver()

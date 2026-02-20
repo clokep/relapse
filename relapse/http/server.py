@@ -37,18 +37,7 @@ from twisted.internet.defer import CancelledError
 from twisted.internet.interfaces import ITCPTransport
 from twisted.python import failure
 from twisted.web import resource
-
-from relapse.types import IRelapseReactor
-
-try:
-    from twisted.web.pages import notFound
-except ImportError:
-    from twisted.web.resource import NoResource as notFound  # type: ignore[assignment]
-
-from twisted.web.resource import IResource
 from twisted.web.server import NOT_DONE_YET, Request
-from twisted.web.static import File
-from twisted.web.util import redirectTo
 
 from relapse.api.errors import (
     CodeMessageException,
@@ -59,6 +48,7 @@ from relapse.api.errors import (
 )
 from relapse.logging.context import defer_to_thread, preserve_fn, run_in_background
 from relapse.logging.opentracing import active_span, start_active_span, trace_servlet
+from relapse.types import IRelapseReactor
 from relapse.util import json_encoder
 from relapse.util.caches import intern_dict
 from relapse.util.cancellation import is_function_cancellable
@@ -313,7 +303,7 @@ class _AsyncResource(resource.Resource, metaclass=abc.ABCMeta):
 
         self._extract_context = extract_context
 
-    def render(self, request: "RelapseRequest") -> int:
+    def render(self, request: "RelapseRequest") -> bytes | int:
         """This gets called by twisted every time someone sends us a request."""
         request.render_deferred = defer.ensureDeferred(
             self._async_render_wrapper(request)
@@ -413,11 +403,9 @@ class JsonResource(_AsyncResource):
     def __init__(
         self,
         hs: "HomeServer",
-        canonical_json: bool = True,
         extract_context: bool = False,
     ):
         super().__init__(extract_context)
-        self.canonical_json = canonical_json
         self.clock = hs.get_clock()
         # Map of path regex -> method -> callback.
         self._routes: dict[Pattern[str], dict[bytes, _PathEntry]] = {}
@@ -525,7 +513,7 @@ class JsonResource(_AsyncResource):
             code,
             response_object,
             send_cors=True,
-            canonical_json=self.canonical_json,
+            canonical_json=False,
         )
 
     def _send_error_response(
@@ -537,73 +525,18 @@ class JsonResource(_AsyncResource):
         return_json_error(f, request)
 
 
-class StaticResource(File):
-    """
-    A resource that represents a plain non-interpreted file or directory.
-
-    Differs from the File resource by adding clickjacking protection.
-    """
-
-    def render_GET(self, request: Request) -> bytes:
-        set_clickjacking_protection_headers(request)
-        return super().render_GET(request)
-
-    def directoryListing(self) -> IResource:
-        return notFound()
-
-
-class UnrecognizedRequestResource(resource.Resource):
-    """
-    Similar to twisted.web.resource.NoResource, but returns a JSON 404 with an
-    errcode of M_UNRECOGNIZED.
-    """
-
-    def render(self, request: "RelapseRequest") -> int:
-        f = failure.Failure(UnrecognizedRequestError(code=404))
-        return_json_error(f, request)
-        # A response has already been sent but Twisted requires either NOT_DONE_YET
-        # or the response bytes as a return value.
-        return NOT_DONE_YET
-
-    def getChild(self, name: str, request: Request) -> resource.Resource:
-        return self
-
-
-class RootRedirect(resource.Resource):
-    """Redirects the root '/' path to another path."""
-
-    def __init__(self, path: str):
-        super().__init__()
-        self.url = path
-
-    def render_GET(self, request: Request) -> bytes:
-        return redirectTo(self.url.encode("ascii"), request)
-
-    def getChild(self, name: str, request: Request) -> resource.Resource:
-        if len(name) == 0:
-            return self  # select ourselves as the child to render
-        return super().getChild(name, request)
-
-
-class OptionsResource(resource.Resource):
+class OptionsResource(JsonResource):
     """Responds to OPTION requests for itself and all children."""
 
-    def render_OPTIONS(self, request: "RelapseRequest") -> bytes:
-        request.setResponseCode(204)
-        request.setHeader(b"Content-Length", b"0")
-
-        set_cors_headers(request)
-
-        return b""
-
-    def getChildWithDefault(self, path: str, request: Request) -> resource.Resource:
+    def render(self, request: "RelapseRequest") -> bytes | int:
         if request.method == b"OPTIONS":
-            return self  # select ourselves as the child to render
-        return super().getChildWithDefault(path, request)
+            request.setResponseCode(204)
+            request.setHeader(b"Content-Length", b"0")
 
+            set_cors_headers(request)
+            return b""
 
-class RootOptionsRedirectResource(OptionsResource, RootRedirect):
-    pass
+        return super().render(request)
 
 
 @implementer(interfaces.IPushProducer)

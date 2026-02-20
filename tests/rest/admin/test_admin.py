@@ -18,7 +18,6 @@ from parameterized import parameterized
 
 from twisted.internet.testing import MemoryReactor
 
-from relapse.http.server import JsonResource
 from relapse.rest import admin, media
 from relapse.rest.admin import VersionServlet
 from relapse.rest.client import login, room
@@ -32,10 +31,7 @@ from tests.test_utils import SMALL_PNG
 class VersionTestCase(unittest.HomeserverTestCase):
     url = "/_relapse/admin/v1/server_version"
 
-    def create_test_resource(self, hs: HomeServer) -> JsonResource:
-        resource = JsonResource(hs)
-        VersionServlet(hs).register(resource)
-        return resource
+    servlets = [lambda hs, http_server: VersionServlet(hs).register(http_server)]
 
     def test_version_string(self) -> None:
         channel = self.make_request("GET", self.url, shorthand=False)

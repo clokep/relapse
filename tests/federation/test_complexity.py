@@ -19,15 +19,15 @@ from relapse.rest import admin
 from relapse.rest.client import login, room
 from relapse.types import JsonDict, UserID, create_requester
 
-from tests import unittest
+from tests.unittest import FederatingHomeserverTestCase
 
 
-class RoomComplexityTests(unittest.FederatingHomeserverTestCase):
+class RoomComplexityTests(FederatingHomeserverTestCase):
     servlets = [
         admin.register_servlets,
         room.register_servlets,
         login.register_servlets,
-    ]
+    ] + FederatingHomeserverTestCase.servlets
 
     def default_config(self) -> JsonDict:
         config = super().default_config()
@@ -172,7 +172,7 @@ class RoomComplexityTests(unittest.FederatingHomeserverTestCase):
         self.assertEqual(f.value.errcode, Codes.RESOURCE_LIMIT_EXCEEDED)
 
 
-class RoomComplexityAdminTests(unittest.FederatingHomeserverTestCase):
+class RoomComplexityAdminTests(FederatingHomeserverTestCase):
     # Test the behavior of joining rooms which exceed the complexity if option
     # limit_remote_rooms.admins_can_join is True.
 
@@ -180,7 +180,7 @@ class RoomComplexityAdminTests(unittest.FederatingHomeserverTestCase):
         admin.register_servlets,
         room.register_servlets,
         login.register_servlets,
-    ]
+    ] + FederatingHomeserverTestCase.servlets
 
     def default_config(self) -> JsonDict:
         config = super().default_config()

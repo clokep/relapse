@@ -14,10 +14,7 @@
 
 from http import HTTPStatus
 
-from twisted.web.resource import Resource
-
 from relapse.api.errors import Codes
-from relapse.http.server import JsonResource
 from relapse.rest.federation import BaseFederationServlet
 from relapse.rest.federation._base import Authenticator, _parse_auth_header
 from relapse.server import HomeServer
@@ -27,6 +24,7 @@ from relapse.util.ratelimitutils import FederationRateLimiter
 
 from tests import unittest
 from tests.http.server._base import test_disconnect
+from tests.unittest import FederatingHomeserverTestCase
 
 
 class CancellableFederationServlet(BaseFederationServlet):
@@ -56,25 +54,21 @@ class CancellableFederationServlet(BaseFederationServlet):
         return HTTPStatus.OK, {"result": True}
 
 
-class BaseFederationServletCancellationTests(unittest.FederatingHomeserverTestCase):
+class BaseFederationServletCancellationTests(FederatingHomeserverTestCase):
     """Tests for `BaseFederationServlet` cancellation."""
 
     skip = "`BaseFederationServlet` does not support cancellation yet."
 
     path = f"{CancellableFederationServlet.PREFIX}{CancellableFederationServlet.PATH}"
 
-    def create_test_resource(self, hs: HomeServer) -> Resource:
-        """Overrides `HomeserverTestCase.create_test_resource`."""
-        resource = JsonResource(hs)
-
-        CancellableFederationServlet(
-            hs=self.hs,
+    servlets = [
+        lambda hs, http_server: CancellableFederationServlet(
+            hs=hs,
             authenticator=Authenticator(hs),
             ratelimiter=hs.get_federation_ratelimiter(),
             server_name=hs.hostname,
-        ).register(resource)
-
-        return resource
+        ).register(http_server)
+    ] + FederatingHomeserverTestCase.servlets
 
     def test_cancellable_disconnect(self) -> None:
         """Test that handlers with the `@cancellable` flag can be cancelled."""

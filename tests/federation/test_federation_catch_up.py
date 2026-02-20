@@ -35,7 +35,7 @@ class FederationCatchUpTestCases(FederatingHomeserverTestCase):
         admin.register_servlets,
         room.register_servlets,
         login.register_servlets,
-    ]
+    ] + FederatingHomeserverTestCase.servlets
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         self.federation_client = Mock(spec=["send_transaction"])

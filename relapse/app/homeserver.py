@@ -15,6 +15,7 @@
 
 import logging
 import os
+import re
 import sys
 from collections.abc import Iterable
 
@@ -26,11 +27,6 @@ import relapse
 import relapse.config.logger
 from relapse import events
 from relapse.api.urls import (
-    CLIENT_API_PREFIX,
-    FEDERATION_PREFIX,
-    MEDIA_R0_PREFIX,
-    MEDIA_V3_PREFIX,
-    SERVER_KEY_PREFIX,
     STATIC_PREFIX,
 )
 from relapse.app import _base
@@ -45,15 +41,13 @@ from relapse.config._base import ConfigError, format_config_error
 from relapse.config.homeserver import HomeServerConfig
 from relapse.config.server import ListenerConfig, TCPListenerConfig
 from relapse.http.server import (
-    JsonResource,
+    HttpServer,
     OptionsResource,
-    RootOptionsRedirectResource,
-    StaticResource,
 )
+from relapse.http.servlet import RedirectServlet, StaticServlet
 from relapse.logging.context import LoggingContext
-from relapse.metrics import METRICS_PREFIX, RegistryProxy
+from relapse.metrics import RegistryProxy
 from relapse.replication.http import (
-    REPLICATION_PREFIX,
     register_servlets as register_replication_servlets,
 )
 from relapse.rest import admin, client, federation, key, media, well_known
@@ -63,7 +57,6 @@ from relapse.rest.relapse.metrics import MetricsServlet
 from relapse.server import HomeServer
 from relapse.storage import DataStore
 from relapse.util.check_dependencies import VERSION, check_requirements
-from relapse.util.httpresourcetree import create_resource_tree
 
 logger = logging.getLogger("relapse.app.homeserver")
 
@@ -79,11 +72,12 @@ class RelapseHomeServer(HomeServer):
         # Must exist since this is an HTTP listener.
         assert listener_config.http_options is not None
 
-        # We always include a health resource.
-        health_resource = JsonResource(self, canonical_json=False)
-        HealthServlet().register(health_resource)
-        resources: dict[str, Resource] = {"/health": health_resource}
+        matrix_resource = OptionsResource(self)
 
+        # We always include a health resource.
+        HealthServlet().register(matrix_resource)
+
+        has_static_resources = False
         for res in listener_config.http_options.resources:
             for name in res.names:
                 if name == "openid" and "federation" in res.names:
@@ -93,11 +87,9 @@ class RelapseHomeServer(HomeServer):
                 if name == "health":
                     # Skip loading, health resource is always included
                     continue
-                resources.update(self._configure_named_resource(name, res.compress))
-
-        # Attach additional resources registered by modules.
-        resources.update(self._module_web_resources)
-        self._module_web_resources_consumed = True
+                if name in ["static", "client"]:
+                    has_static_resources = True
+                self._configure_named_resource(matrix_resource, name)
 
         # Try to find something useful to serve at '/':
         #
@@ -105,134 +97,76 @@ class RelapseHomeServer(HomeServer):
         # 2. Redirect to the static "Relapse is running" page.
         # 3. Do not redirect and use a blank resource.
         if self.config.server.web_client_location:
-            root_resource: Resource = RootOptionsRedirectResource(
-                self.config.server.web_client_location
-            )
-        elif STATIC_PREFIX in resources:
-            root_resource = RootOptionsRedirectResource(STATIC_PREFIX)
-        else:
-            root_resource = OptionsResource()
+            RedirectServlet(
+                re.compile(r"^/$"), self.config.server.web_client_location
+            ).register(matrix_resource)
+        elif has_static_resources:
+            RedirectServlet(re.compile(r"^/$"), STATIC_PREFIX).register(matrix_resource)
 
         return listen_http(
             self,
             listener_config,
-            create_resource_tree(resources, root_resource),
+            matrix_resource,
             self.version_string,
             max_request_body_size(self.config),
             self.tls_server_context_factory,
             reactor=self.get_reactor(),
         )
 
-    def _configure_named_resource(
-        self, name: str, compress: bool = False
-    ) -> dict[str, Resource]:
+    def _configure_named_resource(self, resource: HttpServer, name: str) -> None:
         """Build a resource map for a named resource
 
         Args:
+            resource: The resource to attach servlets to
             name: named resource: one of "client", "federation", etc
-            compress: whether to enable gzip compression for this resource
-
-        Returns:
-            map from path to HTTP resource
         """
-        resources: dict[str, Resource] = {}
         if name == "client":
-            client_server = JsonResource(self, canonical_json=False)
-            client.register_servlets(self, client_server)
-            client_resource: Resource = client_server
-            if compress:
-                client_resource = gz_wrap(client_resource)
-
-            relapse_resource = JsonResource(self, canonical_json=False)
-            relapse_client.register_servlets(self, relapse_resource)
-
-            well_known_resource = JsonResource(self, canonical_json=False)
-            well_known.register_servlets(self, well_known_resource)
-
-            admin_resource = JsonResource(self, canonical_json=False)
-            admin.register_servlets(self, admin_resource)
-
-            resources.update(
-                {
-                    CLIENT_API_PREFIX: client_resource,
-                    "/.well-known": well_known_resource,
-                    "/_relapse/admin": admin_resource,
-                    "/_relapse": relapse_resource,
-                }
-            )
+            client.register_servlets(self, resource)
+            relapse_client.register_servlets(self, resource)
+            well_known.register_servlets(self, resource)
+            admin.register_servlets(self, resource)
 
             if self.config.email.can_verify_email:
                 from relapse.rest.relapse.client.password_reset import (
                     PasswordResetSubmitTokenServlet,
                 )
 
-                PasswordResetSubmitTokenServlet(self).register(relapse_resource)
+                PasswordResetSubmitTokenServlet(self).register(resource)
 
         if name == "consent":
             from relapse.rest.consent import ConsentServlet
 
-            consent_server = JsonResource(self, canonical_json=False)
-            ConsentServlet(self).register(consent_server)
-            consent_resource: Resource = consent_server
-            if compress:
-                consent_resource = gz_wrap(consent_resource)
-            resources["/_matrix/consent"] = consent_resource
+            ConsentServlet(self).register(resource)
 
         if name == "federation":
-            federation_server = JsonResource(self, canonical_json=False)
-            federation.register_servlets(self, federation_server)
-            federation_resource: Resource = federation_server
-            if compress:
-                federation_resource = gz_wrap(federation_resource)
-            resources[FEDERATION_PREFIX] = federation_resource
+            federation.register_servlets(self, resource)
 
         if name == "openid":
-            federation_resource = JsonResource(self, canonical_json=False)
-            federation.register_servlets(
-                self, federation_resource, servlet_groups=["openid"]
-            )
-
-            resources[FEDERATION_PREFIX] = federation_resource
+            federation.register_servlets(self, resource, servlet_groups=["openid"])
 
         if name in ["static", "client"]:
-            resources[STATIC_PREFIX] = StaticResource(
-                os.path.join(os.path.dirname(relapse.__file__), "static")
-            )
+            StaticServlet(
+                re.compile(r"/_relapse/static/"),
+                os.path.join(os.path.dirname(relapse.__file__), "static"),
+            ).register(resource)
 
         if name in ["media", "federation", "client"]:
             if self.config.server.enable_media_repo:
-                media_resource = JsonResource(self, canonical_json=False)
-                media.register_servlets(self, media_resource)
-                resources.update(
-                    {
-                        MEDIA_R0_PREFIX: media_resource,
-                        MEDIA_V3_PREFIX: media_resource,
-                    }
-                )
+                media.register_servlets(self, resource)
             elif name == "media":
                 raise ConfigError(
                     "'media' resource conflicts with enable_media_repo=False"
                 )
 
         if name in ["keys", "federation"]:
-            key_resource = JsonResource(self, canonical_json=True)
-            key.register_servlets(self, key_resource)
-            resources[SERVER_KEY_PREFIX] = key_resource
+            key.register_servlets(self, resource)
 
         if name == "metrics" and self.config.metrics.enable_metrics:
-            metrics_server = JsonResource(self, canonical_json=False)
-            MetricsServlet(RegistryProxy).register(metrics_server)
-            metrics_resource: Resource = metrics_server
-            if compress:
-                metrics_resource = gz_wrap(metrics_resource)
-            resources[METRICS_PREFIX] = metrics_resource
+            MetricsServlet(RegistryProxy).register(resource)
 
         if name == "replication":
-            replication_resource = JsonResource(self, canonical_json=False)
-            register_replication_servlets(self, replication_resource)
-            resources[REPLICATION_PREFIX] = replication_resource
-
-        return resources
+            register_replication_servlets(self, resource)
+            MetricsServlet(RegistryProxy).register(resource)
 
     def start_listening(self) -> None:
         if self.config.redis.redis_enabled:

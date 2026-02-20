@@ -34,16 +34,16 @@ from relapse.state import StateResolutionStore
 from relapse.state.v2 import _mainline_sort, _reverse_topological_power_sort
 from relapse.util import Clock
 
-from tests import unittest
 from tests.test_utils import event_injection
+from tests.unittest import FederatingHomeserverTestCase
 
 
-class FederationEventHandlerTests(unittest.FederatingHomeserverTestCase):
+class FederationEventHandlerTests(FederatingHomeserverTestCase):
     servlets = [
         admin.register_servlets,
         login.register_servlets,
         room.register_servlets,
-    ]
+    ] + FederatingHomeserverTestCase.servlets
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         # mock out the federation client
