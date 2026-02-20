@@ -80,7 +80,7 @@ class RelapseHomeServer(HomeServer):
         assert listener_config.http_options is not None
 
         # We always include a health resource.
-        health_resource = JsonResource(self, canonical_json=False)
+        health_resource = JsonResource(self)
         HealthServlet().register(health_resource)
         resources: dict[str, Resource] = {"/health": health_resource}
 
@@ -137,19 +137,19 @@ class RelapseHomeServer(HomeServer):
         """
         resources: dict[str, Resource] = {}
         if name == "client":
-            client_server = JsonResource(self, canonical_json=False)
+            client_server = JsonResource(self)
             client.register_servlets(self, client_server)
             client_resource: Resource = client_server
             if compress:
                 client_resource = gz_wrap(client_resource)
 
-            relapse_resource = JsonResource(self, canonical_json=False)
+            relapse_resource = JsonResource(self)
             relapse_client.register_servlets(self, relapse_resource)
 
-            well_known_resource = JsonResource(self, canonical_json=False)
+            well_known_resource = JsonResource(self)
             well_known.register_servlets(self, well_known_resource)
 
-            admin_resource = JsonResource(self, canonical_json=False)
+            admin_resource = JsonResource(self)
             admin.register_servlets(self, admin_resource)
 
             resources.update(
@@ -171,7 +171,7 @@ class RelapseHomeServer(HomeServer):
         if name == "consent":
             from relapse.rest.consent import ConsentServlet
 
-            consent_server = JsonResource(self, canonical_json=False)
+            consent_server = JsonResource(self)
             ConsentServlet(self).register(consent_server)
             consent_resource: Resource = consent_server
             if compress:
@@ -179,7 +179,7 @@ class RelapseHomeServer(HomeServer):
             resources["/_matrix/consent"] = consent_resource
 
         if name == "federation":
-            federation_server = JsonResource(self, canonical_json=False)
+            federation_server = JsonResource(self)
             federation.register_servlets(self, federation_server)
             federation_resource: Resource = federation_server
             if compress:
@@ -187,7 +187,7 @@ class RelapseHomeServer(HomeServer):
             resources[FEDERATION_PREFIX] = federation_resource
 
         if name == "openid":
-            federation_resource = JsonResource(self, canonical_json=False)
+            federation_resource = JsonResource(self)
             federation.register_servlets(
                 self, federation_resource, servlet_groups=["openid"]
             )
@@ -201,7 +201,7 @@ class RelapseHomeServer(HomeServer):
 
         if name in ["media", "federation", "client"]:
             if self.config.server.enable_media_repo:
-                media_resource = JsonResource(self, canonical_json=False)
+                media_resource = JsonResource(self)
                 media.register_servlets(self, media_resource)
                 resources.update(
                     {
@@ -215,12 +215,12 @@ class RelapseHomeServer(HomeServer):
                 )
 
         if name in ["keys", "federation"]:
-            key_resource = JsonResource(self, canonical_json=True)
+            key_resource = JsonResource(self)
             key.register_servlets(self, key_resource)
             resources[SERVER_KEY_PREFIX] = key_resource
 
         if name == "metrics" and self.config.metrics.enable_metrics:
-            metrics_server = JsonResource(self, canonical_json=False)
+            metrics_server = JsonResource(self)
             MetricsServlet(RegistryProxy).register(metrics_server)
             metrics_resource: Resource = metrics_server
             if compress:
@@ -228,7 +228,7 @@ class RelapseHomeServer(HomeServer):
             resources[METRICS_PREFIX] = metrics_resource
 
         if name == "replication":
-            replication_resource = JsonResource(self, canonical_json=False)
+            replication_resource = JsonResource(self)
             register_replication_servlets(self, replication_resource)
             resources[REPLICATION_PREFIX] = replication_resource
 

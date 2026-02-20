@@ -19,9 +19,9 @@ from typing import TYPE_CHECKING
 from signedjson.sign import sign_json
 from unpaddedbase64 import encode_base64
 
-from twisted.web.server import Request
-
+from relapse.http.server import respond_with_json
 from relapse.http.servlet import RestServlet
+from relapse.http.site import RelapseRequest
 from relapse.types import JsonDict
 
 if TYPE_CHECKING:
@@ -99,9 +99,7 @@ class LocalKey(RestServlet):
             json_object = sign_json(json_object, self.config.server.server_name, key)
         return json_object
 
-    def on_GET(
-        self, request: Request, key_id: str | None = None
-    ) -> tuple[int, JsonDict]:
+    def on_GET(self, request: RelapseRequest, key_id: str | None = None) -> None:
         # Matrix 1.6 drops support for passing the key_id, this is incompatible
         # with earlier versions and is allowed in order to support both.
         # A warning is issued to help determine when it is safe to drop this.
@@ -115,4 +113,7 @@ class LocalKey(RestServlet):
         # Update the expiry time if less than half the interval remains.
         if time_now + self.config.key.key_refresh_interval / 2 > self.valid_until_ts:
             self.update_response_body(time_now)
-        return 200, self.response_body
+
+        respond_with_json(
+            request, 200, self.response_body, send_cors=True, canonical_json=True
+        )

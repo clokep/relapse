@@ -413,11 +413,9 @@ class JsonResource(_AsyncResource):
     def __init__(
         self,
         hs: "HomeServer",
-        canonical_json: bool = True,
         extract_context: bool = False,
     ):
         super().__init__(extract_context)
-        self.canonical_json = canonical_json
         self.clock = hs.get_clock()
         # Map of path regex -> method -> callback.
         self._routes: dict[Pattern[str], dict[bytes, _PathEntry]] = {}
@@ -525,7 +523,7 @@ class JsonResource(_AsyncResource):
             code,
             response_object,
             send_cors=True,
-            canonical_json=self.canonical_json,
+            canonical_json=False,
         )
 
     def _send_error_response(

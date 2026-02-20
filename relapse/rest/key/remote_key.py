@@ -20,15 +20,14 @@ from typing import TYPE_CHECKING
 from pydantic import ConfigDict
 from signedjson.sign import sign_json
 
-from twisted.web.server import Request
-
 from relapse.crypto.keyring import ServerKeyFetcher
-from relapse.http.server import HttpServer
+from relapse.http.server import HttpServer, respond_with_json
 from relapse.http.servlet import (
     RestServlet,
     parse_and_validate_json_object_from_request,
     parse_integer,
 )
+from relapse.http.site import RelapseRequest
 from relapse.rest.models import RequestBodyModel
 from relapse.storage.keys import FetchKeyResultForRemote
 from relapse.types import JsonDict
@@ -136,8 +135,8 @@ class RemoteKey(RestServlet):
         )
 
     async def on_GET(
-        self, request: Request, server: str, key_id: str | None = None
-    ) -> tuple[int, JsonDict]:
+        self, request: RelapseRequest, server: str, key_id: str | None = None
+    ) -> None:
         if server and key_id:
             # Matrix 1.6 drops support for passing the key_id, this is incompatible
             # with earlier versions and is allowed in order to support both.
@@ -159,14 +158,20 @@ class RemoteKey(RestServlet):
         else:
             query = {server: {}}
 
-        return 200, await self.query_keys(query, query_remote_on_cache_miss=True)
+        response_body = await self.query_keys(query, query_remote_on_cache_miss=True)
+        respond_with_json(
+            request, 200, response_body, send_cors=True, canonical_json=True
+        )
 
-    async def on_POST(self, request: Request) -> tuple[int, JsonDict]:
+    async def on_POST(self, request: RelapseRequest) -> None:
         content = parse_and_validate_json_object_from_request(request, self.PostBody)
 
         query = content.server_keys
 
-        return 200, await self.query_keys(query, query_remote_on_cache_miss=True)
+        response_body = await self.query_keys(query, query_remote_on_cache_miss=True)
+        respond_with_json(
+            request, 200, response_body, send_cors=True, canonical_json=True
+        )
 
     async def query_keys(
         self,

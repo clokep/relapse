@@ -163,41 +163,41 @@ class GenericWorkerServer(HomeServer):
         assert listener_config.http_options is not None
 
         # We always include a health resource.
-        health_resource = JsonResource(self, canonical_json=False)
+        health_resource = JsonResource(self)
         HealthServlet().register(health_resource)
         resources: dict[str, Resource] = {"/health": health_resource}
 
         for res in listener_config.http_options.resources:
             for name in res.names:
                 if name == "metrics":
-                    metrics_resource = JsonResource(self, canonical_json=False)
+                    metrics_resource = JsonResource(self)
                     MetricsServlet(RegistryProxy).register(metrics_resource)
                     resources[METRICS_PREFIX] = metrics_resource
                 elif name == "client":
-                    resource = JsonResource(self, canonical_json=False)
+                    resource = JsonResource(self)
                     client.register_servlets(self, resource)
                     resources[CLIENT_API_PREFIX] = resource
 
-                    relapse_resource = JsonResource(self, canonical_json=False)
+                    relapse_resource = JsonResource(self)
                     relapse_client.register_servlets(self, relapse_resource)
                     resources["/_relapse"] = relapse_resource
 
-                    well_known_resource = JsonResource(self, canonical_json=False)
+                    well_known_resource = JsonResource(self)
                     well_known.register_servlets(self, well_known_resource)
                     resources["/.well-known"] = well_known_resource
 
                 elif name == "federation":
-                    federation_resource = JsonResource(self, canonical_json=False)
+                    federation_resource = JsonResource(self)
                     federation.register_servlets(self, federation_resource)
                     resources[FEDERATION_PREFIX] = federation_resource
                 elif name == "media":
                     if self.config.media.can_load_media_repo:
-                        media_resource = JsonResource(self, canonical_json=False)
+                        media_resource = JsonResource(self)
                         media.register_servlets(self, media_resource)
 
                         # We need to serve the admin servlets for media on the
                         # worker.
-                        admin_resource = JsonResource(self, canonical_json=False)
+                        admin_resource = JsonResource(self)
                         register_servlets_for_media_repo(self, admin_resource)
 
                         resources.update(
@@ -220,19 +220,19 @@ class GenericWorkerServer(HomeServer):
                     # Only load the openid resource separately if federation resource
                     # is not specified since federation resource includes openid
                     # resource.
-                    federation_resource = JsonResource(self, canonical_json=False)
+                    federation_resource = JsonResource(self)
                     federation.register_servlets(
                         self, federation_resource, servlet_groups=["openid"]
                     )
                     resources[FEDERATION_PREFIX] = federation_resource
 
                 if name in ["keys", "federation"]:
-                    key_resource = JsonResource(self, canonical_json=True)
+                    key_resource = JsonResource(self)
                     key.register_servlets(self, key_resource)
                     resources[SERVER_KEY_PREFIX] = key_resource
 
                 if name == "replication":
-                    replication_resource = JsonResource(self, canonical_json=False)
+                    replication_resource = JsonResource(self)
                     register_replication_servlets(self, replication_resource)
                     resources[REPLICATION_PREFIX] = replication_resource
 
