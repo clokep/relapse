@@ -51,7 +51,6 @@ from relapse.federation.federation_server import (
 )
 from relapse.federation.send_queue import FederationRemoteSendQueue
 from relapse.federation.sender import AbstractFederationSender, FederationSender
-from relapse.handlers.account import AccountHandler
 from relapse.handlers.account_data import AccountDataHandler
 from relapse.handlers.account_validity import AccountValidityHandler
 from relapse.handlers.admin import AdminHandler
@@ -834,10 +833,6 @@ class HomeServer(metaclass=abc.ABCMeta):
     @cache_in_self
     def get_external_cache(self) -> ExternalCache:
         return ExternalCache(self)
-
-    @cache_in_self
-    def get_account_handler(self) -> AccountHandler:
-        return AccountHandler(self)
 
     @cache_in_self
     def get_push_rules_handler(self) -> PushRulesHandler:
