@@ -314,13 +314,6 @@ class Filter:
         self.unread_thread_notifications: bool = filter_json.get(
             "unread_thread_notifications", False
         )
-        if (
-            not self.unread_thread_notifications
-            and hs.config.experimental.msc3773_enabled
-        ):
-            self.unread_thread_notifications = filter_json.get(
-                "org.matrix.msc3773.unread_thread_notifications", False
-            )
 
         self.types = filter_json.get("types", None)
         self.not_types = filter_json.get("not_types", [])
