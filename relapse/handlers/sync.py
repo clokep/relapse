@@ -133,7 +133,6 @@ class JoinedSyncResult:
     unread_notifications: JsonDict
     unread_thread_notifications: JsonDict
     summary: JsonDict | None
-    unread_count: int
 
     def __bool__(self) -> bool:
         """Make the result appear empty if there are no updates. This is used
@@ -2534,7 +2533,6 @@ class SyncHandler:
                     unread_notifications=unread_notifications,
                     unread_thread_notifications={},
                     summary=summary,
-                    unread_count=0,
                 )
 
                 if room_sync or always_include:
@@ -2543,7 +2541,6 @@ class SyncHandler:
                     # Notifications for the main timeline.
                     notify_count = notifs.main_timeline.notify_count
                     highlight_count = notifs.main_timeline.highlight_count
-                    unread_count = notifs.main_timeline.unread_count
 
                     # Check the sync configuration.
                     if sync_config.filter_collection.unread_thread_notifications():
@@ -2562,11 +2559,9 @@ class SyncHandler:
                         for thread_notifs in notifs.threads.values():
                             notify_count += thread_notifs.notify_count
                             highlight_count += thread_notifs.highlight_count
-                            unread_count += thread_notifs.unread_count
 
                     unread_notifications["notification_count"] = notify_count
                     unread_notifications["highlight_count"] = highlight_count
-                    room_sync.unread_count = unread_count
 
                     sync_result_builder.joined.append(room_sync)
 

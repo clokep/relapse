@@ -174,9 +174,7 @@ class EventsWorkerStoreTestCase(BaseWorkerStoreTestCase):
         self.check(
             "get_unread_event_push_actions_by_room_for_user",
             [ROOM_ID, USER_ID_2],
-            RoomNotifCounts(
-                NotifCounts(highlight_count=0, unread_count=0, notify_count=0), {}
-            ),
+            RoomNotifCounts(NotifCounts(highlight_count=0, notify_count=0), {}),
         )
 
         self.persist(
@@ -189,9 +187,7 @@ class EventsWorkerStoreTestCase(BaseWorkerStoreTestCase):
         self.check(
             "get_unread_event_push_actions_by_room_for_user",
             [ROOM_ID, USER_ID_2],
-            RoomNotifCounts(
-                NotifCounts(highlight_count=0, unread_count=0, notify_count=1), {}
-            ),
+            RoomNotifCounts(NotifCounts(highlight_count=0, notify_count=1), {}),
         )
 
         self.persist(
@@ -206,9 +202,7 @@ class EventsWorkerStoreTestCase(BaseWorkerStoreTestCase):
         self.check(
             "get_unread_event_push_actions_by_room_for_user",
             [ROOM_ID, USER_ID_2],
-            RoomNotifCounts(
-                NotifCounts(highlight_count=1, unread_count=0, notify_count=2), {}
-            ),
+            RoomNotifCounts(NotifCounts(highlight_count=1, notify_count=2), {}),
         )
 
     def test_get_rooms_for_user_with_stream_ordering(self) -> None:
@@ -401,7 +395,6 @@ class EventsWorkerStoreTestCase(BaseWorkerStoreTestCase):
             self.master_store.add_push_actions_to_staging(
                 event.event_id,
                 dict(push_actions),
-                False,
                 "main",
             )
         )
