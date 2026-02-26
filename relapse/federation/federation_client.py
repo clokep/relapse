@@ -1764,34 +1764,12 @@ class FederationClient(FederationBase):
         async def send_request(
             destination: str,
         ) -> tuple[JsonDict, Sequence[JsonDict], Sequence[JsonDict], Sequence[str]]:
-            try:
-                path = _create_v1_path("/hierarchy/%s", room_id)
-                res = await self.client.get_json(
-                    destination=destination,
-                    path=path,
-                    args={"suggested_only": "true" if suggested_only else "false"},
-                )
-            except HttpResponseException as e:
-                # If an error is received that is due to an unrecognised endpoint,
-                # fallback to the unstable endpoint. Otherwise, consider it a
-                # legitimate error and raise.
-                if not is_unknown_endpoint(e):
-                    raise
-
-                logger.debug(
-                    "Couldn't fetch room hierarchy with the v1 API, falling back to the unstable API"
-                )
-
-                path = _create_path(
-                    FEDERATION_UNSTABLE_PREFIX,
-                    "/org.matrix.msc2946/hierarchy/%s",
-                    room_id,
-                )
-                res = await self.client.get_json(
-                    destination=destination,
-                    path=path,
-                    args={"suggested_only": "true" if suggested_only else "false"},
-                )
+            path = _create_v1_path("/hierarchy/%s", room_id)
+            res = await self.client.get_json(
+                destination=destination,
+                path=path,
+                args={"suggested_only": "true" if suggested_only else "false"},
+            )
 
             room = res.get("room")
             if not isinstance(room, dict):
