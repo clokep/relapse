@@ -293,9 +293,6 @@ class ExperimentalConfig(Config):
         # MSC3391: Removing account data.
         self.msc3391_enabled = experimental.get("msc3391_enabled", False)
 
-        # MSC3773: Thread notifications
-        self.msc3773_enabled: bool = experimental.get("msc3773_enabled", False)
-
         # MSC3664: Pushrules to match on related events
         self.msc3664_enabled: bool = experimental.get("msc3664_enabled", False)
 
