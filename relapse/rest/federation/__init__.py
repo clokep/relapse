@@ -29,7 +29,6 @@ from relapse.rest.federation._base import (
 )
 from relapse.rest.federation.federation import (
     FEDERATION_SERVLET_CLASSES,
-    FederationAccountStatusServlet,
     FederationUnstableClientKeysClaimServlet,
 )
 from relapse.types import JsonDict, StrCollection, ThirdPartyInstanceID
@@ -257,12 +256,6 @@ def register_servlets(
             )
 
         for servletclass in SERVLET_GROUPS[servlet_group]:
-            # Only allow the `/account_status` servlet if msc3720 is enabled
-            if (
-                servletclass == FederationAccountStatusServlet
-                and not hs.config.experimental.msc3720_enabled
-            ):
-                continue
             if (
                 servletclass == FederationUnstableClientKeysClaimServlet
                 and not hs.config.experimental.msc3983_appservice_otk_claims

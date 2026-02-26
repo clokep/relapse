@@ -677,10 +677,6 @@ class ServerConfig(Config):
         ):
             raise ConfigError("'custom_template_directory' must be a string")
 
-        self.use_account_validity_in_account_status: bool = (
-            config.get("use_account_validity_in_account_status") or False
-        )
-
         self.rooms_to_exclude_from_sync: list[str] = (
             config.get("exclude_rooms_from_sync") or []
         )

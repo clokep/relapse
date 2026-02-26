@@ -287,9 +287,6 @@ class ExperimentalConfig(Config):
             "msc3984_appservice_key_query", False
         )
 
-        # MSC3720 (Account status endpoint)
-        self.msc3720_enabled: bool = experimental.get("msc3720_enabled", False)
-
         # MSC2654: Unread counts
         #
         # Note that enabling this will result in an incorrect unread count for
