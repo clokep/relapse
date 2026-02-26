@@ -70,12 +70,6 @@ class E2eKeysHandler:
                 EduTypes.SIGNING_KEY_UPDATE,
                 edu_updater.incoming_signing_key_update,
             )
-            # also handle the unstable version
-            # FIXME: remove this when enough servers have upgraded
-            federation_registry.register_edu_handler(
-                EduTypes.UNSTABLE_SIGNING_KEY_UPDATE,
-                edu_updater.incoming_signing_key_update,
-            )
 
         # doesn't really work as part of the generic query API, because the
         # query request requires an object POST, but we abuse the

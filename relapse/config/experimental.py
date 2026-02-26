@@ -287,9 +287,6 @@ class ExperimentalConfig(Config):
             "msc3984_appservice_key_query", False
         )
 
-        # MSC3720 (Account status endpoint)
-        self.msc3720_enabled: bool = experimental.get("msc3720_enabled", False)
-
         # MSC2815 (allow room moderators to view redacted event content)
         self.msc2815_enabled: bool = experimental.get("msc2815_enabled", False)
 

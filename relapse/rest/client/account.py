@@ -859,34 +859,6 @@ class WhoamiRestServlet(RestServlet):
         return 200, response
 
 
-class AccountStatusRestServlet(RestServlet):
-    PATTERNS = client_patterns(
-        "/org.matrix.msc3720/account_status$", unstable=True, releases=()
-    )
-
-    def __init__(self, hs: "HomeServer"):
-        super().__init__()
-        self._auth = hs.get_auth()
-        self._account_handler = hs.get_account_handler()
-
-    class PostBody(RequestBodyModel):
-        # TODO: we could validate that each user id is an mxid here, and/or parse it
-        #       as a UserID
-        user_ids: list[str]
-
-    async def on_POST(self, request: RelapseRequest) -> tuple[int, JsonDict]:
-        await self._auth.get_user_by_req(request)
-
-        body = parse_and_validate_json_object_from_request(request, self.PostBody)
-
-        statuses, failures = await self._account_handler.get_account_statuses(
-            body.user_ids,
-            allow_remote=True,
-        )
-
-        return 200, {"account_statuses": statuses, "failures": failures}
-
-
 def register_servlets(hs: "HomeServer", http_server: HttpServer) -> None:
     if hs.config.worker.worker_app is None:
         if not hs.config.experimental.msc3861.enabled:
@@ -905,6 +877,3 @@ def register_servlets(hs: "HomeServer", http_server: HttpServer) -> None:
             ThreepidAddRestServlet(hs).register(http_server)
             ThreepidDeleteRestServlet(hs).register(http_server)
     WhoamiRestServlet(hs).register(http_server)
-
-    if hs.config.worker.worker_app is None and hs.config.experimental.msc3720_enabled:
-        AccountStatusRestServlet(hs).register(http_server)
