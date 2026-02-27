@@ -166,11 +166,7 @@ class EventPushActionsStoreTestCase(HomeserverTestCase):
             )
             self.assertEqual(
                 counts.main_timeline,
-                NotifCounts(
-                    notify_count=notif_count,
-                    unread_count=0,
-                    highlight_count=highlight_count,
-                ),
+                NotifCounts(notify_count=notif_count, highlight_count=highlight_count),
             )
             self.assertEqual(counts.threads, {})
 
@@ -306,11 +302,7 @@ class EventPushActionsStoreTestCase(HomeserverTestCase):
             )
             self.assertEqual(
                 counts.main_timeline,
-                NotifCounts(
-                    notify_count=notif_count,
-                    unread_count=0,
-                    highlight_count=highlight_count,
-                ),
+                NotifCounts(notify_count=notif_count, highlight_count=highlight_count),
             )
             if thread_notif_count or thread_highlight_count:
                 self.assertEqual(
@@ -318,7 +310,6 @@ class EventPushActionsStoreTestCase(HomeserverTestCase):
                     {
                         thread_id: NotifCounts(
                             notify_count=thread_notif_count,
-                            unread_count=0,
                             highlight_count=thread_highlight_count,
                         ),
                     },
@@ -486,11 +477,7 @@ class EventPushActionsStoreTestCase(HomeserverTestCase):
             )
             self.assertEqual(
                 counts.main_timeline,
-                NotifCounts(
-                    notify_count=notif_count,
-                    unread_count=0,
-                    highlight_count=highlight_count,
-                ),
+                NotifCounts(notify_count=notif_count, highlight_count=highlight_count),
             )
             if thread_notif_count or thread_highlight_count:
                 self.assertEqual(
@@ -498,7 +485,6 @@ class EventPushActionsStoreTestCase(HomeserverTestCase):
                     {
                         thread_id: NotifCounts(
                             notify_count=thread_notif_count,
-                            unread_count=0,
                             highlight_count=thread_highlight_count,
                         ),
                     },
@@ -683,18 +669,14 @@ class EventPushActionsStoreTestCase(HomeserverTestCase):
             )
             self.assertEqual(
                 counts.main_timeline,
-                NotifCounts(
-                    notify_count=notif_count, unread_count=0, highlight_count=0
-                ),
+                NotifCounts(notify_count=notif_count, highlight_count=0),
             )
             if thread_notif_count:
                 self.assertEqual(
                     counts.threads,
                     {
                         thread_id: NotifCounts(
-                            notify_count=thread_notif_count,
-                            unread_count=0,
-                            highlight_count=0,
+                            notify_count=thread_notif_count, highlight_count=0
                         ),
                     },
                 )

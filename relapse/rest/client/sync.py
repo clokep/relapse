@@ -100,7 +100,6 @@ class SyncRestServlet(RestServlet):
         self.presence_handler = hs.get_presence_handler()
         self._server_notices_sender = hs.get_server_notices_sender()
         self._event_serializer = hs.get_event_client_serializer()
-        self._msc2654_enabled = hs.config.experimental.msc2654_enabled
 
     async def on_GET(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         # This will always be set by the time Twisted calls us.
@@ -535,8 +534,6 @@ class SyncRestServlet(RestServlet):
             if room.unread_thread_notifications:
                 result["unread_thread_notifications"] = room.unread_thread_notifications
             result["summary"] = room.summary
-            if self._msc2654_enabled:
-                result["org.matrix.msc2654.unread_count"] = room.unread_count
 
         return result
 

@@ -287,12 +287,6 @@ class ExperimentalConfig(Config):
             "msc3984_appservice_key_query", False
         )
 
-        # MSC2654: Unread counts
-        #
-        # Note that enabling this will result in an incorrect unread count for
-        # previously calculated push actions.
-        self.msc2654_enabled: bool = experimental.get("msc2654_enabled", False)
-
         # MSC2815 (allow room moderators to view redacted event content)
         self.msc2815_enabled: bool = experimental.get("msc2815_enabled", False)
 
