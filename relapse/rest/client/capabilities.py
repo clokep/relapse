@@ -15,7 +15,7 @@ import logging
 from http import HTTPStatus
 from typing import TYPE_CHECKING
 
-from relapse.api.room_versions import KNOWN_ROOM_VERSIONS, MSC3244_CAPABILITIES
+from relapse.api.room_versions import KNOWN_ROOM_VERSIONS
 from relapse.http.server import HttpServer
 from relapse.http.servlet import RestServlet
 from relapse.http.site import RelapseRequest
@@ -70,11 +70,6 @@ class CapabilitiesRestServlet(RestServlet):
                 },
             }
         }
-
-        if self.config.experimental.msc3244_enabled:
-            response["capabilities"]["m.room_versions"][
-                "org.matrix.msc3244.room_capabilities"
-            ] = MSC3244_CAPABILITIES
 
         return HTTPStatus.OK, response
 
