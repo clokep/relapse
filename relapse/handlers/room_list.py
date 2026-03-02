@@ -16,8 +16,6 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 import attr
-import msgpack
-from unpaddedbase64 import decode_base64, encode_base64
 
 from relapse.api.constants import (
     EventContentFields,
@@ -145,7 +143,7 @@ class RoomListHandler:
         # go forwards, prev batch tokens always go backwards.
 
         if since_token:
-            batch_token = RoomListNextBatch.from_token(since_token)
+            batch_token = RoomListNextBatch.parse(since_token)
 
             bounds: tuple[int, str] | None = (
                 batch_token.last_joined_members,
@@ -214,28 +212,28 @@ class RoomListHandler:
                         last_joined_members=initial_entry.joined_members,
                         last_room_id=initial_entry.room_id,
                         direction_is_forward=False,
-                    ).to_token()
+                    ).to_string()
 
                 if more_to_come:
                     response["next_batch"] = RoomListNextBatch(
                         last_joined_members=final_entry.joined_members,
                         last_room_id=final_entry.room_id,
                         direction_is_forward=True,
-                    ).to_token()
+                    ).to_string()
             else:
                 if has_batch_token:
                     response["next_batch"] = RoomListNextBatch(
                         last_joined_members=final_entry.joined_members,
                         last_room_id=final_entry.room_id,
                         direction_is_forward=True,
-                    ).to_token()
+                    ).to_string()
 
                 if more_to_come:
                     response["prev_batch"] = RoomListNextBatch(
                         last_joined_members=initial_entry.joined_members,
                         last_room_id=initial_entry.room_id,
                         direction_is_forward=False,
-                    ).to_token()
+                    ).to_string()
 
         response["chunk"] = [build_room_entry(r) for r in results]
 
@@ -493,18 +491,22 @@ class RoomListNextBatch:
     REVERSE_KEY_DICT = {v: k for k, v in KEY_DICT.items()}
 
     @classmethod
-    def from_token(cls, token: str) -> "RoomListNextBatch":
-        decoded = msgpack.loads(decode_base64(token), raw=False)
-        return RoomListNextBatch(
-            **{cls.REVERSE_KEY_DICT[key]: val for key, val in decoded.items()}
-        )
+    def parse(cls, string: str) -> "RoomListNextBatch":
+        try:
+            if string[0] == "r":
+                parts = string[1:].split("-", 2)
 
-    def to_token(self) -> str:
-        return encode_base64(
-            msgpack.dumps(
-                {self.KEY_DICT[key]: val for key, val in attr.asdict(self).items()}
-            )
-        )
+                return RoomListNextBatch(
+                    last_joined_members=int(parts[0]),
+                    last_room_id=parts[1],
+                    direction_is_forward=bool(int(parts[2])),
+                )
+        except Exception:
+            pass
+        raise RelapseError(400, f"Invalid room stream token {string!r}")
+
+    def to_string(self) -> str:
+        return f"r{self.last_joined_members}-{self.last_room_id}-{int(self.direction_is_forward)}"
 
     def copy_and_replace(self, **kwds: Any) -> "RoomListNextBatch":
         return attr.evolve(self, **kwds)
