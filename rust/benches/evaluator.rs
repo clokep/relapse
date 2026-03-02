@@ -43,14 +43,8 @@ fn bench_match_exact(b: &mut Bencher) {
     .into_iter()
     .collect();
 
-    let eval = PushRuleEvaluator::py_new(
-        flattened_keys,
-        false,
-        10,
-        Some(0),
-        Default::default(),
-    )
-    .unwrap();
+    let eval =
+        PushRuleEvaluator::py_new(flattened_keys, false, 10, Some(0), Default::default()).unwrap();
 
     let condition = Condition::Known(relapse::push::KnownCondition::EventMatch(
         EventMatchCondition {
@@ -84,14 +78,8 @@ fn bench_match_word(b: &mut Bencher) {
     .into_iter()
     .collect();
 
-    let eval = PushRuleEvaluator::py_new(
-        flattened_keys,
-        false,
-        10,
-        Some(0),
-        Default::default(),
-    )
-    .unwrap();
+    let eval =
+        PushRuleEvaluator::py_new(flattened_keys, false, 10, Some(0), Default::default()).unwrap();
 
     let condition = Condition::Known(relapse::push::KnownCondition::EventMatch(
         EventMatchCondition {
@@ -125,14 +113,8 @@ fn bench_match_word_miss(b: &mut Bencher) {
     .into_iter()
     .collect();
 
-    let eval = PushRuleEvaluator::py_new(
-        flattened_keys,
-        false,
-        10,
-        Some(0),
-        Default::default(),
-    )
-    .unwrap();
+    let eval =
+        PushRuleEvaluator::py_new(flattened_keys, false, 10, Some(0), Default::default()).unwrap();
 
     let condition = Condition::Known(relapse::push::KnownCondition::EventMatch(
         EventMatchCondition {
@@ -166,19 +148,10 @@ fn bench_eval_message(b: &mut Bencher) {
     .into_iter()
     .collect();
 
-    let eval = PushRuleEvaluator::py_new(
-        flattened_keys,
-        false,
-        10,
-        Some(0),
-        Default::default(),
-    )
-    .unwrap();
+    let eval =
+        PushRuleEvaluator::py_new(flattened_keys, false, 10, Some(0), Default::default()).unwrap();
 
-    let rules = FilteredPushRules::py_new(
-        PushRules::new(Vec::new()),
-        Default::default(),
-    );
+    let rules = FilteredPushRules::py_new(PushRules::new(Vec::new()), Default::default());
 
     b.iter(|| eval.run(&rules, Some("bob"), Some("person")));
 }
