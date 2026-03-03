@@ -32,12 +32,6 @@ lazy_static! {
     /// Used to parse the `is` clause in the room member count condition.
     static ref INEQUALITY_EXPR: Regex = Regex::new(r"^([=<>]*)([0-9]+)$").expect("valid regex");
 
-    /// Used to determine which MSC3931 room version feature flags are actually known to
-    /// the push evaluator.
-    static ref KNOWN_RVER_FLAGS: Vec<String> = vec![
-        RoomVersionFeatures::ExtensibleEvents.as_str().to_string(),
-    ];
-
     /// The "safe" rule IDs which are not affected by MSC3932's behaviour (room versions which
     /// declare Extensible Events support ultimately *disable* push rules which do not declare
     /// *any* MSC3931 room_version_supports condition).
@@ -46,18 +40,6 @@ lazy_static! {
         "global/override/.m.rule.roomnotif".to_string(),
         "global/content/.m.rule.contains_user_name".to_string(),
     ];
-}
-
-enum RoomVersionFeatures {
-    ExtensibleEvents,
-}
-
-impl RoomVersionFeatures {
-    fn as_str(&self) -> &'static str {
-        match self {
-            RoomVersionFeatures::ExtensibleEvents => "org.matrix.msc3932.extensible_events",
-        }
-    }
 }
 
 /// Allows running a set of push rules against a particular event.
@@ -84,20 +66,6 @@ pub struct PushRuleEvaluator {
     /// The power level of the sender of the event, or None if event is an
     /// outlier.
     sender_power_level: Option<i64>,
-
-    /// The related events, indexed by relation type. Flattened in the same manner as
-    /// `flattened_keys`.
-    related_events_flattened: BTreeMap<String, BTreeMap<String, JsonValue>>,
-
-    /// If msc3664, push rules for related events, is enabled.
-    related_event_match_enabled: bool,
-
-    /// If MSC3931 is applicable, the feature flags for the room version.
-    room_version_feature_flags: Vec<String>,
-
-    /// If MSC3931 (room version feature flags) is enabled. Usually controlled by the same
-    /// flag as MSC1767 (extensible events core).
-    msc3931_enabled: bool,
 }
 
 #[pymethods]
@@ -111,10 +79,6 @@ impl PushRuleEvaluator {
         room_member_count,
         sender_power_level,
         notification_power_levels,
-        related_events_flattened,
-        related_event_match_enabled,
-        room_version_feature_flags,
-        msc3931_enabled,
     ))]
     pub fn py_new(
         flattened_keys: BTreeMap<String, JsonValue>,
@@ -122,10 +86,6 @@ impl PushRuleEvaluator {
         room_member_count: u64,
         sender_power_level: Option<i64>,
         notification_power_levels: BTreeMap<String, i64>,
-        related_events_flattened: BTreeMap<String, BTreeMap<String, JsonValue>>,
-        related_event_match_enabled: bool,
-        room_version_feature_flags: Vec<String>,
-        msc3931_enabled: bool,
     ) -> Result<Self, Error> {
         let body = match flattened_keys.get("content.body") {
             Some(JsonValue::Value(SimpleJsonValue::Str(s))) => s.clone().into_owned(),
@@ -139,10 +99,6 @@ impl PushRuleEvaluator {
             room_member_count,
             notification_power_levels,
             sender_power_level,
-            related_events_flattened,
-            related_event_match_enabled,
-            room_version_feature_flags,
-            msc3931_enabled,
         })
     }
 
@@ -178,18 +134,7 @@ impl PushRuleEvaluator {
                 continue;
             }
 
-            let extev_flag = &RoomVersionFeatures::ExtensibleEvents.as_str().to_string();
-            let supports_extensible_events = self.room_version_feature_flags.contains(extev_flag);
-            let safe_from_rver_condition = SAFE_EXTENSIBLE_EVENTS_RULE_IDS.contains(rule_id);
-            let mut has_rver_condition = false;
-
             for condition in push_rule.conditions.iter() {
-                has_rver_condition |= matches!(
-                    condition,
-                    // per MSC3932, we just need *any* room version condition to match
-                    Condition::Known(KnownCondition::RoomVersionSupports { feature: _ }),
-                );
-
                 match self.match_condition(condition, user_id, display_name) {
                     Ok(true) => {}
                     Ok(false) => continue 'outer,
@@ -198,13 +143,6 @@ impl PushRuleEvaluator {
                         continue 'outer;
                     }
                 }
-            }
-
-            // MSC3932: Disable push rules in extensible event-supporting room versions if they
-            // don't describe *any* MSC3931 room version condition, unless the rule is on the
-            // safe list.
-            if !has_rver_condition && !safe_from_rver_condition && supports_extensible_events {
-                continue;
             }
 
             let actions = push_rule
@@ -282,34 +220,6 @@ impl PushRuleEvaluator {
             KnownCondition::EventPropertyIs(event_property_is) => {
                 self.match_event_property_is(event_property_is)?
             }
-            KnownCondition::RelatedEventMatch(event_match) => self.match_related_event_match(
-                &event_match.rel_type.clone(),
-                event_match.include_fallbacks,
-                event_match.key.clone(),
-                event_match.pattern.clone(),
-            )?,
-            KnownCondition::RelatedEventMatchType(event_match) => {
-                // The `pattern_type` can either be "user_id" or "user_localpart",
-                // either way if we don't have a `user_id` then the condition can't
-                // match.
-                let user_id = if let Some(user_id) = user_id {
-                    user_id
-                } else {
-                    return Ok(false);
-                };
-
-                let pattern = match &*event_match.pattern_type {
-                    EventMatchPatternType::UserId => user_id,
-                    EventMatchPatternType::UserLocalpart => get_localpart_from_id(user_id)?,
-                };
-
-                self.match_related_event_match(
-                    &event_match.rel_type.clone(),
-                    event_match.include_fallbacks,
-                    Some(event_match.key.clone()),
-                    Some(Cow::Borrowed(pattern)),
-                )?
-            }
             KnownCondition::EventPropertyContains(event_property_is) => self
                 .match_event_property_contains(
                     event_property_is.key.clone(),
@@ -370,15 +280,6 @@ impl PushRuleEvaluator {
                     false
                 }
             }
-            KnownCondition::RoomVersionSupports { feature } => {
-                if !self.msc3931_enabled {
-                    false
-                } else {
-                    let flag = feature.to_string();
-                    KNOWN_RVER_FLAGS.contains(&flag)
-                        && self.room_version_feature_flags.contains(&flag)
-                }
-            }
         };
 
         Ok(result)
@@ -429,42 +330,6 @@ impl PushRuleEvaluator {
         Ok(haystack == &**value)
     }
 
-    /// Evaluates a `related_event_match` condition. (MSC3664)
-    fn match_related_event_match(
-        &self,
-        rel_type: &str,
-        include_fallbacks: Option<bool>,
-        key: Option<Cow<str>>,
-        pattern: Option<Cow<str>>,
-    ) -> Result<bool, Error> {
-        // First check if related event matching is enabled...
-        if !self.related_event_match_enabled {
-            return Ok(false);
-        }
-
-        // get the related event, fail if there is none.
-        let event = if let Some(event) = self.related_events_flattened.get(rel_type) {
-            event
-        } else {
-            return Ok(false);
-        };
-
-        // If we are not matching fallbacks, don't match if our special key indicating this is a
-        // fallback relation is not present.
-        if !include_fallbacks.unwrap_or(false) && event.contains_key("im.vector.is_falling_back") {
-            return Ok(false);
-        }
-
-        match (key, pattern) {
-            // if we have no key, accept the event as matching.
-            (None, _) => Ok(true),
-            // There was a key, so we *must* have a pattern to go with it.
-            (Some(_), None) => Ok(false),
-            // If there is a key & pattern, check if they're in the flattened event (given by rel_type).
-            (Some(key), Some(pattern)) => self.match_event_match(event, &key, &pattern),
-        }
-    }
-
     /// Evaluates a `event_property_contains` condition.
     fn match_event_property_contains(
         &self,
@@ -511,75 +376,9 @@ fn push_rule_evaluator() {
         "content.body".to_string(),
         JsonValue::Value(SimpleJsonValue::Str(Cow::Borrowed("foo bar bob hello"))),
     );
-    let evaluator = PushRuleEvaluator::py_new(
-        flattened_keys,
-        false,
-        10,
-        Some(0),
-        BTreeMap::new(),
-        BTreeMap::new(),
-        true,
-        vec![],
-        true,
-    )
-    .unwrap();
+    let evaluator =
+        PushRuleEvaluator::py_new(flattened_keys, false, 10, Some(0), BTreeMap::new()).unwrap();
 
     let result = evaluator.run(&FilteredPushRules::default(), None, Some("bob"));
     assert_eq!(result.len(), 3);
-}
-
-#[test]
-fn test_requires_room_version_supports_condition() {
-    use std::borrow::Cow;
-
-    use crate::push::{PushRule, PushRules};
-
-    let mut flattened_keys = BTreeMap::new();
-    flattened_keys.insert(
-        "content.body".to_string(),
-        JsonValue::Value(SimpleJsonValue::Str(Cow::Borrowed("foo bar bob hello"))),
-    );
-    let flags = vec![RoomVersionFeatures::ExtensibleEvents.as_str().to_string()];
-    let evaluator = PushRuleEvaluator::py_new(
-        flattened_keys,
-        false,
-        10,
-        Some(0),
-        BTreeMap::new(),
-        BTreeMap::new(),
-        false,
-        flags,
-        true,
-    )
-    .unwrap();
-
-    // first test: are the master and contains_user_name rules excluded from the "requires room
-    // version condition" check?
-    let mut result = evaluator.run(
-        &FilteredPushRules::default(),
-        Some("@bob:example.org"),
-        None,
-    );
-    assert_eq!(result.len(), 3);
-
-    // second test: if an appropriate push rule is in play, does it get handled?
-    let custom_rule = PushRule {
-        rule_id: Cow::from("global/underride/.org.example.extensible"),
-        priority_class: 1, // underride
-        conditions: Cow::from(vec![Condition::Known(
-            KnownCondition::RoomVersionSupports {
-                feature: Cow::from(RoomVersionFeatures::ExtensibleEvents.as_str().to_string()),
-            },
-        )]),
-        actions: Cow::from(vec![Action::Notify]),
-        default: false,
-        default_enabled: true,
-    };
-    let rules = PushRules::new(vec![custom_rule]);
-    result = evaluator.run(
-        &FilteredPushRules::py_new(rules, BTreeMap::new(), true, false, true, false),
-        None,
-        None,
-    );
-    assert_eq!(result.len(), 1);
 }

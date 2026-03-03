@@ -49,13 +49,6 @@ class RoomDisposition:
     UNSTABLE = "unstable"
 
 
-class PushRuleRoomFlag:
-    """Enum for listing possible MSC3931 room version feature flags, for push rules"""
-
-    # MSC3932: Room version supports MSC1767 Extensible Events.
-    EXTENSIBLE_EVENTS = "org.matrix.msc3932.extensible_events"
-
-
 @attr.s(slots=True, frozen=True, auto_attribs=True)
 class RoomVersion:
     """An object which describes the unique attributes of a room version."""
@@ -93,12 +86,6 @@ class RoomVersion:
     knock_restricted_join_rule: bool
     # Enforce integer power levels
     enforce_int_power_levels: bool
-    # MSC3931: Adds a push rule condition for "room version feature flags", making
-    # some push rules room version dependent. Note that adding a flag to this list
-    # is not enough to mark it "supported": the push rule evaluator also needs to
-    # support the flag. Unknown flags are ignored by the evaluator, making conditions
-    # fail if used.
-    msc3931_push_features: tuple[str, ...]  # values from PushRuleRoomFlag
 
 
 class RoomVersions:
@@ -119,7 +106,6 @@ class RoomVersions:
         msc3389_relation_redactions=False,
         knock_restricted_join_rule=False,
         enforce_int_power_levels=False,
-        msc3931_push_features=(),
     )
     V2 = RoomVersion(
         "2",
@@ -138,7 +124,6 @@ class RoomVersions:
         msc3389_relation_redactions=False,
         knock_restricted_join_rule=False,
         enforce_int_power_levels=False,
-        msc3931_push_features=(),
     )
     V3 = RoomVersion(
         "3",
@@ -157,7 +142,6 @@ class RoomVersions:
         msc3389_relation_redactions=False,
         knock_restricted_join_rule=False,
         enforce_int_power_levels=False,
-        msc3931_push_features=(),
     )
     V4 = RoomVersion(
         "4",
@@ -176,7 +160,6 @@ class RoomVersions:
         msc3389_relation_redactions=False,
         knock_restricted_join_rule=False,
         enforce_int_power_levels=False,
-        msc3931_push_features=(),
     )
     V5 = RoomVersion(
         "5",
@@ -195,7 +178,6 @@ class RoomVersions:
         msc3389_relation_redactions=False,
         knock_restricted_join_rule=False,
         enforce_int_power_levels=False,
-        msc3931_push_features=(),
     )
     V6 = RoomVersion(
         "6",
@@ -214,7 +196,6 @@ class RoomVersions:
         msc3389_relation_redactions=False,
         knock_restricted_join_rule=False,
         enforce_int_power_levels=False,
-        msc3931_push_features=(),
     )
     V7 = RoomVersion(
         "7",
@@ -233,7 +214,6 @@ class RoomVersions:
         msc3389_relation_redactions=False,
         knock_restricted_join_rule=False,
         enforce_int_power_levels=False,
-        msc3931_push_features=(),
     )
     V8 = RoomVersion(
         "8",
@@ -252,7 +232,6 @@ class RoomVersions:
         msc3389_relation_redactions=False,
         knock_restricted_join_rule=False,
         enforce_int_power_levels=False,
-        msc3931_push_features=(),
     )
     V9 = RoomVersion(
         "9",
@@ -271,7 +250,6 @@ class RoomVersions:
         msc3389_relation_redactions=False,
         knock_restricted_join_rule=False,
         enforce_int_power_levels=False,
-        msc3931_push_features=(),
     )
     V10 = RoomVersion(
         "10",
@@ -290,27 +268,6 @@ class RoomVersions:
         msc3389_relation_redactions=False,
         knock_restricted_join_rule=True,
         enforce_int_power_levels=True,
-        msc3931_push_features=(),
-    )
-    MSC1767v10 = RoomVersion(
-        # MSC1767 (Extensible Events) based on room version "10"
-        "org.matrix.msc1767.10",
-        RoomDisposition.UNSTABLE,
-        EventFormatVersions.ROOM_V4_PLUS,
-        StateResolutionVersions.V2,
-        enforce_key_validity=True,
-        special_case_aliases_auth=False,
-        strict_canonicaljson=True,
-        limit_notifications_power_levels=True,
-        implicit_room_creator=False,
-        updated_redaction_rules=False,
-        restricted_join_rule=True,
-        restricted_join_rule_fix=True,
-        knock_join_rule=True,
-        msc3389_relation_redactions=False,
-        knock_restricted_join_rule=True,
-        enforce_int_power_levels=True,
-        msc3931_push_features=(PushRuleRoomFlag.EXTENSIBLE_EVENTS,),
     )
     V11 = RoomVersion(
         "11",
@@ -329,7 +286,6 @@ class RoomVersions:
         msc3389_relation_redactions=False,
         knock_restricted_join_rule=True,
         enforce_int_power_levels=True,
-        msc3931_push_features=(),
     )
 
 

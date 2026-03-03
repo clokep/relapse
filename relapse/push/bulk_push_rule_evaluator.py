@@ -28,7 +28,6 @@ from relapse.api.constants import (
     Membership,
     RelationTypes,
 )
-from relapse.api.room_versions import PushRuleRoomFlag
 from relapse.event_auth import auth_types_for_event, get_user_power_level
 from relapse.events import EventBase, relation_from_event
 from relapse.events.snapshot import EventContext
@@ -80,8 +79,6 @@ class BulkPushRuleEvaluator:
         self.clock = hs.get_clock()
         self._event_auth_handler = hs.get_event_auth_handler()
         self.should_calculate_push_rules = self.hs.config.push.enable_push
-
-        self._related_event_match_enabled = self.hs.config.experimental.msc3664_enabled
 
         self.room_push_rule_cache_metrics = register_cache(
             "cache",
@@ -215,50 +212,6 @@ class BulkPushRuleEvaluator:
 
         return pl_event.content if pl_event else {}, sender_level
 
-    async def _related_events(
-        self, event: EventBase
-    ) -> dict[str, dict[str, JsonValue]]:
-        """Fetches the related events for 'event'. Sets the im.vector.is_falling_back key if the event is from a fallback relation
-
-        Returns:
-            Mapping of relation type to flattened events.
-        """
-        related_events: dict[str, dict[str, JsonValue]] = {}
-        if self._related_event_match_enabled:
-            related_event_id = event.content.get("m.relates_to", {}).get("event_id")
-            relation_type = event.content.get("m.relates_to", {}).get("rel_type")
-            if related_event_id is not None and relation_type is not None:
-                related_event = await self.store.get_event(
-                    related_event_id, allow_none=True
-                )
-                if related_event is not None:
-                    related_events[relation_type] = _flatten_dict(related_event)
-
-            reply_event_id = (
-                event.content.get("m.relates_to", {})
-                .get("m.in_reply_to", {})
-                .get("event_id")
-            )
-
-            # convert replies to pseudo relations
-            if reply_event_id is not None:
-                related_event = await self.store.get_event(
-                    reply_event_id, allow_none=True
-                )
-
-                if related_event is not None:
-                    related_events["m.in_reply_to"] = _flatten_dict(related_event)
-
-                    # indicate that this is from a fallback relation.
-                    if relation_type == "m.thread" and event.content.get(
-                        "m.relates_to", {}
-                    ).get("is_falling_back", False):
-                        related_events["m.in_reply_to"]["im.vector.is_falling_back"] = (
-                            ""
-                        )
-
-        return related_events
-
     async def action_for_events_by_user(
         self, events_and_context: list[tuple[EventBase, EventContext]]
     ) -> None:
@@ -306,11 +259,10 @@ class BulkPushRuleEvaluator:
         (
             room_member_count,
             (power_levels, sender_power_level),
-            related_events,
             profiles,
         ) = await make_deferred_yieldable(
             cast(
-                "Deferred[tuple[int, tuple[dict, int | None], dict[str, dict[str, JsonValue]], Mapping[str, ProfileInfo]]]",
+                "Deferred[tuple[int, tuple[dict, int | None], Mapping[str, ProfileInfo]]]",
                 gather_results(
                     (  # type: ignore[arg-type]
                         run_in_background(  # type: ignore[call-overload]
@@ -323,7 +275,6 @@ class BulkPushRuleEvaluator:
                             context,
                             event_id_to_event,
                         ),
-                        run_in_background(self._related_events, event),
                         run_in_background(  # type: ignore[call-overload]
                             self.store.get_subset_users_in_room_with_profiles,
                             event.room_id,
@@ -374,10 +325,6 @@ class BulkPushRuleEvaluator:
             room_member_count,
             sender_power_level,
             notification_levels,
-            related_events,
-            self._related_event_match_enabled,
-            event.room_version.msc3931_push_features,
-            self.hs.config.experimental.msc1767_enabled,  # MSC3931 flag
         )
 
         for uid, rules in rules_by_user.items():
@@ -488,28 +435,5 @@ def _flatten_dict(
         elif isinstance(value, Mapping):
             # do not set `room_version` due to recursion considerations below
             _flatten_dict(value, prefix=(prefix + [key]), result=result)
-
-    # `room_version` should only ever be set when looking at the top level of an event
-    if (
-        isinstance(d, EventBase)
-        and PushRuleRoomFlag.EXTENSIBLE_EVENTS in d.room_version.msc3931_push_features
-    ):
-        # Room supports extensible events: replace `content.body` with the plain text
-        # representation from `m.markup`, as per MSC1767.
-        markup = d.get("content").get("m.markup")
-        if d.room_version.identifier.startswith("org.matrix.msc1767."):
-            markup = d.get("content").get("org.matrix.msc1767.markup")
-        if markup is not None and isinstance(markup, list):
-            text = ""
-            for rep in markup:
-                if not isinstance(rep, dict):
-                    # invalid markup - skip all processing
-                    break
-                if rep.get("mimetype", "text/plain") == "text/plain":
-                    rep_text = rep.get("body")
-                    if rep_text is not None and isinstance(rep_text, str):
-                        text = rep_text.lower()
-                        break
-            result["content.body"] = text
 
     return result

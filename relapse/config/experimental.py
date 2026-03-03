@@ -18,7 +18,6 @@ from typing import TYPE_CHECKING, Any, Optional
 import attr
 import attr.validators
 
-from relapse.api.room_versions import KNOWN_ROOM_VERSIONS, RoomVersions
 from relapse.config import ConfigError
 from relapse.config._base import Config, RootConfig
 from relapse.types import JsonDict
@@ -317,22 +316,8 @@ class ExperimentalConfig(Config):
                 "required to communicate account data deletions to clients."
             )
 
-        # MSC3381: Polls.
-        # In practice, supporting polls in Relapse only requires an implementation of
-        # MSC3930: Push rules for MSC3391 polls; which is what this option enables.
-        self.msc3381_polls_enabled: bool = experimental.get(
-            "msc3381_polls_enabled", False
-        )
-
         # MSC3912: Relation-based redactions.
         self.msc3912_enabled: bool = experimental.get("msc3912_enabled", False)
-
-        # MSC1767 and friends: Extensible Events
-        self.msc1767_enabled: bool = experimental.get("msc1767_enabled", False)
-        if self.msc1767_enabled:
-            # Enable room version (and thus applicable push rules from MSC3931/3932)
-            version_id = RoomVersions.MSC1767v10.identifier
-            KNOWN_ROOM_VERSIONS[version_id] = RoomVersions.MSC1767v10
 
         # MSC3391: Removing account data.
         self.msc3391_enabled = experimental.get("msc3391_enabled", False)
@@ -350,10 +335,6 @@ class ExperimentalConfig(Config):
 
         # Check that none of the other config options conflict with MSC3861 when enabled
         self.msc3861.check_config_conflicts(self.root)
-
-        self.msc4028_push_encrypted_events = experimental.get(
-            "msc4028_push_encrypted_events", False
-        )
 
         self.msc4069_profile_inhibit_propagation = experimental.get(
             "msc4069_profile_inhibit_propagation", False

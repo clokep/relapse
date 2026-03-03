@@ -345,11 +345,6 @@ pub enum KnownCondition {
     #[serde(skip_deserializing, rename = "event_match")]
     EventMatchType(EventMatchTypeCondition),
     EventPropertyIs(EventPropertyIsCondition),
-    #[serde(rename = "im.nheko.msc3664.related_event_match")]
-    RelatedEventMatch(RelatedEventMatchCondition),
-    // Identical to related_event_match but gives predefined patterns. Cannot be added by users.
-    #[serde(skip_deserializing, rename = "im.nheko.msc3664.related_event_match")]
-    RelatedEventMatchType(RelatedEventMatchTypeCondition),
     EventPropertyContains(EventPropertyIsCondition),
     // Identical to exact_event_property_contains but gives predefined patterns. Cannot be added by users.
     #[serde(skip_deserializing, rename = "event_property_contains")]
@@ -361,10 +356,6 @@ pub enum KnownCondition {
     },
     SenderNotificationPermission {
         key: Cow<'static, str>,
-    },
-    #[serde(rename = "org.matrix.msc3931.room_version_supports")]
-    RoomVersionSupports {
-        feature: Cow<'static, str>,
     },
 }
 
@@ -423,30 +414,6 @@ pub struct EventPropertyIsTypeCondition {
     // During serialization, the pattern_type property gets replaced with a
     // pattern property of the correct value in relapse.push.clientformat.format_push_rules_for_user.
     pub value_type: Cow<'static, EventMatchPatternType>,
-}
-
-/// The body of a [`Condition::RelatedEventMatch`]
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct RelatedEventMatchCondition {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub key: Option<Cow<'static, str>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub pattern: Option<Cow<'static, str>>,
-    pub rel_type: Cow<'static, str>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub include_fallbacks: Option<bool>,
-}
-
-/// The body of a [`Condition::RelatedEventMatch`] that uses user_id or user_localpart as a pattern.
-#[derive(Serialize, Debug, Clone)]
-pub struct RelatedEventMatchTypeCondition {
-    // This is only used if pattern_type exists (and thus key must exist), so is
-    // a bit simpler than RelatedEventMatchCondition.
-    pub key: Cow<'static, str>,
-    pub pattern_type: Cow<'static, EventMatchPatternType>,
-    pub rel_type: Cow<'static, str>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub include_fallbacks: Option<bool>,
 }
 
 /// The collection of push rules for a user.
@@ -541,30 +508,15 @@ impl PushRules {
 pub struct FilteredPushRules {
     push_rules: PushRules,
     enabled_map: BTreeMap<String, bool>,
-    msc1767_enabled: bool,
-    msc3381_polls_enabled: bool,
-    msc3664_enabled: bool,
-    msc4028_push_encrypted_events: bool,
 }
 
 #[pymethods]
 impl FilteredPushRules {
     #[new]
-    pub fn py_new(
-        push_rules: PushRules,
-        enabled_map: BTreeMap<String, bool>,
-        msc1767_enabled: bool,
-        msc3381_polls_enabled: bool,
-        msc3664_enabled: bool,
-        msc4028_push_encrypted_events: bool,
-    ) -> Self {
+    pub fn py_new(push_rules: PushRules, enabled_map: BTreeMap<String, bool>) -> Self {
         Self {
             push_rules,
             enabled_map,
-            msc1767_enabled,
-            msc3381_polls_enabled,
-            msc3664_enabled,
-            msc4028_push_encrypted_events,
         }
     }
 
@@ -579,43 +531,13 @@ impl FilteredPushRules {
     /// Iterates over all the rules and their enabled state, including base
     /// rules, in the order they should be executed in.
     fn iter(&self) -> impl Iterator<Item = (&PushRule, bool)> {
-        self.push_rules
-            .iter()
-            .filter(|rule| {
-                // Ignore disabled experimental push rules
-
-                if !self.msc1767_enabled
-                    && (rule.rule_id.contains("org.matrix.msc1767")
-                        || rule.rule_id.contains("org.matrix.msc3933"))
-                {
-                    return false;
-                }
-
-                if !self.msc3664_enabled
-                    && rule.rule_id == "global/override/.im.nheko.msc3664.reply"
-                {
-                    return false;
-                }
-
-                if !self.msc3381_polls_enabled && rule.rule_id.contains("org.matrix.msc3930") {
-                    return false;
-                }
-
-                if !self.msc4028_push_encrypted_events
-                    && rule.rule_id == "global/override/.org.matrix.msc4028.encrypted_event"
-                {
-                    return false;
-                }
-
-                true
-            })
-            .map(|r| {
-                let enabled = *self
-                    .enabled_map
-                    .get(&*r.rule_id)
-                    .unwrap_or(&r.default_enabled);
-                (r, enabled)
-            })
+        self.push_rules.iter().map(|r| {
+            let enabled = *self
+                .enabled_map
+                .get(&*r.rule_id)
+                .unwrap_or(&r.default_enabled);
+            (r, enabled)
+        })
     }
 }
 
@@ -664,60 +586,6 @@ fn test_cannot_deserialize_event_match_condition_with_pattern_type() {
 
     let condition: Condition = serde_json::from_str(json).unwrap();
     assert!(matches!(condition, Condition::Unknown(_)));
-}
-
-#[test]
-fn test_deserialize_unstable_msc3664_condition() {
-    let json = r#"{"kind":"im.nheko.msc3664.related_event_match","key":"content.body","pattern":"coffee","rel_type":"m.in_reply_to"}"#;
-
-    let condition: Condition = serde_json::from_str(json).unwrap();
-    assert!(matches!(
-        condition,
-        Condition::Known(KnownCondition::RelatedEventMatch(_))
-    ));
-}
-
-#[test]
-fn test_serialize_unstable_msc3664_condition_with_pattern_type() {
-    let condition = Condition::Known(KnownCondition::RelatedEventMatchType(
-        RelatedEventMatchTypeCondition {
-            key: "content.body".into(),
-            pattern_type: Cow::Owned(EventMatchPatternType::UserId),
-            rel_type: "m.in_reply_to".into(),
-            include_fallbacks: Some(true),
-        },
-    ));
-
-    let json = serde_json::to_string(&condition).unwrap();
-    assert_eq!(
-        json,
-        r#"{"kind":"im.nheko.msc3664.related_event_match","key":"content.body","pattern_type":"user_id","rel_type":"m.in_reply_to","include_fallbacks":true}"#
-    )
-}
-
-#[test]
-fn test_cannot_deserialize_unstable_msc3664_condition_with_pattern_type() {
-    let json = r#"{"kind":"im.nheko.msc3664.related_event_match","key":"content.body","pattern_type":"user_id","rel_type":"m.in_reply_to"}"#;
-
-    let condition: Condition = serde_json::from_str(json).unwrap();
-    // Since pattern is optional on RelatedEventMatch it deserializes it to that
-    // instead of RelatedEventMatchType.
-    assert!(matches!(
-        condition,
-        Condition::Known(KnownCondition::RelatedEventMatch(_))
-    ));
-}
-
-#[test]
-fn test_deserialize_unstable_msc3931_condition() {
-    let json =
-        r#"{"kind":"org.matrix.msc3931.room_version_supports","feature":"org.example.feature"}"#;
-
-    let condition: Condition = serde_json::from_str(json).unwrap();
-    assert!(matches!(
-        condition,
-        Condition::Known(KnownCondition::RoomVersionSupports { feature: _ })
-    ));
 }
 
 #[test]
