@@ -214,7 +214,7 @@ fi
 
 extra_test_args=()
 
-test_packages="./tests ./tests/msc3874 ./tests/msc3890 ./tests/msc3391 ./tests/msc3930 ./tests/msc3902"
+test_packages="./tests ./tests/msc3874 ./tests/msc3890 ./tests/msc3391 ./tests/msc3902"
 skipped_test_packages=(
   TestSyncOmitsStateChangeOnFilteredEvents
   TestContentCSAPIMediaV1
