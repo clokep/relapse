@@ -39,6 +39,8 @@ class RedactionsTestCase(HomeserverTestCase):
         return self.setup_test_homeserver(config=config)
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
+        self.txn_id = 0
+
         # register a couple of users
         self.mod_user_id = self.register_user("user1", "pass")
         self.mod_access_token = self.login("user1", "pass")
@@ -75,14 +77,16 @@ class RedactionsTestCase(HomeserverTestCase):
 
         Returns the json body.
         """
-        path = f"/_matrix/client/r0/rooms/{room_id}/redact/{event_id}"
+        self.txn_id += 1
+
+        path = f"/_matrix/client/r0/rooms/{room_id}/redact/{event_id}/{self.txn_id}"
 
         request_content = content or {}
         if with_relations:
             request_content["org.matrix.msc3912.with_relations"] = with_relations
 
         channel = self.make_request(
-            "POST", path, request_content, access_token=access_token
+            "PUT", path, request_content, access_token=access_token
         )
         self.assertEqual(channel.code, expect_code)
         return channel.json_body

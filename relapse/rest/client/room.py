@@ -141,7 +141,7 @@ class TransactionRestServlet(RestServlet):
 
 class RoomCreateRestServlet(RestServlet):
     CATEGORY = "Client API requests"
-    PATTERNS = [client_patterns("/createRoom$")]
+    PATTERNS = client_patterns("/createRoom$")
 
     def __init__(self, hs: "HomeServer"):
         self._room_creation_handler = hs.get_room_creation_handler()
@@ -313,11 +313,9 @@ class RoomStateEventRestServlet(RestServlet):
 # TODO: Needs unit testing for generic events + feedback
 class RoomSendEventRestServlet(TransactionRestServlet):
     CATEGORY = "Event sending requests"
-    PATTERNS = [
-        client_patterns(
-            "/rooms/(?P<room_id>[^/]*)/send/(?P<event_type>[^/]*)/(?P<txn_id>[^/]*)$"
-        )
-    ]
+    PATTERNS = client_patterns(
+        "/rooms/(?P<room_id>[^/]*)/send/(?P<event_type>[^/]*)/(?P<txn_id>[^/]*)$"
+    )
 
     def __init__(self, hs: "HomeServer"):
         super().__init__(hs)
@@ -381,7 +379,7 @@ class RoomSendEventRestServlet(TransactionRestServlet):
 # TODO: Needs unit testing for room ID + alias joins
 class JoinRoomAliasServlet(ResolveRoomIdMixin, RestServlet):
     CATEGORY = "Event sending requests"
-    PATTERNS = [client_patterns("/join/(?P<room_identifier>[^/]*)$")]
+    PATTERNS = client_patterns("/join/(?P<room_identifier>[^/]*)$")
 
     def __init__(self, hs: "HomeServer"):
         super().__init__(hs)
@@ -891,7 +889,7 @@ class RoomEventContextServlet(RestServlet):
 
 
 class RoomForgetRestServlet(RestServlet):
-    PATTERNS = [client_patterns("/rooms/(?P<room_id>[^/]*)/forget$")]
+    PATTERNS = client_patterns("/rooms/(?P<room_id>[^/]*)/forget$")
 
     def __init__(self, hs: "HomeServer"):
         self.room_member_handler = hs.get_room_member_handler()
@@ -908,11 +906,9 @@ class RoomForgetRestServlet(RestServlet):
 # TODO: Needs unit testing
 class RoomMembershipRestServlet(RestServlet):
     CATEGORY = "Event sending requests"
-    PATTERNS = [
-        client_patterns(
-            "/rooms/(?P<room_id>[^/]*)/(?P<membership_action>join|invite|leave|ban|unban|kick)$"
-        )
-    ]
+    PATTERNS = client_patterns(
+        "/rooms/(?P<room_id>[^/]*)/(?P<membership_action>join|invite|leave|ban|unban|kick)$"
+    )
 
     def __init__(self, hs: "HomeServer"):
         self.room_member_handler = hs.get_room_member_handler()
@@ -990,11 +986,9 @@ class RoomMembershipRestServlet(RestServlet):
 
 class RoomRedactEventRestServlet(TransactionRestServlet):
     CATEGORY = "Event sending requests"
-    PATTERNS = [
-        client_patterns(
-            "/rooms/(?P<room_id>[^/]*)/redact/(?P<event_id>[^/]*)/(?P<txn_id>[^/]*)$"
-        )
-    ]
+    PATTERNS = client_patterns(
+        "/rooms/(?P<room_id>[^/]*)/redact/(?P<event_id>[^/]*)/(?P<txn_id>[^/]*)$"
+    )
 
     def __init__(self, hs: "HomeServer"):
         super().__init__(hs)

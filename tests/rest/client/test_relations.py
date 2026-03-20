@@ -46,6 +46,8 @@ class BaseRelationsTestCase(unittest.HomeserverTestCase):
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = hs.get_datastores().main
 
+        self.txn_id = 0
+
         self.user_id, self.user_token = self._create_user("alice")
         self.user2_id, self.user2_token = self._create_user("bob")
 
@@ -99,9 +101,11 @@ class BaseRelationsTestCase(unittest.HomeserverTestCase):
         if key is not None:
             content["m.relates_to"]["key"] = key
 
+        self.txn_id += 1
+
         channel = self.make_request(
-            "POST",
-            f"/_matrix/client/v3/rooms/{self.room}/send/{event_type}",
+            "PUT",
+            f"/_matrix/client/v3/rooms/{self.room}/send/{event_type}/{self.txn_id}",
             content,
             access_token=access_token,
         )
@@ -1582,9 +1586,11 @@ class RelationRedactionTestCase(BaseRelationsTestCase):
     """
 
     def _redact(self, event_id: str) -> None:
+        self.txn_id += 1
+
         channel = self.make_request(
-            "POST",
-            f"/_matrix/client/r0/rooms/{self.room}/redact/{event_id}",
+            "PUT",
+            f"/_matrix/client/r0/rooms/{self.room}/redact/{event_id}/{self.txn_id}",
             access_token=self.user_token,
             content={},
         )

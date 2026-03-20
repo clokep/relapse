@@ -52,7 +52,6 @@ from relapse.rest.client import (
     sync,
     tags,
     thirdparty,
-    tokenrefresh,
     user_directory,
     versions,
     voip,
@@ -98,8 +97,6 @@ def register_servlets(hs: "HomeServer", http_server: HttpServer) -> None:
     read_marker.register_servlets(hs, http_server)
     room_keys.register_servlets(hs, http_server)
     keys.register_servlets(hs, http_server)
-    if is_main_process:
-        tokenrefresh.register_servlets(hs, http_server)
     tags.register_servlets(hs, http_server)
     account_data.register_servlets(hs, http_server)
     if is_main_process:
