@@ -718,52 +718,6 @@ class MediaRepoTests(unittest.HomeserverTestCase):
         self.assertEqual(channel.code, 200)
 
 
-class TestSpamCheckerLegacy:
-    """A spam checker module that rejects all media that includes the bytes
-    `evil`.
-
-    Uses the legacy Spam-Checker API.
-    """
-
-    def __init__(self, config: dict[str, Any], api: ModuleApi) -> None:
-        self.config = config
-        self.api = api
-
-    @staticmethod
-    def parse_config(config: dict[str, Any]) -> dict[str, Any]:
-        return config
-
-    async def check_event_for_spam(self, event: EventBase) -> bool | str:
-        return False  # allow all events
-
-    async def user_may_invite(
-        self,
-        inviter_userid: str,
-        invitee_userid: str,
-        room_id: str,
-    ) -> bool:
-        return True  # allow all invites
-
-    async def user_may_create_room(self, userid: str) -> bool:
-        return True  # allow all room creations
-
-    async def user_may_create_room_alias(
-        self, userid: str, room_alias: RoomAlias
-    ) -> bool:
-        return True  # allow all room aliases
-
-    async def user_may_publish_room(self, userid: str, room_id: str) -> bool:
-        return True  # allow publishing of all rooms
-
-    async def check_media_file_for_spam(
-        self, file_wrapper: ReadableFileWrapper, file_info: FileInfo
-    ) -> bool:
-        buf = BytesIO()
-        await file_wrapper.write_chunks_to(buf.write)
-
-        return b"evil" in buf.getvalue()
-
-
 EVIL_DATA = b"Some evil data"
 EVIL_DATA_EXPERIMENT = b"Some evil data to trigger the experimental tuple API"
 
