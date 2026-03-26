@@ -16,7 +16,7 @@ import shutil
 import tempfile
 from binascii import unhexlify
 from io import BytesIO
-from typing import Any, BinaryIO, ClassVar, Literal
+from typing import BinaryIO, ClassVar, Literal
 from unittest.mock import Mock
 from urllib import parse
 
@@ -30,19 +30,17 @@ from twisted.internet.testing import MemoryReactor
 from twisted.python.failure import Failure
 
 from relapse.api.errors import Codes, HttpResponseException
-from relapse.events import EventBase
 from relapse.http.types import QueryParams
 from relapse.logging.context import make_deferred_yieldable
 from relapse.media._base import FileInfo, ThumbnailInfo
 from relapse.media.filepath import MediaFilePaths
 from relapse.media.media_storage import MediaStorage, ReadableFileWrapper
 from relapse.media.storage_provider import FileStorageProviderBackend
-from relapse.module_api import ModuleApi
 from relapse.rest import admin, media
 from relapse.rest.client import login
 from relapse.rest.media.thumbnail import ThumbnailServlet
 from relapse.server import HomeServer
-from relapse.types import JsonDict, RoomAlias
+from relapse.types import JsonDict
 from relapse.util import Clock
 
 from tests import unittest
