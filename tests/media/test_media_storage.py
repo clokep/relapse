@@ -16,7 +16,7 @@ import shutil
 import tempfile
 from binascii import unhexlify
 from io import BytesIO
-from typing import Any, BinaryIO, ClassVar, Literal
+from typing import BinaryIO, ClassVar, Literal
 from unittest.mock import Mock
 from urllib import parse
 
@@ -30,19 +30,17 @@ from twisted.internet.testing import MemoryReactor
 from twisted.python.failure import Failure
 
 from relapse.api.errors import Codes, HttpResponseException
-from relapse.events import EventBase
 from relapse.http.types import QueryParams
 from relapse.logging.context import make_deferred_yieldable
 from relapse.media._base import FileInfo, ThumbnailInfo
 from relapse.media.filepath import MediaFilePaths
 from relapse.media.media_storage import MediaStorage, ReadableFileWrapper
 from relapse.media.storage_provider import FileStorageProviderBackend
-from relapse.module_api import ModuleApi
 from relapse.rest import admin, media
 from relapse.rest.client import login
 from relapse.rest.media.thumbnail import ThumbnailServlet
 from relapse.server import HomeServer
-from relapse.types import JsonDict, RoomAlias
+from relapse.types import JsonDict
 from relapse.util import Clock
 
 from tests import unittest
@@ -716,52 +714,6 @@ class MediaRepoTests(unittest.HomeserverTestCase):
 
         self.pump()
         self.assertEqual(channel.code, 200)
-
-
-class TestSpamCheckerLegacy:
-    """A spam checker module that rejects all media that includes the bytes
-    `evil`.
-
-    Uses the legacy Spam-Checker API.
-    """
-
-    def __init__(self, config: dict[str, Any], api: ModuleApi) -> None:
-        self.config = config
-        self.api = api
-
-    @staticmethod
-    def parse_config(config: dict[str, Any]) -> dict[str, Any]:
-        return config
-
-    async def check_event_for_spam(self, event: EventBase) -> bool | str:
-        return False  # allow all events
-
-    async def user_may_invite(
-        self,
-        inviter_userid: str,
-        invitee_userid: str,
-        room_id: str,
-    ) -> bool:
-        return True  # allow all invites
-
-    async def user_may_create_room(self, userid: str) -> bool:
-        return True  # allow all room creations
-
-    async def user_may_create_room_alias(
-        self, userid: str, room_alias: RoomAlias
-    ) -> bool:
-        return True  # allow all room aliases
-
-    async def user_may_publish_room(self, userid: str, room_id: str) -> bool:
-        return True  # allow publishing of all rooms
-
-    async def check_media_file_for_spam(
-        self, file_wrapper: ReadableFileWrapper, file_info: FileInfo
-    ) -> bool:
-        buf = BytesIO()
-        await file_wrapper.write_chunks_to(buf.write)
-
-        return b"evil" in buf.getvalue()
 
 
 EVIL_DATA = b"Some evil data"
