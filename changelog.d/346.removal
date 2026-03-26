@@ -1,0 +1,1 @@
+Remove legacy spam checker, third party event rules, presence router, password auth provider, and account validaty module APIs.
