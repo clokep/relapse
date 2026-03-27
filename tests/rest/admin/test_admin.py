@@ -82,11 +82,7 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
         self.register_user("nonadmin", "pass", admin=False)
         non_admin_user_tok = self.login("nonadmin", "pass")
 
-        channel = self.make_request(
-            "POST",
-            url.encode("ascii"),
-            access_token=non_admin_user_tok,
-        )
+        channel = self.make_request("POST", url, access_token=non_admin_user_tok)
 
         # Expect a forbidden error
         self.assertEqual(
@@ -209,10 +205,9 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
         server_and_media_id_2 = response_2["content_uri"][6:]
 
         # Quarantine all media by this user
-        url = f"/_relapse/admin/v1/user/{urllib.parse.quote(non_admin_user)}/media/quarantine"
         channel = self.make_request(
             "POST",
-            url.encode("ascii"),
+            f"/_relapse/admin/v1/user/{urllib.parse.quote(non_admin_user)}/media/quarantine",
             access_token=admin_user_tok,
         )
         self.pump(1.0)
@@ -249,10 +244,9 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
         self.assertEqual(200, channel.code, msg=channel.json_body)
 
         # Quarantine all media by this user
-        url = f"/_relapse/admin/v1/user/{urllib.parse.quote(non_admin_user)}/media/quarantine"
         channel = self.make_request(
             "POST",
-            url.encode("ascii"),
+            f"/_relapse/admin/v1/user/{urllib.parse.quote(non_admin_user)}/media/quarantine",
             access_token=admin_user_tok,
         )
         self.pump(1.0)

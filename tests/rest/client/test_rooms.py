@@ -2263,7 +2263,7 @@ class PublicRoomsRestrictedTestCase(unittest.HomeserverTestCase):
     ]
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
-        self.url = b"/_matrix/client/r0/publicRooms"
+        self.url = "/_matrix/client/r0/publicRooms"
 
         config = self.default_config()
         config["allow_public_rooms_without_auth"] = False
@@ -2294,7 +2294,7 @@ class PublicRoomsRoomTypeFilterTestCase(unittest.HomeserverTestCase):
         config = self.default_config()
         config["allow_public_rooms_without_auth"] = True
         self.hs = self.setup_test_homeserver(config=config)
-        self.url = b"/_matrix/client/r0/publicRooms"
+        self.url = "/_matrix/client/r0/publicRooms"
 
         return self.hs
 
@@ -2413,7 +2413,7 @@ class PublicRoomsTestRemoteSearchFallbackTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "POST",
-            b"/_matrix/client/r0/publicRooms?server=testserv",
+            "/_matrix/client/r0/publicRooms?server=testserv",
             content={"filter": search_filter},
             access_token=self.token,
         )
@@ -2442,7 +2442,7 @@ class PublicRoomsTestRemoteSearchFallbackTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "POST",
-            b"/_matrix/client/r0/publicRooms?server=testserv",
+            "/_matrix/client/r0/publicRooms?server=testserv",
             content={"filter": search_filter},
             access_token=self.token,
         )

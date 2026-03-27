@@ -317,8 +317,8 @@ class FakeSite:
 def make_request(
     reactor: MemoryReactorClock,
     site: Site | FakeSite,
-    method: bytes | str,
-    path: bytes | str,
+    method: str,
+    path: str,
     content: bytes | str | JsonDict = b"",
     access_token: str | None = None,
     request: type[Request] = RelapseRequest,
@@ -338,6 +338,7 @@ def make_request(
         site: The twisted Site to use to render the request
         method: The HTTP request method ("verb").
         path: The HTTP path, suitably URL encoded (e.g. escaped UTF-8 & spaces and such).
+            Must start with a /.
         content: The body of the request. JSON-encoded, if a str of bytes.
         access_token: The access token to add as authorization for the request.
         request: The request class to create.
@@ -355,14 +356,7 @@ def make_request(
     Returns:
         channel
     """
-    if not isinstance(method, bytes):
-        method = method.encode("ascii")
-
-    if not isinstance(path, bytes):
-        path = path.encode("ascii")
-
-    if not path.startswith(b"/"):
-        path = b"/" + path
+    assert path.startswith("/"), f"Path '{path}' does not start with '/'"
 
     if isinstance(content, dict):
         content = json.dumps(content).encode("utf8")
@@ -403,7 +397,7 @@ def make_request(
             req.requestHeaders.addRawHeader(k, v)
 
     req.parseCookies()
-    req.requestReceived(method, path, b"1.1")
+    req.requestReceived(method.encode("ascii"), path.encode("ascii"), b"1.1")
 
     if await_result:
         channel.await_result()

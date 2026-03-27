@@ -485,8 +485,8 @@ class HomeserverTestCase(TestCase):
 
     def make_request(
         self,
-        method: bytes | str,
-        path: bytes | str,
+        method: str,
+        path: str,
         content: bytes | str | JsonDict = b"",
         access_token: str | None = None,
         request: type[Request] = RelapseRequest,

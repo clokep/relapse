@@ -1291,10 +1291,9 @@ class RoomTestCase(unittest.HomeserverTestCase):
         room_ids.sort()
 
         # Request the list of rooms
-        url = "/_relapse/admin/v1/rooms"
         channel = self.make_request(
             "GET",
-            url.encode("ascii"),
+            "/_relapse/admin/v1/rooms",
             access_token=self.admin_user_tok,
         )
 
@@ -1375,10 +1374,9 @@ class RoomTestCase(unittest.HomeserverTestCase):
         while should_repeat:
             run_count += 1
 
-            url = f"/_relapse/admin/v1/rooms?from={start}&limit={limit}&order_by=name"
             channel = self.make_request(
                 "GET",
-                url.encode("ascii"),
+                f"/_relapse/admin/v1/rooms?from={start}&limit={limit}&order_by=name",
                 access_token=self.admin_user_tok,
             )
             self.assertEqual(200, channel.code, msg=channel.json_body)
@@ -1415,10 +1413,9 @@ class RoomTestCase(unittest.HomeserverTestCase):
         # Check that we received all of the room ids
         self.assertEqual(room_ids, returned_room_ids)
 
-        url = f"/_relapse/admin/v1/rooms?from={start}&limit={limit}"
         channel = self.make_request(
             "GET",
-            url.encode("ascii"),
+            f"/_relapse/admin/v1/rooms?from={start}&limit={limit}",
             access_token=self.admin_user_tok,
         )
         self.assertEqual(200, channel.code, msg=channel.json_body)
@@ -1441,10 +1438,9 @@ class RoomTestCase(unittest.HomeserverTestCase):
         self.helper.join(room_id, user_2, tok=user_tok_2)
 
         # Create a new alias to this room
-        url = f"/_matrix/client/r0/directory/room/{urllib.parse.quote(test_alias)}"
         channel = self.make_request(
             "PUT",
-            url.encode("ascii"),
+            f"/_matrix/client/r0/directory/room/{urllib.parse.quote(test_alias)}",
             {"room_id": room_id},
             access_token=self.admin_user_tok,
         )
@@ -1474,10 +1470,9 @@ class RoomTestCase(unittest.HomeserverTestCase):
         )
 
         # Request the list of rooms
-        url = "/_relapse/admin/v1/rooms"
         channel = self.make_request(
             "GET",
-            url.encode("ascii"),
+            "/_relapse/admin/v1/rooms",
             access_token=self.admin_user_tok,
         )
         self.assertEqual(200, channel.code, msg=channel.json_body)
@@ -1531,11 +1526,7 @@ class RoomTestCase(unittest.HomeserverTestCase):
             url = f"/_relapse/admin/v1/rooms?order_by={order_type}"
             if reverse:
                 url += "&dir=b"
-            channel = self.make_request(
-                "GET",
-                url.encode("ascii"),
-                access_token=self.admin_user_tok,
-            )
+            channel = self.make_request("GET", url, access_token=self.admin_user_tok)
             self.assertEqual(200, channel.code, msg=channel.json_body)
 
             # Check that rooms were returned
@@ -1692,10 +1683,9 @@ class RoomTestCase(unittest.HomeserverTestCase):
                 search_term: The term to search for room names with
                 expected_http_code: The expected http code for the request
             """
-            url = f"/_relapse/admin/v1/rooms?search_term={search_term}"
             channel = self.make_request(
                 "GET",
-                url.encode("ascii"),
+                f"/_relapse/admin/v1/rooms?search_term={search_term}",
                 access_token=self.admin_user_tok,
             )
             self.assertEqual(expected_http_code, channel.code, msg=channel.json_body)
@@ -1774,10 +1764,9 @@ class RoomTestCase(unittest.HomeserverTestCase):
 
         # make the request and test that the response is what we wanted
         search_term = urllib.parse.quote("ж", "utf-8")
-        url = f"/_relapse/admin/v1/rooms?search_term={search_term}"
         channel = self.make_request(
             "GET",
-            url.encode("ascii"),
+            f"/_relapse/admin/v1/rooms?search_term={search_term}",
             access_token=self.admin_user_tok,
         )
         self.assertEqual(200, channel.code, msg=channel.json_body)
@@ -1811,10 +1800,9 @@ class RoomTestCase(unittest.HomeserverTestCase):
             tok=self.admin_user_tok,
         )
 
-        url = f"/_relapse/admin/v1/rooms/{room_id_1}"
         channel = self.make_request(
             "GET",
-            url.encode("ascii"),
+            f"/_relapse/admin/v1/rooms/{room_id_1}",
             access_token=self.admin_user_tok,
         )
         self.assertEqual(200, channel.code, msg=channel.json_body)
@@ -1847,10 +1835,9 @@ class RoomTestCase(unittest.HomeserverTestCase):
         """Test that `joined_local_devices` can be requested correctly"""
         room_id_1 = self.helper.create_room_as(self.admin_user, tok=self.admin_user_tok)
 
-        url = f"/_relapse/admin/v1/rooms/{room_id_1}"
         channel = self.make_request(
             "GET",
-            url.encode("ascii"),
+            f"/_relapse/admin/v1/rooms/{room_id_1}",
             access_token=self.admin_user_tok,
         )
         self.assertEqual(200, channel.code, msg=channel.json_body)
@@ -1861,10 +1848,9 @@ class RoomTestCase(unittest.HomeserverTestCase):
         user_tok_1 = self.login("foo", "pass")
         self.helper.join(room_id_1, user_1, tok=user_tok_1)
 
-        url = f"/_relapse/admin/v1/rooms/{room_id_1}"
         channel = self.make_request(
             "GET",
-            url.encode("ascii"),
+            f"/_relapse/admin/v1/rooms/{room_id_1}",
             access_token=self.admin_user_tok,
         )
         self.assertEqual(200, channel.code, msg=channel.json_body)
@@ -1873,10 +1859,9 @@ class RoomTestCase(unittest.HomeserverTestCase):
         # leave room
         self.helper.leave(room_id_1, self.admin_user, tok=self.admin_user_tok)
         self.helper.leave(room_id_1, user_1, tok=user_tok_1)
-        url = f"/_relapse/admin/v1/rooms/{room_id_1}"
         channel = self.make_request(
             "GET",
-            url.encode("ascii"),
+            f"/_relapse/admin/v1/rooms/{room_id_1}",
             access_token=self.admin_user_tok,
         )
         self.assertEqual(200, channel.code, msg=channel.json_body)
@@ -1904,10 +1889,9 @@ class RoomTestCase(unittest.HomeserverTestCase):
         user_tok_3 = self.login("foobar", "pass")
         self.helper.join(room_id_2, user_3, tok=user_tok_3)
 
-        url = f"/_relapse/admin/v1/rooms/{room_id_1}/members"
         channel = self.make_request(
             "GET",
-            url.encode("ascii"),
+            f"/_relapse/admin/v1/rooms/{room_id_1}/members",
             access_token=self.admin_user_tok,
         )
         self.assertEqual(200, channel.code, msg=channel.json_body)
@@ -1917,10 +1901,9 @@ class RoomTestCase(unittest.HomeserverTestCase):
         )
         self.assertEqual(channel.json_body["total"], 3)
 
-        url = f"/_relapse/admin/v1/rooms/{room_id_2}/members"
         channel = self.make_request(
             "GET",
-            url.encode("ascii"),
+            f"/_relapse/admin/v1/rooms/{room_id_2}/members",
             access_token=self.admin_user_tok,
         )
         self.assertEqual(200, channel.code, msg=channel.json_body)
@@ -1935,10 +1918,9 @@ class RoomTestCase(unittest.HomeserverTestCase):
         # Create two test rooms
         room_id = self.helper.create_room_as(self.admin_user, tok=self.admin_user_tok)
 
-        url = f"/_relapse/admin/v1/rooms/{room_id}/state"
         channel = self.make_request(
             "GET",
-            url.encode("ascii"),
+            f"/_relapse/admin/v1/rooms/{room_id}/state",
             access_token=self.admin_user_tok,
         )
         self.assertEqual(200, channel.code, msg=channel.json_body)
@@ -1951,10 +1933,9 @@ class RoomTestCase(unittest.HomeserverTestCase):
         self, room_id: str, test_alias: str, admin_user_tok: str
     ) -> None:
         # Create a new alias to this room
-        url = f"/_matrix/client/r0/directory/room/{urllib.parse.quote(test_alias)}"
         channel = self.make_request(
             "PUT",
-            url.encode("ascii"),
+            f"/_matrix/client/r0/directory/room/{urllib.parse.quote(test_alias)}",
             {"room_id": room_id},
             access_token=admin_user_tok,
         )
@@ -1985,8 +1966,11 @@ class RoomTestCase(unittest.HomeserverTestCase):
         self.helper.leave(room_id, user, tok=user_tok)
 
         # delete the rooms and get joined roomed membership
-        url = f"/_matrix/client/r0/rooms/{room_id}/joined_members"
-        channel = self.make_request("GET", url.encode("ascii"), access_token=user_tok)
+        channel = self.make_request(
+            "GET",
+            f"/_matrix/client/r0/rooms/{room_id}/joined_members",
+            access_token=user_tok,
+        )
         self.assertEqual(403, channel.code, msg=channel.json_body)
         self.assertEqual(Codes.FORBIDDEN, channel.json_body["errcode"])
 

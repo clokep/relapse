@@ -689,7 +689,7 @@ class WhoamiTestCase(unittest.HomeserverTestCase):
 
     def test_GET_whoami_guests(self) -> None:
         channel = self.make_request(
-            b"POST", b"/_matrix/client/r0/register?kind=guest", b"{}"
+            "POST", "/_matrix/client/r0/register?kind=guest", b"{}"
         )
         tok = channel.json_body["access_token"]
         user_id = channel.json_body["user_id"]
@@ -862,7 +862,7 @@ class ThreepidEmailRestTestCase(unittest.HomeserverTestCase):
         client_secret = "foobar"
         channel = self.make_request(
             "POST",
-            b"/_matrix/client/unstable/account/3pid/email/requestToken",
+            "/_matrix/client/unstable/account/3pid/email/requestToken",
             {
                 "client_secret": client_secret,
                 "email": "test@example.com",
@@ -955,7 +955,7 @@ class ThreepidEmailRestTestCase(unittest.HomeserverTestCase):
         # Attempt to add email without clicking the link
         channel = self.make_request(
             "POST",
-            b"/_matrix/client/unstable/account/3pid/add",
+            "/_matrix/client/unstable/account/3pid/add",
             {
                 "client_secret": client_secret,
                 "sid": session_id,
@@ -992,7 +992,7 @@ class ThreepidEmailRestTestCase(unittest.HomeserverTestCase):
         # Attempt to add email without even requesting an email
         channel = self.make_request(
             "POST",
-            b"/_matrix/client/unstable/account/3pid/add",
+            "/_matrix/client/unstable/account/3pid/add",
             {
                 "client_secret": client_secret,
                 "sid": session_id,
@@ -1197,7 +1197,7 @@ class ThreepidEmailRestTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "POST",
-            b"/_matrix/client/unstable/account/3pid/add",
+            "/_matrix/client/unstable/account/3pid/add",
             {
                 "client_secret": client_secret,
                 "sid": session_id,

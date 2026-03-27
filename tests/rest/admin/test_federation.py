@@ -368,10 +368,9 @@ class FederationTestCase(unittest.HomeserverTestCase):
                     Set to None to expect zero results for the search
                 search_term: The term to search for room names with
             """
-            url = f"{self.url}?destination={search_term}"
             channel = self.make_request(
                 "GET",
-                url.encode("ascii"),
+                f"{self.url}?destination={search_term}",
                 access_token=self.admin_user_tok,
             )
             self.assertEqual(200, channel.code, msg=channel.json_body)
