@@ -34,7 +34,7 @@ class VersionTestCase(unittest.HomeserverTestCase):
     servlets = [lambda hs, http_server: VersionServlet(hs).register(http_server)]
 
     def test_version_string(self) -> None:
-        channel = self.make_request("GET", self.url, shorthand=False)
+        channel = self.make_request("GET", self.url)
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertEqual({"server_version"}, set(channel.json_body.keys()))
@@ -58,7 +58,6 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
         channel = self.make_request(
             "GET",
             f"/_matrix/media/v3/download/{server_and_media_id}",
-            shorthand=False,
             access_token=admin_user_tok,
         )
 
@@ -83,11 +82,7 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
         self.register_user("nonadmin", "pass", admin=False)
         non_admin_user_tok = self.login("nonadmin", "pass")
 
-        channel = self.make_request(
-            "POST",
-            url.encode("ascii"),
-            access_token=non_admin_user_tok,
-        )
+        channel = self.make_request("POST", url, access_token=non_admin_user_tok)
 
         # Expect a forbidden error
         self.assertEqual(
@@ -114,7 +109,6 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
         channel = self.make_request(
             "GET",
             f"/_matrix/media/v3/download/{server_name_and_media_id}",
-            shorthand=False,
             access_token=non_admin_user_tok,
         )
 
@@ -211,10 +205,9 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
         server_and_media_id_2 = response_2["content_uri"][6:]
 
         # Quarantine all media by this user
-        url = f"/_relapse/admin/v1/user/{urllib.parse.quote(non_admin_user)}/media/quarantine"
         channel = self.make_request(
             "POST",
-            url.encode("ascii"),
+            f"/_relapse/admin/v1/user/{urllib.parse.quote(non_admin_user)}/media/quarantine",
             access_token=admin_user_tok,
         )
         self.pump(1.0)
@@ -251,10 +244,9 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
         self.assertEqual(200, channel.code, msg=channel.json_body)
 
         # Quarantine all media by this user
-        url = f"/_relapse/admin/v1/user/{urllib.parse.quote(non_admin_user)}/media/quarantine"
         channel = self.make_request(
             "POST",
-            url.encode("ascii"),
+            f"/_relapse/admin/v1/user/{urllib.parse.quote(non_admin_user)}/media/quarantine",
             access_token=admin_user_tok,
         )
         self.pump(1.0)
@@ -271,7 +263,6 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
         channel = self.make_request(
             "GET",
             f"/_matrix/media/v3/download/{server_and_media_id_2}",
-            shorthand=False,
             access_token=non_admin_user_tok,
         )
 

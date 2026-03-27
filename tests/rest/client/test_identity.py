@@ -44,7 +44,9 @@ class IdentityTestCase(unittest.HomeserverTestCase):
         self.register_user("kermit", "monkey")
         tok = self.login("kermit", "monkey")
 
-        channel = self.make_request(b"POST", "/createRoom", b"{}", access_token=tok)
+        channel = self.make_request(
+            "POST", "/_matrix/client/r0/createRoom", b"{}", access_token=tok
+        )
         self.assertEqual(channel.code, HTTPStatus.OK, channel.result)
         room_id = channel.json_body["room_id"]
 
@@ -54,8 +56,10 @@ class IdentityTestCase(unittest.HomeserverTestCase):
             "address": "test@example.com",
             "id_access_token": tok,
         }
-        request_url = (f"/rooms/{room_id}/invite").encode("ascii")
         channel = self.make_request(
-            b"POST", request_url, request_data, access_token=tok
+            "POST",
+            f"/_matrix/client/r0/rooms/{room_id}/invite",
+            request_data,
+            access_token=tok,
         )
         self.assertEqual(channel.code, HTTPStatus.FORBIDDEN, channel.result)

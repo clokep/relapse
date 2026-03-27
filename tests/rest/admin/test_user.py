@@ -331,7 +331,9 @@ class UserRegisterTestCase(unittest.HomeserverTestCase):
         self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertEqual("@bob1:test", channel.json_body["user_id"])
 
-        channel = self.make_request("GET", "/profile/@bob1:test/displayname")
+        channel = self.make_request(
+            "GET", "/_matrix/client/r0/profile/@bob1:test/displayname"
+        )
         self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertEqual("bob1", channel.json_body["displayname"])
 
@@ -355,7 +357,9 @@ class UserRegisterTestCase(unittest.HomeserverTestCase):
         self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertEqual("@bob2:test", channel.json_body["user_id"])
 
-        channel = self.make_request("GET", "/profile/@bob2:test/displayname")
+        channel = self.make_request(
+            "GET", "/_matrix/client/r0/profile/@bob2:test/displayname"
+        )
         self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertEqual("bob2", channel.json_body["displayname"])
 
@@ -379,7 +383,9 @@ class UserRegisterTestCase(unittest.HomeserverTestCase):
         self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertEqual("@bob3:test", channel.json_body["user_id"])
 
-        channel = self.make_request("GET", "/profile/@bob3:test/displayname")
+        channel = self.make_request(
+            "GET", "/_matrix/client/r0/profile/@bob3:test/displayname"
+        )
         self.assertEqual(404, channel.code, msg=channel.json_body)
 
         # set displayname
@@ -402,7 +408,9 @@ class UserRegisterTestCase(unittest.HomeserverTestCase):
         self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertEqual("@bob4:test", channel.json_body["user_id"])
 
-        channel = self.make_request("GET", "/profile/@bob4:test/displayname")
+        channel = self.make_request(
+            "GET", "/_matrix/client/r0/profile/@bob4:test/displayname"
+        )
         self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertEqual("Bob's Name", channel.json_body["displayname"])
 
@@ -1906,7 +1914,9 @@ class UserRestTestCase(unittest.HomeserverTestCase):
 
         # Sync to set admin user to active
         # before limit of monthly active users is reached
-        channel = self.make_request("GET", "/sync", access_token=self.admin_user_tok)
+        channel = self.make_request(
+            "GET", "/_matrix/client/r0/sync", access_token=self.admin_user_tok
+        )
 
         if channel.code != 200:
             raise HttpResponseException(
@@ -2988,7 +2998,7 @@ class UserRestTestCase(unittest.HomeserverTestCase):
         # marked as approved automatically.
         channel = self.make_request(
             "POST",
-            "register",
+            "/_matrix/client/r0/register",
             {
                 "username": "bob",
                 "password": "test",
@@ -3911,7 +3921,6 @@ class UserMediaRestTestCase(unittest.HomeserverTestCase):
         channel = self.make_request(
             "GET",
             f"/_matrix/media/v3/download/{server_and_media_id}",
-            shorthand=False,
             access_token=user_token,
         )
 
@@ -4040,7 +4049,7 @@ class UserTokenRestTestCase(unittest.HomeserverTestCase):
 
         # Check that we don't see a new device in our devices list
         channel = self.make_request(
-            "GET", "devices", b"{}", access_token=self.other_user_tok
+            "GET", "/_matrix/client/r0/devices", b"{}", access_token=self.other_user_tok
         )
         self.assertEqual(200, channel.code, msg=channel.json_body)
 
@@ -4053,20 +4062,26 @@ class UserTokenRestTestCase(unittest.HomeserverTestCase):
         puppet_token = self._get_token()
 
         # Test that we can successfully make a request
-        channel = self.make_request("GET", "devices", b"{}", access_token=puppet_token)
+        channel = self.make_request(
+            "GET", "/_matrix/client/r0/devices", b"{}", access_token=puppet_token
+        )
         self.assertEqual(200, channel.code, msg=channel.json_body)
 
         # Logout with the puppet token
-        channel = self.make_request("POST", "logout", b"{}", access_token=puppet_token)
+        channel = self.make_request(
+            "POST", "/_matrix/client/r0/logout", b"{}", access_token=puppet_token
+        )
         self.assertEqual(200, channel.code, msg=channel.json_body)
 
         # The puppet token should no longer work
-        channel = self.make_request("GET", "devices", b"{}", access_token=puppet_token)
+        channel = self.make_request(
+            "GET", "/_matrix/client/r0/devices", b"{}", access_token=puppet_token
+        )
         self.assertEqual(401, channel.code, msg=channel.json_body)
 
         # .. but the real user's tokens should still work
         channel = self.make_request(
-            "GET", "devices", b"{}", access_token=self.other_user_tok
+            "GET", "/_matrix/client/r0/devices", b"{}", access_token=self.other_user_tok
         )
         self.assertEqual(200, channel.code, msg=channel.json_body)
 
@@ -4078,22 +4093,29 @@ class UserTokenRestTestCase(unittest.HomeserverTestCase):
         puppet_token = self._get_token()
 
         # Test that we can successfully make a request
-        channel = self.make_request("GET", "devices", b"{}", access_token=puppet_token)
+        channel = self.make_request(
+            "GET", "/_matrix/client/r0/devices", b"{}", access_token=puppet_token
+        )
         self.assertEqual(200, channel.code, msg=channel.json_body)
 
         # Logout all with the real user token
         channel = self.make_request(
-            "POST", "logout/all", b"{}", access_token=self.other_user_tok
+            "POST",
+            "/_matrix/client/r0/logout/all",
+            b"{}",
+            access_token=self.other_user_tok,
         )
         self.assertEqual(200, channel.code, msg=channel.json_body)
 
         # The puppet token should still work
-        channel = self.make_request("GET", "devices", b"{}", access_token=puppet_token)
+        channel = self.make_request(
+            "GET", "/_matrix/client/r0/devices", b"{}", access_token=puppet_token
+        )
         self.assertEqual(200, channel.code, msg=channel.json_body)
 
         # .. but the real user's tokens shouldn't
         channel = self.make_request(
-            "GET", "devices", b"{}", access_token=self.other_user_tok
+            "GET", "/_matrix/client/r0/devices", b"{}", access_token=self.other_user_tok
         )
         self.assertEqual(401, channel.code, msg=channel.json_body)
 
@@ -4105,22 +4127,29 @@ class UserTokenRestTestCase(unittest.HomeserverTestCase):
         puppet_token = self._get_token()
 
         # Test that we can successfully make a request
-        channel = self.make_request("GET", "devices", b"{}", access_token=puppet_token)
+        channel = self.make_request(
+            "GET", "/_matrix/client/r0/devices", b"{}", access_token=puppet_token
+        )
         self.assertEqual(200, channel.code, msg=channel.json_body)
 
         # Logout all with the admin user token
         channel = self.make_request(
-            "POST", "logout/all", b"{}", access_token=self.admin_user_tok
+            "POST",
+            "/_matrix/client/r0/logout/all",
+            b"{}",
+            access_token=self.admin_user_tok,
         )
         self.assertEqual(200, channel.code, msg=channel.json_body)
 
         # The puppet token should no longer work
-        channel = self.make_request("GET", "devices", b"{}", access_token=puppet_token)
+        channel = self.make_request(
+            "GET", "/_matrix/client/r0/devices", b"{}", access_token=puppet_token
+        )
         self.assertEqual(401, channel.code, msg=channel.json_body)
 
         # .. but the real user's tokens should still work
         channel = self.make_request(
-            "GET", "devices", b"{}", access_token=self.other_user_tok
+            "GET", "/_matrix/client/r0/devices", b"{}", access_token=self.other_user_tok
         )
         self.assertEqual(200, channel.code, msg=channel.json_body)
 

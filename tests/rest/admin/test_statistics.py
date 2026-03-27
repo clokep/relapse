@@ -500,7 +500,7 @@ class UserMediaStatisticsTestCase(unittest.HomeserverTestCase):
             url += f"&dir={dir}"
         channel = self.make_request(
             "GET",
-            url.encode("ascii"),
+            url,
             access_token=self.admin_user_tok,
         )
         self.assertEqual(200, channel.code, msg=channel.json_body)

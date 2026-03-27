@@ -45,7 +45,7 @@ class DeactivateAccountTestCase(HomeserverTestCase):
         """
         req = self.make_request(
             "POST",
-            "account/deactivate",
+            "/_matrix/client/r0/account/deactivate",
             {
                 "auth": {
                     "type": "m.login.password",
@@ -327,7 +327,7 @@ class DeactivateAccountTestCase(HomeserverTestCase):
         """
         req = self.make_request(
             "POST",
-            "account/deactivate",
+            "/_matrix/client/r0/account/deactivate",
             {},
             access_token=self.token,
         )

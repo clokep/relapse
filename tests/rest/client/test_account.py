@@ -329,7 +329,7 @@ class PasswordResetTestCase(unittest.HomeserverTestCase):
     ) -> str:
         channel = self.make_request(
             "POST",
-            b"account/password/email/requestToken",
+            "/_matrix/client/r0/account/password/email/requestToken",
             {"client_secret": client_secret, "email": email, "send_attempt": 1},
             client_ip=ip,
         )
@@ -351,7 +351,6 @@ class PasswordResetTestCase(unittest.HomeserverTestCase):
         channel = self.make_request(
             "GET",
             path,
-            shorthand=False,
         )
 
         self.assertEqual(HTTPStatus.OK, channel.code, channel.result)
@@ -364,7 +363,6 @@ class PasswordResetTestCase(unittest.HomeserverTestCase):
             "POST",
             path,
             content=b"",
-            shorthand=False,
             content_is_form=True,
         )
         self.assertEqual(HTTPStatus.OK, channel.code, channel.result)
@@ -401,7 +399,7 @@ class PasswordResetTestCase(unittest.HomeserverTestCase):
     ) -> None:
         channel = self.make_request(
             "POST",
-            b"account/password",
+            "/_matrix/client/r0/account/password",
             {
                 "new_password": new_password,
                 "auth": {
@@ -440,7 +438,9 @@ class DeactivateTestCase(unittest.HomeserverTestCase):
         self.assertTrue(self.get_success(store.get_user_deactivated_status(user_id)))
 
         # Check that this access token has been invalidated.
-        channel = self.make_request("GET", "account/whoami", access_token=tok)
+        channel = self.make_request(
+            "GET", "/_matrix/client/r0/account/whoami", access_token=tok
+        )
         self.assertEqual(channel.code, 401)
 
     def test_pending_invites(self) -> None:
@@ -651,7 +651,10 @@ class DeactivateTestCase(unittest.HomeserverTestCase):
             "erase": False,
         }
         channel = self.make_request(
-            "POST", "account/deactivate", request_data, access_token=tok
+            "POST",
+            "/_matrix/client/r0/account/deactivate",
+            request_data,
+            access_token=tok,
         )
         self.assertEqual(channel.code, 200, channel.json_body)
 
@@ -686,7 +689,7 @@ class WhoamiTestCase(unittest.HomeserverTestCase):
 
     def test_GET_whoami_guests(self) -> None:
         channel = self.make_request(
-            b"POST", b"/_matrix/client/r0/register?kind=guest", b"{}"
+            "POST", "/_matrix/client/r0/register?kind=guest", b"{}"
         )
         tok = channel.json_body["access_token"]
         user_id = channel.json_body["user_id"]
@@ -725,7 +728,9 @@ class WhoamiTestCase(unittest.HomeserverTestCase):
         self.assertFalse(hasattr(whoami, "device_id"))
 
     def _whoami(self, tok: str) -> JsonDict:
-        channel = self.make_request("GET", "account/whoami", {}, access_token=tok)
+        channel = self.make_request(
+            "GET", "/_matrix/client/r0/account/whoami", {}, access_token=tok
+        )
         self.assertEqual(channel.code, 200)
         return channel.json_body
 
@@ -782,7 +787,7 @@ class ThreepidEmailRestTestCase(unittest.HomeserverTestCase):
         self.user_id = self.register_user("kermit", "test")
         self.user_id_tok = self.login("kermit", "test")
         self.email = "test@example.com"
-        self.url_3pid = b"account/3pid"
+        self.url_3pid = "/_matrix/client/r0/account/3pid"
 
     def test_add_valid_email(self) -> None:
         self._add_email(self.email, self.email)
@@ -857,7 +862,7 @@ class ThreepidEmailRestTestCase(unittest.HomeserverTestCase):
         client_secret = "foobar"
         channel = self.make_request(
             "POST",
-            b"/_matrix/client/unstable/account/3pid/email/requestToken",
+            "/_matrix/client/unstable/account/3pid/email/requestToken",
             {
                 "client_secret": client_secret,
                 "email": "test@example.com",
@@ -886,7 +891,7 @@ class ThreepidEmailRestTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "POST",
-            b"account/3pid/delete",
+            "/_matrix/client/r0/account/3pid/delete",
             {"medium": "email", "address": self.email},
             access_token=self.user_id_tok,
         )
@@ -919,7 +924,7 @@ class ThreepidEmailRestTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "POST",
-            b"account/3pid/delete",
+            "/_matrix/client/r0/account/3pid/delete",
             {"medium": "email", "address": self.email},
             access_token=self.user_id_tok,
         )
@@ -950,7 +955,7 @@ class ThreepidEmailRestTestCase(unittest.HomeserverTestCase):
         # Attempt to add email without clicking the link
         channel = self.make_request(
             "POST",
-            b"/_matrix/client/unstable/account/3pid/add",
+            "/_matrix/client/unstable/account/3pid/add",
             {
                 "client_secret": client_secret,
                 "sid": session_id,
@@ -987,7 +992,7 @@ class ThreepidEmailRestTestCase(unittest.HomeserverTestCase):
         # Attempt to add email without even requesting an email
         channel = self.make_request(
             "POST",
-            b"/_matrix/client/unstable/account/3pid/add",
+            "/_matrix/client/unstable/account/3pid/add",
             {
                 "client_secret": client_secret,
                 "sid": session_id,
@@ -1117,7 +1122,7 @@ class ThreepidEmailRestTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "POST",
-            b"account/3pid/email/requestToken",
+            "/_matrix/client/r0/account/3pid/email/requestToken",
             body,
         )
 
@@ -1139,7 +1144,7 @@ class ThreepidEmailRestTestCase(unittest.HomeserverTestCase):
     ) -> None:
         channel = self.make_request(
             "POST",
-            b"account/3pid/email/requestToken",
+            "/_matrix/client/r0/account/3pid/email/requestToken",
             {"client_secret": client_secret, "email": email, "send_attempt": 1},
         )
         self.assertEqual(
@@ -1152,7 +1157,7 @@ class ThreepidEmailRestTestCase(unittest.HomeserverTestCase):
         # Remove the host
         path = link.replace("https://example.com", "")
 
-        channel = self.make_request("GET", path, shorthand=False)
+        channel = self.make_request("GET", path)
         self.assertEqual(HTTPStatus.OK, channel.code, channel.result)
 
     def _get_link_from_email(self) -> str:
@@ -1192,7 +1197,7 @@ class ThreepidEmailRestTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "POST",
-            b"/_matrix/client/unstable/account/3pid/add",
+            "/_matrix/client/unstable/account/3pid/add",
             {
                 "client_secret": client_secret,
                 "sid": session_id,

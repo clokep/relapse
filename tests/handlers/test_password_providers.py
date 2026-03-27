@@ -589,7 +589,7 @@ class PasswordAuthProviderTests(unittest.HomeserverTestCase):
         username = "rin"
         channel = self.make_request(
             "POST",
-            "/register",
+            "/_matrix/client/r0/register",
             {
                 "username": username,
                 "password": "bar",
@@ -642,7 +642,7 @@ class PasswordAuthProviderTests(unittest.HomeserverTestCase):
         username = "rin"
         channel = self.make_request(
             "POST",
-            "/register",
+            "/_matrix/client/r0/register",
             {
                 "username": username,
                 "password": "bar",
@@ -700,9 +700,9 @@ class PasswordAuthProviderTests(unittest.HomeserverTestCase):
         tok = self.login(username, "password")
 
         if registration:
-            url = "/register/email/requestToken"
+            url = "/_matrix/client/r0/register/email/requestToken"
         else:
-            url = "/account/3pid/email/requestToken"
+            url = "/_matrix/client/r0/account/3pid/email/requestToken"
 
         channel = self.make_request(
             "POST",
@@ -763,7 +763,7 @@ class PasswordAuthProviderTests(unittest.HomeserverTestCase):
         # Initiate the UIA flow.
         channel = self.make_request(
             "POST",
-            "register",
+            "/_matrix/client/r0/register",
             {"username": username, "type": "m.login.password", "password": "bar"},
         )
         self.assertEqual(channel.code, 401)
@@ -776,7 +776,7 @@ class PasswordAuthProviderTests(unittest.HomeserverTestCase):
         session = channel.json_body["session"]
         channel = self.make_request(
             "POST",
-            "register",
+            "/_matrix/client/r0/register",
             {"auth": {"session": session, "type": LoginType.DUMMY}},
         )
         self.assertEqual(channel.code, HTTPStatus.OK, channel.json_body)
@@ -834,6 +834,9 @@ class PasswordAuthProviderTests(unittest.HomeserverTestCase):
     ) -> FakeChannel:
         """Delete an individual device."""
         channel = self.make_request(
-            "DELETE", "devices/" + device, body, access_token=access_token
+            "DELETE",
+            f"/_matrix/client/r0/devices/{device}",
+            body,
+            access_token=access_token,
         )
         return channel

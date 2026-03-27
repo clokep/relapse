@@ -65,7 +65,6 @@ class ConsentResourceTestCase(unittest.HomeserverTestCase):
         channel = self.make_request(
             "GET",
             "/_matrix/consent?v=1",
-            shorthand=False,
         )
         self.assertEqual(channel.code, HTTPStatus.OK)
 
@@ -86,7 +85,6 @@ class ConsentResourceTestCase(unittest.HomeserverTestCase):
             "GET",
             consent_uri,
             access_token=access_token,
-            shorthand=False,
         )
         self.assertEqual(channel.code, HTTPStatus.OK)
 
@@ -99,7 +97,6 @@ class ConsentResourceTestCase(unittest.HomeserverTestCase):
             "POST",
             consent_uri + "&v=" + version,
             access_token=access_token,
-            shorthand=False,
         )
         self.assertEqual(channel.code, HTTPStatus.OK)
 
@@ -109,7 +106,6 @@ class ConsentResourceTestCase(unittest.HomeserverTestCase):
             "GET",
             consent_uri,
             access_token=access_token,
-            shorthand=False,
         )
         self.assertEqual(channel.code, HTTPStatus.OK)
 

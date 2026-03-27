@@ -197,7 +197,7 @@ class RestHelper:
     ) -> None:
         temp_id = self.auth_user_id
         self.auth_user_id = user
-        path = f"/knock/{room}"
+        path = f"/_matrix/client/r0/knock/{room}"
         if tok:
             path = path + f"?access_token={tok}"
 
@@ -573,7 +573,7 @@ class RestHelper:
             self.reactor,
             self.site,
             "GET",
-            "account/whoami",
+            "/_matrix/client/r0/account/whoami",
             access_token=access_token,
         )
 
@@ -661,7 +661,7 @@ class RestHelper:
             self.reactor,
             self.site,
             "POST",
-            "/login",
+            "/_matrix/client/r0/login",
             content={"type": "m.login.token", "token": login_token},
         )
         assert channel.code == expected_status, (

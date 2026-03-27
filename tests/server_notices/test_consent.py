@@ -79,7 +79,7 @@ class ConsentNoticesTests(unittest.HomeserverTestCase):
         # Join the room
         channel = self.make_request(
             "POST",
-            "/_matrix/client/r0/rooms/" + room_id + "/join",
+            f"/_matrix/client/r0/rooms/{room_id}/join",
             access_token=self.access_token,
         )
         self.assertEqual(channel.code, 200)

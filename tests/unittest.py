@@ -485,12 +485,11 @@ class HomeserverTestCase(TestCase):
 
     def make_request(
         self,
-        method: bytes | str,
-        path: bytes | str,
+        method: str,
+        path: str,
         content: bytes | str | JsonDict = b"",
         access_token: str | None = None,
         request: type[Request] = RelapseRequest,
-        shorthand: bool = True,
         federation_auth_origin: bytes | None = None,
         content_is_form: bool = False,
         await_result: bool = True,
@@ -506,7 +505,6 @@ class HomeserverTestCase(TestCase):
             path: The HTTP path, suitably URL encoded (e.g. escaped UTF-8 & spaces
                 and such). content (bytes or dict): The body of the request.
                 JSON-encoded, if a dict.
-            shorthand: Whether to try and be helpful and prefix the given URL
             with the usual REST API path, if it doesn't contain it.
             federation_auth_origin: if set to not-None, we will add a fake
                 Authorization header pretenting to be the given server name.
@@ -533,7 +531,6 @@ class HomeserverTestCase(TestCase):
             content,
             access_token,
             request,
-            shorthand,
             federation_auth_origin,
             content_is_form,
             await_result,
@@ -893,7 +890,6 @@ class FederatingHomeserverTestCase(HomeserverTestCase):
             method=method,
             path=path,
             content=content if content is not None else "",
-            shorthand=False,
             await_result=await_result,
             custom_headers=custom_headers,
             client_ip=client_ip,

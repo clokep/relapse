@@ -47,7 +47,9 @@ class SendToDeviceTestCase(HomeserverTestCase):
         self.assertEqual(chan.code, 200, chan.result)
 
         # check it appears
-        channel = self.make_request("GET", "/sync", access_token=user2_tok)
+        channel = self.make_request(
+            "GET", "/_matrix/client/r0/sync", access_token=user2_tok
+        )
         self.assertEqual(channel.code, 200, channel.result)
         expected_result = {
             "events": [
@@ -61,14 +63,16 @@ class SendToDeviceTestCase(HomeserverTestCase):
         self.assertEqual(channel.json_body["to_device"], expected_result)
 
         # it should re-appear if we do another sync
-        channel = self.make_request("GET", "/sync", access_token=user2_tok)
+        channel = self.make_request(
+            "GET", "/_matrix/client/r0/sync", access_token=user2_tok
+        )
         self.assertEqual(channel.code, 200, channel.result)
         self.assertEqual(channel.json_body["to_device"], expected_result)
 
         # it should *not* appear if we do an incremental sync
         sync_token = channel.json_body["next_batch"]
         channel = self.make_request(
-            "GET", f"/sync?since={sync_token}", access_token=user2_tok
+            "GET", f"/_matrix/client/r0/sync?since={sync_token}", access_token=user2_tok
         )
         self.assertEqual(channel.code, 200, channel.result)
         self.assertEqual(channel.json_body.get("to_device", {}).get("events", []), [])
@@ -93,7 +97,9 @@ class SendToDeviceTestCase(HomeserverTestCase):
             self.assertEqual(chan.code, 200, chan.result)
 
         # now sync: we should get two of the three
-        channel = self.make_request("GET", "/sync", access_token=user2_tok)
+        channel = self.make_request(
+            "GET", "/_matrix/client/r0/sync", access_token=user2_tok
+        )
         self.assertEqual(channel.code, 200, channel.result)
         msgs = channel.json_body["to_device"]["events"]
         self.assertEqual(len(msgs), 2)
@@ -118,7 +124,7 @@ class SendToDeviceTestCase(HomeserverTestCase):
 
         # ... which should arrive
         channel = self.make_request(
-            "GET", f"/sync?since={sync_token}", access_token=user2_tok
+            "GET", f"/_matrix/client/r0/sync?since={sync_token}", access_token=user2_tok
         )
         self.assertEqual(channel.code, 200, channel.result)
         msgs = channel.json_body["to_device"]["events"]
@@ -152,7 +158,9 @@ class SendToDeviceTestCase(HomeserverTestCase):
             )
 
         # now sync: we should get two of the three
-        channel = self.make_request("GET", "/sync", access_token=user2_tok)
+        channel = self.make_request(
+            "GET", "/_matrix/client/r0/sync", access_token=user2_tok
+        )
         self.assertEqual(channel.code, 200, channel.result)
         msgs = channel.json_body["to_device"]["events"]
         self.assertEqual(len(msgs), 2)
@@ -186,7 +194,7 @@ class SendToDeviceTestCase(HomeserverTestCase):
 
         # ... which should arrive
         channel = self.make_request(
-            "GET", f"/sync?since={sync_token}", access_token=user2_tok
+            "GET", f"/_matrix/client/r0/sync?since={sync_token}", access_token=user2_tok
         )
         self.assertEqual(channel.code, 200, channel.result)
         msgs = channel.json_body["to_device"]["events"]
@@ -201,7 +209,7 @@ class SendToDeviceTestCase(HomeserverTestCase):
         )
 
     def test_limited_sync(self) -> None:
-        """If a limited sync for to-devices happens the next /sync should respond immediately."""
+        """If a limited sync for to-devices happens the next /_matrix/client/r0/sync should respond immediately."""
 
         self.register_user("u1", "pass")
         user1_tok = self.login("u1", "pass", "d1")
@@ -210,7 +218,9 @@ class SendToDeviceTestCase(HomeserverTestCase):
         user2_tok = self.login("u2", "pass", "d2")
 
         # Do an initial sync
-        channel = self.make_request("GET", "/sync", access_token=user2_tok)
+        channel = self.make_request(
+            "GET", "/_matrix/client/r0/sync", access_token=user2_tok
+        )
         self.assertEqual(channel.code, 200, channel.result)
         sync_token = channel.json_body["next_batch"]
 
@@ -226,7 +236,9 @@ class SendToDeviceTestCase(HomeserverTestCase):
             self.assertEqual(chan.code, 200, chan.result)
 
         channel = self.make_request(
-            "GET", f"/sync?since={sync_token}&timeout=300000", access_token=user2_tok
+            "GET",
+            f"/_matrix/client/r0/sync?since={sync_token}&timeout=300000",
+            access_token=user2_tok,
         )
         self.assertEqual(channel.code, 200, channel.result)
         messages = channel.json_body.get("to_device", {}).get("events", [])
@@ -234,7 +246,9 @@ class SendToDeviceTestCase(HomeserverTestCase):
         sync_token = channel.json_body["next_batch"]
 
         channel = self.make_request(
-            "GET", f"/sync?since={sync_token}&timeout=300000", access_token=user2_tok
+            "GET",
+            f"/_matrix/client/r0/sync?since={sync_token}&timeout=300000",
+            access_token=user2_tok,
         )
         self.assertEqual(channel.code, 200, channel.result)
         messages = channel.json_body.get("to_device", {}).get("events", [])

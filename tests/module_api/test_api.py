@@ -650,7 +650,7 @@ class ModuleApiTestCase(BaseModuleApiTestCase):
 
         channel = self.make_request(
             "GET",
-            "/notifications",
+            "/_matrix/client/r0/notifications",
             access_token=tok,
         )
         self.assertEqual(channel.code, 200, channel.result)
@@ -681,7 +681,7 @@ class ModuleApiTestCase(BaseModuleApiTestCase):
 
         channel = self.make_request(
             "GET",
-            "/notifications?from=",
+            "/_matrix/client/r0/notifications?from=",
             access_token=tok,
         )
         self.assertEqual(channel.code, 200, channel.result)

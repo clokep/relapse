@@ -75,7 +75,6 @@ class MediaRepoShardTestCase(BaseMultiWorkerStreamTestCase):
             self._hs_to_site[hs],
             "GET",
             f"/_matrix/media/r0/download/{target}/{media_id}",
-            shorthand=False,
             access_token=self.access_token,
             await_result=False,
         )

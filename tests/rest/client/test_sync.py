@@ -40,7 +40,7 @@ class FilterTestCase(unittest.HomeserverTestCase):
     ]
 
     def test_sync_argless(self) -> None:
-        channel = self.make_request("GET", "/sync")
+        channel = self.make_request("GET", "/_matrix/client/r0/sync")
 
         self.assertEqual(channel.code, 200)
         self.assertIn("next_batch", channel.json_body)
@@ -172,7 +172,7 @@ class SyncFilterTestCase(unittest.HomeserverTestCase):
         )
 
         channel = self.make_request(
-            "GET", f"/sync?filter={sync_filter}", access_token=tok
+            "GET", f"/_matrix/client/r0/sync?filter={sync_filter}", access_token=tok
         )
         self.assertEqual(channel.code, 200, channel.result)
 
@@ -196,8 +196,8 @@ class SyncTypingTests(unittest.HomeserverTestCase):
         do not incorrectly return typing information that had a serial greater
         than the now-reset serial.
         """
-        typing_url = "/rooms/%s/typing/%s?access_token=%s"
-        sync_url = "/sync?timeout=3000000&access_token=%s&since=%s"
+        typing_url = "/_matrix/client/r0/rooms/%s/typing/%s?access_token=%s"
+        sync_url = "/_matrix/client/r0/sync?timeout=3000000&access_token=%s&since=%s"
 
         # Register the user who gets notified
         user_id = self.register_user("user", "pass")
@@ -228,7 +228,9 @@ class SyncTypingTests(unittest.HomeserverTestCase):
         )
         self.assertEqual(200, channel.code)
 
-        channel = self.make_request("GET", f"/sync?access_token={access_token}")
+        channel = self.make_request(
+            "GET", f"/_matrix/client/r0/sync?access_token={access_token}"
+        )
         self.assertEqual(200, channel.code)
         next_batch = channel.json_body["next_batch"]
 
@@ -293,7 +295,7 @@ class SyncKnockTestCase(KnockingStrippedStateEventHelperMixin):
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = hs.get_datastores().main
-        self.url = "/sync?since=%s"
+        self.url = "/_matrix/client/r0/sync?since=%s"
         self.next_batch = "s0"
 
         # Register the first user (used to create the room to knock on).
@@ -382,14 +384,16 @@ class SyncCacheTestCase(unittest.HomeserverTestCase):
         self.tok = self.login("kermit", "monkey")
 
         # we should immediately get an initial sync response
-        channel = self.make_request("GET", "/sync", access_token=self.tok)
+        channel = self.make_request(
+            "GET", "/_matrix/client/r0/sync", access_token=self.tok
+        )
         self.assertEqual(channel.code, 200, channel.json_body)
 
         # now, make an incremental sync request, with a timeout
         next_batch = channel.json_body["next_batch"]
         channel = self.make_request(
             "GET",
-            f"/sync?since={next_batch}&timeout=10000",
+            f"/_matrix/client/r0/sync?since={next_batch}&timeout=10000",
             access_token=self.tok,
             await_result=False,
         )
@@ -405,7 +409,7 @@ class SyncCacheTestCase(unittest.HomeserverTestCase):
         # another incremental sync should also block.
         channel = self.make_request(
             "GET",
-            f"/sync?since={next_batch}&timeout=10000",
+            f"/_matrix/client/r0/sync?since={next_batch}&timeout=10000",
             access_token=self.tok,
             await_result=False,
         )
@@ -433,7 +437,9 @@ class DeviceListSyncTestCase(unittest.HomeserverTestCase):
         self.tok = self.login("kermit", "monkey", device_id=device_id)
 
         # Request an initial sync
-        channel = self.make_request("GET", "/sync", access_token=self.tok)
+        channel = self.make_request(
+            "GET", "/_matrix/client/r0/sync", access_token=self.tok
+        )
         self.assertEqual(channel.code, 200, channel.json_body)
         next_batch = channel.json_body["next_batch"]
 
@@ -441,7 +447,7 @@ class DeviceListSyncTestCase(unittest.HomeserverTestCase):
         # It won't return until something has happened
         incremental_sync_channel = self.make_request(
             "GET",
-            f"/sync?since={next_batch}&timeout=30000",
+            f"/_matrix/client/r0/sync?since={next_batch}&timeout=30000",
             access_token=self.tok,
             await_result=False,
         )
@@ -449,7 +455,7 @@ class DeviceListSyncTestCase(unittest.HomeserverTestCase):
         # Change our device's display name
         channel = self.make_request(
             "PUT",
-            f"devices/{device_id}",
+            f"/_matrix/client/r0/devices/{device_id}",
             {
                 "display_name": "freeze ray",
             },
@@ -498,7 +504,9 @@ class ExcludeRoomTestCase(unittest.HomeserverTestCase):
         """Tests that rooms are correctly excluded from the 'join' and 'leave' sections of
         sync responses.
         """
-        channel = self.make_request("GET", "/sync", access_token=self.tok)
+        channel = self.make_request(
+            "GET", "/_matrix/client/r0/sync", access_token=self.tok
+        )
         self.assertEqual(channel.code, 200, channel.result)
 
         self.assertNotIn(self.excluded_room_id, channel.json_body["rooms"]["join"])
@@ -509,7 +517,7 @@ class ExcludeRoomTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "GET",
-            "/sync?since=" + channel.json_body["next_batch"],
+            "/_matrix/client/r0/sync?since=" + channel.json_body["next_batch"],
             access_token=self.tok,
         )
         self.assertEqual(channel.code, 200, channel.result)
@@ -527,7 +535,9 @@ class ExcludeRoomTestCase(unittest.HomeserverTestCase):
         self.helper.invite(self.excluded_room_id, self.user_id, invitee, tok=self.tok)
         self.helper.invite(self.included_room_id, self.user_id, invitee, tok=self.tok)
 
-        channel = self.make_request("GET", "/sync", access_token=invitee_tok)
+        channel = self.make_request(
+            "GET", "/_matrix/client/r0/sync", access_token=invitee_tok
+        )
         self.assertEqual(channel.code, 200, channel.result)
 
         self.assertNotIn(self.excluded_room_id, channel.json_body["rooms"]["invite"])
@@ -537,7 +547,9 @@ class ExcludeRoomTestCase(unittest.HomeserverTestCase):
         """Tests that activity in the room is properly filtered out of incremental
         syncs.
         """
-        channel = self.make_request("GET", "/sync", access_token=self.tok)
+        channel = self.make_request(
+            "GET", "/_matrix/client/r0/sync", access_token=self.tok
+        )
         self.assertEqual(channel.code, 200, channel.result)
         next_batch = channel.json_body["next_batch"]
 
@@ -546,7 +558,7 @@ class ExcludeRoomTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "GET",
-            f"/sync?since={next_batch}",
+            f"/_matrix/client/r0/sync?since={next_batch}",
             access_token=self.tok,
         )
         self.assertEqual(channel.code, 200, channel.result)

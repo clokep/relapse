@@ -317,12 +317,11 @@ class FakeSite:
 def make_request(
     reactor: MemoryReactorClock,
     site: Site | FakeSite,
-    method: bytes | str,
-    path: bytes | str,
+    method: str,
+    path: str,
     content: bytes | str | JsonDict = b"",
     access_token: str | None = None,
     request: type[Request] = RelapseRequest,
-    shorthand: bool = True,
     federation_auth_origin: bytes | None = None,
     content_is_form: bool = False,
     await_result: bool = True,
@@ -339,11 +338,10 @@ def make_request(
         site: The twisted Site to use to render the request
         method: The HTTP request method ("verb").
         path: The HTTP path, suitably URL encoded (e.g. escaped UTF-8 & spaces and such).
+            Must start with a /.
         content: The body of the request. JSON-encoded, if a str of bytes.
         access_token: The access token to add as authorization for the request.
         request: The request class to create.
-        shorthand: Whether to try and be helpful and prefix the given URL
-            with the usual REST API path, if it doesn't contain it.
         federation_auth_origin: if set to not-None, we will add a fake
             Authorization header pretenting to be the given server name.
         content_is_form: Whether the content is URL encoded form data. Adds the
@@ -358,24 +356,7 @@ def make_request(
     Returns:
         channel
     """
-    if not isinstance(method, bytes):
-        method = method.encode("ascii")
-
-    if not isinstance(path, bytes):
-        path = path.encode("ascii")
-
-    # Decorate it to be the full path, if we're using shorthand
-    if (
-        shorthand
-        and not path.startswith(b"/_matrix")
-        and not path.startswith(b"/_relapse")
-    ):
-        if path.startswith(b"/"):
-            path = path[1:]
-        path = b"/_matrix/client/r0/" + path
-
-    if not path.startswith(b"/"):
-        path = b"/" + path
+    assert path.startswith("/"), f"Path '{path}' does not start with '/'"
 
     if isinstance(content, dict):
         content = json.dumps(content).encode("utf8")
@@ -416,7 +397,7 @@ def make_request(
             req.requestHeaders.addRawHeader(k, v)
 
     req.parseCookies()
-    req.requestReceived(method, path, b"1.1")
+    req.requestReceived(method.encode("ascii"), path.encode("ascii"), b"1.1")
 
     if await_result:
         channel.await_result()

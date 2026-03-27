@@ -32,7 +32,6 @@ from relapse.types import UserID
 from relapse.util import Clock
 
 from tests import unittest
-from tests.server import make_request
 from tests.unittest import override_config
 
 
@@ -753,9 +752,7 @@ class ClientIpAuthTestCase(unittest.HomeserverTestCase):
         headers1 = {b"User-Agent": b"Mozzila pizza"}
         headers1.update(headers)
 
-        make_request(
-            self.reactor,
-            self.site,
+        self.make_request(
             "GET",
             "/_relapse/admin/v2/users/" + self.user_id,
             access_token=access_token,

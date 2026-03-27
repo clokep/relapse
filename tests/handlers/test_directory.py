@@ -419,7 +419,7 @@ class TestCreateAliasACL(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "PUT",
-            b"directory/room/%23test%3Atest",
+            "/_matrix/client/r0/directory/room/%23test%3Atest",
             {"room_id": room_id},
         )
         self.assertEqual(403, channel.code, channel.result)
@@ -429,7 +429,7 @@ class TestCreateAliasACL(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "PUT",
-            b"directory/room/%23unofficial_test%3Atest",
+            "/_matrix/client/r0/directory/room/%23unofficial_test%3Atest",
             {"room_id": room_id},
         )
         self.assertEqual(200, channel.code, channel.result)
@@ -452,7 +452,7 @@ class TestCreateAliasACL(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "GET",
-            b"directory/room/%23unofficial_test%3Atest",
+            "/_matrix/client/r0/directory/room/%23unofficial_test%3Atest",
         )
         self.assertEqual(200, channel.code, channel.result)
         self.assertEqual(channel.json_body["room_id"], room_id)
@@ -579,7 +579,7 @@ class TestRoomListSearchDisabled(unittest.HomeserverTestCase):
         room_id = self.helper.create_room_as(self.user_id)
 
         channel = self.make_request(
-            "PUT", b"directory/list/room/%s" % (room_id.encode("ascii"),), b"{}"
+            "PUT", f"/_matrix/client/r0/directory/list/room/{room_id}", b"{}"
         )
         self.assertEqual(200, channel.code, channel.result)
 
@@ -591,7 +591,7 @@ class TestRoomListSearchDisabled(unittest.HomeserverTestCase):
         self.directory_handler.enable_room_list_search = True
 
         # Room list is enabled so we should get some results
-        channel = self.make_request("GET", b"publicRooms")
+        channel = self.make_request("GET", "/_matrix/client/r0/publicRooms")
         self.assertEqual(200, channel.code, channel.result)
         self.assertTrue(len(channel.json_body["chunk"]) > 0)
 
@@ -599,13 +599,13 @@ class TestRoomListSearchDisabled(unittest.HomeserverTestCase):
         self.directory_handler.enable_room_list_search = False
 
         # Room list disabled so we should get no results
-        channel = self.make_request("GET", b"publicRooms")
+        channel = self.make_request("GET", "/_matrix/client/r0/publicRooms")
         self.assertEqual(200, channel.code, channel.result)
         self.assertTrue(len(channel.json_body["chunk"]) == 0)
 
         # Room list disabled so we shouldn't be allowed to publish rooms
         room_id = self.helper.create_room_as(self.user_id)
         channel = self.make_request(
-            "PUT", b"directory/list/room/%s" % (room_id.encode("ascii"),), b"{}"
+            "PUT", f"/_matrix/client/r0/directory/list/room/{room_id}", b"{}"
         )
         self.assertEqual(403, channel.code, channel.result)

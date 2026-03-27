@@ -45,13 +45,18 @@ class PushRuleAttributesTestCase(HomeserverTestCase):
 
         # PUT a new rule
         channel = self.make_request(
-            "PUT", "/pushrules/global/override/best.friend", body, access_token=token
+            "PUT",
+            "/_matrix/client/r0/pushrules/global/override/best.friend",
+            body,
+            access_token=token,
         )
         self.assertEqual(channel.code, 200)
 
         # GET enabled for that new rule
         channel = self.make_request(
-            "GET", "/pushrules/global/override/best.friend/enabled", access_token=token
+            "GET",
+            "/_matrix/client/r0/pushrules/global/override/best.friend/enabled",
+            access_token=token,
         )
         self.assertEqual(channel.code, 200)
         self.assertEqual(channel.json_body["enabled"], True)
@@ -74,14 +79,17 @@ class PushRuleAttributesTestCase(HomeserverTestCase):
 
         # PUT a new rule
         channel = self.make_request(
-            "PUT", "/pushrules/global/override/best.friend", body, access_token=token
+            "PUT",
+            "/_matrix/client/r0/pushrules/global/override/best.friend",
+            body,
+            access_token=token,
         )
         self.assertEqual(channel.code, 200)
 
         # disable the rule
         channel = self.make_request(
             "PUT",
-            "/pushrules/global/override/best.friend/enabled",
+            "/_matrix/client/r0/pushrules/global/override/best.friend/enabled",
             {"enabled": False},
             access_token=token,
         )
@@ -89,26 +97,35 @@ class PushRuleAttributesTestCase(HomeserverTestCase):
 
         # check rule disabled
         channel = self.make_request(
-            "GET", "/pushrules/global/override/best.friend/enabled", access_token=token
+            "GET",
+            "/_matrix/client/r0/pushrules/global/override/best.friend/enabled",
+            access_token=token,
         )
         self.assertEqual(channel.code, 200)
         self.assertEqual(channel.json_body["enabled"], False)
 
         # DELETE the rule
         channel = self.make_request(
-            "DELETE", "/pushrules/global/override/best.friend", access_token=token
+            "DELETE",
+            "/_matrix/client/r0/pushrules/global/override/best.friend",
+            access_token=token,
         )
         self.assertEqual(channel.code, 200)
 
         # PUT a new rule
         channel = self.make_request(
-            "PUT", "/pushrules/global/override/best.friend", body, access_token=token
+            "PUT",
+            "/_matrix/client/r0/pushrules/global/override/best.friend",
+            body,
+            access_token=token,
         )
         self.assertEqual(channel.code, 200)
 
         # GET enabled for that new rule
         channel = self.make_request(
-            "GET", "/pushrules/global/override/best.friend/enabled", access_token=token
+            "GET",
+            "/_matrix/client/r0/pushrules/global/override/best.friend/enabled",
+            access_token=token,
         )
         self.assertEqual(channel.code, 200)
         self.assertEqual(channel.json_body["enabled"], True)
@@ -130,14 +147,17 @@ class PushRuleAttributesTestCase(HomeserverTestCase):
 
         # PUT a new rule
         channel = self.make_request(
-            "PUT", "/pushrules/global/override/best.friend", body, access_token=token
+            "PUT",
+            "/_matrix/client/r0/pushrules/global/override/best.friend",
+            body,
+            access_token=token,
         )
         self.assertEqual(channel.code, 200)
 
         # disable the rule
         channel = self.make_request(
             "PUT",
-            "/pushrules/global/override/best.friend/enabled",
+            "/_matrix/client/r0/pushrules/global/override/best.friend/enabled",
             {"enabled": False},
             access_token=token,
         )
@@ -145,7 +165,9 @@ class PushRuleAttributesTestCase(HomeserverTestCase):
 
         # check rule disabled
         channel = self.make_request(
-            "GET", "/pushrules/global/override/best.friend/enabled", access_token=token
+            "GET",
+            "/_matrix/client/r0/pushrules/global/override/best.friend/enabled",
+            access_token=token,
         )
         self.assertEqual(channel.code, 200)
         self.assertEqual(channel.json_body["enabled"], False)
@@ -153,7 +175,7 @@ class PushRuleAttributesTestCase(HomeserverTestCase):
         # re-enable the rule
         channel = self.make_request(
             "PUT",
-            "/pushrules/global/override/best.friend/enabled",
+            "/_matrix/client/r0/pushrules/global/override/best.friend/enabled",
             {"enabled": True},
             access_token=token,
         )
@@ -161,7 +183,9 @@ class PushRuleAttributesTestCase(HomeserverTestCase):
 
         # check rule enabled
         channel = self.make_request(
-            "GET", "/pushrules/global/override/best.friend/enabled", access_token=token
+            "GET",
+            "/_matrix/client/r0/pushrules/global/override/best.friend/enabled",
+            access_token=token,
         )
         self.assertEqual(channel.code, 200)
         self.assertEqual(channel.json_body["enabled"], True)
@@ -182,32 +206,43 @@ class PushRuleAttributesTestCase(HomeserverTestCase):
 
         # check 404 for never-heard-of rule
         channel = self.make_request(
-            "GET", "/pushrules/global/override/best.friend/enabled", access_token=token
+            "GET",
+            "/_matrix/client/r0/pushrules/global/override/best.friend/enabled",
+            access_token=token,
         )
         self.assertEqual(channel.code, 404)
         self.assertEqual(channel.json_body["errcode"], Codes.NOT_FOUND)
 
         # PUT a new rule
         channel = self.make_request(
-            "PUT", "/pushrules/global/override/best.friend", body, access_token=token
+            "PUT",
+            "/_matrix/client/r0/pushrules/global/override/best.friend",
+            body,
+            access_token=token,
         )
         self.assertEqual(channel.code, 200)
 
         # GET enabled for that new rule
         channel = self.make_request(
-            "GET", "/pushrules/global/override/best.friend/enabled", access_token=token
+            "GET",
+            "/_matrix/client/r0/pushrules/global/override/best.friend/enabled",
+            access_token=token,
         )
         self.assertEqual(channel.code, 200)
 
         # DELETE the rule
         channel = self.make_request(
-            "DELETE", "/pushrules/global/override/best.friend", access_token=token
+            "DELETE",
+            "/_matrix/client/r0/pushrules/global/override/best.friend",
+            access_token=token,
         )
         self.assertEqual(channel.code, 200)
 
         # check 404 for deleted rule
         channel = self.make_request(
-            "GET", "/pushrules/global/override/best.friend/enabled", access_token=token
+            "GET",
+            "/_matrix/client/r0/pushrules/global/override/best.friend/enabled",
+            access_token=token,
         )
         self.assertEqual(channel.code, 404)
         self.assertEqual(channel.json_body["errcode"], Codes.NOT_FOUND)
@@ -221,7 +256,9 @@ class PushRuleAttributesTestCase(HomeserverTestCase):
 
         # check 404 for never-heard-of rule
         channel = self.make_request(
-            "GET", "/pushrules/global/override/.m.muahahaha/enabled", access_token=token
+            "GET",
+            "/_matrix/client/r0/pushrules/global/override/.m.muahahaha/enabled",
+            access_token=token,
         )
         self.assertEqual(channel.code, 404)
         self.assertEqual(channel.json_body["errcode"], Codes.NOT_FOUND)
@@ -236,7 +273,7 @@ class PushRuleAttributesTestCase(HomeserverTestCase):
         # enable & check 404 for never-heard-of rule
         channel = self.make_request(
             "PUT",
-            "/pushrules/global/override/best.friend/enabled",
+            "/_matrix/client/r0/pushrules/global/override/best.friend/enabled",
             {"enabled": True},
             access_token=token,
         )
@@ -253,7 +290,7 @@ class PushRuleAttributesTestCase(HomeserverTestCase):
         # enable & check 404 for never-heard-of rule
         channel = self.make_request(
             "PUT",
-            "/pushrules/global/override/.m.muahahah/enabled",
+            "/_matrix/client/r0/pushrules/global/override/.m.muahahah/enabled",
             {"enabled": True},
             access_token=token,
         )
@@ -276,13 +313,18 @@ class PushRuleAttributesTestCase(HomeserverTestCase):
 
         # PUT a new rule
         channel = self.make_request(
-            "PUT", "/pushrules/global/override/best.friend", body, access_token=token
+            "PUT",
+            "/_matrix/client/r0/pushrules/global/override/best.friend",
+            body,
+            access_token=token,
         )
         self.assertEqual(channel.code, 200)
 
         # GET actions for that new rule
         channel = self.make_request(
-            "GET", "/pushrules/global/override/best.friend/actions", access_token=token
+            "GET",
+            "/_matrix/client/r0/pushrules/global/override/best.friend/actions",
+            access_token=token,
         )
         self.assertEqual(channel.code, 200)
         self.assertEqual(
@@ -305,14 +347,17 @@ class PushRuleAttributesTestCase(HomeserverTestCase):
 
         # PUT a new rule
         channel = self.make_request(
-            "PUT", "/pushrules/global/override/best.friend", body, access_token=token
+            "PUT",
+            "/_matrix/client/r0/pushrules/global/override/best.friend",
+            body,
+            access_token=token,
         )
         self.assertEqual(channel.code, 200)
 
         # change the rule actions
         channel = self.make_request(
             "PUT",
-            "/pushrules/global/override/best.friend/actions",
+            "/_matrix/client/r0/pushrules/global/override/best.friend/actions",
             {"actions": ["dont_notify"]},
             access_token=token,
         )
@@ -320,7 +365,9 @@ class PushRuleAttributesTestCase(HomeserverTestCase):
 
         # GET actions for that new rule
         channel = self.make_request(
-            "GET", "/pushrules/global/override/best.friend/actions", access_token=token
+            "GET",
+            "/_matrix/client/r0/pushrules/global/override/best.friend/actions",
+            access_token=token,
         )
         self.assertEqual(channel.code, 200)
         self.assertEqual(channel.json_body["actions"], ["dont_notify"])
@@ -341,26 +388,35 @@ class PushRuleAttributesTestCase(HomeserverTestCase):
 
         # check 404 for never-heard-of rule
         channel = self.make_request(
-            "GET", "/pushrules/global/override/best.friend/enabled", access_token=token
+            "GET",
+            "/_matrix/client/r0/pushrules/global/override/best.friend/enabled",
+            access_token=token,
         )
         self.assertEqual(channel.code, 404)
         self.assertEqual(channel.json_body["errcode"], Codes.NOT_FOUND)
 
         # PUT a new rule
         channel = self.make_request(
-            "PUT", "/pushrules/global/override/best.friend", body, access_token=token
+            "PUT",
+            "/_matrix/client/r0/pushrules/global/override/best.friend",
+            body,
+            access_token=token,
         )
         self.assertEqual(channel.code, 200)
 
         # DELETE the rule
         channel = self.make_request(
-            "DELETE", "/pushrules/global/override/best.friend", access_token=token
+            "DELETE",
+            "/_matrix/client/r0/pushrules/global/override/best.friend",
+            access_token=token,
         )
         self.assertEqual(channel.code, 200)
 
         # check 404 for deleted rule
         channel = self.make_request(
-            "GET", "/pushrules/global/override/best.friend/enabled", access_token=token
+            "GET",
+            "/_matrix/client/r0/pushrules/global/override/best.friend/enabled",
+            access_token=token,
         )
         self.assertEqual(channel.code, 404)
         self.assertEqual(channel.json_body["errcode"], Codes.NOT_FOUND)
@@ -374,7 +430,9 @@ class PushRuleAttributesTestCase(HomeserverTestCase):
 
         # check 404 for never-heard-of rule
         channel = self.make_request(
-            "GET", "/pushrules/global/override/.m.muahahaha/actions", access_token=token
+            "GET",
+            "/_matrix/client/r0/pushrules/global/override/.m.muahahaha/actions",
+            access_token=token,
         )
         self.assertEqual(channel.code, 404)
         self.assertEqual(channel.json_body["errcode"], Codes.NOT_FOUND)
@@ -389,7 +447,7 @@ class PushRuleAttributesTestCase(HomeserverTestCase):
         # enable & check 404 for never-heard-of rule
         channel = self.make_request(
             "PUT",
-            "/pushrules/global/override/best.friend/actions",
+            "/_matrix/client/r0/pushrules/global/override/best.friend/actions",
             {"actions": ["dont_notify"]},
             access_token=token,
         )
@@ -406,7 +464,7 @@ class PushRuleAttributesTestCase(HomeserverTestCase):
         # enable & check 404 for never-heard-of rule
         channel = self.make_request(
             "PUT",
-            "/pushrules/global/override/.m.muahahah/actions",
+            "/_matrix/client/r0/pushrules/global/override/.m.muahahah/actions",
             {"actions": ["dont_notify"]},
             access_token=token,
         )
@@ -423,7 +481,7 @@ class PushRuleAttributesTestCase(HomeserverTestCase):
 
         channel = self.make_request(
             "GET",
-            "/pushrules/global/content/.m.rule.contains_user_name",
+            "/_matrix/client/r0/pushrules/global/content/.m.rule.contains_user_name",
             access_token=token,
         )
 
@@ -453,7 +511,7 @@ class PushRuleAttributesTestCase(HomeserverTestCase):
 
         channel = self.make_request(
             "GET",
-            "/pushrules/global/override/.m.rule.is_user_mention",
+            "/_matrix/client/r0/pushrules/global/override/.m.rule.is_user_mention",
             access_token=token,
         )
 

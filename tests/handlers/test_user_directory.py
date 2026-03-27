@@ -1090,7 +1090,7 @@ class TestUserDirSearchDisabled(unittest.HomeserverTestCase):
         # Each should see the other when searching the user directory.
         channel = self.make_request(
             "POST",
-            b"user_directory/search",
+            "/_matrix/client/r0/user_directory/search",
             b'{"search_term":"user2"}',
             access_token=u1_token,
         )
@@ -1101,7 +1101,7 @@ class TestUserDirSearchDisabled(unittest.HomeserverTestCase):
         self.config.userdirectory.user_directory_search_enabled = False
         channel = self.make_request(
             "POST",
-            b"user_directory/search",
+            "/_matrix/client/r0/user_directory/search",
             b'{"search_term":"user2"}',
             access_token=u1_token,
         )

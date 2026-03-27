@@ -66,7 +66,7 @@ class HTTPPusherTests(HomeserverTestCase):
         # Check we start with no pushes
         channel = self.make_request(
             "GET",
-            "/notifications",
+            "/_matrix/client/r0/notifications",
             access_token=other_access_token,
         )
         self.assertEqual(channel.code, 200, channel.result)
@@ -78,7 +78,7 @@ class HTTPPusherTests(HomeserverTestCase):
         # We should have a notification now
         channel = self.make_request(
             "GET",
-            "/notifications",
+            "/_matrix/client/r0/notifications",
             access_token=other_access_token,
         )
         self.assertEqual(channel.code, 200)

@@ -546,7 +546,7 @@ class MSC3861OAuthDelegation(HomeserverTestCase):
     def expect_unauthorized(
         self, method: str, path: str, content: bytes | str | JsonDict = ""
     ) -> None:
-        channel = self.make_request(method, path, content, shorthand=False)
+        channel = self.make_request(method, path, content)
 
         self.assertEqual(channel.code, 401, channel.json_body)
 

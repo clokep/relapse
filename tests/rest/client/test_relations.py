@@ -163,7 +163,7 @@ class RelationsTestCase(BaseRelationsTestCase):
 
         channel = self.make_request(
             "GET",
-            f"/rooms/{self.room}/event/{event_id}",
+            f"/_matrix/client/r0/rooms/{self.room}/event/{event_id}",
             access_token=self.user_token,
         )
         self.assertEqual(200, channel.code, channel.json_body)
@@ -350,7 +350,7 @@ class RelationsTestCase(BaseRelationsTestCase):
         # And for bundled aggregations.
         channel = self.make_request(
             "GET",
-            f"/rooms/{room2}/event/{parent_id}",
+            f"/_matrix/client/r0/rooms/{room2}/event/{parent_id}",
             access_token=self.user_token,
         )
         self.assertEqual(200, channel.code, channel.json_body)
@@ -420,7 +420,7 @@ class RelationsTestCase(BaseRelationsTestCase):
         # /event should return the *original* event
         channel = self.make_request(
             "GET",
-            f"/rooms/{self.room}/event/{self.parent_id}",
+            f"/_matrix/client/r0/rooms/{self.room}/event/{self.parent_id}",
             access_token=self.user_token,
         )
         self.assertEqual(200, channel.code, channel.json_body)
@@ -430,7 +430,7 @@ class RelationsTestCase(BaseRelationsTestCase):
         # Request the room messages.
         channel = self.make_request(
             "GET",
-            f"/rooms/{self.room}/messages?dir=b",
+            f"/_matrix/client/r0/rooms/{self.room}/messages?dir=b",
             access_token=self.user_token,
         )
         self.assertEqual(200, channel.code, channel.json_body)
@@ -444,7 +444,7 @@ class RelationsTestCase(BaseRelationsTestCase):
         # /context should return the event.
         channel = self.make_request(
             "GET",
-            f"/rooms/{self.room}/context/{self.parent_id}",
+            f"/_matrix/client/r0/rooms/{self.room}/context/{self.parent_id}",
             access_token=self.user_token,
         )
         self.assertEqual(200, channel.code, channel.json_body)
@@ -457,7 +457,9 @@ class RelationsTestCase(BaseRelationsTestCase):
         # bundled aggregations).
         filter = urllib.parse.quote_plus(b'{"room": {"timeline": {"limit": 2}}}')
         channel = self.make_request(
-            "GET", f"/sync?filter={filter}", access_token=self.user_token
+            "GET",
+            f"/_matrix/client/r0/sync?filter={filter}",
+            access_token=self.user_token,
         )
         self.assertEqual(200, channel.code, channel.json_body)
         room_timeline = channel.json_body["rooms"]["join"][self.room]["timeline"]
@@ -471,7 +473,7 @@ class RelationsTestCase(BaseRelationsTestCase):
         # Request search.
         channel = self.make_request(
             "POST",
-            "/search",
+            "/_matrix/client/r0/search",
             # Search term matches the parent message.
             content={"search_categories": {"room_events": {"search_term": "Hi"}}},
             access_token=self.user_token,
@@ -529,7 +531,7 @@ class RelationsTestCase(BaseRelationsTestCase):
 
         channel = self.make_request(
             "GET",
-            f"/rooms/{self.room}/context/{self.parent_id}",
+            f"/_matrix/client/r0/rooms/{self.room}/context/{self.parent_id}",
             access_token=self.user_token,
         )
         self.assertEqual(200, channel.code, channel.json_body)
@@ -565,7 +567,7 @@ class RelationsTestCase(BaseRelationsTestCase):
         # /event returns the original event
         channel = self.make_request(
             "GET",
-            f"/rooms/{self.room}/event/{reply}",
+            f"/_matrix/client/r0/rooms/{self.room}/event/{reply}",
             access_token=self.user_token,
         )
         self.assertEqual(200, channel.code, channel.json_body)
@@ -575,7 +577,7 @@ class RelationsTestCase(BaseRelationsTestCase):
         # also check /context, which returns the *edited* event
         channel = self.make_request(
             "GET",
-            f"/rooms/{self.room}/context/{reply}",
+            f"/_matrix/client/r0/rooms/{self.room}/context/{reply}",
             access_token=self.user_token,
         )
         self.assertEqual(200, channel.code, channel.json_body)
@@ -636,7 +638,7 @@ class RelationsTestCase(BaseRelationsTestCase):
         # /event should return the original event.
         channel = self.make_request(
             "GET",
-            f"/rooms/{self.room}/event/{self.parent_id}",
+            f"/_matrix/client/r0/rooms/{self.room}/event/{self.parent_id}",
             access_token=self.user_token,
         )
         self.assertEqual(200, channel.code, channel.json_body)
@@ -649,7 +651,7 @@ class RelationsTestCase(BaseRelationsTestCase):
         # (The edit to the edit should be ignored.)
         channel = self.make_request(
             "GET",
-            f"/rooms/{self.room}/context/{self.parent_id}",
+            f"/_matrix/client/r0/rooms/{self.room}/context/{self.parent_id}",
             access_token=self.user_token,
         )
         self.assertEqual(200, channel.code, channel.json_body)
@@ -661,7 +663,7 @@ class RelationsTestCase(BaseRelationsTestCase):
         # Directly requesting the edit should not have the edit to the edit applied.
         channel = self.make_request(
             "GET",
-            f"/rooms/{self.room}/event/{edit_event_id}",
+            f"/_matrix/client/r0/rooms/{self.room}/event/{edit_event_id}",
             access_token=self.user_token,
         )
         self.assertEqual(200, channel.code, channel.json_body)
@@ -707,7 +709,7 @@ class RelationsTestCase(BaseRelationsTestCase):
         # When bundling the unknown relation is not included.
         channel = self.make_request(
             "GET",
-            f"/rooms/{self.room}/event/{self.parent_id}",
+            f"/_matrix/client/r0/rooms/{self.room}/event/{self.parent_id}",
             access_token=self.user_token,
         )
         self.assertEqual(200, channel.code, channel.json_body)
@@ -810,8 +812,7 @@ class RelationPaginationTestCase(BaseRelationsTestCase):
         # Request the relations again, but with a different direction.
         channel = self.make_request(
             "GET",
-            f"/_matrix/client/v1/rooms/{self.room}/relations"
-            f"/{self.parent_id}?limit=1&dir=f",
+            f"/_matrix/client/v1/rooms/{self.room}/relations/{self.parent_id}?limit=1&dir=f",
             access_token=self.user_token,
         )
         self.assertEqual(200, channel.code, channel.json_body)
@@ -904,7 +905,9 @@ class RelationPaginationTestCase(BaseRelationsTestCase):
         # (and not the relation).
         filter = urllib.parse.quote_plus(b'{"room": {"timeline": {"limit": 1}}}')
         channel = self.make_request(
-            "GET", f"/sync?filter={filter}", access_token=self.user_token
+            "GET",
+            f"/_matrix/client/r0/sync?filter={filter}",
+            access_token=self.user_token,
         )
         self.assertEqual(200, channel.code, channel.json_body)
         room_timeline = channel.json_body["rooms"]["join"][self.room]["timeline"]
@@ -919,7 +922,7 @@ class RelationPaginationTestCase(BaseRelationsTestCase):
         # returned (and not the relation).
         channel = self.make_request(
             "GET",
-            f"/rooms/{self.room}/messages?dir=b&limit=1",
+            f"/_matrix/client/r0/rooms/{self.room}/messages?dir=b&limit=1",
             access_token=self.user_token,
         )
         self.assertEqual(200, channel.code, channel.json_body)
@@ -1107,7 +1110,7 @@ class BundledAggregationsTestCase(BaseRelationsTestCase):
         # Request the event directly.
         channel = self.make_request(
             "GET",
-            f"/rooms/{self.room}/event/{self.parent_id}",
+            f"/_matrix/client/r0/rooms/{self.room}/event/{self.parent_id}",
             access_token=access_token,
         )
         self.assertEqual(200, channel.code, channel.json_body)
@@ -1118,7 +1121,7 @@ class BundledAggregationsTestCase(BaseRelationsTestCase):
         # Request the room messages.
         channel = self.make_request(
             "GET",
-            f"/rooms/{self.room}/messages?dir=b",
+            f"/_matrix/client/r0/rooms/{self.room}/messages?dir=b",
             access_token=access_token,
         )
         self.assertEqual(200, channel.code, channel.json_body)
@@ -1127,7 +1130,7 @@ class BundledAggregationsTestCase(BaseRelationsTestCase):
         # Request the room context.
         channel = self.make_request(
             "GET",
-            f"/rooms/{self.room}/context/{self.parent_id}",
+            f"/_matrix/client/r0/rooms/{self.room}/context/{self.parent_id}",
             access_token=access_token,
         )
         self.assertEqual(200, channel.code, channel.json_body)
@@ -1136,7 +1139,7 @@ class BundledAggregationsTestCase(BaseRelationsTestCase):
         # Request sync.
         filter = urllib.parse.quote_plus(b'{"room": {"timeline": {"limit": 4}}}')
         channel = self.make_request(
-            "GET", f"/sync?filter={filter}", access_token=access_token
+            "GET", f"/_matrix/client/r0/sync?filter={filter}", access_token=access_token
         )
         self.assertEqual(200, channel.code, channel.json_body)
         room_timeline = channel.json_body["rooms"]["join"][self.room]["timeline"]
@@ -1146,7 +1149,7 @@ class BundledAggregationsTestCase(BaseRelationsTestCase):
         # Request search.
         channel = self.make_request(
             "POST",
-            "/search",
+            "/_matrix/client/r0/search",
             # Search term matches the parent message.
             content={"search_categories": {"room_events": {"search_term": "Hi"}}},
             access_token=access_token,
@@ -1312,7 +1315,7 @@ class BundledAggregationsTestCase(BaseRelationsTestCase):
         # Ensure that requesting the room messages also does not return the sub-thread.
         channel = self.make_request(
             "GET",
-            f"/rooms/{self.room}/messages?dir=b",
+            f"/_matrix/client/r0/rooms/{self.room}/messages?dir=b",
             access_token=self.user_token,
         )
         self.assertEqual(200, channel.code, channel.json_body)
@@ -1391,7 +1394,7 @@ class BundledAggregationsTestCase(BaseRelationsTestCase):
 
         channel = self.make_request(
             "GET",
-            f"/rooms/{self.room}/event/{annotation_id}",
+            f"/_matrix/client/r0/rooms/{self.room}/event/{annotation_id}",
             access_token=self.user_token,
         )
         self.assertEqual(200, channel.code, channel.json_body)
@@ -1410,7 +1413,7 @@ class BundledAggregationsTestCase(BaseRelationsTestCase):
 
         channel = self.make_request(
             "GET",
-            f"/rooms/{self.room}/event/{thread_id}",
+            f"/_matrix/client/r0/rooms/{self.room}/event/{thread_id}",
             access_token=self.user_token,
         )
         self.assertEqual(200, channel.code, channel.json_body)
@@ -1454,7 +1457,9 @@ class BundledAggregationsTestCase(BaseRelationsTestCase):
             b'{"event_fields": ["content", "event_id"], "room": {"timeline": {"limit": 3}}}'
         )
         channel = self.make_request(
-            "GET", f"/sync?filter={filter}", access_token=self.user_token
+            "GET",
+            f"/_matrix/client/r0/sync?filter={filter}",
+            access_token=self.user_token,
         )
         self.assertEqual(200, channel.code, channel.json_body)
 

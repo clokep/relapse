@@ -73,8 +73,8 @@ class JsonResourceTests(unittest.TestCase):
         make_request(
             self.reactor,
             FakeSite(res, self.reactor),
-            b"GET",
-            b"/_matrix/foo/%E2%98%83?a=%E2%98%83",
+            "GET",
+            "/_matrix/foo/%E2%98%83?a=%E2%98%83",
         )
 
         self.assertEqual(got_kwargs, {"room_id": "\N{SNOWMAN}"})
@@ -94,7 +94,7 @@ class JsonResourceTests(unittest.TestCase):
         )
 
         channel = make_request(
-            self.reactor, FakeSite(res, self.reactor), b"GET", b"/_matrix/foo"
+            self.reactor, FakeSite(res, self.reactor), "GET", "/_matrix/foo"
         )
 
         self.assertEqual(channel.code, 500)
@@ -120,7 +120,7 @@ class JsonResourceTests(unittest.TestCase):
         )
 
         channel = make_request(
-            self.reactor, FakeSite(res, self.reactor), b"GET", b"/_matrix/foo"
+            self.reactor, FakeSite(res, self.reactor), "GET", "/_matrix/foo"
         )
 
         self.assertEqual(channel.code, 500)
@@ -140,7 +140,7 @@ class JsonResourceTests(unittest.TestCase):
         )
 
         channel = make_request(
-            self.reactor, FakeSite(res, self.reactor), b"GET", b"/_matrix/foo"
+            self.reactor, FakeSite(res, self.reactor), "GET", "/_matrix/foo"
         )
 
         self.assertEqual(channel.code, 403)
@@ -164,7 +164,7 @@ class JsonResourceTests(unittest.TestCase):
         )
 
         channel = make_request(
-            self.reactor, FakeSite(res, self.reactor), b"GET", b"/_matrix/foobar"
+            self.reactor, FakeSite(res, self.reactor), "GET", "/_matrix/foobar"
         )
 
         self.assertEqual(channel.code, 404)
@@ -193,7 +193,7 @@ class JsonResourceTests(unittest.TestCase):
 
         # The path was registered as GET, but this is a HEAD request.
         channel = make_request(
-            self.reactor, FakeSite(res, self.reactor), b"HEAD", b"/_matrix/foo"
+            self.reactor, FakeSite(res, self.reactor), "HEAD", "/_matrix/foo"
         )
 
         self.assertEqual(channel.code, 200)
@@ -238,7 +238,7 @@ class OptionsResourceTests(unittest.HomeserverTestCase):
 
     def test_unknown_options_request(self) -> None:
         """An OPTIONS requests to an unknown URL still returns 204 No Content."""
-        channel = self.make_request(b"OPTIONS", b"/_matrix/foo/")
+        channel = self.make_request("OPTIONS", "/_matrix/foo/")
         self.assertEqual(channel.code, 204)
         self.assertNotIn("body", channel.result)
 
@@ -246,7 +246,7 @@ class OptionsResourceTests(unittest.HomeserverTestCase):
 
     def test_known_options_request(self) -> None:
         """An OPTIONS requests to an known URL still returns 204 No Content."""
-        channel = self.make_request(b"OPTIONS", b"/_matrix/res/")
+        channel = self.make_request("OPTIONS", "/_matrix/res/")
         self.assertEqual(channel.code, 204)
         self.assertNotIn("body", channel.result)
 
@@ -254,12 +254,12 @@ class OptionsResourceTests(unittest.HomeserverTestCase):
 
     def test_unknown_request(self) -> None:
         """A non-OPTIONS request to an unknown URL should 404."""
-        channel = self.make_request(b"GET", b"/_matrix/foo/")
+        channel = self.make_request("GET", "/_matrix/foo/")
         self.assertEqual(channel.code, 404)
 
     def test_known_request(self) -> None:
         """A non-OPTIONS request to an known URL should query the proper resource."""
-        channel = self.make_request(b"GET", b"/_matrix/res/")
+        channel = self.make_request("GET", "/_matrix/res/")
         self.assertEqual(channel.code, 200)
         self.assertEqual(channel.result["body"], b"/_matrix/res/")
 
@@ -293,7 +293,6 @@ class JsonResourceCancellationTests(unittest.HomeserverTestCase):
             "GET",
             "/_matrix/client/sleep",
             await_result=False,
-            shorthand=False,
         )
         test_disconnect(
             self.reactor,
@@ -308,7 +307,6 @@ class JsonResourceCancellationTests(unittest.HomeserverTestCase):
             "POST",
             "/_matrix/client/sleep",
             await_result=False,
-            shorthand=False,
         )
         test_disconnect(
             self.reactor,

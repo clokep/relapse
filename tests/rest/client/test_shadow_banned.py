@@ -96,7 +96,7 @@ class RoomTestCase(_ShadowBannedBase):
         # Inviting the user completes successfully.
         channel = self.make_request(
             "POST",
-            f"/rooms/{room_id}/invite",
+            f"/_matrix/client/r0/rooms/{room_id}/invite",
             {
                 "id_server": "test",
                 "medium": "email",
@@ -195,7 +195,7 @@ class RoomTestCase(_ShadowBannedBase):
 
         channel = self.make_request(
             "PUT",
-            f"/rooms/{room_id}/typing/{self.banned_user_id}",
+            f"/_matrix/client/r0/rooms/{room_id}/typing/{self.banned_user_id}",
             {"typing": True, "timeout": 30000},
             access_token=self.banned_access_token,
         )
@@ -210,7 +210,7 @@ class RoomTestCase(_ShadowBannedBase):
 
         channel = self.make_request(
             "PUT",
-            f"/rooms/{room_id}/typing/{self.other_user_id}",
+            f"/_matrix/client/r0/rooms/{room_id}/typing/{self.other_user_id}",
             {"typing": True, "timeout": 30000},
             access_token=self.other_access_token,
         )
@@ -271,7 +271,7 @@ class ProfileTestCase(_ShadowBannedBase):
 
         # The user's display name should be updated.
         channel = self.make_request(
-            "GET", f"/profile/{self.banned_user_id}/displayname"
+            "GET", f"/_matrix/client/r0/profile/{self.banned_user_id}/displayname"
         )
         self.assertEqual(channel.code, 200, channel.result)
         self.assertEqual(channel.json_body["displayname"], new_display_name)

@@ -394,7 +394,10 @@ def send_presence_update(
 
     # Update the user's presence state
     channel = testcase.make_request(
-        "PUT", f"/presence/{user_id}/status", body, access_token=access_token
+        "PUT",
+        f"/_matrix/client/r0/presence/{user_id}/status",
+        body,
+        access_token=access_token,
     )
     testcase.assertEqual(channel.code, 200)
 

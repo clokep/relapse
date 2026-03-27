@@ -303,7 +303,6 @@ class MediaRepoTests(unittest.HomeserverTestCase):
         channel = self.make_request(
             "GET",
             f"/_matrix/media/v3/download/{self.media_id}",
-            shorthand=False,
             await_result=False,
         )
         self.pump()
@@ -486,7 +485,6 @@ class MediaRepoTests(unittest.HomeserverTestCase):
         channel = self.make_request(
             "GET",
             f"/_matrix/media/v3/thumbnail/{self.media_id}{params}",
-            shorthand=False,
             await_result=False,
         )
         self.pump()
@@ -514,7 +512,6 @@ class MediaRepoTests(unittest.HomeserverTestCase):
         channel = self.make_request(
             "GET",
             f"/_matrix/media/v3/thumbnail/{self.media_id}{params}",
-            shorthand=False,
             await_result=False,
         )
         self.pump()
@@ -550,7 +547,6 @@ class MediaRepoTests(unittest.HomeserverTestCase):
         channel = self.make_request(
             "GET",
             f"/_matrix/media/r0/thumbnail/{self.media_id}{params}",
-            shorthand=False,
             await_result=False,
         )
         self.pump()
@@ -676,7 +672,6 @@ class MediaRepoTests(unittest.HomeserverTestCase):
         channel = self.make_request(
             "GET",
             f"/_matrix/media/v3/download/{self.media_id}",
-            shorthand=False,
             await_result=False,
         )
         self.pump()

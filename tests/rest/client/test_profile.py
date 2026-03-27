@@ -53,14 +53,15 @@ class ProfileTestCase(unittest.HomeserverTestCase):
 
     def test_get_displayname_rejects_bad_username(self) -> None:
         channel = self.make_request(
-            "GET", f"/profile/{urllib.parse.quote('@alice:')}/displayname"
+            "GET",
+            f"/_matrix/client/r0/profile/{urllib.parse.quote('@alice:')}/displayname",
         )
         self.assertEqual(channel.code, HTTPStatus.BAD_REQUEST, channel.result)
 
     def test_set_displayname(self) -> None:
         channel = self.make_request(
             "PUT",
-            f"/profile/{self.owner}/displayname",
+            f"/_matrix/client/r0/profile/{self.owner}/displayname",
             content={"displayname": "test"},
             access_token=self.owner_tok,
         )
@@ -72,7 +73,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
     def test_set_displayname_with_extra_spaces(self) -> None:
         channel = self.make_request(
             "PUT",
-            f"/profile/{self.owner}/displayname",
+            f"/_matrix/client/r0/profile/{self.owner}/displayname",
             content={"displayname": "  test  "},
             access_token=self.owner_tok,
         )
@@ -84,7 +85,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
     def test_set_displayname_noauth(self) -> None:
         channel = self.make_request(
             "PUT",
-            f"/profile/{self.owner}/displayname",
+            f"/_matrix/client/r0/profile/{self.owner}/displayname",
             content={"displayname": "test"},
         )
         self.assertEqual(channel.code, 401, channel.result)
@@ -93,7 +94,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
         """Attempts to set a stupid displayname should get a 400"""
         channel = self.make_request(
             "PUT",
-            f"/profile/{self.owner}/displayname",
+            f"/_matrix/client/r0/profile/{self.owner}/displayname",
             content={"displayname": "test" * 100},
             access_token=self.owner_tok,
         )
@@ -109,7 +110,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
     def test_set_displayname_other(self) -> None:
         channel = self.make_request(
             "PUT",
-            f"/profile/{self.other}/displayname",
+            f"/_matrix/client/r0/profile/{self.other}/displayname",
             content={"displayname": "test"},
             access_token=self.owner_tok,
         )
@@ -122,7 +123,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
     def test_set_avatar_url(self) -> None:
         channel = self.make_request(
             "PUT",
-            f"/profile/{self.owner}/avatar_url",
+            f"/_matrix/client/r0/profile/{self.owner}/avatar_url",
             content={"avatar_url": "http://my.server/pic.gif"},
             access_token=self.owner_tok,
         )
@@ -134,7 +135,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
     def test_set_avatar_url_noauth(self) -> None:
         channel = self.make_request(
             "PUT",
-            f"/profile/{self.owner}/avatar_url",
+            f"/_matrix/client/r0/profile/{self.owner}/avatar_url",
             content={"avatar_url": "http://my.server/pic.gif"},
         )
         self.assertEqual(channel.code, 401, channel.result)
@@ -143,7 +144,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
         """Attempts to set a stupid avatar_url should get a 400"""
         channel = self.make_request(
             "PUT",
-            f"/profile/{self.owner}/avatar_url",
+            f"/_matrix/client/r0/profile/{self.owner}/avatar_url",
             content={"avatar_url": "http://my.server/pic.gif" * 100},
             access_token=self.owner_tok,
         )
@@ -159,14 +160,16 @@ class ProfileTestCase(unittest.HomeserverTestCase):
     def test_set_avatar_url_other(self) -> None:
         channel = self.make_request(
             "PUT",
-            f"/profile/{self.other}/avatar_url",
+            f"/_matrix/client/r0/profile/{self.other}/avatar_url",
             content={"avatar_url": "http://my.server/pic.gif"},
             access_token=self.owner_tok,
         )
         self.assertEqual(channel.code, 400, channel.result)
 
     def _get_displayname(self, name: str | None = None) -> str | None:
-        channel = self.make_request("GET", f"/profile/{name or self.owner}/displayname")
+        channel = self.make_request(
+            "GET", f"/_matrix/client/r0/profile/{name or self.owner}/displayname"
+        )
         self.assertEqual(channel.code, 200, channel.result)
         # FIXME: If a user has no displayname set, Relapse returns 200 and omits a
         # displayname from the response. This contradicts the spec, see
@@ -174,7 +177,9 @@ class ProfileTestCase(unittest.HomeserverTestCase):
         return channel.json_body.get("displayname")
 
     def _get_avatar_url(self, name: str | None = None) -> str | None:
-        channel = self.make_request("GET", f"/profile/{name or self.owner}/avatar_url")
+        channel = self.make_request(
+            "GET", f"/_matrix/client/r0/profile/{name or self.owner}/avatar_url"
+        )
         self.assertEqual(channel.code, 200, channel.result)
         # FIXME: If a user has no avatar set, Relapse returns 200 and omits an
         # avatar_url from the response. This contradicts the spec, see
@@ -195,7 +200,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "PUT",
-            f"/profile/{self.owner}/avatar_url",
+            f"/_matrix/client/r0/profile/{self.owner}/avatar_url",
             content={"avatar_url": "mxc://test/big"},
             access_token=self.owner_tok,
         )
@@ -206,7 +211,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "PUT",
-            f"/profile/{self.owner}/avatar_url",
+            f"/_matrix/client/r0/profile/{self.owner}/avatar_url",
             content={"avatar_url": "mxc://test/small"},
             access_token=self.owner_tok,
         )
@@ -228,7 +233,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "PUT",
-            f"/rooms/{room_id}/state/m.room.member/{self.owner}",
+            f"/_matrix/client/r0/rooms/{room_id}/state/m.room.member/{self.owner}",
             content={"membership": "join", "avatar_url": "mxc://test/big"},
             access_token=self.owner_tok,
         )
@@ -239,7 +244,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "PUT",
-            f"/rooms/{room_id}/state/m.room.member/{self.owner}",
+            f"/_matrix/client/r0/rooms/{room_id}/state/m.room.member/{self.owner}",
             content={"membership": "join", "avatar_url": "mxc://test/small"},
             access_token=self.owner_tok,
         )
@@ -259,7 +264,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "PUT",
-            f"/profile/{self.owner}/avatar_url",
+            f"/_matrix/client/r0/profile/{self.owner}/avatar_url",
             content={"avatar_url": "mxc://test/bad"},
             access_token=self.owner_tok,
         )
@@ -270,7 +275,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "PUT",
-            f"/profile/{self.owner}/avatar_url",
+            f"/_matrix/client/r0/profile/{self.owner}/avatar_url",
             content={"avatar_url": "mxc://test/good"},
             access_token=self.owner_tok,
         )
@@ -292,7 +297,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "PUT",
-            f"/rooms/{room_id}/state/m.room.member/{self.owner}",
+            f"/_matrix/client/r0/rooms/{room_id}/state/m.room.member/{self.owner}",
             content={"membership": "join", "avatar_url": "mxc://test/bad"},
             access_token=self.owner_tok,
         )
@@ -303,7 +308,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "PUT",
-            f"/rooms/{room_id}/state/m.room.member/{self.owner}",
+            f"/_matrix/client/r0/rooms/{room_id}/state/m.room.member/{self.owner}",
             content={"membership": "join", "avatar_url": "mxc://test/good"},
             access_token=self.owner_tok,
         )
@@ -319,7 +324,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
 
             channel = self.make_request(
                 "PUT",
-                f"/rooms/{room_id}/state/m.room.member/{self.owner}",
+                f"/_matrix/client/r0/rooms/{room_id}/state/m.room.member/{self.owner}",
                 content={"membership": "join", prop: "mxc://my.server/existing"},
                 access_token=self.owner_tok,
             )
@@ -327,7 +332,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
 
             channel = self.make_request(
                 "PUT",
-                f"/profile/{self.owner}/{prop}?org.matrix.msc4069.propagate=false",
+                f"/_matrix/client/r0/profile/{self.owner}/{prop}?org.matrix.msc4069.propagate=false",
                 content={prop: "http://my.server/pic.gif"},
                 access_token=self.owner_tok,
             )
@@ -342,7 +347,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
 
             channel = self.make_request(
                 "GET",
-                f"/rooms/{room_id}/state/m.room.member/{self.owner}",
+                f"/_matrix/client/r0/rooms/{room_id}/state/m.room.member/{self.owner}",
                 access_token=self.owner_tok,
             )
             self.assertEqual(channel.code, 200, channel.result)
@@ -357,7 +362,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
 
             channel = self.make_request(
                 "PUT",
-                f"/rooms/{room_id}/state/m.room.member/{self.owner}",
+                f"/_matrix/client/r0/rooms/{room_id}/state/m.room.member/{self.owner}",
                 content={"membership": "join", prop: "mxc://my.server/existing"},
                 access_token=self.owner_tok,
             )
@@ -365,7 +370,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
 
             channel = self.make_request(
                 "PUT",
-                f"/profile/{self.owner}/{prop}?org.matrix.msc4069.propagate=false",
+                f"/_matrix/client/r0/profile/{self.owner}/{prop}?org.matrix.msc4069.propagate=false",
                 content={prop: "http://my.server/pic.gif"},
                 access_token=self.owner_tok,
             )
@@ -380,7 +385,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
 
             channel = self.make_request(
                 "GET",
-                f"/rooms/{room_id}/state/m.room.member/{self.owner}",
+                f"/_matrix/client/r0/rooms/{room_id}/state/m.room.member/{self.owner}",
                 access_token=self.owner_tok,
             )
             self.assertEqual(channel.code, 200, channel.result)
@@ -396,7 +401,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
 
             channel = self.make_request(
                 "PUT",
-                f"/rooms/{room_id}/state/m.room.member/{self.owner}",
+                f"/_matrix/client/r0/rooms/{room_id}/state/m.room.member/{self.owner}",
                 content={"membership": "join", prop: "mxc://my.server/existing"},
                 access_token=self.owner_tok,
             )
@@ -404,7 +409,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
 
             channel = self.make_request(
                 "PUT",
-                f"/profile/{self.owner}/{prop}",
+                f"/_matrix/client/r0/profile/{self.owner}/{prop}",
                 content={prop: "http://my.server/pic.gif"},
                 access_token=self.owner_tok,
             )
@@ -419,7 +424,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
 
             channel = self.make_request(
                 "GET",
-                f"/rooms/{room_id}/state/m.room.member/{self.owner}",
+                f"/_matrix/client/r0/rooms/{room_id}/state/m.room.member/{self.owner}",
                 access_token=self.owner_tok,
             )
             self.assertEqual(channel.code, 200, channel.result)
@@ -438,7 +443,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
 
             channel = self.make_request(
                 "PUT",
-                f"/rooms/{room_id}/state/m.room.member/{self.owner}",
+                f"/_matrix/client/r0/rooms/{room_id}/state/m.room.member/{self.owner}",
                 content={"membership": "join", prop: "mxc://my.server/existing"},
                 access_token=self.owner_tok,
             )
@@ -446,7 +451,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
 
             channel = self.make_request(
                 "PUT",
-                f"/profile/{self.owner}/{prop}?org.matrix.msc4069.propagate=true",
+                f"/_matrix/client/r0/profile/{self.owner}/{prop}?org.matrix.msc4069.propagate=true",
                 content={prop: "http://my.server/pic.gif"},
                 access_token=self.owner_tok,
             )
@@ -461,7 +466,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
 
             channel = self.make_request(
                 "GET",
-                f"/rooms/{room_id}/state/m.room.member/{self.owner}",
+                f"/_matrix/client/r0/rooms/{room_id}/state/m.room.member/{self.owner}",
                 access_token=self.owner_tok,
             )
             self.assertEqual(channel.code, 200, channel.result)
@@ -513,7 +518,7 @@ class ProfilesRestrictedTestCase(unittest.HomeserverTestCase):
         # User owning the requested profile.
         self.owner = self.register_user("owner", "pass")
         self.owner_tok = self.login("owner", "pass")
-        self.profile_url = f"/profile/{self.owner}"
+        self.profile_url = f"/_matrix/client/r0/profile/{self.owner}"
 
         # User requesting the profile.
         self.requester = self.register_user("requester", "pass")
@@ -597,20 +602,22 @@ class OwnProfileUnrestrictedTestCase(unittest.HomeserverTestCase):
         if 'require_auth_for_profile_requests' is set to true in the server's config.
         """
         channel = self.make_request(
-            "GET", "/profile/" + self.requester, access_token=self.requester_tok
-        )
-        self.assertEqual(channel.code, 200, channel.result)
-
-        channel = self.make_request(
             "GET",
-            "/profile/" + self.requester + "/displayname",
+            f"/_matrix/client/r0/profile/{self.requester}",
             access_token=self.requester_tok,
         )
         self.assertEqual(channel.code, 200, channel.result)
 
         channel = self.make_request(
             "GET",
-            "/profile/" + self.requester + "/avatar_url",
+            f"/_matrix/client/r0/profile/{self.requester}/displayname",
+            access_token=self.requester_tok,
+        )
+        self.assertEqual(channel.code, 200, channel.result)
+
+        channel = self.make_request(
+            "GET",
+            f"/_matrix/client/r0/profile/{self.requester}/avatar_url",
             access_token=self.requester_tok,
         )
         self.assertEqual(channel.code, 200, channel.result)

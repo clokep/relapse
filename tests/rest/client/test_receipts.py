@@ -35,7 +35,7 @@ class ReceiptsTestCase(unittest.HomeserverTestCase):
     ]
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
-        self.url = "/sync?since=%s"
+        self.url = "/_matrix/client/r0/sync?since=%s"
         self.next_batch = "s0"
 
         # Register the first user
@@ -59,7 +59,7 @@ class ReceiptsTestCase(unittest.HomeserverTestCase):
         # Send a read receipt
         channel = self.make_request(
             "POST",
-            f"/rooms/{self.room_id}/receipt/{ReceiptTypes.READ}/{res['event_id']}",
+            f"/_matrix/client/r0/rooms/{self.room_id}/receipt/{ReceiptTypes.READ}/{res['event_id']}",
             {},
             access_token=self.tok2,
         )
@@ -71,7 +71,7 @@ class ReceiptsTestCase(unittest.HomeserverTestCase):
         # Attempt to send a receipt to an unknown room.
         channel = self.make_request(
             "POST",
-            "/rooms/!abc:beep/receipt/m.read/$def",
+            "/_matrix/client/r0/rooms/!abc:beep/receipt/m.read/$def",
             content={},
             access_token=self.tok2,
         )
@@ -81,7 +81,7 @@ class ReceiptsTestCase(unittest.HomeserverTestCase):
         # Attempt to send a receipt to an unknown event.
         channel = self.make_request(
             "POST",
-            f"/rooms/{self.room_id}/receipt/m.read/$def",
+            f"/_matrix/client/r0/rooms/{self.room_id}/receipt/m.read/$def",
             content={},
             access_token=self.tok2,
         )
@@ -111,7 +111,7 @@ class ReceiptsTestCase(unittest.HomeserverTestCase):
         # Attempt to send a receipt from the wrong user.
         channel = self.make_request(
             "POST",
-            f"/rooms/{room_id}/receipt/{ReceiptTypes.READ}/{res['event_id']}",
+            f"/_matrix/client/r0/rooms/{room_id}/receipt/{ReceiptTypes.READ}/{res['event_id']}",
             content={},
             access_token=self.tok2,
         )
@@ -123,7 +123,7 @@ class ReceiptsTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "POST",
-            f"/rooms/{room_id}/receipt/{ReceiptTypes.READ}/{res['event_id']}",
+            f"/_matrix/client/r0/rooms/{room_id}/receipt/{ReceiptTypes.READ}/{res['event_id']}",
             content={},
             access_token=self.tok2,
         )
@@ -132,7 +132,7 @@ class ReceiptsTestCase(unittest.HomeserverTestCase):
     def test_send_receipt_invalid_room_id(self) -> None:
         channel = self.make_request(
             "POST",
-            "/rooms/not-a-room-id/receipt/m.read/$def",
+            "/_matrix/client/r0/rooms/not-a-room-id/receipt/m.read/$def",
             content={},
             access_token=self.tok,
         )
@@ -144,7 +144,7 @@ class ReceiptsTestCase(unittest.HomeserverTestCase):
     def test_send_receipt_invalid_event_id(self) -> None:
         channel = self.make_request(
             "POST",
-            "/rooms/!abc:beep/receipt/m.read/not-an-event-id",
+            "/_matrix/client/r0/rooms/!abc:beep/receipt/m.read/not-an-event-id",
             content={},
             access_token=self.tok,
         )
@@ -156,7 +156,7 @@ class ReceiptsTestCase(unittest.HomeserverTestCase):
     def test_send_receipt_invalid_receipt_type(self) -> None:
         channel = self.make_request(
             "POST",
-            "/rooms/!abc:beep/receipt/invalid-receipt-type/$def",
+            "/_matrix/client/r0/rooms/!abc:beep/receipt/invalid-receipt-type/$def",
             content={},
             access_token=self.tok,
         )
@@ -169,7 +169,7 @@ class ReceiptsTestCase(unittest.HomeserverTestCase):
         # Send a private read receipt to tell the server the first user's message was read
         channel = self.make_request(
             "POST",
-            f"/rooms/{self.room_id}/receipt/{ReceiptTypes.READ_PRIVATE}/{res['event_id']}",
+            f"/_matrix/client/r0/rooms/{self.room_id}/receipt/{ReceiptTypes.READ_PRIVATE}/{res['event_id']}",
             {},
             access_token=self.tok2,
         )
@@ -189,7 +189,7 @@ class ReceiptsTestCase(unittest.HomeserverTestCase):
         # Send a private read receipt
         channel = self.make_request(
             "POST",
-            f"/rooms/{self.room_id}/receipt/{ReceiptTypes.READ_PRIVATE}/{res['event_id']}",
+            f"/_matrix/client/r0/rooms/{self.room_id}/receipt/{ReceiptTypes.READ_PRIVATE}/{res['event_id']}",
             {},
             access_token=self.tok2,
         )
@@ -199,7 +199,7 @@ class ReceiptsTestCase(unittest.HomeserverTestCase):
         # Send a public read receipt
         channel = self.make_request(
             "POST",
-            f"/rooms/{self.room_id}/receipt/{ReceiptTypes.READ}/{res['event_id']}",
+            f"/_matrix/client/r0/rooms/{self.room_id}/receipt/{ReceiptTypes.READ}/{res['event_id']}",
             {},
             access_token=self.tok2,
         )
@@ -219,7 +219,7 @@ class ReceiptsTestCase(unittest.HomeserverTestCase):
         # Send a public read receipt
         channel = self.make_request(
             "POST",
-            f"/rooms/{self.room_id}/receipt/{ReceiptTypes.READ}/{res['event_id']}",
+            f"/_matrix/client/r0/rooms/{self.room_id}/receipt/{ReceiptTypes.READ}/{res['event_id']}",
             {},
             access_token=self.tok2,
         )
@@ -229,7 +229,7 @@ class ReceiptsTestCase(unittest.HomeserverTestCase):
         # Send a private read receipt
         channel = self.make_request(
             "POST",
-            f"/rooms/{self.room_id}/receipt/{ReceiptTypes.READ_PRIVATE}/{res['event_id']}",
+            f"/_matrix/client/r0/rooms/{self.room_id}/receipt/{ReceiptTypes.READ_PRIVATE}/{res['event_id']}",
             {},
             access_token=self.tok2,
         )
@@ -245,7 +245,7 @@ class ReceiptsTestCase(unittest.HomeserverTestCase):
         # Send a read receipt for this message with an empty body
         channel = self.make_request(
             "POST",
-            f"/rooms/{self.room_id}/receipt/m.read/{res['event_id']}",
+            f"/_matrix/client/r0/rooms/{self.room_id}/receipt/m.read/{res['event_id']}",
             access_token=self.tok2,
         )
         self.assertEqual(channel.code, HTTPStatus.BAD_REQUEST)
