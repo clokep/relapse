@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import json
+import re
 from http import HTTPStatus
 from io import BytesIO
 from unittest.mock import Mock
@@ -26,7 +27,6 @@ from relapse.http.servlet import (
     validate_json_object,
 )
 from relapse.http.site import RelapseRequest
-from relapse.rest.client._base import client_patterns
 from relapse.server import HomeServer
 from relapse.types import JsonDict
 from relapse.util.cancellation import cancellable
@@ -113,7 +113,7 @@ class TestServletUtils(unittest.TestCase):
 class CancellableRestServlet(RestServlet):
     """A `RestServlet` with a mix of cancellable and uncancellable handlers."""
 
-    PATTERNS = client_patterns("/sleep$")
+    PATTERNS = [re.compile("^/sleep$")]
 
     def __init__(self, hs: HomeServer):
         super().__init__()

@@ -168,7 +168,11 @@ class EventPersisterShardTestCase(BaseMultiWorkerStreamTestCase):
 
         # Do an initial sync so that we're up to date.
         channel = make_request(
-            self.reactor, sync_hs_site, "GET", "/sync", access_token=access_token
+            self.reactor,
+            sync_hs_site,
+            "GET",
+            "/_matrix/client/r0/sync",
+            access_token=access_token,
         )
         next_batch = channel.json_body["next_batch"]
 
@@ -200,7 +204,7 @@ class EventPersisterShardTestCase(BaseMultiWorkerStreamTestCase):
             self.reactor,
             sync_hs_site,
             "GET",
-            f"/sync?since={next_batch}",
+            f"/_matrix/client/r0/sync?since={next_batch}",
             access_token=access_token,
         )
 
@@ -230,7 +234,7 @@ class EventPersisterShardTestCase(BaseMultiWorkerStreamTestCase):
             self.reactor,
             sync_hs_site,
             "GET",
-            f"/sync?since={vector_clock_token}",
+            f"/_matrix/client/r0/sync?since={vector_clock_token}",
             access_token=access_token,
         )
 
@@ -255,7 +259,7 @@ class EventPersisterShardTestCase(BaseMultiWorkerStreamTestCase):
             self.reactor,
             sync_hs_site,
             "GET",
-            f"/sync?since={next_batch}",
+            f"/_matrix/client/r0/sync?since={next_batch}",
             access_token=access_token,
         )
 

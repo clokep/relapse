@@ -68,7 +68,7 @@ class DeviceListsTestCase(unittest.HomeserverTestCase):
         # Now have Bob initiate an initial sync (in order to get a since token)
         channel = self.make_request(
             "GET",
-            "/sync",
+            "/_matrix/client/r0/sync",
             access_token=bob_access_token,
         )
         self.assertEqual(channel.code, 200, channel.json_body)
@@ -78,7 +78,7 @@ class DeviceListsTestCase(unittest.HomeserverTestCase):
         # which we hope will happen as a result of Alice updating their device list.
         bob_sync_channel = self.make_request(
             "GET",
-            f"/sync?since={next_batch_token}&timeout=30000",
+            f"/_matrix/client/r0/sync?since={next_batch_token}&timeout=30000",
             access_token=bob_access_token,
             # Start the request, then continue on.
             await_result=False,
@@ -87,7 +87,7 @@ class DeviceListsTestCase(unittest.HomeserverTestCase):
         # Have alice update their device list
         channel = self.make_request(
             "PUT",
-            f"/devices/{test_device_id}",
+            f"/_matrix/client/r0/devices/{test_device_id}",
             {
                 "display_name": "New Device Name",
             },
@@ -125,7 +125,7 @@ class DeviceListsTestCase(unittest.HomeserverTestCase):
         # Have Bob initiate an initial sync (in order to get a since token)
         channel = self.make_request(
             "GET",
-            "/sync",
+            "/_matrix/client/r0/sync",
             access_token=bob_access_token,
         )
         self.assertEqual(channel.code, HTTPStatus.OK, channel.json_body)
@@ -135,7 +135,7 @@ class DeviceListsTestCase(unittest.HomeserverTestCase):
         # which we hope will happen as a result of Alice updating their device list.
         bob_sync_channel = self.make_request(
             "GET",
-            f"/sync?since={next_batch_token}&timeout=1000",
+            f"/_matrix/client/r0/sync?since={next_batch_token}&timeout=1000",
             access_token=bob_access_token,
             # Start the request, then continue on.
             await_result=False,
@@ -144,7 +144,7 @@ class DeviceListsTestCase(unittest.HomeserverTestCase):
         # Have alice update their device list
         channel = self.make_request(
             "PUT",
-            f"/devices/{test_device_id}",
+            f"/_matrix/client/r0/devices/{test_device_id}",
             {
                 "display_name": "New Device Name",
             },
@@ -188,14 +188,14 @@ class DevicesTestCase(unittest.HomeserverTestCase):
         tok2 = self.login("user", "password", device_id="def")
 
         # Sync them so they have a last_seen value.
-        self.make_request("GET", "/sync", access_token=tok1)
-        self.make_request("GET", "/sync", access_token=tok2)
+        self.make_request("GET", "/_matrix/client/r0/sync", access_token=tok1)
+        self.make_request("GET", "/_matrix/client/r0/sync", access_token=tok2)
 
         # Advance half a day and sync again with one of the devices, so that the next
         # time the background job runs we don't delete this device (since it will look
         # for devices that haven't been used for over an hour).
         self.reactor.advance(43200)
-        self.make_request("GET", "/sync", access_token=tok1)
+        self.make_request("GET", "/_matrix/client/r0/sync", access_token=tok1)
 
         # Advance another half a day, and check that the device that has synced still
         # exists but the one that hasn't has been removed.
@@ -258,7 +258,6 @@ class DehydratedDeviceTestCase(unittest.HomeserverTestCase):
             "_matrix/client/unstable/org.matrix.msc3814.v1/dehydrated_device",
             content=content,
             access_token=token,
-            shorthand=False,
         )
         self.assertEqual(channel.code, 200)
         device_id = channel.json_body.get("device_id")
@@ -271,7 +270,6 @@ class DehydratedDeviceTestCase(unittest.HomeserverTestCase):
             "GET",
             "_matrix/client/unstable/org.matrix.msc3814.v1/dehydrated_device",
             access_token=token,
-            shorthand=False,
         )
         self.assertEqual(channel.code, 200)
         returned_device_id = channel.json_body.get("device_id")
@@ -362,7 +360,6 @@ class DehydratedDeviceTestCase(unittest.HomeserverTestCase):
             f"_matrix/client/unstable/org.matrix.msc3814.v1/dehydrated_device/{device_id}/events",
             content={},
             access_token=token,
-            shorthand=False,
         )
         self.assertEqual(channel.code, 200)
         expected_content = {"body": "test_message"}
@@ -374,7 +371,6 @@ class DehydratedDeviceTestCase(unittest.HomeserverTestCase):
             f"_matrix/client/unstable/org.matrix.msc3814.v1/dehydrated_device/{device_id}/events",
             content={},
             access_token=token,
-            shorthand=False,
         )
         self.assertEqual(channel.code, 200)
         self.assertEqual(channel.json_body["events"][0]["content"], expected_content)
@@ -388,7 +384,6 @@ class DehydratedDeviceTestCase(unittest.HomeserverTestCase):
             f"_matrix/client/unstable/org.matrix.msc3814.v1/dehydrated_device/{device_id}/events",
             content=content,
             access_token=token,
-            shorthand=False,
         )
         self.assertEqual(channel.code, 200)
         self.assertEqual(channel.json_body["events"], [])
@@ -398,7 +393,6 @@ class DehydratedDeviceTestCase(unittest.HomeserverTestCase):
             "DELETE",
             "_matrix/client/unstable/org.matrix.msc3814.v1/dehydrated_device",
             access_token=token,
-            shorthand=False,
         )
         self.assertEqual(channel.code, 200)
 
@@ -407,7 +401,6 @@ class DehydratedDeviceTestCase(unittest.HomeserverTestCase):
             "GET",
             "_matrix/client/unstable/org.matrix.msc3814.v1/dehydrated_device",
             access_token=token,
-            shorthand=False,
         )
         self.assertEqual(channel.code, 401)
 
@@ -441,7 +434,6 @@ class DehydratedDeviceTestCase(unittest.HomeserverTestCase):
             "_matrix/client/unstable/org.matrix.msc3814.v1/dehydrated_device",
             content=content,
             access_token=token,
-            shorthand=False,
         )
         self.assertEqual(channel.code, 200)
         device_id = channel.json_body.get("device_id")
@@ -472,7 +464,6 @@ class DehydratedDeviceTestCase(unittest.HomeserverTestCase):
             "DELETE",
             "_matrix/client/unstable/org.matrix.msc3814.v1/dehydrated_device",
             access_token=token,
-            shorthand=False,
         )
         self.assertEqual(channel.code, 200)
 
@@ -498,7 +489,6 @@ class DehydratedDeviceTestCase(unittest.HomeserverTestCase):
             "_matrix/client/unstable/org.matrix.msc3814.v1/dehydrated_device",
             content=content,
             access_token=token,
-            shorthand=False,
         )
         self.assertEqual(channel.code, 200)
         device_id = channel.json_body.get("device_id")
@@ -514,7 +504,6 @@ class DehydratedDeviceTestCase(unittest.HomeserverTestCase):
             "_matrix/client/unstable/org.matrix.msc3814.v1/dehydrated_device",
             content=content,
             access_token=token,
-            shorthand=False,
         )
         self.assertEqual(channel.code, 200)
         device_id = channel.json_body.get("device_id")
@@ -527,7 +516,6 @@ class DehydratedDeviceTestCase(unittest.HomeserverTestCase):
             "GET",
             "_matrix/client/unstable/org.matrix.msc3814.v1/dehydrated_device",
             access_token=token,
-            shorthand=False,
         )
         self.assertEqual(channel.code, 200)
         returned_device_id = channel.json_body["device_id"]

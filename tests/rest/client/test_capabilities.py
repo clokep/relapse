@@ -33,7 +33,7 @@ class CapabilitiesTestCase(unittest.HomeserverTestCase):
     ]
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
-        self.url = b"/capabilities"
+        self.url = "/_matrix/client/r0/capabilities"
         hs = self.setup_test_homeserver()
         self.config = hs.config
         self.auth_handler = hs.get_auth_handler()

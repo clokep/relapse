@@ -53,7 +53,9 @@ class PresenceTestCase(unittest.HomeserverTestCase):
         self.hs.config.server.presence_enabled = True
 
         body = {"presence": "here", "status_msg": "beep boop"}
-        channel = self.make_request("PUT", f"/presence/{self.user_id}/status", body)
+        channel = self.make_request(
+            "PUT", f"/_matrix/client/r0/presence/{self.user_id}/status", body
+        )
 
         self.assertEqual(channel.code, HTTPStatus.OK)
         self.assertEqual(self.presence_handler.set_state.call_count, 1)
@@ -66,7 +68,9 @@ class PresenceTestCase(unittest.HomeserverTestCase):
         """
 
         body = {"presence": "here", "status_msg": "beep boop"}
-        channel = self.make_request("PUT", f"/presence/{self.user_id}/status", body)
+        channel = self.make_request(
+            "PUT", f"/_matrix/client/r0/presence/{self.user_id}/status", body
+        )
 
         self.assertEqual(channel.code, HTTPStatus.OK)
         self.assertEqual(self.presence_handler.set_state.call_count, 0)
@@ -79,7 +83,9 @@ class PresenceTestCase(unittest.HomeserverTestCase):
         """
 
         body = {"presence": "here", "status_msg": "beep boop"}
-        channel = self.make_request("PUT", f"/presence/{self.user_id}/status", body)
+        channel = self.make_request(
+            "PUT", f"/_matrix/client/r0/presence/{self.user_id}/status", body
+        )
 
         self.assertEqual(channel.code, HTTPStatus.OK)
         self.assertEqual(self.presence_handler.set_state.call_count, 0)

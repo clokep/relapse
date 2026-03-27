@@ -74,7 +74,7 @@ class FallbackAuthTests(unittest.HomeserverTestCase):
 
     def register(self, expected_response: int, body: JsonDict) -> FakeChannel:
         """Make a register request."""
-        channel = self.make_request("POST", "register", body)
+        channel = self.make_request("POST", "/_matrix/client/r0/register", body)
 
         self.assertEqual(channel.code, expected_response)
         return channel
@@ -90,15 +90,14 @@ class FallbackAuthTests(unittest.HomeserverTestCase):
             post_session = session
 
         channel = self.make_request(
-            "GET", "auth/m.login.recaptcha/fallback/web?session=" + session
+            "GET",
+            f"/_matrix/client/r0/auth/m.login.recaptcha/fallback/web?session={session}",
         )
         self.assertEqual(channel.code, HTTPStatus.OK)
 
         channel = self.make_request(
             "POST",
-            "auth/m.login.recaptcha/fallback/web?session="
-            + post_session
-            + "&g-recaptcha-response=a",
+            f"/_matrix/client/r0/auth/m.login.recaptcha/fallback/web?session={post_session}&g-recaptcha-response=a",
         )
         self.assertEqual(channel.code, expected_post_response)
 
@@ -213,7 +212,7 @@ class UIAuthTests(unittest.HomeserverTestCase):
         """Delete an individual device."""
         channel = self.make_request(
             "DELETE",
-            "devices/" + device,
+            "/_matrix/client/r0/devices/" + device,
             body,
             access_token=access_token,
         )
@@ -229,7 +228,7 @@ class UIAuthTests(unittest.HomeserverTestCase):
         # the payload half-way through some tests.
         channel = self.make_request(
             "POST",
-            "delete_devices",
+            "/_matrix/client/r0/delete_devices",
             body,
             access_token=self.user_tok,
         )

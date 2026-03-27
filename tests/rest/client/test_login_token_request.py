@@ -89,7 +89,7 @@ class LoginTokenRequestServletTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "POST",
-            "/login",
+            "/_matrix/client/r0/login",
             content={"type": "m.login.token", "token": login_token},
         )
         self.assertEqual(channel.code, 200, channel.result)
@@ -110,7 +110,7 @@ class LoginTokenRequestServletTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "POST",
-            "/login",
+            "/_matrix/client/r0/login",
             content={"type": "m.login.token", "token": login_token},
         )
         self.assertEqual(channel.code, 200, channel.result)

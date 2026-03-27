@@ -76,7 +76,7 @@ class CommonMetricsTestCase(HomeserverTestCase):
 
         self.register_user("user", "password")
         tok = self.login("user", "password")
-        self.make_request("GET", "/sync", access_token=tok)
+        self.make_request("GET", "/_matrix/client/r0/sync", access_token=tok)
 
         self.pump(1)
 

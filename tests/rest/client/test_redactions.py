@@ -97,7 +97,9 @@ class RedactionsTestCase(HomeserverTestCase):
         return channel.json_body
 
     def _sync_room_timeline(self, access_token: str, room_id: str) -> list[JsonDict]:
-        channel = self.make_request("GET", "sync", access_token=access_token)
+        channel = self.make_request(
+            "GET", "/_matrix/client/r0/sync", access_token=access_token
+        )
         self.assertEqual(channel.code, 200)
         room_sync = channel.json_body["rooms"]["join"][room_id]
         return room_sync["timeline"]["events"]
@@ -540,7 +542,7 @@ class RedactionsTestCase(HomeserverTestCase):
         # Send a first redaction request which redacts only the root event.
         channel = self.make_request(
             method="PUT",
-            path=f"/rooms/{self.room_id}/redact/{root_event_id}/foo",
+            path=f"/_matrix/client/r0/rooms/{self.room_id}/redact/{root_event_id}/foo",
             content={},
             access_token=self.mod_access_token,
         )
@@ -550,7 +552,7 @@ class RedactionsTestCase(HomeserverTestCase):
         # threaded messages.
         channel = self.make_request(
             method="PUT",
-            path=f"/rooms/{self.room_id}/redact/{root_event_id}/foo",
+            path=f"/_matrix/client/r0/rooms/{self.room_id}/redact/{root_event_id}/foo",
             content={"org.matrix.msc3912.with_relations": [RelationTypes.THREAD]},
             access_token=self.mod_access_token,
         )

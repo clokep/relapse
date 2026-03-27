@@ -293,7 +293,6 @@ class JsonResourceCancellationTests(unittest.HomeserverTestCase):
             "GET",
             "/_matrix/client/sleep",
             await_result=False,
-            shorthand=False,
         )
         test_disconnect(
             self.reactor,
@@ -308,7 +307,6 @@ class JsonResourceCancellationTests(unittest.HomeserverTestCase):
             "POST",
             "/_matrix/client/sleep",
             await_result=False,
-            shorthand=False,
         )
         test_disconnect(
             self.reactor,

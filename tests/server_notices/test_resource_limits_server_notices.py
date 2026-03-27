@@ -325,7 +325,9 @@ class TestResourceLimitsServerNoticesWithRealRooms(unittest.HomeserverTestCase):
         user_id = self.register_user("user", "password")
         tok = self.login("user", "password")
 
-        channel = self.make_request("GET", "/sync?timeout=0", access_token=tok)
+        channel = self.make_request(
+            "GET", "/_matrix/client/r0/sync?timeout=0", access_token=tok
+        )
 
         self.assertNotIn(
             "rooms", channel.json_body, "Got invites without server notice"
@@ -341,7 +343,9 @@ class TestResourceLimitsServerNoticesWithRealRooms(unittest.HomeserverTestCase):
 
         # Sync again to retrieve the events in the room, so we can check whether this
         # room has a notice in it.
-        channel = self.make_request("GET", "/sync?timeout=0", access_token=tok)
+        channel = self.make_request(
+            "GET", "/_matrix/client/r0/sync?timeout=0", access_token=tok
+        )
 
         # Scan the events in the room to search for a message from the server notices
         # user.
@@ -380,7 +384,7 @@ class TestResourceLimitsServerNoticesWithRealRooms(unittest.HomeserverTestCase):
             # Sync with the user's token to mark the user as active.
             channel = self.make_request(
                 "GET",
-                "/sync?timeout=0",
+                "/_matrix/client/r0/sync?timeout=0",
                 access_token=tok,
             )
 

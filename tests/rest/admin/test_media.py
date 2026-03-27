@@ -134,7 +134,6 @@ class DeleteMediaByIDTestCase(_AdminMediaTests):
         channel = self.make_request(
             "GET",
             f"/_matrix/media/v3/download/{server_and_media_id}",
-            shorthand=False,
             access_token=self.admin_user_tok,
         )
 
@@ -171,7 +170,6 @@ class DeleteMediaByIDTestCase(_AdminMediaTests):
         channel = self.make_request(
             "GET",
             f"/_matrix/media/v3/download/{server_and_media_id}",
-            shorthand=False,
             access_token=self.admin_user_tok,
         )
         self.assertEqual(
@@ -436,7 +434,7 @@ class DeleteMediaByDateSizeTestCase(_AdminMediaTests):
         # set media as avatar
         channel = self.make_request(
             "PUT",
-            f"/profile/{self.admin_user}/avatar_url",
+            f"/_matrix/client/r0/profile/{self.admin_user}/avatar_url",
             content={"avatar_url": f"mxc://{server_and_media_id}"},
             access_token=self.admin_user_tok,
         )
@@ -481,7 +479,7 @@ class DeleteMediaByDateSizeTestCase(_AdminMediaTests):
         room_id = self.helper.create_room_as(self.admin_user, tok=self.admin_user_tok)
         channel = self.make_request(
             "PUT",
-            f"/rooms/{room_id}/state/m.room.avatar",
+            f"/_matrix/client/r0/rooms/{room_id}/state/m.room.avatar",
             content={"url": f"mxc://{server_and_media_id}"},
             access_token=self.admin_user_tok,
         )
@@ -544,7 +542,6 @@ class DeleteMediaByDateSizeTestCase(_AdminMediaTests):
         channel = self.make_request(
             "GET",
             f"/_matrix/media/v3/download/{server_and_media_id}",
-            shorthand=False,
             access_token=self.admin_user_tok,
         )
 

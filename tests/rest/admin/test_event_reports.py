@@ -377,7 +377,7 @@ class EventReportsTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "POST",
-            f"rooms/{room_id}/report/{event_id}",
+            f"/_matrix/client/r0/rooms/{room_id}/report/{event_id}",
             {"score": -100, "reason": "this makes me sad"},
             access_token=user_tok,
         )
@@ -392,7 +392,7 @@ class EventReportsTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "POST",
-            f"rooms/{room_id}/report/{event_id}",
+            f"/_matrix/client/r0/rooms/{room_id}/report/{event_id}",
             {},
             access_token=user_tok,
         )
@@ -574,7 +574,7 @@ class EventReportDetailTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "POST",
-            f"rooms/{room_id}/report/{event_id}",
+            f"/_matrix/client/r0/rooms/{room_id}/report/{event_id}",
             {"score": -100, "reason": "this makes me sad"},
             access_token=user_tok,
         )

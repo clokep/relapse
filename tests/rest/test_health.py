@@ -20,7 +20,7 @@ class HealthCheckTests(unittest.HomeserverTestCase):
     servlets = [lambda _, http_server: HealthServlet().register(http_server)]
 
     def test_health(self) -> None:
-        channel = self.make_request("GET", "/health", shorthand=False)
+        channel = self.make_request("GET", "/health")
 
         self.assertEqual(channel.code, 200)
         self.assertEqual(channel.result["body"], b"OK")

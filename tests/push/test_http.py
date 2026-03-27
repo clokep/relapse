@@ -729,7 +729,7 @@ class HTTPPusherTests(HomeserverTestCase):
         # count goes down
         channel = self.make_request(
             "POST",
-            f"/rooms/{room_id}/receipt/m.read/{message_event_id}",
+            f"/_matrix/client/r0/rooms/{room_id}/receipt/m.read/{message_event_id}",
             {},
             access_token=access_token,
         )
@@ -799,7 +799,7 @@ class HTTPPusherTests(HomeserverTestCase):
         }
         channel = self.make_request(
             "PUT",
-            "/pushrules/global/override/best.friend",
+            "/_matrix/client/r0/pushrules/global/override/best.friend",
             body,
             access_token=access_token,
         )
@@ -840,7 +840,9 @@ class HTTPPusherTests(HomeserverTestCase):
         self.assertEqual(len(self.push_attempts), 1)
 
         # Get the pushers for the user and check that it is marked as disabled.
-        channel = self.make_request("GET", "/pushers", access_token=access_token)
+        channel = self.make_request(
+            "GET", "/_matrix/client/r0/pushers", access_token=access_token
+        )
         self.assertEqual(channel.code, 200)
         self.assertEqual(len(channel.json_body["pushers"]), 1)
 
@@ -870,7 +872,9 @@ class HTTPPusherTests(HomeserverTestCase):
         self.assertEqual(len(self.push_attempts), 1)
 
         # Get the pushers for the user and check that it is marked as enabled.
-        channel = self.make_request("GET", "/pushers", access_token=access_token)
+        channel = self.make_request(
+            "GET", "/_matrix/client/r0/pushers", access_token=access_token
+        )
         self.assertEqual(channel.code, 200)
         self.assertEqual(len(channel.json_body["pushers"]), 1)
 
@@ -887,7 +891,9 @@ class HTTPPusherTests(HomeserverTestCase):
         # database.
         user_id, access_token = self._make_user_with_pusher("user", enabled=None)  # type: ignore[arg-type]
 
-        channel = self.make_request("GET", "/pushers", access_token=access_token)
+        channel = self.make_request(
+            "GET", "/_matrix/client/r0/pushers", access_token=access_token
+        )
         self.assertEqual(channel.code, 200)
         self.assertEqual(len(channel.json_body["pushers"]), 1)
         self.assertTrue(channel.json_body["pushers"][0]["org.matrix.msc3881.enabled"])
@@ -935,7 +941,7 @@ class HTTPPusherTests(HomeserverTestCase):
         # creating a pusher via an API call.
         self.make_request(
             method="POST",
-            path="/pushers/set",
+            path="/_matrix/client/r0/pushers/set",
             content={
                 "kind": "http",
                 "app_id": "m.http",
@@ -955,7 +961,9 @@ class HTTPPusherTests(HomeserverTestCase):
         assert lookup_result is not None
 
         # Get the user's devices and check it has the correct device ID.
-        channel = self.make_request("GET", "/pushers", access_token=access_token)
+        channel = self.make_request(
+            "GET", "/_matrix/client/r0/pushers", access_token=access_token
+        )
         self.assertEqual(channel.code, 200)
         self.assertEqual(len(channel.json_body["pushers"]), 1)
         self.assertEqual(

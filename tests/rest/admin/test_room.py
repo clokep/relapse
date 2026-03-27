@@ -209,7 +209,7 @@ class DeleteRoomTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "DELETE",
-            self.url.encode("ascii"),
+            self.url,
             content={"block": True, "purge": True},
             access_token=self.admin_user_tok,
         )
@@ -240,7 +240,7 @@ class DeleteRoomTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "DELETE",
-            self.url.encode("ascii"),
+            self.url,
             content={"block": False, "purge": True},
             access_token=self.admin_user_tok,
         )
@@ -286,7 +286,7 @@ class DeleteRoomTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "DELETE",
-            self.url.encode("ascii"),
+            self.url,
             content={"block": False, "purge": True},
             access_token=self.admin_user_tok,
         )
@@ -321,7 +321,7 @@ class DeleteRoomTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "DELETE",
-            self.url.encode("ascii"),
+            self.url,
             content={"block": True, "purge": False},
             access_token=self.admin_user_tok,
         )
@@ -420,10 +420,9 @@ class DeleteRoomTestCase(unittest.HomeserverTestCase):
         self.event_creation_handler._block_events_without_consent_error = None
 
         # Enable world readable
-        url = f"rooms/{self.room_id}/state/m.room.history_visibility"
         channel = self.make_request(
             "PUT",
-            url.encode("ascii"),
+            f"/_matrix/client/r0/rooms/{self.room_id}/state/m.room.history_visibility",
             {"history_visibility": "world_readable"},
             access_token=self.other_user_tok,
         )
@@ -511,15 +510,17 @@ class DeleteRoomTestCase(unittest.HomeserverTestCase):
     def _assert_peek(self, room_id: str, expect_code: int) -> None:
         """Assert that the admin user can (or cannot) peek into the room."""
 
-        url = f"rooms/{room_id}/initialSync"
         channel = self.make_request(
-            "GET", url.encode("ascii"), access_token=self.admin_user_tok
+            "GET",
+            f"/_matrix/client/r0/rooms/{room_id}/initialSync",
+            access_token=self.admin_user_tok,
         )
         self.assertEqual(expect_code, channel.code, msg=channel.json_body)
 
-        url = "events?timeout=0&room_id=" + room_id
         channel = self.make_request(
-            "GET", url.encode("ascii"), access_token=self.admin_user_tok
+            "GET",
+            f"/_matrix/client/r0/events?timeout=0&room_id={room_id}",
+            access_token=self.admin_user_tok,
         )
         self.assertEqual(expect_code, channel.code, msg=channel.json_body)
 
@@ -714,7 +715,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         # first task, do not purge, that we can create a second task
         channel = self.make_request(
             "DELETE",
-            self.url.encode("ascii"),
+            self.url,
             content={"purge": False},
             access_token=self.admin_user_tok,
         )
@@ -729,7 +730,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         # second task
         channel = self.make_request(
             "DELETE",
-            self.url.encode("ascii"),
+            self.url,
             content={"purge": True},
             access_token=self.admin_user_tok,
         )
@@ -797,7 +798,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         # and do not wait for finish the task
         first_channel = self.make_request(
             "DELETE",
-            self.url.encode("ascii"),
+            self.url,
             content=body,
             access_token=self.admin_user_tok,
         )
@@ -805,7 +806,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         # second call to delete room
         second_channel = self.make_request(
             "DELETE",
-            self.url.encode("ascii"),
+            self.url,
             content=body,
             access_token=self.admin_user_tok,
         )
@@ -848,7 +849,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "DELETE",
-            self.url.encode("ascii"),
+            self.url,
             content={"block": True, "purge": True},
             access_token=self.admin_user_tok,
         )
@@ -879,7 +880,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "DELETE",
-            self.url.encode("ascii"),
+            self.url,
             content={"block": False, "purge": True},
             access_token=self.admin_user_tok,
         )
@@ -911,7 +912,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "DELETE",
-            self.url.encode("ascii"),
+            self.url,
             content={"block": True, "purge": False},
             access_token=self.admin_user_tok,
         )
@@ -996,10 +997,9 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         self.event_creation_handler._block_events_without_consent_error = None
 
         # Enable world readable
-        url = f"rooms/{self.room_id}/state/m.room.history_visibility"
         channel = self.make_request(
             "PUT",
-            url.encode("ascii"),
+            f"/_matrix/client/r0/rooms/{self.room_id}/state/m.room.history_visibility",
             content={"history_visibility": "world_readable"},
             access_token=self.other_user_tok,
         )
@@ -1190,15 +1190,17 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
     def _assert_peek(self, room_id: str, expect_code: int) -> None:
         """Assert that the admin user can (or cannot) peek into the room."""
 
-        url = f"rooms/{room_id}/initialSync"
         channel = self.make_request(
-            "GET", url.encode("ascii"), access_token=self.admin_user_tok
+            "GET",
+            f"/_matrix/client/r0/rooms/{room_id}/initialSync",
+            access_token=self.admin_user_tok,
         )
         self.assertEqual(expect_code, channel.code, msg=channel.json_body)
 
-        url = "events?timeout=0&room_id=" + room_id
         channel = self.make_request(
-            "GET", url.encode("ascii"), access_token=self.admin_user_tok
+            "GET",
+            f"/_matrix/client/r0/events?timeout=0&room_id={room_id}",
+            access_token=self.admin_user_tok,
         )
         self.assertEqual(expect_code, channel.code, msg=channel.json_body)
 

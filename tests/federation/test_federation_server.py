@@ -51,8 +51,6 @@ class FederationServerTests(FederatingHomeserverTestCase):
         room_1 = self.helper.create_room_as(u1, tok=u1_token)
         self.inject_room_member(room_1, "@user:other.example.com", "join")
 
-        "/get_missing_events/(?P<room_id>[^/]*)/?"
-
         channel = self.make_request(
             "POST",
             f"/_matrix/federation/v1/get_missing_events/{room_1}",

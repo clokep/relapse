@@ -70,7 +70,7 @@ class ReadMarkerTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "POST",
-            "/rooms/!abc:beep/read_markers",
+            "/_matrix/client/r0/rooms/!abc:beep/read_markers",
             content={
                 "m.fully_read": event_id_1,
             },
@@ -82,7 +82,7 @@ class ReadMarkerTestCase(unittest.HomeserverTestCase):
         event_id_2 = send_message()
         channel = self.make_request(
             "POST",
-            "/rooms/!abc:beep/read_markers",
+            "/_matrix/client/r0/rooms/!abc:beep/read_markers",
             content={
                 "m.fully_read": event_id_2,
             },
@@ -115,7 +115,7 @@ class ReadMarkerTestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "POST",
-            "/rooms/!abc:beep/read_markers",
+            "/_matrix/client/r0/rooms/!abc:beep/read_markers",
             content={
                 "m.fully_read": event_id_1,
             },
@@ -134,7 +134,7 @@ class ReadMarkerTestCase(unittest.HomeserverTestCase):
         event_id_2 = send_message()
         channel = self.make_request(
             "POST",
-            "/rooms/!abc:beep/read_markers",
+            "/_matrix/client/r0/rooms/!abc:beep/read_markers",
             content={
                 "m.fully_read": event_id_2,
             },

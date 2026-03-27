@@ -34,7 +34,7 @@ class VersionTestCase(unittest.HomeserverTestCase):
     servlets = [lambda hs, http_server: VersionServlet(hs).register(http_server)]
 
     def test_version_string(self) -> None:
-        channel = self.make_request("GET", self.url, shorthand=False)
+        channel = self.make_request("GET", self.url)
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertEqual({"server_version"}, set(channel.json_body.keys()))
@@ -58,7 +58,6 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
         channel = self.make_request(
             "GET",
             f"/_matrix/media/v3/download/{server_and_media_id}",
-            shorthand=False,
             access_token=admin_user_tok,
         )
 
@@ -114,7 +113,6 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
         channel = self.make_request(
             "GET",
             f"/_matrix/media/v3/download/{server_name_and_media_id}",
-            shorthand=False,
             access_token=non_admin_user_tok,
         )
 
@@ -271,7 +269,6 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
         channel = self.make_request(
             "GET",
             f"/_matrix/media/v3/download/{server_and_media_id_2}",
-            shorthand=False,
             access_token=non_admin_user_tok,
         )
 

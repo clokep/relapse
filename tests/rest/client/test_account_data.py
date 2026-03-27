@@ -44,7 +44,7 @@ class AccountDataTestCase(unittest.HomeserverTestCase):
         # Change the user's global account data.
         channel = self.make_request(
             "PUT",
-            f"/user/{user_id}/account_data/{account_data_type}",
+            f"/_matrix/client/r0/user/{user_id}/account_data/{account_data_type}",
             account_data_content,
             access_token=tok,
         )
@@ -60,7 +60,7 @@ class AccountDataTestCase(unittest.HomeserverTestCase):
         room_id = self.helper.create_room_as(user_id, tok=tok)
         channel = self.make_request(
             "PUT",
-            f"/user/{user_id}/rooms/{room_id}/account_data/{account_data_type}",
+            f"/_matrix/client/r0/user/{user_id}/rooms/{room_id}/account_data/{account_data_type}",
             account_data_content,
             access_token=tok,
         )

@@ -43,7 +43,9 @@ class ReportEventTestCase(unittest.HomeserverTestCase):
         self.helper.join(self.room_id, user=self.admin_user, tok=self.admin_user_tok)
         resp = self.helper.send(self.room_id, tok=self.admin_user_tok)
         self.event_id = resp["event_id"]
-        self.report_path = f"rooms/{self.room_id}/report/{self.event_id}"
+        self.report_path = (
+            f"/_matrix/client/r0/rooms/{self.room_id}/report/{self.event_id}"
+        )
 
     def test_reason_str_and_score_int(self) -> None:
         data = {"reason": "this makes me sad", "score": -100}
@@ -79,7 +81,7 @@ class ReportEventTestCase(unittest.HomeserverTestCase):
         """
         channel = self.make_request(
             "POST",
-            f"rooms/{self.room_id}/report/$nonsenseeventid:test",
+            f"/_matrix/client/r0/rooms/{self.room_id}/report/$nonsenseeventid:test",
             {"reason": "i am very sad"},
             access_token=self.other_user_tok,
         )
@@ -114,7 +116,7 @@ class ReportEventTestCase(unittest.HomeserverTestCase):
         # in a screenshot or something...
         channel = self.make_request(
             "POST",
-            f"rooms/{new_room_id}/report/{event_id}",
+            f"/_matrix/client/r0/rooms/{new_room_id}/report/{event_id}",
             {"reason": "I'm not in this room but I have opinions anyways!"},
             access_token=self.other_user_tok,
         )

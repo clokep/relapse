@@ -72,8 +72,8 @@ TEST_SAML_METADATA = f"""
 </md:EntityDescriptor>
 """
 
-LOGIN_URL = b"/_matrix/client/r0/login"
-TEST_URL = b"/_matrix/client/r0/account/whoami"
+LOGIN_URL = "/_matrix/client/r0/login"
+TEST_URL = "/_matrix/client/r0/account/whoami"
 
 # a (valid) url with some annoying characters in.  %3D is =, %26 is &, %2B is +
 TEST_CLIENT_REDIRECT_URL = 'https://x?<ab c>&q"+%3D%2B"="fö%26=o"'
@@ -175,7 +175,7 @@ class LoginRestServletTestCase(unittest.HomeserverTestCase):
                 "identifier": {"type": "m.id.user", "user": "kermit" + str(i)},
                 "password": "monkey",
             }
-            channel = self.make_request(b"POST", LOGIN_URL, params)
+            channel = self.make_request("POST", LOGIN_URL, params)
 
             if i == 5:
                 self.assertEqual(channel.code, 429, msg=channel.result)
@@ -197,7 +197,7 @@ class LoginRestServletTestCase(unittest.HomeserverTestCase):
             "identifier": {"type": "m.id.user", "user": "kermit" + str(i)},
             "password": "monkey",
         }
-        channel = self.make_request(b"POST", LOGIN_URL, params)
+        channel = self.make_request("POST", LOGIN_URL, params)
 
         self.assertEqual(channel.code, 200, msg=channel.result)
 
@@ -223,7 +223,7 @@ class LoginRestServletTestCase(unittest.HomeserverTestCase):
                 "identifier": {"type": "m.id.user", "user": "kermit"},
                 "password": "monkey",
             }
-            channel = self.make_request(b"POST", LOGIN_URL, params)
+            channel = self.make_request("POST", LOGIN_URL, params)
 
             if i == 5:
                 self.assertEqual(channel.code, 429, msg=channel.result)
@@ -245,7 +245,7 @@ class LoginRestServletTestCase(unittest.HomeserverTestCase):
             "identifier": {"type": "m.id.user", "user": "kermit"},
             "password": "monkey",
         }
-        channel = self.make_request(b"POST", LOGIN_URL, params)
+        channel = self.make_request("POST", LOGIN_URL, params)
 
         self.assertEqual(channel.code, 200, msg=channel.result)
 
@@ -271,7 +271,7 @@ class LoginRestServletTestCase(unittest.HomeserverTestCase):
                 "identifier": {"type": "m.id.user", "user": "kermit"},
                 "password": "notamonkey",
             }
-            channel = self.make_request(b"POST", LOGIN_URL, params)
+            channel = self.make_request("POST", LOGIN_URL, params)
 
             if i == 5:
                 self.assertEqual(channel.code, 429, msg=channel.result)
@@ -293,7 +293,7 @@ class LoginRestServletTestCase(unittest.HomeserverTestCase):
             "identifier": {"type": "m.id.user", "user": "kermit"},
             "password": "notamonkey",
         }
-        channel = self.make_request(b"POST", LOGIN_URL, params)
+        channel = self.make_request("POST", LOGIN_URL, params)
 
         self.assertEqual(channel.code, 403, msg=channel.result)
 
@@ -302,7 +302,7 @@ class LoginRestServletTestCase(unittest.HomeserverTestCase):
         self.register_user("kermit", "monkey")
 
         # we shouldn't be able to make requests without an access token
-        channel = self.make_request(b"GET", TEST_URL)
+        channel = self.make_request("GET", TEST_URL)
         self.assertEqual(channel.code, 401, msg=channel.result)
         self.assertEqual(channel.json_body["errcode"], "M_MISSING_TOKEN")
 
@@ -312,21 +312,21 @@ class LoginRestServletTestCase(unittest.HomeserverTestCase):
             "identifier": {"type": "m.id.user", "user": "kermit"},
             "password": "monkey",
         }
-        channel = self.make_request(b"POST", LOGIN_URL, params)
+        channel = self.make_request("POST", LOGIN_URL, params)
 
         self.assertEqual(channel.code, 200, channel.result)
         access_token = channel.json_body["access_token"]
         device_id = channel.json_body["device_id"]
 
         # we should now be able to make requests with the access token
-        channel = self.make_request(b"GET", TEST_URL, access_token=access_token)
+        channel = self.make_request("GET", TEST_URL, access_token=access_token)
         self.assertEqual(channel.code, 200, channel.result)
 
         # time passes
         self.reactor.advance(24 * 3600)
 
         # ... and we should be soft-logouted
-        channel = self.make_request(b"GET", TEST_URL, access_token=access_token)
+        channel = self.make_request("GET", TEST_URL, access_token=access_token)
         self.assertEqual(channel.code, 401, channel.result)
         self.assertEqual(channel.json_body["errcode"], "M_UNKNOWN_TOKEN")
         self.assertEqual(channel.json_body["soft_logout"], True)
@@ -340,7 +340,7 @@ class LoginRestServletTestCase(unittest.HomeserverTestCase):
 
         # more requests with the expired token should still return a soft-logout
         self.reactor.advance(3600)
-        channel = self.make_request(b"GET", TEST_URL, access_token=access_token)
+        channel = self.make_request("GET", TEST_URL, access_token=access_token)
         self.assertEqual(channel.code, 401, channel.result)
         self.assertEqual(channel.json_body["errcode"], "M_UNKNOWN_TOKEN")
         self.assertEqual(channel.json_body["soft_logout"], True)
@@ -348,7 +348,7 @@ class LoginRestServletTestCase(unittest.HomeserverTestCase):
         # ... but if we delete that device, it will be a proper logout
         self._delete_device(access_token_2, "kermit", "monkey", device_id)
 
-        channel = self.make_request(b"GET", TEST_URL, access_token=access_token)
+        channel = self.make_request("GET", TEST_URL, access_token=access_token)
         self.assertEqual(channel.code, 401, channel.result)
         self.assertEqual(channel.json_body["errcode"], "M_UNKNOWN_TOKEN")
         self.assertEqual(channel.json_body["soft_logout"], False)
@@ -358,7 +358,9 @@ class LoginRestServletTestCase(unittest.HomeserverTestCase):
     ) -> None:
         """Perform the UI-Auth to delete a device"""
         channel = self.make_request(
-            b"DELETE", "devices/" + device_id, access_token=access_token
+            "DELETE",
+            "/_matrix/client/r0/devices/" + device_id,
+            access_token=access_token,
         )
         self.assertEqual(channel.code, 401, channel.result)
         # check it's a UI-Auth fail
@@ -378,8 +380,8 @@ class LoginRestServletTestCase(unittest.HomeserverTestCase):
         }
 
         channel = self.make_request(
-            b"DELETE",
-            "devices/" + device_id,
+            "DELETE",
+            f"/_matrix/client/r0/devices/{device_id}",
             access_token=access_token,
             content={"auth": auth},
         )
@@ -393,20 +395,22 @@ class LoginRestServletTestCase(unittest.HomeserverTestCase):
         access_token = self.login("kermit", "monkey")
 
         # we should now be able to make requests with the access token
-        channel = self.make_request(b"GET", TEST_URL, access_token=access_token)
+        channel = self.make_request("GET", TEST_URL, access_token=access_token)
         self.assertEqual(channel.code, 200, channel.result)
 
         # time passes
         self.reactor.advance(24 * 3600)
 
         # ... and we should be soft-logouted
-        channel = self.make_request(b"GET", TEST_URL, access_token=access_token)
+        channel = self.make_request("GET", TEST_URL, access_token=access_token)
         self.assertEqual(channel.code, 401, channel.result)
         self.assertEqual(channel.json_body["errcode"], "M_UNKNOWN_TOKEN")
         self.assertEqual(channel.json_body["soft_logout"], True)
 
         # Now try to hard logout this session
-        channel = self.make_request(b"POST", "/logout", access_token=access_token)
+        channel = self.make_request(
+            "POST", "/_matrix/client/r0/logout", access_token=access_token
+        )
         self.assertEqual(channel.code, 200, msg=channel.result)
 
     @override_config({"session_lifetime": "24h"})
@@ -419,20 +423,22 @@ class LoginRestServletTestCase(unittest.HomeserverTestCase):
         access_token = self.login("kermit", "monkey")
 
         # we should now be able to make requests with the access token
-        channel = self.make_request(b"GET", TEST_URL, access_token=access_token)
+        channel = self.make_request("GET", TEST_URL, access_token=access_token)
         self.assertEqual(channel.code, 200, channel.result)
 
         # time passes
         self.reactor.advance(24 * 3600)
 
         # ... and we should be soft-logouted
-        channel = self.make_request(b"GET", TEST_URL, access_token=access_token)
+        channel = self.make_request("GET", TEST_URL, access_token=access_token)
         self.assertEqual(channel.code, 401, channel.result)
         self.assertEqual(channel.json_body["errcode"], "M_UNKNOWN_TOKEN")
         self.assertEqual(channel.json_body["soft_logout"], True)
 
         # Now try to hard log out all of the user's sessions
-        channel = self.make_request(b"POST", "/logout/all", access_token=access_token)
+        channel = self.make_request(
+            "POST", "/_matrix/client/r0/logout/all", access_token=access_token
+        )
         self.assertEqual(channel.code, 200, msg=channel.result)
 
     def test_login_with_overly_long_device_id_fails(self) -> None:
@@ -473,7 +479,7 @@ class LoginRestServletTestCase(unittest.HomeserverTestCase):
     def test_require_approval(self) -> None:
         channel = self.make_request(
             "POST",
-            "register",
+            "/_matrix/client/r0/register",
             {
                 "username": "kermit",
                 "password": "monkey",
@@ -689,7 +695,6 @@ class MultiSSOTestCase(unittest.HomeserverTestCase):
             "/_relapse/client/pick_idp?redirectUrl="
             + urllib.parse.quote_plus(TEST_CLIENT_REDIRECT_URL)
             + "&idp=cas",
-            shorthand=False,
         )
         self.assertEqual(channel.code, 302, channel.result)
         location_headers = channel.headers.getRawHeaders("Location")
@@ -797,7 +802,7 @@ class MultiSSOTestCase(unittest.HomeserverTestCase):
         login_token = params[2][1]
         chan = self.make_request(
             "POST",
-            "/login",
+            "/_matrix/client/r0/login",
             content={"type": "m.login.token", "token": login_token},
         )
         self.assertEqual(chan.code, 200, chan.result)
@@ -1031,7 +1036,7 @@ class JWTTestCase(unittest.HomeserverTestCase):
 
     def jwt_login(self, *args: Any) -> FakeChannel:
         params = {"type": "org.matrix.login.jwt", "token": self.jwt_encode(*args)}
-        channel = self.make_request(b"POST", LOGIN_URL, params)
+        channel = self.make_request("POST", LOGIN_URL, params)
         return channel
 
     def test_login_jwt_valid_registered(self) -> None:
@@ -1167,7 +1172,7 @@ class JWTTestCase(unittest.HomeserverTestCase):
 
     def test_login_no_token(self) -> None:
         params = {"type": "org.matrix.login.jwt"}
-        channel = self.make_request(b"POST", LOGIN_URL, params)
+        channel = self.make_request("POST", LOGIN_URL, params)
         self.assertEqual(channel.code, 403, msg=channel.result)
         self.assertEqual(channel.json_body["errcode"], "M_FORBIDDEN")
         self.assertEqual(channel.json_body["error"], "Token field for JWT is missing")
@@ -1261,7 +1266,7 @@ class JWTPubKeyTestCase(unittest.HomeserverTestCase):
 
     def jwt_login(self, *args: Any) -> FakeChannel:
         params = {"type": "org.matrix.login.jwt", "token": self.jwt_encode(*args)}
-        channel = self.make_request(b"POST", LOGIN_URL, params)
+        channel = self.make_request("POST", LOGIN_URL, params)
         return channel
 
     def test_login_jwt_valid(self) -> None:
@@ -1329,7 +1334,7 @@ class AppserviceLoginRestServletTestCase(unittest.HomeserverTestCase):
             "identifier": {"type": "m.id.user", "user": AS_USER},
         }
         channel = self.make_request(
-            b"POST", LOGIN_URL, params, access_token=self.service.token
+            "POST", LOGIN_URL, params, access_token=self.service.token
         )
 
         self.assertEqual(channel.code, 200, msg=channel.result)
@@ -1343,7 +1348,7 @@ class AppserviceLoginRestServletTestCase(unittest.HomeserverTestCase):
             "identifier": {"type": "m.id.user", "user": self.service.sender},
         }
         channel = self.make_request(
-            b"POST", LOGIN_URL, params, access_token=self.service.token
+            "POST", LOGIN_URL, params, access_token=self.service.token
         )
 
         self.assertEqual(channel.code, 200, msg=channel.result)
@@ -1357,7 +1362,7 @@ class AppserviceLoginRestServletTestCase(unittest.HomeserverTestCase):
             "identifier": {"type": "m.id.user", "user": "fibble_wibble"},
         }
         channel = self.make_request(
-            b"POST", LOGIN_URL, params, access_token=self.service.token
+            "POST", LOGIN_URL, params, access_token=self.service.token
         )
 
         self.assertEqual(channel.code, 403, msg=channel.result)
@@ -1371,7 +1376,7 @@ class AppserviceLoginRestServletTestCase(unittest.HomeserverTestCase):
             "identifier": {"type": "m.id.user", "user": AS_USER},
         }
         channel = self.make_request(
-            b"POST", LOGIN_URL, params, access_token=self.another_service.token
+            "POST", LOGIN_URL, params, access_token=self.another_service.token
         )
 
         self.assertEqual(channel.code, 403, msg=channel.result)
@@ -1386,7 +1391,7 @@ class AppserviceLoginRestServletTestCase(unittest.HomeserverTestCase):
             "type": login.LoginRestServlet.APPSERVICE_TYPE,
             "identifier": {"type": "m.id.user", "user": AS_USER},
         }
-        channel = self.make_request(b"POST", LOGIN_URL, params)
+        channel = self.make_request("POST", LOGIN_URL, params)
 
         self.assertEqual(channel.code, 401, msg=channel.result)
 
@@ -1504,7 +1509,7 @@ class UsernamePickerTestCase(HomeserverTestCase):
         # matrix access token, mxid, and device id.
         chan = self.make_request(
             "POST",
-            "/login",
+            "/_matrix/client/r0/login",
             content={"type": "m.login.token", "token": login_token},
         )
         self.assertEqual(chan.code, 200, chan.result)

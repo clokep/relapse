@@ -420,7 +420,7 @@ class ThirdPartyRulesTestCase(FederatingHomeserverTestCase):
             # Check that the new event made it to the room's state.
             channel = self.make_request(
                 method="GET",
-                path="/rooms/" + self.room_id + "/state/" + event_type,
+                path=f"/_matrix/client/r0/rooms/{self.room_id}/state/{event_type}",
                 access_token=self.tok,
             )
 

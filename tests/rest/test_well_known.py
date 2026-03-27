@@ -28,9 +28,7 @@ class WellKnownTests(unittest.HomeserverTestCase):
         }
     )
     def test_client_well_known(self) -> None:
-        channel = self.make_request(
-            "GET", "/.well-known/matrix/client", shorthand=False
-        )
+        channel = self.make_request("GET", "/.well-known/matrix/client")
 
         self.assertEqual(channel.code, 200)
         self.assertEqual(
@@ -47,9 +45,7 @@ class WellKnownTests(unittest.HomeserverTestCase):
         }
     )
     def test_client_well_known_no_public_baseurl(self) -> None:
-        channel = self.make_request(
-            "GET", "/.well-known/matrix/client", shorthand=False
-        )
+        channel = self.make_request("GET", "/.well-known/matrix/client")
 
         self.assertEqual(channel.code, 404)
 
@@ -61,9 +57,7 @@ class WellKnownTests(unittest.HomeserverTestCase):
         }
     )
     def test_client_well_known_custom(self) -> None:
-        channel = self.make_request(
-            "GET", "/.well-known/matrix/client", shorthand=False
-        )
+        channel = self.make_request("GET", "/.well-known/matrix/client")
 
         self.assertEqual(channel.code, 200)
         self.assertEqual(
@@ -77,9 +71,7 @@ class WellKnownTests(unittest.HomeserverTestCase):
 
     @unittest.override_config({"serve_server_wellknown": True})
     def test_server_well_known(self) -> None:
-        channel = self.make_request(
-            "GET", "/.well-known/matrix/server", shorthand=False
-        )
+        channel = self.make_request("GET", "/.well-known/matrix/server")
 
         self.assertEqual(channel.code, 200)
         self.assertEqual(
@@ -88,9 +80,7 @@ class WellKnownTests(unittest.HomeserverTestCase):
         )
 
     def test_server_well_known_disabled(self) -> None:
-        channel = self.make_request(
-            "GET", "/.well-known/matrix/server", shorthand=False
-        )
+        channel = self.make_request("GET", "/.well-known/matrix/server")
         self.assertEqual(channel.code, 404)
 
     @unittest.skip_unless(HAS_AUTHLIB, "requires authlib")
@@ -111,9 +101,7 @@ class WellKnownTests(unittest.HomeserverTestCase):
         }
     )
     def test_client_well_known_msc3861_oauth_delegation(self) -> None:
-        channel = self.make_request(
-            "GET", "/.well-known/matrix/client", shorthand=False
-        )
+        channel = self.make_request("GET", "/.well-known/matrix/client")
 
         self.assertEqual(channel.code, 200)
         self.assertEqual(

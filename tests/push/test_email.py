@@ -228,7 +228,6 @@ class EmailPusherTests(HomeserverTestCase):
         channel = self.make_request(
             "POST" if use_post else "GET",
             unsubscribe_path,
-            shorthand=False,
         )
         self.assertEqual(HTTPStatus.OK, channel.code, channel.result)
 
