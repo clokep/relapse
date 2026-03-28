@@ -2779,14 +2779,14 @@ type = ["importlib_metadata (>=7.0.2) ; python_version < \"3.10\"", "jaraco.deve
 
 [[package]]
 name = "setuptools-rust"
-version = "1.12.0"
+version = "1.12.1"
 description = "Setuptools Rust extension plugin"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "setuptools_rust-1.12.0-py3-none-any.whl", hash = "sha256:7e7db90547f224a835b45f5ad90c983340828a345554a9a660bdb2de8605dcdd"},
-    {file = "setuptools_rust-1.12.0.tar.gz", hash = "sha256:d94a93f0c97751c17014565f07bdc324bee45d396cd1bba83d8e7af92b945f0c"},
+    {file = "setuptools_rust-1.12.1-py3-none-any.whl", hash = "sha256:b7ebd6a182e7aefa97a072e880530c9b0ec8fcca8617e0bb8ff299c1a064f693"},
+    {file = "setuptools_rust-1.12.1.tar.gz", hash = "sha256:85ae70989d96c9cfeb5ef79cf3bac2d5200bc5564f720a06edceedbdf6664640"},
 ]
 
 [package.dependencies]
