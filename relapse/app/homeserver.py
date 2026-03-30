@@ -59,7 +59,6 @@ class RelapseHomeServer(HomeServer):
         )
 
         return listen_http(
-            self,
             listener_config,
             matrix_resource,
             self.version_string,

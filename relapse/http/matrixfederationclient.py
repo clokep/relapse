@@ -44,7 +44,7 @@ from twisted.internet.interfaces import IReactorTime
 from twisted.internet.task import Cooperator
 from twisted.web.client import ResponseFailed
 from twisted.web.http_headers import Headers
-from twisted.web.iweb import IAgent, IBodyProducer, IResponse
+from twisted.web.iweb import IBodyProducer, IResponse
 
 import relapse.metrics
 import relapse.util.retryutils
@@ -65,9 +65,7 @@ from relapse.http.client import (
     encode_query_args,
     read_body_with_max_size,
 )
-from relapse.http.connectproxyclient import BearerProxyCredentials
 from relapse.http.federation.matrix_federation_agent import MatrixFederationAgent
-from relapse.http.proxyagent import ProxyAgent
 from relapse.http.types import QueryParams
 from relapse.logging import opentracing
 from relapse.logging.context import make_deferred_yieldable, run_in_background
@@ -396,41 +394,17 @@ class MatrixFederationHttpClient:
         if hs.config.server.user_agent_suffix:
             user_agent = f"{user_agent} {hs.config.server.user_agent_suffix}"
 
-        outbound_federation_restricted_to = (
-            hs.config.worker.outbound_federation_restricted_to
+        federation_agent = MatrixFederationAgent(
+            self.reactor,
+            tls_client_options_factory,
+            user_agent.encode("ascii"),
+            hs.config.server.ip_range_allowlist,
+            hs.config.server.ip_range_blocklist,
         )
-        if hs.get_instance_name() in outbound_federation_restricted_to:
-            # Talk to federation directly
-            federation_agent: IAgent = MatrixFederationAgent(
-                self.reactor,
-                tls_client_options_factory,
-                user_agent.encode("ascii"),
-                hs.config.server.ip_range_allowlist,
-                hs.config.server.ip_range_blocklist,
-            )
-        else:
-            proxy_authorization_secret = hs.config.worker.worker_replication_secret
-            assert proxy_authorization_secret is not None, (
-                "`worker_replication_secret` must be set when using `outbound_federation_restricted_to` (used to authenticate requests across workers)"
-            )
-            federation_proxy_credentials = BearerProxyCredentials(
-                proxy_authorization_secret.encode("ascii")
-            )
-
-            # We need to talk to federation via the proxy via one of the configured
-            # locations
-            federation_proxy_locations = outbound_federation_restricted_to.locations
-            federation_agent = ProxyAgent(
-                self.reactor,
-                self.reactor,
-                tls_client_options_factory,
-                federation_proxy_locations=federation_proxy_locations,
-                federation_proxy_credentials=federation_proxy_credentials,
-            )
 
         # Use a BlocklistingAgentWrapper to prevent circumventing the IP
         # blocking via IP literals in server names
-        self.agent: IAgent = BlocklistingAgentWrapper(
+        self.agent = BlocklistingAgentWrapper(
             federation_agent,
             ip_blocklist=hs.config.server.ip_range_blocklist,
         )
@@ -439,6 +413,7 @@ class MatrixFederationHttpClient:
         self._store = hs.get_datastores().main
         self.version_string_bytes = hs.version_string.encode("ascii")
         self.default_timeout_seconds = hs.config.federation.client_timeout_ms / 1000
+
         self.max_long_retry_delay_seconds = (
             hs.config.federation.max_long_retry_delay_ms / 1000
         )
