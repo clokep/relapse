@@ -200,7 +200,6 @@ class GenericWorkerServer(HomeServer):
                     register_replication_servlets(self, matrix_resource)
 
         return _base.listen_http(
-            self,
             listener_config,
             matrix_resource,
             self.version_string,

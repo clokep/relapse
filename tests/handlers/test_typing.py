@@ -15,14 +15,11 @@
 import json
 from unittest.mock import ANY, AsyncMock, Mock, call
 
-from netaddr import IPSet
-
 from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EduTypes
 from relapse.api.errors import AuthError
 from relapse.handlers.typing import TypingWriterHandler
-from relapse.http.federation.matrix_federation_agent import MatrixFederationAgent
 from relapse.server import HomeServer
 from relapse.types import JsonDict, Requester, StreamKeyType, UserID, create_requester
 from relapse.util import Clock
@@ -72,15 +69,8 @@ class TypingNotificationsTestCase(unittest.FederatingHomeserverTestCase):
         mock_keyring.verify_json_for_server = AsyncMock(return_value=True)
 
         # we mock out the federation client too
-        self.mock_federation_client = AsyncMock(spec=["put_json"])
+        self.mock_federation_client = Mock(spec=["put_json"])
         self.mock_federation_client.put_json.return_value = (200, "OK")
-        self.mock_federation_client.agent = MatrixFederationAgent(
-            reactor,
-            tls_client_options_factory=None,
-            user_agent=b"RelapseInTrialTest/0.0.0",
-            ip_allowlist=None,
-            ip_blocklist=IPSet(),
-        )
 
         # the tests assume that we are starting at unix time 1000
         reactor.pump((1000,))

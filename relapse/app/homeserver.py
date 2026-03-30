@@ -104,7 +104,6 @@ class RelapseHomeServer(HomeServer):
             RedirectServlet(re.compile(r"^/$"), STATIC_PREFIX).register(matrix_resource)
 
         return listen_http(
-            self,
             listener_config,
             matrix_resource,
             self.version_string,

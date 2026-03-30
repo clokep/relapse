@@ -22,27 +22,24 @@ from zope.interface import implementer
 
 from twisted.internet.address import UNIXAddress
 from twisted.internet.defer import Deferred
-from twisted.internet.interfaces import IAddress, ITCPTransport
+from twisted.internet.interfaces import IAddress, IReactorTime, ITCPTransport
 from twisted.python.failure import Failure
 from twisted.web.http import HTTPChannel
 from twisted.web.resource import IResource, Resource
-from twisted.web.server import Request
+from twisted.web.server import Request, Site
 
 from relapse.config.server import ListenerConfig
 from relapse.http import get_request_user_agent, redact_uri
-from relapse.http.proxy import ProxySite
 from relapse.http.request_metrics import RequestMetrics, requests_counter
 from relapse.logging.context import (
     ContextRequest,
     LoggingContext,
     PreserveLoggingContext,
 )
-from relapse.types import IRelapseReactor, Requester
+from relapse.types import Requester
 
 if TYPE_CHECKING:
     import opentracing
-
-    from relapse.server import HomeServer
 
 
 logger = logging.getLogger(__name__)
@@ -106,7 +103,7 @@ class RelapseRequest(Request):
         # A boolean indicating whether `render_deferred` should be cancelled if the
         # client disconnects early. Expected to be set by the coroutine started by
         # `Resource.render`, if rendering is asynchronous.
-        self.is_render_cancellable: bool = False
+        self.is_render_cancellable = False
 
         global _next_request_seq
         self.request_seq = _next_request_seq
@@ -605,7 +602,7 @@ class _XForwardedForAddress:
     host: str
 
 
-class RelapseSite(ProxySite):
+class RelapseSite(Site):
     """
     Relapse-specific twisted http Site
 
@@ -627,8 +624,7 @@ class RelapseSite(ProxySite):
         resource: IResource,
         server_version_string: str,
         max_request_body_size: int,
-        reactor: IRelapseReactor,
-        hs: "HomeServer",
+        reactor: IReactorTime,
     ):
         """
 
@@ -643,11 +639,7 @@ class RelapseSite(ProxySite):
                 dropping the connection
             reactor: reactor to be used to manage connection timeouts
         """
-        super().__init__(
-            resource=resource,
-            reactor=reactor,
-            hs=hs,
-        )
+        Site.__init__(self, resource, reactor=reactor)
 
         self.site_tag = site_tag
         self.reactor = reactor
