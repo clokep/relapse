@@ -12,24 +12,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import logging
 import random
 import time
 from collections.abc import Callable
-from typing import Any
 
 import attr
+import dns.asyncresolver
+import dns.resolver
 
 from twisted.internet.error import ConnectError
-from twisted.names import client, dns
-from twisted.names.error import DNSNameError, DNSNotImplementedError, DomainError
 
-from relapse.logging.context import make_deferred_yieldable
+from relapse.util.async_helpers import schedule_coro
 
 logger = logging.getLogger(__name__)
 
-SERVER_CACHE: dict[bytes, list["Server"]] = {}
+SERVER_CACHE: dict[str, list["Server"]] = {}
 
 
 @attr.s(auto_attribs=True, slots=True, frozen=True)
@@ -46,7 +44,7 @@ class Server:
             the epoch
     """
 
-    host: bytes
+    host: str
     port: int
     priority: int = 0
     weight: int = 0
@@ -110,15 +108,14 @@ class SrvResolver:
 
     def __init__(
         self,
-        dns_client: Any = client,
-        cache: dict[bytes, list[Server]] = SERVER_CACHE,
+        cache: dict[str, list[Server]] = SERVER_CACHE,
         get_time: Callable[[], float] = time.time,
     ):
-        self._dns_client = dns_client
+        self._dns_client = dns.asyncresolver.Resolver()
         self._cache = cache
         self._get_time = get_time
 
-    async def resolve_service(self, service_name: bytes) -> list[Server]:
+    async def resolve_service(self, service_name: str) -> list[Server]:
         """Look up a SRV record
 
         Args:
@@ -129,9 +126,6 @@ class SrvResolver:
         """
         now = int(self._get_time())
 
-        if not isinstance(service_name, bytes):
-            raise TypeError(f"{service_name!r} is not a byte string")
-
         cache_entry = self._cache.get(service_name, None)
         if cache_entry:
             if all(s.expires > now for s in cache_entry):
@@ -139,19 +133,19 @@ class SrvResolver:
                 return _sort_server_list(servers)
 
         try:
-            answers, _, _ = await make_deferred_yieldable(
-                self._dns_client.lookupService(service_name)
+            answer = await schedule_coro(
+                self._dns_client.resolve(service_name, dns.rdatatype.SRV)
             )
-        except DNSNameError:
+        except dns.resolver.NXDOMAIN:
             # TODO: cache this. We can get the SOA out of the exception, and use
             # the negative-TTL value.
             return []
-        except DNSNotImplementedError:
+        except dns.resolver.NoNameservers:
             # For .onion homeservers this is unavailable, just fallback to host:8448
             return []
-        except DomainError as e:
-            # We failed to resolve the name (other than a NameError)
-            # Try something in the cache, else rereaise
+        except dns.exception.DNSException as e:
+            # We failed to resolve the name (other than a NXDOMAIN)
+            # Try something in the cache, else reraise
             cache_entry = self._cache.get(service_name, None)
             if cache_entry:
                 logger.warning(
@@ -161,29 +155,31 @@ class SrvResolver:
             else:
                 raise e
 
+        records = answer.rrset
+
+        if records is None:
+            return []
+
         if (
-            len(answers) == 1
-            and answers[0].type == dns.SRV
-            and answers[0].payload
-            and answers[0].payload.target == dns.Name(b".")
+            len(records) == 1
+            and records[0].rdtype == dns.rdatatype.SRV
+            and records[0].target == dns.name.from_text(".")
         ):
             raise ConnectError(f"Service {service_name!r} unavailable")
 
         servers = []
 
-        for answer in answers:
-            if answer.type != dns.SRV or not answer.payload:
+        for record in records:
+            if record.rdtype != dns.rdatatype.SRV or not record.target:
                 continue
-
-            payload = answer.payload
 
             servers.append(
                 Server(
-                    host=payload.target.name,
-                    port=payload.port,
-                    priority=payload.priority,
-                    weight=payload.weight,
-                    expires=now + answer.ttl,
+                    host=record.target.to_text(),
+                    port=record.port,
+                    priority=record.priority,
+                    weight=record.weight,
+                    expires=int(answer.expiration),
                 )
             )
 

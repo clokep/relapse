@@ -12,194 +12,140 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import cast
-from unittest.mock import Mock
+from unittest.mock import AsyncMock, patch
 
-from twisted.internet import defer
-from twisted.internet.defer import Deferred
+import dns.asyncresolver
+
 from twisted.internet.error import ConnectError
-from twisted.names import dns, error
 
 from relapse.http.federation.srv_resolver import Server, SrvResolver
-from relapse.logging.context import LoggingContext, current_context
 
 from tests import unittest
-from tests.utils import MockClock
 
 
 class SrvResolverTestCase(unittest.TestCase):
-    async def test_resolve(self) -> None:
-        dns_client_mock = Mock()
+    def setUp(self) -> None:
+        self.cache: dict[str, list[Server]] = {}
+        self.resolver = SrvResolver(self.cache)
+        self.resolve_mock = AsyncMock()
+        patch.object(
+            dns.asyncresolver.Resolver, "resolve", new=self.resolve_mock
+        ).start()
 
-        service_name = b"test_service.example.com"
-        host_name = b"example.com"
+    def make_answer(self, service_name: str, *records: dns.rdata.Rdata) -> None:
+        query = dns.message.make_query(service_name, dns.rdatatype.SRV)
+        response = dns.message.make_response(query)
+        for record in records:
+            rrs = response.get_rrset(
+                response.answer,
+                dns.name.from_text(service_name),
+                dns.rdataclass.IN,
+                record.rdtype,
+                create=True,
+            )
+            assert rrs is not None
+            rrs.add(record, 300)
 
-        answer_srv = dns.RRHeader(
-            type=dns.SRV, payload=dns.Record_SRV(target=host_name)
+        self.resolve_mock.return_value = dns.resolver.Answer(
+            dns.name.from_text(service_name),
+            dns.rdatatype.SRV,
+            dns.rdataclass.IN,
+            response,  # type: ignore[arg-type]
         )
 
-        result_deferred: Deferred[tuple[list[dns.RRHeader], None, None]] = Deferred()
-        dns_client_mock.lookupService.return_value = result_deferred
+    async def test_resolve(self) -> None:
+        service_name = "test_service.example.com"
+        host_name = "example.com"
 
-        cache: dict[bytes, list[Server]] = {}
-        resolver = SrvResolver(dns_client=dns_client_mock, cache=cache)
+        self.make_answer(
+            service_name,
+            dns.rdata.from_text(
+                dns.rdataclass.IN, dns.rdatatype.SRV, f"0 0 0 {host_name}"
+            ),
+        )
 
-        async def do_lookup() -> list[Server]:
-            with LoggingContext("one") as ctx:
-                resolve_d = resolver.resolve_service(service_name)
-                result: list[Server]
-                result = await resolve_d
-
-                # should have restored our context
-                self.assertIs(current_context(), ctx)
-
-                return result
-
-        test_d = defer.ensureDeferred(do_lookup())
-        self.assertNoResult(test_d)
-
-        dns_client_mock.lookupService.assert_called_once_with(service_name)
-
-        result_deferred.callback(([answer_srv], None, None))
-
-        servers = await test_d
+        servers = await self.resolver.resolve_service(service_name)
 
         self.assertEqual(len(servers), 1)
-        self.assertEqual(servers, cache[service_name])
+        self.assertEqual(servers, self.cache[service_name])
         self.assertEqual(servers[0].host, host_name)
 
-    async def test_from_cache_expired_and_dns_fail(
-        self,
-    ) -> None:
-        dns_client_mock = Mock()
-        dns_client_mock.lookupService.return_value = defer.fail(error.DNSServerError())
+    async def test_from_cache_expired_and_dns_fail(self) -> None:
+        self.resolve_mock.side_effect = dns.exception.DNSException()
 
-        service_name = b"test_service.example.com"
+        service_name = "test_service.example.com"
 
-        entry = Mock(spec_set=["expires", "priority", "weight"])
-        entry.expires = 0
-        entry.priority = 0
-        entry.weight = 0
+        entry = Server(service_name, 8888, 0, 0, 0)
 
-        cache = {service_name: [cast(Server, entry)]}
-        resolver = SrvResolver(dns_client=dns_client_mock, cache=cache)
+        self.cache[service_name] = [entry]
+        servers = await self.resolver.resolve_service(service_name)
 
-        servers: list[Server]
-        servers = await resolver.resolve_service(service_name)
-
-        dns_client_mock.lookupService.assert_called_once_with(service_name)
+        self.resolve_mock.assert_called_once_with(service_name, dns.rdatatype.SRV)
 
         self.assertEqual(len(servers), 1)
-        self.assertEqual(servers, cache[service_name])
+        self.assertEqual(servers, [entry])
 
     async def test_from_cache(self) -> None:
-        clock = MockClock()
+        self.resolve_mock.side_effect = dns.exception.DNSException()
 
-        dns_client_mock = Mock(spec_set=["lookupService"])
-        dns_client_mock.lookupService = Mock(spec_set=[])
+        service_name = "test_service.example.com"
 
-        service_name = b"test_service.example.com"
+        entry = Server(service_name, 8888, 0, 0, 0)
 
-        entry = Mock(spec_set=["expires", "priority", "weight"])
-        entry.expires = 999999999
-        entry.priority = 0
-        entry.weight = 0
+        self.cache[service_name] = [entry]
+        servers = await self.resolver.resolve_service(service_name)
 
-        cache = {service_name: [cast(Server, entry)]}
-        resolver = SrvResolver(
-            dns_client=dns_client_mock, cache=cache, get_time=clock.time
-        )
-
-        servers: list[Server]
-        servers = await resolver.resolve_service(service_name)
-
-        self.assertFalse(dns_client_mock.lookupService.called)
+        self.resolve_mock.assert_called_once_with(service_name, dns.rdatatype.SRV)
 
         self.assertEqual(len(servers), 1)
-        self.assertEqual(servers, cache[service_name])
+        self.assertEqual(servers, [entry])
 
     async def test_empty_cache(self) -> None:
-        dns_client_mock = Mock()
+        self.resolve_mock.side_effect = dns.exception.DNSException()
 
-        dns_client_mock.lookupService.return_value = defer.fail(error.DNSServerError())
+        service_name = "test_service.example.com"
 
-        service_name = b"test_service.example.com"
-
-        cache: dict[bytes, list[Server]] = {}
-        resolver = SrvResolver(dns_client=dns_client_mock, cache=cache)
-
-        with self.assertRaises(error.DNSServerError):
-            await resolver.resolve_service(service_name)
+        with self.assertRaises(dns.exception.DNSException):
+            await self.resolver.resolve_service(service_name)
 
     async def test_name_error(self) -> None:
-        dns_client_mock = Mock()
+        self.resolve_mock.side_effect = dns.resolver.NXDOMAIN()
 
-        dns_client_mock.lookupService.return_value = defer.fail(error.DNSNameError())
-
-        service_name = b"test_service.example.com"
-
-        cache: dict[bytes, list[Server]] = {}
-        resolver = SrvResolver(dns_client=dns_client_mock, cache=cache)
-
-        servers: list[Server]
-        servers = await resolver.resolve_service(service_name)
+        service_name = "test_service.example.com"
+        servers = await self.resolver.resolve_service(service_name)
 
         self.assertEqual(len(servers), 0)
-        self.assertEqual(len(cache), 0)
+        self.assertEqual(len(self.cache), 0)
 
     async def test_disabled_service(self) -> None:
         """
         test the behaviour when there is a single record which is ".".
         """
-        service_name = b"test_service.example.com"
-
-        lookup_deferred: Deferred[tuple[list[dns.RRHeader], None, None]] = Deferred()
-        dns_client_mock = Mock()
-        dns_client_mock.lookupService.return_value = lookup_deferred
-        cache: dict[bytes, list[Server]] = {}
-        resolver = SrvResolver(dns_client=dns_client_mock, cache=cache)
-
-        resolve_d = resolver.resolve_service(service_name)
+        service_name = "test_service.example.com"
 
         # returning a single "." should make the lookup fail with a ConenctError
-        lookup_deferred.callback(
-            (
-                [dns.RRHeader(type=dns.SRV, payload=dns.Record_SRV(target=b"."))],
-                None,
-                None,
-            )
+        self.make_answer(
+            service_name,
+            dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.SRV, "0 0 0 ."),
         )
 
         with self.assertRaises(ConnectError):
-            await resolve_d
+            await self.resolver.resolve_service(service_name)
 
     async def test_non_srv_answer(self) -> None:
         """
         test the behaviour when the dns server gives us a spurious non-SRV response
         """
-        service_name = b"test_service.example.com"
+        service_name = "test_service.example.com"
 
-        lookup_deferred: Deferred[tuple[list[dns.RRHeader], None, None]] = Deferred()
-        dns_client_mock = Mock()
-        dns_client_mock.lookupService.return_value = lookup_deferred
-        cache: dict[bytes, list[Server]] = {}
-        resolver = SrvResolver(dns_client=dns_client_mock, cache=cache)
-
-        resolve_d = resolver.resolve_service(service_name)
-
-        lookup_deferred.callback(
-            (
-                [
-                    dns.RRHeader(type=dns.A, payload=dns.Record_A()),
-                    dns.RRHeader(type=dns.SRV, payload=dns.Record_SRV(target=b"host")),
-                ],
-                None,
-                None,
-            )
+        self.make_answer(
+            service_name,
+            dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A, "127.0.0.1"),
+            dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.SRV, "0 0 0 host"),
         )
 
-        servers = await resolve_d
+        servers = await self.resolver.resolve_service(service_name)
 
         self.assertEqual(len(servers), 1)
-        self.assertEqual(servers, cache[service_name])
-        self.assertEqual(servers[0].host, b"host")
+        self.assertEqual(servers, self.cache[service_name])
+        self.assertEqual(servers[0].host, "host")

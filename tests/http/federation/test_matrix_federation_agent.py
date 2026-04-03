@@ -1056,7 +1056,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
         self.agent = self._make_agent()
 
         self.mock_resolver.resolve_service.return_value = [
-            Server(host=b"srvtarget", port=8443)
+            Server(host="srvtarget", port=8443)
         ]
         self.reactor.lookups["srvtarget"] = "1.2.3.4"
 
@@ -1100,7 +1100,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
         # Return no entries for the _matrix-fed lookup, and a response for _matrix.
         self.mock_resolver.resolve_service.side_effect = [
             [],
-            [Server(host=b"srvtarget", port=8443)],
+            [Server(host="srvtarget", port=8443)],
         ]
         self.reactor.lookups["srvtarget"] = "1.2.3.4"
 
@@ -1157,7 +1157,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
         self.assertEqual(port, 443)
 
         self.mock_resolver.resolve_service.return_value = [
-            Server(host=b"srvtarget", port=8443)
+            Server(host="srvtarget", port=8443)
         ]
 
         self._handle_well_known_connection(
@@ -1219,7 +1219,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
         # Return no entries for the _matrix-fed lookup, and a response for _matrix.
         self.mock_resolver.resolve_service.side_effect = [
             [],
-            [Server(host=b"srvtarget", port=8443)],
+            [Server(host="srvtarget", port=8443)],
         ]
 
         self._handle_well_known_connection(
@@ -1332,7 +1332,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
         self.agent = self._make_agent()
 
         self.mock_resolver.resolve_service.return_value = [
-            Server(host=b"xn--trget-3qa.com", port=8443)
+            Server(host="xn--trget-3qa.com", port=8443)
         ]  # târget.com
         self.reactor.lookups["xn--trget-3qa.com"] = "1.2.3.4"
 
@@ -1379,7 +1379,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
         # Return no entries for the _matrix-fed lookup, and a response for _matrix.
         self.mock_resolver.resolve_service.side_effect = [
             [],
-            [Server(host=b"xn--trget-3qa.com", port=8443)],
+            [Server(host="xn--trget-3qa.com", port=8443)],
         ]  # târget.com
         self.reactor.lookups["xn--trget-3qa.com"] = "1.2.3.4"
 
@@ -1588,8 +1588,8 @@ class MatrixFederationAgentTests(unittest.TestCase):
         self.agent = self._make_agent()
 
         self.mock_resolver.resolve_service.return_value = [
-            Server(host=b"target.com", port=8443),
-            Server(host=b"target.com", port=8444),
+            Server(host="target.com", port=8443),
+            Server(host="target.com", port=8444),
         ]
         self.reactor.lookups["target.com"] = "1.2.3.4"
 
@@ -1647,8 +1647,8 @@ class MatrixFederationAgentTests(unittest.TestCase):
         self.mock_resolver.resolve_service.side_effect = [
             [],
             [
-                Server(host=b"target.com", port=8443),
-                Server(host=b"target.com", port=8444),
+                Server(host="target.com", port=8443),
+                Server(host="target.com", port=8444),
             ],
         ]
         self.reactor.lookups["target.com"] = "1.2.3.4"
@@ -1705,7 +1705,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
 
         # Return a failing entry for _matrix-fed.
         self.mock_resolver.resolve_service.side_effect = [
-            [Server(host=b"target.com", port=8443)],
+            [Server(host="target.com", port=8443)],
             [],
         ]
         self.reactor.lookups["target.com"] = "1.2.3.4"
