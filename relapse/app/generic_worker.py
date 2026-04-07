@@ -30,8 +30,8 @@ from relapse.app._base import (
 from relapse.config._base import ConfigError
 from relapse.config.homeserver import HomeServerConfig
 from relapse.config.logger import setup_logging
-from relapse.config.server import ListenerConfig, TCPListenerConfig
-from relapse.http.server import OptionsResource
+from relapse.config.server import HttpResourceConfig, ListenerConfig, TCPListenerConfig
+from relapse.http.server import JsonResource, OptionsResource
 from relapse.logging.context import LoggingContext
 from relapse.metrics import RegistryProxy
 from relapse.replication.http import (
@@ -152,12 +152,29 @@ class GenericWorkerServer(HomeServer):
     def listen_http(self, listener_config: ListenerConfig) -> Iterable[Port]:
         assert listener_config.http_options is not None
 
+        matrix_resource = self.resource_for_listener(
+            listener_config.http_options.resources
+        )
+
+        return _base.listen_http(
+            self,
+            listener_config,
+            matrix_resource,
+            self.version_string,
+            max_request_body_size(self.config),
+            self.tls_server_context_factory,
+            reactor=self.get_reactor(),
+        )
+
+    def resource_for_listener(
+        self, resources: list[HttpResourceConfig]
+    ) -> JsonResource:
         matrix_resource = OptionsResource(self)
 
         # We always include a health resource.
         HealthServlet().register(matrix_resource)
 
-        for res in listener_config.http_options.resources:
+        for res in resources:
             for name in res.names:
                 if name == "metrics":
                     MetricsServlet(RegistryProxy).register(matrix_resource)
@@ -199,15 +216,7 @@ class GenericWorkerServer(HomeServer):
                 if name == "replication":
                     register_replication_servlets(self, matrix_resource)
 
-        return _base.listen_http(
-            self,
-            listener_config,
-            matrix_resource,
-            self.version_string,
-            max_request_body_size(self.config),
-            self.tls_server_context_factory,
-            reactor=self.get_reactor(),
-        )
+        return matrix_resource
 
     def start_listening(self) -> None:
         for listener in self.config.worker.worker_listeners:

@@ -39,9 +39,10 @@ from relapse.app._base import (
 )
 from relapse.config._base import ConfigError, format_config_error
 from relapse.config.homeserver import HomeServerConfig
-from relapse.config.server import ListenerConfig, TCPListenerConfig
+from relapse.config.server import HttpResourceConfig, ListenerConfig, TCPListenerConfig
 from relapse.http.server import (
     HttpServer,
+    JsonResource,
     OptionsResource,
 )
 from relapse.http.servlet import RedirectServlet, StaticServlet
@@ -72,13 +73,30 @@ class RelapseHomeServer(HomeServer):
         # Must exist since this is an HTTP listener.
         assert listener_config.http_options is not None
 
+        matrix_resource = self.resource_for_listener(
+            listener_config.http_options.resources
+        )
+
+        return listen_http(
+            self,
+            listener_config,
+            matrix_resource,
+            self.version_string,
+            max_request_body_size(self.config),
+            self.tls_server_context_factory,
+            reactor=self.get_reactor(),
+        )
+
+    def resource_for_listener(
+        self, resources: list[HttpResourceConfig]
+    ) -> JsonResource:
         matrix_resource = OptionsResource(self)
 
         # We always include a health resource.
         HealthServlet().register(matrix_resource)
 
         has_static_resources = False
-        for res in listener_config.http_options.resources:
+        for res in resources:
             for name in res.names:
                 if name == "openid" and "federation" in res.names:
                     # Skip loading openid resource if federation is defined
@@ -103,15 +121,7 @@ class RelapseHomeServer(HomeServer):
         elif has_static_resources:
             RedirectServlet(re.compile(r"^/$"), STATIC_PREFIX).register(matrix_resource)
 
-        return listen_http(
-            self,
-            listener_config,
-            matrix_resource,
-            self.version_string,
-            max_request_body_size(self.config),
-            self.tls_server_context_factory,
-            reactor=self.get_reactor(),
-        )
+        return matrix_resource
 
     def _configure_named_resource(self, resource: HttpServer, name: str) -> None:
         """Build a resource map for a named resource
