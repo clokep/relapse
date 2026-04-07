@@ -22,9 +22,6 @@ from twisted.internet.testing import MemoryReactor
 from relapse.api.constants import ApprovalNoticeMedium, LoginType
 from relapse.api.errors import Codes, RelapseError
 from relapse.handlers.ui_auth.checkers import UserInteractiveAuthChecker
-from relapse.rest import admin
-from relapse.rest.client import account, auth, devices, login, logout, register
-from relapse.rest.relapse import client as relapse_client
 from relapse.server import HomeServer
 from relapse.storage.database import LoggingTransaction
 from relapse.types import JsonDict, UserID

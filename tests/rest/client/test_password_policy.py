@@ -18,8 +18,6 @@ from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import LoginType
 from relapse.api.errors import Codes
-from relapse.rest import admin
-from relapse.rest.client import account, login, password_policy, register
 from relapse.server import HomeServer
 from relapse.util import Clock
 

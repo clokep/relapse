@@ -19,8 +19,6 @@ from twisted.internet.testing import MemoryReactor
 
 from relapse.logging.context import make_deferred_yieldable
 from relapse.push import PusherConfig, PusherConfigException
-from relapse.rest import admin
-from relapse.rest.client import login, push_rule, pusher, receipts, room
 from relapse.server import HomeServer
 from relapse.types import JsonDict
 from relapse.util import Clock

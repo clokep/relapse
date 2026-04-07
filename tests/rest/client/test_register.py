@@ -26,8 +26,6 @@ from relapse.api.constants import (
 )
 from relapse.api.errors import Codes
 from relapse.appservice import ApplicationService
-from relapse.rest import admin
-from relapse.rest.client import account, account_validity, login, logout, register, sync
 from relapse.server import HomeServer
 from relapse.storage._base import db_to_json
 from relapse.types import JsonDict

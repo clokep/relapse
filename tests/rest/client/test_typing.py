@@ -18,7 +18,6 @@
 from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EduTypes
-from relapse.rest.client import room
 from relapse.server import HomeServer
 from relapse.types import UserID
 from relapse.util import Clock

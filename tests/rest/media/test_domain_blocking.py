@@ -15,7 +15,6 @@
 from twisted.internet.testing import MemoryReactor
 
 from relapse.media._base import FileInfo
-from relapse.rest import media
 from relapse.server import HomeServer
 from relapse.util import Clock
 

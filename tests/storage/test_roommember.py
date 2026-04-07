@@ -17,8 +17,6 @@ from typing import cast
 from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import Membership
-from relapse.rest import admin
-from relapse.rest.client import login, room
 from relapse.server import HomeServer
 from relapse.types import UserID, create_requester
 from relapse.util import Clock

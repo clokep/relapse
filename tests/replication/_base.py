@@ -23,7 +23,6 @@ from twisted.python.failure import Failure
 from relapse.app.generic_worker import GenericWorkerServer
 from relapse.config.workers import InstanceTcpLocationConfig, InstanceUnixLocationConfig
 from relapse.http.site import RelapseRequest, RelapseSite
-from relapse.replication.http import register_servlets
 from relapse.replication.tcp.client import ReplicationDataHandler
 from relapse.replication.tcp.handler import ReplicationCommandHandler
 from relapse.replication.tcp.protocol import (

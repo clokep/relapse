@@ -20,8 +20,6 @@ from relapse.api.constants import EventTypes, Membership
 from relapse.events.builder import EventBuilderFactory
 from relapse.handlers.typing import TypingWriterHandler
 from relapse.http.federation.matrix_federation_agent import MatrixFederationAgent
-from relapse.rest import admin
-from relapse.rest.client import login, room
 from relapse.types import UserID, create_requester
 
 from tests.replication._base import BaseMultiWorkerStreamTestCase

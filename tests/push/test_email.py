@@ -26,9 +26,6 @@ from twisted.internet.testing import MemoryReactor
 
 from relapse.api.errors import Codes, RelapseError
 from relapse.push.emailpusher import EmailPusher
-from relapse.rest import admin
-from relapse.rest.client import login, room
-from relapse.rest.relapse import client as relapse_client
 from relapse.server import HomeServer
 from relapse.util import Clock
 

@@ -37,8 +37,6 @@ from relapse.handlers.presence import (
     handle_timeout,
     handle_update,
 )
-from relapse.rest import admin
-from relapse.rest.client import room
 from relapse.server import HomeServer
 from relapse.storage.database import LoggingDatabaseConnection
 from relapse.types import JsonDict, UserID, get_domain_from_id

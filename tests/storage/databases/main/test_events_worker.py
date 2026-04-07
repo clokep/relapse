@@ -23,8 +23,6 @@ from twisted.internet.testing import MemoryReactor
 from relapse.api.room_versions import EventFormatVersions, RoomVersions
 from relapse.events import make_event_from_dict
 from relapse.logging.context import LoggingContext
-from relapse.rest import admin
-from relapse.rest.client import login, room
 from relapse.server import HomeServer
 from relapse.storage.databases.main.events_worker import (
     EVENT_QUEUE_THREADS,

@@ -17,8 +17,6 @@ from twisted.internet.testing import MemoryReactor
 from relapse.api.constants import AccountDataTypes
 from relapse.push.rulekinds import PRIORITY_CLASS_MAP
 from relapse.relapse_rust.push import PushRule
-from relapse.rest import admin
-from relapse.rest.client import account, login
 from relapse.server import HomeServer
 from relapse.util import Clock
 

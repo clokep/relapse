@@ -18,8 +18,6 @@ from unittest.mock import Mock, patch
 from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EventTypes
-from relapse.rest import admin
-from relapse.rest.client import login, room
 from relapse.server import HomeServer
 from relapse.storage import prepare_database
 from relapse.storage.types import Cursor

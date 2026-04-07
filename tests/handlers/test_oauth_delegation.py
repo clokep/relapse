@@ -37,8 +37,6 @@ from relapse.api.errors import (
     RelapseError,
 )
 from relapse.http.site import RelapseRequest
-from relapse.rest import admin
-from relapse.rest.client import account, devices, keys, login, logout, register
 from relapse.server import HomeServer
 from relapse.types import JsonDict, UserID
 from relapse.util import Clock

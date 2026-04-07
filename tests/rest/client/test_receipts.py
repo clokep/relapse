@@ -16,8 +16,6 @@ from http import HTTPStatus
 from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EduTypes, EventTypes, HistoryVisibility, ReceiptTypes
-from relapse.rest import admin
-from relapse.rest.client import login, receipts, room, sync
 from relapse.server import HomeServer
 from relapse.types import JsonDict
 from relapse.util import Clock

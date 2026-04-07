@@ -41,8 +41,6 @@ from relapse.api.errors import Codes, HttpResponseException
 from relapse.appservice import ApplicationService
 from relapse.events import EventBase
 from relapse.events.snapshot import EventContext
-from relapse.rest import admin
-from relapse.rest.client import account, directory, login, profile, register, room, sync
 from relapse.server import HomeServer
 from relapse.types import JsonDict, RoomAlias, UserID, create_requester
 from relapse.util import Clock

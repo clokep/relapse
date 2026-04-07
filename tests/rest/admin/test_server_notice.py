@@ -16,8 +16,6 @@ from collections.abc import Sequence
 from twisted.internet.testing import MemoryReactor
 
 from relapse.api.errors import Codes
-from relapse.rest import admin
-from relapse.rest.client import login, room, sync
 from relapse.server import HomeServer
 from relapse.storage.roommember import RoomsForUser
 from relapse.types import JsonDict

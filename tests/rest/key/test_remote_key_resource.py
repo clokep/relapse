@@ -24,7 +24,6 @@ from twisted.internet.testing import MemoryReactor
 
 from relapse.crypto.keyring import PerspectivesKeyFetcher
 from relapse.http.site import RelapseRequest
-from relapse.rest import key
 from relapse.server import HomeServer
 from relapse.storage.keys import FetchKeyResult
 from relapse.types import JsonDict

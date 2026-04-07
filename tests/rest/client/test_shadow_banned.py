@@ -17,14 +17,6 @@ from unittest.mock import Mock, patch
 from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EduTypes, EventTypes
-from relapse.rest import admin
-from relapse.rest.client import (
-    directory,
-    login,
-    profile,
-    room,
-    room_upgrade_rest_servlet,
-)
 from relapse.server import HomeServer
 from relapse.types import UserID, create_requester
 from relapse.util import Clock

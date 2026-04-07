@@ -23,8 +23,6 @@ from twisted.internet.testing import MemoryReactor
 from relapse.api.constants import EduTypes, RoomEncryptionAlgorithms
 from relapse.federation.units import Transaction
 from relapse.handlers.device import DeviceHandler
-from relapse.rest import admin
-from relapse.rest.client import login
 from relapse.server import HomeServer
 from relapse.types import JsonDict, ReadReceipt
 from relapse.util import Clock

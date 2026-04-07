@@ -23,8 +23,6 @@ from relapse.api.constants import RoomEncryptionAlgorithms
 from relapse.api.errors import NotFoundError, RelapseError
 from relapse.appservice import ApplicationService
 from relapse.handlers.device import MAX_DEVICE_DISPLAY_NAME_LEN, DeviceHandler
-from relapse.rest import admin
-from relapse.rest.client import devices, login, register
 from relapse.server import HomeServer
 from relapse.storage.databases.main.appservice import _make_exclusive_regex
 from relapse.types import JsonDict, create_requester

@@ -28,8 +28,6 @@ from relapse.api.room_versions import (
     RoomVersion,
 )
 from relapse.events import EventBase, _EventInternalMetadata
-from relapse.rest import admin
-from relapse.rest.client import login, room
 from relapse.server import HomeServer
 from relapse.storage.database import LoggingTransaction
 from relapse.storage.types import Cursor

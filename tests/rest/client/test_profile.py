@@ -21,8 +21,6 @@ from typing import Any
 from twisted.internet.testing import MemoryReactor
 
 from relapse.api.errors import Codes
-from relapse.rest import admin
-from relapse.rest.client import login, profile, room
 from relapse.server import HomeServer
 from relapse.types import UserID
 from relapse.util import Clock

@@ -17,8 +17,6 @@ import json
 from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EventContentFields, EventTypes
-from relapse.rest import admin
-from relapse.rest.client import devices, knock, login, room, sync
 from relapse.server import HomeServer
 from relapse.types import JsonDict
 from relapse.util import Clock

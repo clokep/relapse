@@ -18,9 +18,6 @@ from parameterized import parameterized
 
 from twisted.internet.testing import MemoryReactor
 
-from relapse.rest import admin, media
-from relapse.rest.admin import VersionServlet
-from relapse.rest.client import login, room
 from relapse.server import HomeServer
 from relapse.util import Clock
 

@@ -14,7 +14,6 @@
 from twisted.internet.testing import MemoryReactor
 
 from relapse.api.errors import RelapseError
-from relapse.rest import admin
 from relapse.server import HomeServer
 from relapse.util import Clock
 

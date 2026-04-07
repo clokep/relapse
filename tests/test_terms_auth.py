@@ -17,7 +17,6 @@ from unittest.mock import Mock
 from twisted.internet.interfaces import IReactorTime
 from twisted.internet.testing import MemoryReactor, MemoryReactorClock
 
-from relapse.rest.client.register import register_servlets
 from relapse.server import HomeServer
 from relapse.types import JsonDict
 from relapse.util import Clock

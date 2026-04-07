@@ -19,8 +19,6 @@ from twisted.internet.testing import MemoryReactor
 
 from relapse.api.errors import Codes
 from relapse.handlers.device import MAX_DEVICE_DISPLAY_NAME_LEN, DeviceHandler
-from relapse.rest import admin
-from relapse.rest.client import login
 from relapse.server import HomeServer
 from relapse.util import Clock
 

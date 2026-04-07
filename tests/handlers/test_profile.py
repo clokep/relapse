@@ -21,7 +21,6 @@ from twisted.internet.testing import MemoryReactor
 
 import relapse.types
 from relapse.api.errors import AuthError, RelapseError
-from relapse.rest import admin
 from relapse.server import HomeServer
 from relapse.types import JsonDict, UserID
 from relapse.util import Clock

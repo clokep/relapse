@@ -17,8 +17,6 @@ import json
 from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import RoomTypes
-from relapse.rest import admin
-from relapse.rest.client import login, room
 from relapse.server import HomeServer
 from relapse.storage.databases.main.room import _BackgroundUpdates
 from relapse.util import Clock

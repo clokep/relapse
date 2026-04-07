@@ -19,8 +19,6 @@ from matrix_common.types.mxc_uri import MXCUri
 
 from twisted.internet.testing import MemoryReactor
 
-from relapse.rest import admin
-from relapse.rest.client import login, register, room
 from relapse.server import HomeServer
 from relapse.types import UserID
 from relapse.util import Clock

@@ -18,8 +18,6 @@ from parameterized import parameterized
 from twisted.internet.testing import MemoryReactor
 
 from relapse.api.errors import Codes
-from relapse.rest import admin
-from relapse.rest.client import login
 from relapse.server import HomeServer
 from relapse.storage.background_updates import BackgroundUpdater
 from relapse.types import JsonDict

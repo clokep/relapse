@@ -23,8 +23,6 @@ from relapse.events.presence_router import PresenceRouter
 from relapse.federation.units import Transaction
 from relapse.handlers.presence import UserPresenceState
 from relapse.module_api import ModuleApi
-from relapse.rest import admin
-from relapse.rest.client import login, presence, room
 from relapse.server import HomeServer
 from relapse.types import JsonDict, StreamToken, create_requester
 from relapse.util import Clock

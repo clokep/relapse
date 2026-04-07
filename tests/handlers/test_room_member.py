@@ -2,14 +2,11 @@ from unittest.mock import AsyncMock, patch
 
 from twisted.internet.testing import MemoryReactor
 
-import relapse.rest.client.login
-import relapse.rest.client.room
 from relapse.api.constants import EventTypes, Membership
 from relapse.api.errors import LimitExceededError, RelapseError
 from relapse.crypto.event_signing import add_hashes_and_signatures
 from relapse.events import FrozenEventV3
 from relapse.federation.federation_client import SendJoinResult
-from relapse.rest import admin
 from relapse.server import HomeServer
 from relapse.types import UserID, create_requester
 from relapse.util import Clock

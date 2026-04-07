@@ -15,8 +15,6 @@ from unittest.mock import AsyncMock, Mock
 
 from twisted.internet.testing import MemoryReactor
 
-from relapse.rest import admin
-from relapse.rest.client import login, notifications, receipts, room
 from relapse.server import HomeServer
 from relapse.util import Clock
 

@@ -22,8 +22,6 @@ from twisted.internet.testing import MemoryReactor
 from relapse.api.constants import EventContentFields, RelationTypes
 from relapse.api.room_versions import RoomVersions
 from relapse.push.bulk_push_rule_evaluator import BulkPushRuleEvaluator
-from relapse.rest import admin
-from relapse.rest.client import login, register, room
 from relapse.server import HomeServer
 from relapse.types import JsonDict, create_requester
 from relapse.util import Clock

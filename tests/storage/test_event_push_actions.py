@@ -16,8 +16,6 @@
 from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import MAIN_TIMELINE, RelationTypes
-from relapse.rest import admin
-from relapse.rest.client import login, room
 from relapse.server import HomeServer
 from relapse.storage.databases.main.event_push_actions import NotifCounts
 from relapse.types import JsonDict

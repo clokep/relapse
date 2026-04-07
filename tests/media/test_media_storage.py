@@ -36,8 +36,6 @@ from relapse.media._base import FileInfo, ThumbnailInfo
 from relapse.media.filepath import MediaFilePaths
 from relapse.media.media_storage import MediaStorage, ReadableFileWrapper
 from relapse.media.storage_provider import FileStorageProviderBackend
-from relapse.rest import admin, media
-from relapse.rest.client import login
 from relapse.rest.media.thumbnail import ThumbnailServlet
 from relapse.server import HomeServer
 from relapse.types import JsonDict

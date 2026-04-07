@@ -32,8 +32,6 @@ from relapse.api.room_versions import RoomVersions
 from relapse.events import make_event_from_dict
 from relapse.handlers.room_summary import _child_events_comparison_key, _RoomEntry
 from relapse.http.types import QueryParams
-from relapse.rest import admin
-from relapse.rest.client import login, room
 from relapse.server import HomeServer
 from relapse.types import JsonDict, UserID, create_requester
 from relapse.util import Clock

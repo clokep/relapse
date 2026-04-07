@@ -22,8 +22,6 @@ from twisted.internet.testing import MemoryReactor
 from relapse.api.room_versions import KNOWN_ROOM_VERSIONS
 from relapse.config.server import DEFAULT_ROOM_VERSION
 from relapse.events import EventBase, make_event_from_dict
-from relapse.rest import admin
-from relapse.rest.client import login, room
 from relapse.server import HomeServer
 from relapse.storage.controllers.state import server_acl_evaluator_from_event
 from relapse.types import JsonDict

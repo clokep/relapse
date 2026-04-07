@@ -12,8 +12,6 @@ from relapse.federation.sender import (
     TransactionManager,
 )
 from relapse.federation.units import Edu, Transaction
-from relapse.rest import admin
-from relapse.rest.client import login, room
 from relapse.server import HomeServer
 from relapse.types import JsonDict
 from relapse.util import Clock

@@ -27,8 +27,6 @@ from relapse.events.snapshot import EventContext
 from relapse.federation.federation_client_helpers import StateRequestResponse
 from relapse.http.types import QueryParams
 from relapse.logging.context import LoggingContext
-from relapse.rest import admin
-from relapse.rest.client import login, room
 from relapse.server import HomeServer
 from relapse.state import StateResolutionStore
 from relapse.state.v2 import _mainline_sort, _reverse_topological_power_sort

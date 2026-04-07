@@ -13,8 +13,6 @@
 # limitations under the License.
 
 from relapse.api.constants import EduTypes
-from relapse.rest import admin
-from relapse.rest.client import login, sendtodevice, sync
 
 from tests.unittest import HomeserverTestCase, override_config
 

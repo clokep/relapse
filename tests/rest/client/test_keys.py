@@ -23,8 +23,6 @@ from signedjson.key import (
 from signedjson.sign import sign_json
 
 from relapse.api.errors import Codes
-from relapse.rest import admin
-from relapse.rest.client import keys, login
 from relapse.types import JsonDict, Requester, create_requester
 
 from tests import unittest

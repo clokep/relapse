@@ -20,8 +20,6 @@ from twisted.internet.testing import MemoryReactor
 
 from relapse.api.errors import Codes
 from relapse.media.filepath import MediaFilePaths
-from relapse.rest import admin, media
-from relapse.rest.client import login, profile, room
 from relapse.server import HomeServer
 from relapse.util import Clock
 

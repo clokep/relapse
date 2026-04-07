@@ -17,8 +17,6 @@ from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EventContentFields, EventTypes, RoomTypes
 from relapse.config.server import DEFAULT_ROOM_VERSION
-from relapse.rest import admin
-from relapse.rest.client import login, room, room_upgrade_rest_servlet
 from relapse.server import HomeServer
 from relapse.util import Clock
 

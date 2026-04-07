@@ -19,8 +19,6 @@ from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EventTypes, JoinRules
 from relapse.api.room_versions import RoomVersions
-from relapse.rest import admin
-from relapse.rest.client import knock, login, room
 from relapse.server import HomeServer
 from relapse.types import UserID
 from relapse.util import Clock

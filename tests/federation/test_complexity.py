@@ -15,8 +15,6 @@
 from unittest.mock import AsyncMock
 
 from relapse.api.errors import Codes, RelapseError
-from relapse.rest import admin
-from relapse.rest.client import login, room
 from relapse.types import JsonDict, UserID, create_requester
 
 from tests.unittest import FederatingHomeserverTestCase

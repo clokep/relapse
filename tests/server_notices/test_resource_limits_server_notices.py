@@ -17,8 +17,6 @@ from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EventTypes, LimitBlockingTypes, ServerNoticeMsgType
 from relapse.api.errors import ResourceLimitError
-from relapse.rest import admin
-from relapse.rest.client import login, room, sync
 from relapse.server import HomeServer
 from relapse.server_notices.resource_limits_server_notices import (
     ResourceLimitsServerNotices,

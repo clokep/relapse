@@ -27,8 +27,6 @@ from relapse.handlers.pagination import (
     PURGE_ROOM_ACTION_NAME,
     SHUTDOWN_AND_PURGE_ROOM_ACTION_NAME,
 )
-from relapse.rest import admin
-from relapse.rest.client import directory, events, knock, login, room, sync
 from relapse.server import HomeServer
 from relapse.types import UserID
 from relapse.util import Clock

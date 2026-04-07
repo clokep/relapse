@@ -18,8 +18,6 @@ from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EventTypes
 from relapse.api.errors import StoreError
-from relapse.rest import admin
-from relapse.rest.client import login, room
 from relapse.server import HomeServer
 from relapse.storage.databases.main import DataStore
 from relapse.storage.databases.main.search import Phrase, SearchToken, _tokenize_query

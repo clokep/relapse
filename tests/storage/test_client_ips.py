@@ -21,8 +21,6 @@ from parameterized import parameterized
 from twisted.internet.testing import MemoryReactor
 
 from relapse.http.site import XForwardedForRequest
-from relapse.rest import admin
-from relapse.rest.client import login
 from relapse.server import HomeServer
 from relapse.storage.databases.main.client_ips import (
     LAST_SEEN_GRANULARITY,

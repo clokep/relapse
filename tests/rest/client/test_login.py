@@ -26,10 +26,7 @@ from relapse.api.constants import ApprovalNoticeMedium, LoginType
 from relapse.api.errors import Codes
 from relapse.appservice import ApplicationService
 from relapse.module_api import ModuleApi
-from relapse.rest import admin
-from relapse.rest.client import devices, login, logout, register
-from relapse.rest.client.account import WhoamiRestServlet
-from relapse.rest.relapse import client as relapse_client
+from relapse.rest.client import login
 from relapse.server import HomeServer
 from relapse.types import JsonDict, create_requester
 from relapse.util import Clock

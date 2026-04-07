@@ -18,9 +18,6 @@ from http import HTTPStatus
 from twisted.internet.testing import MemoryReactor
 
 from relapse.api.urls import ConsentURIBuilder
-from relapse.rest import admin
-from relapse.rest.client import login, room
-from relapse.rest.consent import ConsentServlet
 from relapse.server import HomeServer
 from relapse.util import Clock
 

@@ -18,8 +18,6 @@ from unittest import mock
 from twisted.internet.testing import MemoryReactor
 
 from relapse.app.phone_stats_home import phone_stats_home
-from relapse.rest import admin
-from relapse.rest.client import login, sync
 from relapse.server import HomeServer
 from relapse.types import JsonDict
 from relapse.util import Clock

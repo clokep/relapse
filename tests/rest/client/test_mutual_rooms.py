@@ -15,8 +15,6 @@ from urllib.parse import quote
 
 from twisted.internet.testing import MemoryReactor
 
-from relapse.rest import admin
-from relapse.rest.client import login, mutual_rooms, room
 from relapse.server import HomeServer
 from relapse.util import Clock
 

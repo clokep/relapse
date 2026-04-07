@@ -19,8 +19,6 @@ from twisted.internet.testing import MemoryReactor
 from twisted.web.http import HTTPChannel
 from twisted.web.server import Request
 
-from relapse.rest import admin, media
-from relapse.rest.client import login
 from relapse.server import HomeServer
 from relapse.util import Clock
 

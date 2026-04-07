@@ -1,6 +1,4 @@
 from relapse.api.constants import EventTypes, RoomEncryptionAlgorithms
-from relapse.rest import admin
-from relapse.rest.client import login, room
 
 from tests import unittest
 from tests.unittest import override_config

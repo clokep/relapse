@@ -25,8 +25,6 @@ from relapse.handlers.device import DeviceHandler
 from relapse.handlers.presence import UserPresenceState
 from relapse.handlers.push_rules import InvalidRuleException
 from relapse.module_api import ModuleApi
-from relapse.rest import admin
-from relapse.rest.client import login, notifications, presence, profile, room
 from relapse.server import HomeServer
 from relapse.types import JsonDict, UserID, create_requester
 from relapse.util import Clock

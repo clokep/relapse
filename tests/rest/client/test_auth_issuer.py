@@ -13,8 +13,6 @@
 # limitations under the License.
 from http import HTTPStatus
 
-from relapse.rest.client import auth_issuer
-
 from tests.unittest import HomeserverTestCase, override_config, skip_unless
 from tests.utils import HAS_AUTHLIB
 

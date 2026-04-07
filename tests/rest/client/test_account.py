@@ -23,9 +23,6 @@ from twisted.internet.testing import MemoryReactor
 from relapse.api.constants import LoginType, Membership
 from relapse.api.errors import Codes, HttpResponseException
 from relapse.appservice import ApplicationService
-from relapse.rest import admin
-from relapse.rest.client import account, login, register, room
-from relapse.rest.relapse.client.password_reset import PasswordResetSubmitTokenServlet
 from relapse.server import HomeServer
 from relapse.storage._base import db_to_json
 from relapse.types import JsonDict

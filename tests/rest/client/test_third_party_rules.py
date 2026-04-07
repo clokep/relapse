@@ -20,8 +20,6 @@ from relapse.api.constants import EventTypes, LoginType, Membership
 from relapse.api.errors import RelapseError
 from relapse.api.room_versions import RoomVersion
 from relapse.events import EventBase
-from relapse.rest import admin
-from relapse.rest.client import account, login, profile, room
 from relapse.server import HomeServer
 from relapse.types import JsonDict, Requester, StateMap
 from relapse.util import Clock

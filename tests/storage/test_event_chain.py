@@ -21,8 +21,6 @@ from relapse.api.constants import EventTypes
 from relapse.api.room_versions import RoomVersions
 from relapse.events import EventBase
 from relapse.events.snapshot import EventContext
-from relapse.rest import admin
-from relapse.rest.client import login, room
 from relapse.server import HomeServer
 from relapse.storage.database import LoggingTransaction
 from relapse.storage.databases.main.events import _LinkMap

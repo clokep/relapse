@@ -17,7 +17,6 @@ from unittest.mock import AsyncMock, Mock
 from twisted.internet.testing import MemoryReactor
 
 from relapse.handlers.presence import PresenceHandler
-from relapse.rest.client import presence
 from relapse.server import HomeServer
 from relapse.types import UserID
 from relapse.util import Clock

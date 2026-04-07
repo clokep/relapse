@@ -1,6 +1,4 @@
 from relapse.app.phone_stats_home import start_phone_stats_home
-from relapse.rest import admin
-from relapse.rest.client import login, room
 from relapse.server import HomeServer
 from relapse.util import Clock
 

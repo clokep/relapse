@@ -27,17 +27,6 @@ from relapse.api.constants import ApprovalNoticeMedium, LoginType, UserTypes
 from relapse.api.errors import Codes, HttpResponseException, ResourceLimitError
 from relapse.api.room_versions import RoomVersions
 from relapse.media.filepath import MediaFilePaths
-from relapse.rest import admin, media
-from relapse.rest.client import (
-    devices,
-    login,
-    logout,
-    profile,
-    register,
-    room,
-    sync,
-    user_directory,
-)
 from relapse.server import HomeServer
 from relapse.storage.databases.main.client_ips import LAST_SEEN_GRANULARITY
 from relapse.types import JsonDict, UserID, create_requester

@@ -27,8 +27,6 @@ from relapse.appservice import (
     TransactionUnusedFallbackKeys,
 )
 from relapse.handlers.appservice import ApplicationServicesHandler
-from relapse.rest import admin
-from relapse.rest.client import login, receipts, register, room, sendtodevice
 from relapse.server import HomeServer
 from relapse.types import (
     JsonDict,

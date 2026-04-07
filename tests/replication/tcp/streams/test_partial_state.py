@@ -13,8 +13,6 @@
 # limitations under the License.
 from twisted.internet.defer import ensureDeferred
 
-from relapse.rest.client import room
-
 from tests.replication._base import BaseMultiWorkerStreamTestCase
 
 

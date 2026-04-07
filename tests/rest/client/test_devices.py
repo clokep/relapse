@@ -17,8 +17,6 @@ from twisted.internet.defer import ensureDeferred
 from twisted.internet.testing import MemoryReactor
 
 from relapse.api.errors import NotFoundError
-from relapse.rest import admin
-from relapse.rest.client import account, devices, keys, login, register, room, sync
 from relapse.server import HomeServer
 from relapse.types import JsonDict, UserID, create_requester
 from relapse.util import Clock

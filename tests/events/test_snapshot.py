@@ -16,8 +16,6 @@ from twisted.internet.testing import MemoryReactor
 
 from relapse.events import EventBase
 from relapse.events.snapshot import EventContext
-from relapse.rest import admin
-from relapse.rest.client import login, room
 from relapse.server import HomeServer
 from relapse.util import Clock
 

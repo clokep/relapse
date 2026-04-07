@@ -14,7 +14,6 @@
 import logging
 
 from relapse.module_api import cached
-from relapse.rest import admin
 
 from tests.replication._base import BaseMultiWorkerStreamTestCase
 

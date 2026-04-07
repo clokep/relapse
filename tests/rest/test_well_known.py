@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from relapse.rest import well_known
 
 from tests import unittest
 from tests.utils import HAS_AUTHLIB

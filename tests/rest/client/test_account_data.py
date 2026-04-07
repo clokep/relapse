@@ -13,9 +13,6 @@
 # limitations under the License.
 from unittest.mock import AsyncMock
 
-from relapse.rest import admin
-from relapse.rest.client import account_data, login, room
-
 from tests import unittest
 
 

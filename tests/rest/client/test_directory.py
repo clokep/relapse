@@ -16,8 +16,6 @@ from http import HTTPStatus
 from twisted.internet.testing import MemoryReactor
 
 from relapse.appservice import ApplicationService
-from relapse.rest import admin
-from relapse.rest.client import directory, login, room
 from relapse.server import HomeServer
 from relapse.types import RoomAlias
 from relapse.util import Clock

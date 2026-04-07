@@ -13,8 +13,6 @@
 # limitations under the License.
 import logging
 
-from relapse.rest.client import register
-
 from tests.replication._base import BaseMultiWorkerStreamTestCase
 from tests.server import make_request
 

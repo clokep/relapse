@@ -18,8 +18,6 @@ from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EventTypes, RelationTypes
 from relapse.api.room_versions import RoomVersion, RoomVersions
-from relapse.rest import admin
-from relapse.rest.client import login, room, sync
 from relapse.server import HomeServer
 from relapse.storage._base import db_to_json
 from relapse.storage.database import LoggingTransaction

@@ -33,8 +33,6 @@ from relapse.events import EventBase, make_event_from_dict
 from relapse.federation.federation_base import event_from_pdu_json
 from relapse.federation.federation_client import SendJoinResult
 from relapse.logging.context import LoggingContext, run_in_background
-from relapse.rest import admin
-from relapse.rest.client import login, room
 from relapse.server import HomeServer
 from relapse.storage.databases.main.events_worker import EventCacheEntry
 from relapse.util import Clock

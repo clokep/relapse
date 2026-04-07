@@ -21,8 +21,6 @@ from relapse.api.constants import UserTypes
 from relapse.api.errors import RelapseError
 from relapse.api.room_versions import RoomVersion, RoomVersions
 from relapse.appservice import ApplicationService
-from relapse.rest import admin
-from relapse.rest.client import login, register, room, user_directory
 from relapse.server import HomeServer
 from relapse.storage.roommember import ProfileInfo
 from relapse.types import JsonDict, UserProfile, create_requester

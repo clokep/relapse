@@ -17,8 +17,6 @@ from twisted.internet.testing import MemoryReactor
 
 from relapse.api.errors import Codes
 from relapse.events.utils import CANONICALJSON_MAX_INT, CANONICALJSON_MIN_INT
-from relapse.rest import admin
-from relapse.rest.client import login, room, sync
 from relapse.server import HomeServer
 from relapse.util import Clock
 

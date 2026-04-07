@@ -16,8 +16,6 @@ from unittest.mock import patch
 
 from twisted.internet.testing import MemoryReactor
 
-from relapse.rest import admin
-from relapse.rest.client import login, room, sync
 from relapse.server import HomeServer
 from relapse.storage.util.id_generators import MultiWriterIdGenerator
 from relapse.util import Clock
