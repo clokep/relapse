@@ -41,7 +41,6 @@ from relapse.config._base import ConfigError, format_config_error
 from relapse.config.homeserver import HomeServerConfig
 from relapse.config.server import HttpResourceConfig, ListenerConfig, TCPListenerConfig
 from relapse.http.server import (
-    HttpServer,
     JsonResource,
     OptionsResource,
 )
@@ -107,7 +106,55 @@ class RelapseHomeServer(HomeServer):
                     continue
                 if name in ["static", "client"]:
                     has_static_resources = True
-                self._configure_named_resource(matrix_resource, name)
+
+                    StaticServlet(
+                        re.compile(r"/_relapse/static/"),
+                        os.path.join(os.path.dirname(relapse.__file__), "static"),
+                    ).register(matrix_resource)
+
+                if name == "client":
+                    client.register_servlets(self, matrix_resource)
+                    relapse_client.register_servlets(self, matrix_resource)
+                    well_known.register_servlets(self, matrix_resource)
+                    admin.register_servlets(self, matrix_resource)
+
+                    if self.config.email.can_verify_email:
+                        from relapse.rest.relapse.client.password_reset import (
+                            PasswordResetSubmitTokenServlet,
+                        )
+
+                        PasswordResetSubmitTokenServlet(self).register(matrix_resource)
+
+                if name == "consent":
+                    from relapse.rest.consent import ConsentServlet
+
+                    ConsentServlet(self).register(matrix_resource)
+
+                if name == "federation":
+                    federation.register_servlets(self, matrix_resource)
+
+                if name == "openid":
+                    federation.register_servlets(
+                        self, matrix_resource, servlet_groups=["openid"]
+                    )
+
+                if name in ["media", "federation", "client"]:
+                    if self.config.server.enable_media_repo:
+                        media.register_servlets(self, matrix_resource)
+                    elif name == "media":
+                        raise ConfigError(
+                            "'media' resource conflicts with enable_media_repo=False"
+                        )
+
+                if name in ["keys", "federation"]:
+                    key.register_servlets(self, matrix_resource)
+
+                if name == "metrics" and self.config.metrics.enable_metrics:
+                    MetricsServlet(RegistryProxy).register(matrix_resource)
+
+                if name == "replication":
+                    register_replication_servlets(self, matrix_resource)
+                    MetricsServlet(RegistryProxy).register(matrix_resource)
 
         # Try to find something useful to serve at '/':
         #
@@ -122,61 +169,6 @@ class RelapseHomeServer(HomeServer):
             RedirectServlet(re.compile(r"^/$"), STATIC_PREFIX).register(matrix_resource)
 
         return matrix_resource
-
-    def _configure_named_resource(self, resource: HttpServer, name: str) -> None:
-        """Build a resource map for a named resource
-
-        Args:
-            resource: The resource to attach servlets to
-            name: named resource: one of "client", "federation", etc
-        """
-        if name == "client":
-            client.register_servlets(self, resource)
-            relapse_client.register_servlets(self, resource)
-            well_known.register_servlets(self, resource)
-            admin.register_servlets(self, resource)
-
-            if self.config.email.can_verify_email:
-                from relapse.rest.relapse.client.password_reset import (
-                    PasswordResetSubmitTokenServlet,
-                )
-
-                PasswordResetSubmitTokenServlet(self).register(resource)
-
-        if name == "consent":
-            from relapse.rest.consent import ConsentServlet
-
-            ConsentServlet(self).register(resource)
-
-        if name == "federation":
-            federation.register_servlets(self, resource)
-
-        if name == "openid":
-            federation.register_servlets(self, resource, servlet_groups=["openid"])
-
-        if name in ["static", "client"]:
-            StaticServlet(
-                re.compile(r"/_relapse/static/"),
-                os.path.join(os.path.dirname(relapse.__file__), "static"),
-            ).register(resource)
-
-        if name in ["media", "federation", "client"]:
-            if self.config.server.enable_media_repo:
-                media.register_servlets(self, resource)
-            elif name == "media":
-                raise ConfigError(
-                    "'media' resource conflicts with enable_media_repo=False"
-                )
-
-        if name in ["keys", "federation"]:
-            key.register_servlets(self, resource)
-
-        if name == "metrics" and self.config.metrics.enable_metrics:
-            MetricsServlet(RegistryProxy).register(resource)
-
-        if name == "replication":
-            register_replication_servlets(self, resource)
-            MetricsServlet(RegistryProxy).register(resource)
 
     def start_listening(self) -> None:
         if self.config.redis.redis_enabled:

@@ -37,7 +37,7 @@ from relapse.api.ratelimiting import Ratelimiter, RequestRatelimiter
 from relapse.appservice.api import ApplicationServiceApi
 from relapse.appservice.scheduler import ApplicationServiceScheduler
 from relapse.config.homeserver import HomeServerConfig
-from relapse.config.server import ListenerConfig
+from relapse.config.server import HttpResourceConfig, ListenerConfig
 from relapse.crypto import context_factory
 from relapse.crypto.context_factory import RegularPolicyForHTTPS
 from relapse.crypto.keyring import Keyring
@@ -112,6 +112,7 @@ from relapse.http.client import (
     SimpleHttpClient,
 )
 from relapse.http.matrixfederationclient import MatrixFederationHttpClient
+from relapse.http.server import JsonResource
 from relapse.media.media_repository import MediaRepository
 from relapse.metrics.common_usage_metrics import CommonUsageMetricsManager
 from relapse.module_api import ModuleApi
@@ -356,6 +357,11 @@ class HomeServer(metaclass=abc.ABCMeta):
     def listen_http(self, listener_config: ListenerConfig) -> Iterable[Port]:  # noqa: B027 (no-op by design)
         """Configure a single HTTP listener."""
         return ()
+
+    def resource_for_listener(
+        self, resources: list[HttpResourceConfig]
+    ) -> JsonResource:
+        pass
 
     def setup_background_tasks(self) -> None:
         """
