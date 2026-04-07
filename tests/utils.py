@@ -197,7 +197,25 @@ def default_config(
         # (obviously) fake worker name disables updating the user directory.
         "update_user_directory_from_worker": "does_not_exist_worker_name",
         "caches": {"global_factor": 1, "sync_response_cache_duration": 0},
-        "listeners": [{"port": 0, "type": "http"}],
+        # Load almost all the resources.
+        "listeners": [
+            {
+                "port": 0,
+                "type": "http",
+                "resources": [
+                    {
+                        "names": [
+                            "client",
+                            "keys",
+                            "media",
+                            "metrics",
+                            "replication",
+                            "static"
+                        ]
+                    }
+                ],
+            }
+        ],
     }
 
     if parse:

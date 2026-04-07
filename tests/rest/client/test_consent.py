@@ -28,12 +28,6 @@ from tests import unittest
 
 
 class ConsentResourceTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-        lambda hs, http_server: ConsentServlet(hs).register(http_server),
-    ]
     user_id = True
     hijack_auth = False
 
@@ -50,6 +44,9 @@ class ConsentResourceTestCase(unittest.HomeserverTestCase):
             "version": "1",
             "template_dir": os.path.abspath(temp_consent_path),
         }
+
+        # Load the consent resources.
+        config["listeners"][0]["resources"][0]["names"].append("consent")
 
         with open(os.path.join(temp_consent_path, "en/1.html"), "w") as f:
             f.write("{{version}},{{has_consented}}")

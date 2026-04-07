@@ -20,6 +20,8 @@ from unittest.mock import Mock
 from pydantic import BaseModel
 
 from relapse.api.errors import Codes, RelapseError
+from relapse.config.server import HttpResourceConfig
+from relapse.http.server import JsonResource
 from relapse.http.servlet import (
     RestServlet,
     parse_json_object_from_request,
@@ -29,10 +31,12 @@ from relapse.http.servlet import (
 from relapse.http.site import RelapseRequest
 from relapse.server import HomeServer
 from relapse.types import JsonDict
+from relapse.util import Clock
 from relapse.util.cancellation import cancellable
 
 from tests import unittest
 from tests.http.server._base import test_disconnect
+from tests.server import TestHomeServer, ThreadedMemoryReactorClock
 
 
 def make_request(content: bytes | JsonDict) -> Mock:
@@ -129,12 +133,23 @@ class CancellableRestServlet(RestServlet):
         return HTTPStatus.OK, {"result": True}
 
 
+class CancellationTestHomeserver(TestHomeServer):
+    def resource_for_listener(
+        self, resources: list[HttpResourceConfig]
+    ) -> JsonResource:
+        resource = JsonResource(self)
+        CancellableRestServlet(self).register(resource)
+        return resource
+
+
 class TestRestServletCancellation(unittest.HomeserverTestCase):
     """Tests for `RestServlet` cancellation."""
 
-    servlets = [
-        lambda hs, http_server: CancellableRestServlet(hs).register(http_server)
-    ]
+    def make_homeserver(
+        self, reactor: ThreadedMemoryReactorClock, clock: Clock
+    ) -> HomeServer:
+        # Override to load different servlets.
+        return self.setup_test_homeserver(homeserver_to_use=CancellationTestHomeserver)
 
     def test_cancellable_disconnect(self) -> None:
         """Test that handlers with the `@cancellable` flag can be cancelled."""

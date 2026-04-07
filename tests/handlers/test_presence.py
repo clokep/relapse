@@ -686,6 +686,10 @@ class PresenceTimeoutTestCase(unittest.TestCase):
 class PresenceHandlerInitTestCase(unittest.HomeserverTestCase):
     def default_config(self) -> JsonDict:
         config = super().default_config()
+
+        # Don't load any resources to ensure the PresenceHandler isn't loaded.
+        config["listeners"][0]["resources"] = []
+
         # Disable background tasks on this worker so that the PresenceHandler isn't
         # loaded until we request it.
         config["run_background_tasks_on"] = "other"

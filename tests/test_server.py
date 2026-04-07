@@ -19,12 +19,14 @@ from typing import NoReturn
 from twisted.internet.defer import Deferred
 
 from relapse.api.errors import Codes, RelapseError
-from relapse.http.server import JsonResource, respond_with_html_bytes
+from relapse.config.server import HttpResourceConfig
+from relapse.http.server import JsonResource
 from relapse.http.servlet import RestServlet
 from relapse.http.site import RelapseRequest
 from relapse.logging.context import make_deferred_yieldable
 from relapse.server import HomeServer
 from relapse.types import JsonDict
+from relapse.util import Clock
 from relapse.util.cancellation import cancellable
 
 from tests import unittest
@@ -32,6 +34,8 @@ from tests.http.server._base import test_disconnect
 from tests.server import (
     FakeChannel,
     FakeSite,
+    TestHomeServer,
+    ThreadedMemoryReactorClock,
     get_clock,
     make_request,
     setup_test_homeserver,
@@ -201,18 +205,6 @@ class JsonResourceTests(unittest.TestCase):
 
 
 class OptionsResourceTests(unittest.HomeserverTestCase):
-    class DummyServlet(RestServlet):
-        PATTERNS = [re.compile(r"^/_matrix/res/$")]
-
-        async def on_GET(self, request: RelapseRequest) -> None:
-            respond_with_html_bytes(request, 200, request.path)
-
-    servlets = [
-        lambda hs, http_server: OptionsResourceTests.DummyServlet().register(
-            http_server
-        )
-    ]
-
     def _check_cors_standard_headers(self, channel: FakeChannel) -> None:
         # Ensure the correct CORS headers have been added
         # as per https://spec.matrix.org/v1.4/client-server-api/#web-browser-clients
@@ -246,7 +238,7 @@ class OptionsResourceTests(unittest.HomeserverTestCase):
 
     def test_known_options_request(self) -> None:
         """An OPTIONS requests to an known URL still returns 204 No Content."""
-        channel = self.make_request("OPTIONS", "/_matrix/res/")
+        channel = self.make_request("OPTIONS", "/_matrix/client/versions")
         self.assertEqual(channel.code, 204)
         self.assertNotIn("body", channel.result)
 
@@ -259,9 +251,9 @@ class OptionsResourceTests(unittest.HomeserverTestCase):
 
     def test_known_request(self) -> None:
         """A non-OPTIONS request to an known URL should query the proper resource."""
-        channel = self.make_request("GET", "/_matrix/res/")
+        channel = self.make_request("GET", "/_matrix/client/versions")
         self.assertEqual(channel.code, 200)
-        self.assertEqual(channel.result["body"], b"/_matrix/res/")
+        self.assertIn("versions", channel.json_body)
 
 
 class CancellableRestServlet(RestServlet):
@@ -280,12 +272,23 @@ class CancellableRestServlet(RestServlet):
         return HTTPStatus.OK, {"result": True}
 
 
+class CancellableTestHomeserver(TestHomeServer):
+    def resource_for_listener(
+        self, resources: list[HttpResourceConfig]
+    ) -> JsonResource:
+        resource = JsonResource(self)
+        CancellableRestServlet(self).register(resource)
+        return resource
+
+
 class JsonResourceCancellationTests(unittest.HomeserverTestCase):
     """Tests for `JsonResource` cancellation."""
 
-    servlets = [
-        lambda hs, http_server: CancellableRestServlet(hs).register(http_server)
-    ]
+    def make_homeserver(
+        self, reactor: ThreadedMemoryReactorClock, clock: Clock
+    ) -> HomeServer:
+        # Override to load different servlets.
+        return self.setup_test_homeserver(homeserver_to_use=CancellableTestHomeserver)
 
     def test_cancellable_disconnect(self) -> None:
         """Test that handlers with the `@cancellable` flag can be cancelled."""

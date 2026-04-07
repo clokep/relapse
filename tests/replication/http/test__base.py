@@ -17,15 +17,18 @@ from http import HTTPStatus
 from twisted.web.server import Request
 
 from relapse.api.errors import Codes
-from relapse.http.server import HttpServer
+from relapse.config.server import HttpResourceConfig
+from relapse.http.server import JsonResource
 from relapse.replication.http import REPLICATION_PREFIX
 from relapse.replication.http._base import ReplicationEndpoint
 from relapse.server import HomeServer
 from relapse.types import JsonDict
+from relapse.util import Clock
 from relapse.util.cancellation import cancellable
 
 from tests import unittest
 from tests.http.server._base import test_disconnect
+from tests.server import TestHomeServer, ThreadedMemoryReactorClock
 
 
 class CancellableReplicationEndpoint(ReplicationEndpoint):
@@ -70,15 +73,24 @@ class UncancellableReplicationEndpoint(ReplicationEndpoint):
         return HTTPStatus.OK, {"result": True}
 
 
-def register_test_servlets(hs: HomeServer, http_server: HttpServer) -> None:
-    CancellableReplicationEndpoint(hs).register(http_server)
-    UncancellableReplicationEndpoint(hs).register(http_server)
+class CancellationTestHomeserver(TestHomeServer):
+    def resource_for_listener(
+        self, resources: list[HttpResourceConfig]
+    ) -> JsonResource:
+        resource = JsonResource(self)
+        CancellableReplicationEndpoint(self).register(resource)
+        UncancellableReplicationEndpoint(self).register(resource)
+        return resource
 
 
 class ReplicationEndpointCancellationTestCase(unittest.HomeserverTestCase):
     """Tests for `ReplicationEndpoint` cancellation."""
 
-    servlets = [register_test_servlets]
+    def make_homeserver(
+        self, reactor: ThreadedMemoryReactorClock, clock: Clock
+    ) -> HomeServer:
+        # Override to load different servlets.
+        return self.setup_test_homeserver(homeserver_to_use=CancellationTestHomeserver)
 
     def test_cancellable_disconnect(self) -> None:
         """Test that handlers with the `@cancellable` flag can be cancelled."""

@@ -42,7 +42,6 @@ from twisted.internet.testing import MemoryReactor, MemoryReactorClock
 from twisted.python.failure import Failure
 from twisted.python.threadpool import ThreadPool
 from twisted.trial import unittest
-from twisted.web.resource import Resource
 from twisted.web.server import Request
 
 from relapse import events
@@ -52,7 +51,7 @@ from relapse.config._base import Config, RootConfig
 from relapse.config.homeserver import HomeServerConfig
 from relapse.config.server import DEFAULT_ROOM_VERSION
 from relapse.crypto.event_signing import add_hashes_and_signatures
-from relapse.http.server import HttpServer, OptionsResource
+from relapse.http.server import HttpServer
 from relapse.http.site import RelapseRequest, RelapseSite
 from relapse.logging.context import (
     SENTINEL_CONTEXT,
@@ -60,7 +59,6 @@ from relapse.logging.context import (
     current_context,
     set_current_context,
 )
-from relapse.rest import federation
 from relapse.server import HomeServer
 from relapse.storage.keys import FetchKeyResult
 from relapse.types import JsonDict, Requester, UserID, create_requester
@@ -341,11 +339,15 @@ class HomeserverTestCase(TestCase):
             raise Exception(f"A homeserver wasn't returned, but {self.hs!r}")
 
         # create the root resource, and a site to wrap it.
-        self.resource = self.create_test_resource(self.hs)
+        listener_config = self.hs.config.server.listeners[0]
+        assert listener_config.http_options is not None
+        self.resource = self.hs.resource_for_listener(
+            listener_config.http_options.resources
+        )
         self.site = RelapseSite(
             logger_name="relapse.access.http.fake",
             site_tag=self.hs.config.server.server_name,
-            config=self.hs.config.server.listeners[0],
+            config=listener_config,
             resource=self.resource,
             server_version_string="1",
             max_request_body_size=4096,
@@ -442,17 +444,7 @@ class HomeserverTestCase(TestCase):
 
         Function to be overridden in subclasses.
         """
-        hs = self.setup_test_homeserver()
-        return hs
-
-    def create_test_resource(self, hs: HomeServer) -> Resource:
-        """
-        Create the root resource for the test server.
-        """
-        root_resource = OptionsResource(hs)
-        for servlet in self.servlets:
-            servlet(hs, root_resource)
-        return root_resource
+        return self.setup_test_homeserver()
 
     def default_config(self) -> JsonDict:
         """
@@ -820,7 +812,10 @@ class FederatingHomeserverTestCase(HomeserverTestCase):
     OTHER_SERVER_NAME = "other.example.com"
     OTHER_SERVER_SIGNATURE_KEY = signedjson.key.generate_signing_key("test")
 
-    servlets = [federation.register_servlets]
+    def default_config(self) -> JsonDict:
+        config = super().default_config()
+        config["listeners"][0]["resources"][0]["names"].append("federation")
+        return config
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         super().prepare(reactor, clock, hs)

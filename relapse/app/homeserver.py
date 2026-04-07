@@ -14,8 +14,6 @@
 # limitations under the License.
 
 import logging
-import os
-import re
 import sys
 from collections.abc import Iterable
 
@@ -26,9 +24,6 @@ from twisted.web.server import GzipEncoderFactory
 import relapse
 import relapse.config.logger
 from relapse import events
-from relapse.api.urls import (
-    STATIC_PREFIX,
-)
 from relapse.app import _base
 from relapse.app._base import (
     handle_startup_exception,
@@ -39,21 +34,8 @@ from relapse.app._base import (
 )
 from relapse.config._base import ConfigError, format_config_error
 from relapse.config.homeserver import HomeServerConfig
-from relapse.config.server import HttpResourceConfig, ListenerConfig, TCPListenerConfig
-from relapse.http.server import (
-    JsonResource,
-    OptionsResource,
-)
-from relapse.http.servlet import RedirectServlet, StaticServlet
+from relapse.config.server import ListenerConfig, TCPListenerConfig
 from relapse.logging.context import LoggingContext
-from relapse.metrics import RegistryProxy
-from relapse.replication.http import (
-    register_servlets as register_replication_servlets,
-)
-from relapse.rest import admin, client, federation, key, media, well_known
-from relapse.rest.health import HealthServlet
-from relapse.rest.relapse import client as relapse_client
-from relapse.rest.relapse.metrics import MetricsServlet
 from relapse.server import HomeServer
 from relapse.storage import DataStore
 from relapse.util.check_dependencies import VERSION, check_requirements
@@ -85,90 +67,6 @@ class RelapseHomeServer(HomeServer):
             self.tls_server_context_factory,
             reactor=self.get_reactor(),
         )
-
-    def resource_for_listener(
-        self, resources: list[HttpResourceConfig]
-    ) -> JsonResource:
-        matrix_resource = OptionsResource(self)
-
-        # We always include a health resource.
-        HealthServlet().register(matrix_resource)
-
-        has_static_resources = False
-        for res in resources:
-            for name in res.names:
-                if name == "openid" and "federation" in res.names:
-                    # Skip loading openid resource if federation is defined
-                    # since federation resource will include openid
-                    continue
-                if name == "health":
-                    # Skip loading, health resource is always included
-                    continue
-                if name in ["static", "client"]:
-                    has_static_resources = True
-
-                    StaticServlet(
-                        re.compile(r"/_relapse/static/"),
-                        os.path.join(os.path.dirname(relapse.__file__), "static"),
-                    ).register(matrix_resource)
-
-                if name == "client":
-                    client.register_servlets(self, matrix_resource)
-                    relapse_client.register_servlets(self, matrix_resource)
-                    well_known.register_servlets(self, matrix_resource)
-                    admin.register_servlets(self, matrix_resource)
-
-                    if self.config.email.can_verify_email:
-                        from relapse.rest.relapse.client.password_reset import (
-                            PasswordResetSubmitTokenServlet,
-                        )
-
-                        PasswordResetSubmitTokenServlet(self).register(matrix_resource)
-
-                if name == "consent":
-                    from relapse.rest.consent import ConsentServlet
-
-                    ConsentServlet(self).register(matrix_resource)
-
-                if name == "federation":
-                    federation.register_servlets(self, matrix_resource)
-
-                if name == "openid":
-                    federation.register_servlets(
-                        self, matrix_resource, servlet_groups=["openid"]
-                    )
-
-                if name in ["media", "federation", "client"]:
-                    if self.config.server.enable_media_repo:
-                        media.register_servlets(self, matrix_resource)
-                    elif name == "media":
-                        raise ConfigError(
-                            "'media' resource conflicts with enable_media_repo=False"
-                        )
-
-                if name in ["keys", "federation"]:
-                    key.register_servlets(self, matrix_resource)
-
-                if name == "metrics" and self.config.metrics.enable_metrics:
-                    MetricsServlet(RegistryProxy).register(matrix_resource)
-
-                if name == "replication":
-                    register_replication_servlets(self, matrix_resource)
-                    MetricsServlet(RegistryProxy).register(matrix_resource)
-
-        # Try to find something useful to serve at '/':
-        #
-        # 1. Redirect to the web client if it is an HTTP(S) URL.
-        # 2. Redirect to the static "Relapse is running" page.
-        # 3. Do not redirect and use a blank resource.
-        if self.config.server.web_client_location:
-            RedirectServlet(
-                re.compile(r"^/$"), self.config.server.web_client_location
-            ).register(matrix_resource)
-        elif has_static_resources:
-            RedirectServlet(re.compile(r"^/$"), STATIC_PREFIX).register(matrix_resource)
-
-        return matrix_resource
 
     def start_listening(self) -> None:
         if self.config.redis.redis_enabled:

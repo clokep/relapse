@@ -44,7 +44,7 @@ class RelapseRequestTestCase(HomeserverTestCase):
         protocol.makeConnection(transport)
 
         protocol.dataReceived(
-            b"POST / HTTP/1.1\r\n"
+            b"GET /_matrix/client/foo HTTP/1.1\r\n"
             b"Connection: close\r\n"
             b"Transfer-Encoding: chunked\r\n"
             b"\r\n"
