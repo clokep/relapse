@@ -12,12 +12,6 @@ ONE_DAY_IN_SECONDS = 86400
 
 
 class PhoneHomeR30V2TestCase(HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ]
-
     def _advance_to(self, desired_time_secs: float) -> None:
         now = self.hs.get_clock().time()
         assert now < desired_time_secs

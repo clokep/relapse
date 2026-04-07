@@ -42,14 +42,6 @@ class PasswordPolicyTestCase(unittest.HomeserverTestCase):
     one it is currently testing (nor any test that comes afterward).
     """
 
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        register.register_servlets,
-        password_policy.register_servlets,
-        account.register_servlets,
-    ]
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         self.register_url = "/_matrix/client/r0/register"
         self.policy = {

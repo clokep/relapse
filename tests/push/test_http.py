@@ -29,14 +29,6 @@ from tests.unittest import HomeserverTestCase, override_config
 
 
 class HTTPPusherTests(HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-        receipts.register_servlets,
-        push_rule.register_servlets,
-        pusher.register_servlets,
-    ]
     user_id = True
     hijack_auth = False
 

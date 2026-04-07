@@ -29,13 +29,6 @@ class UserMutualRoomsTest(unittest.HomeserverTestCase):
     Tests the UserMutualRoomsServlet.
     """
 
-    servlets = [
-        login.register_servlets,
-        admin.register_servlets,
-        room.register_servlets,
-        mutual_rooms.register_servlets,
-    ]
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         config = self.default_config()
         return self.setup_test_homeserver(config=config)

@@ -25,8 +25,6 @@ from tests.unittest import override_config
 
 
 class MediaDomainBlockingTests(unittest.HomeserverTestCase):
-    servlets = [media.register_servlets]
-
     remote_media_id = "doesnotmatter"
     remote_server_name = "evil.com"
 

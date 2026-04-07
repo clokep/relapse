@@ -28,13 +28,6 @@ from tests.unittest import override_config
 
 
 class DirectoryTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        directory.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-    ]
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         config = self.default_config()
         config["require_membership_for_aliases"] = True

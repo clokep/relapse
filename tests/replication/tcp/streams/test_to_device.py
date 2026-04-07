@@ -24,11 +24,6 @@ logger = logging.getLogger(__name__)
 
 
 class ToDeviceStreamTestCase(BaseStreamTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-    ]
-
     def test_to_device_stream(self) -> None:
         store = self.hs.get_datastores().main
 

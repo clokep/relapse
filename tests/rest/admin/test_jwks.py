@@ -23,8 +23,6 @@ from tests.utils import HAS_AUTHLIB
 class JWKSTestCase(HomeserverTestCase):
     """Test /_relapse/jwks JWKS data."""
 
-    servlets = [relapse_client.register_servlets]
-
     def test_empty_jwks(self) -> None:
         """Test that the JWKS endpoint is not present by default."""
         channel = self.make_request("GET", "/_relapse/jwks")

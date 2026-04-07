@@ -61,8 +61,6 @@ from tests.unittest import override_config
 class RoomBase(unittest.HomeserverTestCase):
     rmcreator_id: str | None = None
 
-    servlets = [room.register_servlets, room.register_deprecated_servlets]
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         self.hs = self.setup_test_homeserver(
             "red",
@@ -525,8 +523,6 @@ class RoomStateTestCase(RoomBase):
 
 class RoomsMemberListTestCase(RoomBase):
     """Tests /rooms/$room_id/members/list REST events."""
-
-    servlets = RoomBase.servlets + [sync.register_servlets]
 
     user_id = "@sid1:red"
 
@@ -1111,12 +1107,6 @@ class RoomMemberStateTestCase(RoomBase):
 class RoomInviteRatelimitTestCase(RoomBase):
     user_id = "@sid1:red"
 
-    servlets = [
-        admin.register_servlets,
-        profile.register_servlets,
-        room.register_servlets,
-    ]
-
     @unittest.override_config(
         {"rc_invites": {"per_room": {"per_second": 0.5, "burst_count": 3}}}
     )
@@ -1144,12 +1134,6 @@ class RoomInviteRatelimitTestCase(RoomBase):
 
 
 class RoomJoinTestCase(RoomBase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.user1 = self.register_user("thomas", "hackme")
         self.tok1 = self.login("thomas", "hackme")
@@ -1313,12 +1297,6 @@ class RoomJoinTestCase(RoomBase):
 
 
 class RoomAppserviceTsParamTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        room.register_servlets,
-        admin.register_servlets,
-        register.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.appservice_user, _ = self.register_appservice_user(
             "as_user_potato", self.appservice.token
@@ -1428,12 +1406,6 @@ class RoomAppserviceTsParamTestCase(unittest.HomeserverTestCase):
 
 class RoomJoinRatelimitTestCase(RoomBase):
     user_id = "@sid1:red"
-
-    servlets = [
-        admin.register_servlets,
-        profile.register_servlets,
-        room.register_servlets,
-    ]
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         super().prepare(reactor, clock, hs)
@@ -1722,12 +1694,6 @@ class RoomPowerLevelOverridesTestCase(RoomBase):
     """Tests that the power levels can be overridden with server config."""
 
     user_id = "@sid1:red"
-
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ]
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.admin_user_id = self.register_user("admin", "pass")
@@ -2155,11 +2121,6 @@ class RoomMessageListTestCase(RoomBase):
 
 
 class RoomSearchTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ]
     user_id = True
     hijack_auth = False
 
@@ -2256,12 +2217,6 @@ class RoomSearchTestCase(unittest.HomeserverTestCase):
 
 
 class PublicRoomsRestrictedTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ]
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         self.url = "/_matrix/client/r0/publicRooms"
 
@@ -2284,12 +2239,6 @@ class PublicRoomsRestrictedTestCase(unittest.HomeserverTestCase):
 
 
 class PublicRoomsRoomTypeFilterTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ]
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         config = self.default_config()
         config["allow_public_rooms_without_auth"] = True
@@ -2390,12 +2339,6 @@ class PublicRoomsTestRemoteSearchFallbackTestCase(unittest.HomeserverTestCase):
     doesn't support search.
     """
 
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ]
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         return self.setup_test_homeserver(federation_client=AsyncMock())
 
@@ -2471,13 +2414,6 @@ class PublicRoomsTestRemoteSearchFallbackTestCase(unittest.HomeserverTestCase):
 
 
 class PerRoomProfilesForbiddenTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-        profile.register_servlets,
-    ]
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         config = self.default_config()
         config["allow_per_room_profiles"] = False
@@ -2528,12 +2464,6 @@ class RoomMembershipReasonTestCase(unittest.HomeserverTestCase):
     """Tests that clients can add a "reason" field to membership events and
     that they get correctly added to the generated events and propagated.
     """
-
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ]
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.creator = self.register_user("creator", "test")
@@ -2655,13 +2585,6 @@ class RoomMembershipReasonTestCase(unittest.HomeserverTestCase):
 
 
 class LabelsTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-        profile.register_servlets,
-    ]
-
     # Filter that should only catch messages with the label "#fun".
     FILTER_LABELS = {
         "types": [EventTypes.Message],
@@ -3025,13 +2948,6 @@ class RelationsTestCase(PaginationTestCase):
 
 
 class ContextTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-        account.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.user_id = self.register_user("user", "password")
         self.tok = self.login("user", "password")
@@ -3150,13 +3066,6 @@ class ContextTestCase(unittest.HomeserverTestCase):
 
 
 class RoomAliasListTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        directory.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.room_owner = self.register_user("room_owner", "test")
         self.room_owner_tok = self.login("room_owner", "test")
@@ -3240,13 +3149,6 @@ class RoomAliasListTestCase(unittest.HomeserverTestCase):
 
 
 class RoomCanonicalAliasTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        directory.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.room_owner = self.register_user("room_owner", "test")
         self.room_owner_tok = self.login("room_owner", "test")
@@ -3398,12 +3300,6 @@ class RoomCanonicalAliasTestCase(unittest.HomeserverTestCase):
 
 
 class ThreepidInviteTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.user_id = self.register_user("thomas", "hackme")
         self.tok = self.login("thomas", "hackme")
@@ -3580,12 +3476,6 @@ class ThreepidInviteTestCase(unittest.HomeserverTestCase):
 
 
 class TimestampLookupTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self._storage_controllers = self.hs.get_storage_controllers()
 

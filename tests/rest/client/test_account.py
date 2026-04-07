@@ -36,16 +36,6 @@ from tests.unittest import override_config
 
 
 class PasswordResetTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        account.register_servlets,
-        admin.register_servlets,
-        register.register_servlets,
-        login.register_servlets,
-        lambda hs, http_server: PasswordResetSubmitTokenServlet(hs).register(
-            http_server
-        ),
-    ]
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         config = self.default_config()
 
@@ -415,13 +405,6 @@ class PasswordResetTestCase(unittest.HomeserverTestCase):
 
 
 class DeactivateTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        account.register_servlets,
-        room.register_servlets,
-    ]
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         self.hs = self.setup_test_homeserver()
         return self.hs
@@ -660,13 +643,6 @@ class DeactivateTestCase(unittest.HomeserverTestCase):
 
 
 class WhoamiTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        account.register_servlets,
-        register.register_servlets,
-    ]
-
     def default_config(self) -> dict[str, Any]:
         config = super().default_config()
         config["allow_guest_access"] = True
@@ -736,12 +712,6 @@ class WhoamiTestCase(unittest.HomeserverTestCase):
 
 
 class ThreepidEmailRestTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        account.register_servlets,
-        login.register_servlets,
-        admin.register_servlets,
-    ]
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         config = self.default_config()
 

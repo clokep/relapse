@@ -29,11 +29,6 @@ from tests import unittest
 
 
 class BackgroundUpdatesTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = hs.get_datastores().main
         self.admin_user = self.register_user("admin", "pass", admin=True)

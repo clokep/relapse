@@ -26,12 +26,6 @@ from tests.test_utils.event_injection import create_event
 
 
 class TestEventContext(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = hs.get_datastores().main
         self._storage_controllers = hs.get_storage_controllers()

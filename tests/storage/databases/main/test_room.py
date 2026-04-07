@@ -27,12 +27,6 @@ from tests.unittest import HomeserverTestCase
 
 
 class RoomBackgroundUpdateStoreTestCase(HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = hs.get_datastores().main
         self.user_id = self.register_user("foo", "pass")

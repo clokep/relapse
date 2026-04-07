@@ -32,13 +32,6 @@ from tests.unittest import HomeserverTestCase, override_config
 
 
 class TestBulkPushRuleEvaluator(HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-        register.register_servlets,
-    ]
-
     def prepare(
         self, reactor: MemoryReactor, clock: Clock, homeserver: HomeServer
     ) -> None:

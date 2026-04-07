@@ -33,13 +33,6 @@ import tests.utils
 class SyncTestCase(tests.unittest.HomeserverTestCase):
     """Tests Sync Handler."""
 
-    servlets = [
-        admin.register_servlets,
-        knock.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.sync_handler = self.hs.get_sync_handler()
         self.store = self.hs.get_datastores().main

@@ -27,13 +27,6 @@ from tests.server import FakeChannel
 
 
 class UpgradeRoomTest(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-        room_upgrade_rest_servlet.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = hs.get_datastores().main
 

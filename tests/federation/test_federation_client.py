@@ -30,12 +30,6 @@ from tests.unittest import FederatingHomeserverTestCase
 
 
 class FederationClientTest(FederatingHomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ] + FederatingHomeserverTestCase.servlets
-
     def prepare(
         self, reactor: MemoryReactor, clock: Clock, homeserver: HomeServer
     ) -> None:

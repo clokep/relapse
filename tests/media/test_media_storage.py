@@ -223,7 +223,6 @@ class MediaRepoTests(unittest.HomeserverTestCase):
     test_image: ClassVar[_TestImage]
     hijack_auth = True
     user_id = "@test:user"
-    servlets = [media.register_servlets]
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         self.fetches: list[
@@ -716,12 +715,6 @@ EVIL_DATA_EXPERIMENT = b"Some evil data to trigger the experimental tuple API"
 
 
 class SpamCheckerTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        login.register_servlets,
-        admin.register_servlets,
-        media.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.user = self.register_user("user", "pass")
         self.tok = self.login("user", "pass")

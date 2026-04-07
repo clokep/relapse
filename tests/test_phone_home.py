@@ -60,12 +60,6 @@ class PhoneHomeStatsTestCase(HomeserverTestCase):
 
 
 class CommonMetricsTestCase(HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        sync.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.metrics_manager = hs.get_common_usage_metrics_manager()
         self.get_success(self.metrics_manager.setup())

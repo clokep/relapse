@@ -49,8 +49,6 @@ from tests.replication._base import BaseMultiWorkerStreamTestCase
 
 
 class PresenceUpdateTestCase(unittest.HomeserverTestCase):
-    servlets = [admin.register_servlets]
-
     def prepare(
         self, reactor: MemoryReactor, clock: Clock, homeserver: HomeServer
     ) -> None:
@@ -1796,8 +1794,6 @@ class PresenceJoinTestCase(unittest.HomeserverTestCase):
     """
 
     user_id = "@test:server"
-
-    servlets = [room.register_servlets]
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         hs = self.setup_test_homeserver(

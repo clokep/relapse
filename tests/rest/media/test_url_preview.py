@@ -50,7 +50,6 @@ class URLPreviewTests(unittest.HomeserverTestCase):
 
     hijack_auth = True
     user_id = "@test:user"
-    servlets = [media.register_servlets]
 
     end_content = (
         b"<html><head>"

@@ -52,12 +52,6 @@ def generate_fake_event_id() -> str:
 
 
 class FederationTestCase(FederatingHomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-    ] + FederatingHomeserverTestCase.servlets
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         hs = self.setup_test_homeserver()
         self.handler = hs.get_federation_handler()

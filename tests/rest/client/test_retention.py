@@ -32,12 +32,6 @@ one_day_ms = one_hour_ms * 24
 
 
 class RetentionTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-    ]
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         config = self.default_config()
 
@@ -249,12 +243,6 @@ class RetentionTestCase(unittest.HomeserverTestCase):
 
 
 class RetentionNoDefaultPolicyTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-    ]
-
     def default_config(self) -> dict[str, Any]:
         config = super().default_config()
 

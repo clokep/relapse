@@ -210,7 +210,7 @@ def default_config(
                             "media",
                             "metrics",
                             "replication",
-                            "static"
+                            "static",
                         ]
                     }
                 ],

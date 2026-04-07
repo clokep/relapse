@@ -710,11 +710,6 @@ class ClientIpStoreTestCase(unittest.HomeserverTestCase):
 
 
 class ClientIpAuthTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = self.hs.get_datastores().main
         self.user_id = self.register_user("bob", "abc123", True)

@@ -41,12 +41,6 @@ test_server_connection_factory: TestServerTLSConnectionFactory | None = None
 class MediaRepoShardTestCase(BaseMultiWorkerStreamTestCase):
     """Checks running multiple media repos work correctly."""
 
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        media.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.user_id = self.register_user("user", "pass")
         self.access_token = self.login("user", "pass")

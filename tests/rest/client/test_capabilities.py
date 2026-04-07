@@ -26,12 +26,6 @@ from tests.unittest import override_config
 
 
 class CapabilitiesTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        capabilities.register_servlets,
-        login.register_servlets,
-    ]
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         self.url = "/_matrix/client/r0/capabilities"
         hs = self.setup_test_homeserver()

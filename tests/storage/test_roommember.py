@@ -29,12 +29,6 @@ from tests.test_utils import event_injection
 
 
 class RoomMemberStoreTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        login.register_servlets,
-        admin.register_servlets,
-        room.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: TestHomeServer) -> None:  # type: ignore[override]
         # We can't test the RoomMemberStore on its own without the other event
         # storage logic

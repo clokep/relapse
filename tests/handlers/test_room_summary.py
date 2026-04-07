@@ -114,12 +114,6 @@ class TestSpaceSummarySort(unittest.TestCase):
 
 
 class SpaceSummaryTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ]
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         self.mock_client = mock.Mock(spec=["get_json", "agent"])
         self.mock_client.get_json = mock.AsyncMock()
@@ -1030,12 +1024,6 @@ class SpaceSummaryTestCase(unittest.HomeserverTestCase):
 
 
 class RoomSummaryTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.hs = hs
         self.handler = self.hs.get_room_summary_handler()

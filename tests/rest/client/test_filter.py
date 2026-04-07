@@ -30,7 +30,6 @@ class FilterTestCase(unittest.HomeserverTestCase):
     hijack_auth = True
     EXAMPLE_FILTER = {"room": {"timeline": {"types": ["m.room.message"]}}}
     EXAMPLE_FILTER_JSON = b'{"room": {"timeline": {"types": ["m.room.message"]}}}'
-    servlets = [filter.register_servlets]
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.filtering = hs.get_filtering()

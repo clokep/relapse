@@ -32,8 +32,6 @@ from tests import unittest
 class ProfileTestCase(unittest.HomeserverTestCase):
     """Tests profile management."""
 
-    servlets = [admin.register_servlets]
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         self.mock_federation = AsyncMock()
         self.mock_registry = Mock()

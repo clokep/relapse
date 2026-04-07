@@ -268,11 +268,6 @@ class FederationSenderDevicesTestCases(HomeserverTestCase):
     re-enabled for the main process.
     """
 
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-    ]
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         self.federation_client = Mock(spec=["send_transaction", "query_user_devices"])
         self.federation_client.send_transaction = AsyncMock()

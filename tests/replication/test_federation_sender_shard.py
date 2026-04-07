@@ -38,12 +38,6 @@ class FederationSenderTestCase(BaseMultiWorkerStreamTestCase):
     updating 'federation_sender_instances'.
     """
 
-    servlets = [
-        login.register_servlets,
-        admin.register_servlets,
-        room.register_servlets,
-    ]
-
     def setUp(self) -> None:
         super().setUp()
 

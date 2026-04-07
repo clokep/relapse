@@ -22,10 +22,6 @@ from tests.unittest import HomeserverTestCase
 
 
 class ModuleApiTestCase(HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-    ]
-
     def prepare(
         self, reactor: MemoryReactor, clock: Clock, homeserver: HomeServer
     ) -> None:

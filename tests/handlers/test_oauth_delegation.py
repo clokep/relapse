@@ -99,16 +99,6 @@ async def get_json(url: str) -> JsonDict:
 
 @skip_unless(HAS_AUTHLIB, "requires authlib")
 class MSC3861OAuthDelegation(HomeserverTestCase):
-    servlets = [
-        account.register_servlets,
-        devices.register_servlets,
-        keys.register_servlets,
-        register.register_servlets,
-        login.register_servlets,
-        logout.register_servlets,
-        admin.register_servlets,
-    ]
-
     def default_config(self) -> dict[str, Any]:
         config = super().default_config()
         config["public_baseurl"] = BASE_URL

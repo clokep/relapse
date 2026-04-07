@@ -50,15 +50,6 @@ class BaseModuleApiTestCase(HomeserverTestCase):
 
 
 class ModuleApiTestCase(BaseModuleApiTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-        presence.register_servlets,
-        profile.register_servlets,
-        notifications.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = hs.get_datastores().main
         self.module_api = hs.get_module_api()
@@ -824,13 +815,6 @@ class ModuleApiTestCase(BaseModuleApiTestCase):
 
 class ModuleApiWorkerTestCase(BaseModuleApiTestCase, BaseMultiWorkerStreamTestCase):
     """For testing ModuleApi functionality in a multi-worker setup"""
-
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-        presence.register_servlets,
-    ]
 
     def default_config(self) -> dict[str, Any]:
         conf = super().default_config()

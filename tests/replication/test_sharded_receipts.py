@@ -32,14 +32,6 @@ logger = logging.getLogger(__name__)
 class ReceiptsShardTestCase(BaseMultiWorkerStreamTestCase):
     """Checks receipts sharding works"""
 
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-        sync.register_servlets,
-        receipts.register_servlets,
-    ] + BaseMultiWorkerStreamTestCase.servlets
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         # Register a user who sends a message that we'll get notified about
         self.other_user_id = self.register_user("otheruser", "pass")

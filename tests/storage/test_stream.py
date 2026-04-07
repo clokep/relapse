@@ -34,12 +34,6 @@ class PaginationTestCase(HomeserverTestCase):
     we ensure that the filtering done in the database is applied successfully.
     """
 
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ]
-
     def default_config(self) -> JsonDict:
         config = super().default_config()
         config["experimental_features"] = {"msc3874_enabled": True}

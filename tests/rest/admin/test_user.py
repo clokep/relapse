@@ -49,11 +49,6 @@ from tests.unittest import override_config
 
 
 class UserRegisterTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        profile.register_servlets,
-    ]
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         self.url = "/_relapse/admin/v1/register"
 
@@ -460,11 +455,6 @@ class UserRegisterTestCase(unittest.HomeserverTestCase):
 
 
 class UsersListTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-    ]
     url = "/_relapse/admin/v2/users"
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
@@ -1244,12 +1234,6 @@ class UserDevicesTestCase(unittest.HomeserverTestCase):
     Tests user device management-related Admin APIs.
     """
 
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        sync.register_servlets,
-    ]
-
     def prepare(
         self, reactor: MemoryReactor, clock: Clock, homeserver: HomeServer
     ) -> None:
@@ -1330,11 +1314,6 @@ class UserDevicesTestCase(unittest.HomeserverTestCase):
 
 
 class DeactivateAccountTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = hs.get_datastores().main
 
@@ -1607,14 +1586,6 @@ class DeactivateAccountTestCase(unittest.HomeserverTestCase):
 
 
 class UserRestTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        sync.register_servlets,
-        register.register_servlets,
-        user_directory.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = hs.get_datastores().main
         self.auth_handler = hs.get_auth_handler()
@@ -3132,12 +3103,6 @@ class UserRestTestCase(unittest.HomeserverTestCase):
 
 
 class UserMembershipRestTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.admin_user = self.register_user("admin", "pass", admin=True)
         self.admin_user_tok = self.login("admin", "pass")
@@ -3289,11 +3254,6 @@ class UserMembershipRestTestCase(unittest.HomeserverTestCase):
 
 
 class PushersRestTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = hs.get_datastores().main
 
@@ -3417,12 +3377,6 @@ class PushersRestTestCase(unittest.HomeserverTestCase):
 
 
 class UserMediaRestTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        media.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = hs.get_datastores().main
         self.filepaths = MediaFilePaths(hs.config.media.media_store_path)
@@ -3985,15 +3939,6 @@ class UserMediaRestTestCase(unittest.HomeserverTestCase):
 class UserTokenRestTestCase(unittest.HomeserverTestCase):
     """Test for /_relapse/admin/v1/users/<user>/login"""
 
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        sync.register_servlets,
-        room.register_servlets,
-        devices.register_servlets,
-        logout.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = hs.get_datastores().main
 
@@ -4213,11 +4158,6 @@ class UserTokenRestTestCase(unittest.HomeserverTestCase):
 
 
 class ShadowBanRestTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = hs.get_datastores().main
 
@@ -4293,11 +4233,6 @@ class ShadowBanRestTestCase(unittest.HomeserverTestCase):
 
 
 class RateLimitTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = hs.get_datastores().main
 
@@ -4515,11 +4450,6 @@ class RateLimitTestCase(unittest.HomeserverTestCase):
 
 
 class AccountDataTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = hs.get_datastores().main
 
@@ -4604,11 +4534,6 @@ class AccountDataTestCase(unittest.HomeserverTestCase):
 
 
 class UsersByExternalIdTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = hs.get_datastores().main
 
@@ -4690,11 +4615,6 @@ class UsersByExternalIdTestCase(unittest.HomeserverTestCase):
 
 
 class UsersByThreePidTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = hs.get_datastores().main
 
@@ -4784,11 +4704,6 @@ class UsersByThreePidTestCase(unittest.HomeserverTestCase):
 
 
 class AllowCrossSigningReplacementTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-    ]
-
     @staticmethod
     def url(user: str) -> str:
         template = (

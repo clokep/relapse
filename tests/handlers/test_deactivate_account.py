@@ -26,12 +26,6 @@ from tests.unittest import HomeserverTestCase
 
 
 class DeactivateAccountTestCase(HomeserverTestCase):
-    servlets = [
-        login.register_servlets,
-        admin.register_servlets,
-        account.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self._store = hs.get_datastores().main
 

@@ -22,10 +22,6 @@ ISSUER = "https://account.example.com/"
 
 
 class AuthIssuerTestCase(HomeserverTestCase):
-    servlets = [
-        auth_issuer.register_servlets,
-    ]
-
     def test_returns_404_when_msc3861_disabled(self) -> None:
         # Make an unauthenticated request for the discovery info.
         channel = self.make_request(

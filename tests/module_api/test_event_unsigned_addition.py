@@ -24,12 +24,6 @@ from tests.unittest import HomeserverTestCase
 
 
 class EventUnsignedAdditionTestCase(HomeserverTestCase):
-    servlets = [
-        room.register_servlets,
-        admin.register_servlets,
-        login.register_servlets,
-    ]
-
     def prepare(
         self, reactor: MemoryReactor, clock: Clock, homeserver: HomeServer
     ) -> None:

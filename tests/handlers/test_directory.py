@@ -106,13 +106,6 @@ class DirectoryTestCase(unittest.HomeserverTestCase):
 
 
 class TestCreateAlias(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-        directory.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.handler = hs.get_directory_handler()
 
@@ -174,13 +167,6 @@ class TestCreateAlias(unittest.HomeserverTestCase):
 
 
 class TestDeleteAlias(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-        directory.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = hs.get_datastores().main
         self.handler = hs.get_directory_handler()
@@ -289,13 +275,6 @@ class TestDeleteAlias(unittest.HomeserverTestCase):
 class CanonicalAliasTestCase(unittest.HomeserverTestCase):
     """Test modifications of the canonical alias when delete aliases."""
 
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-        directory.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = hs.get_datastores().main
         self.handler = hs.get_directory_handler()
@@ -402,8 +381,6 @@ class CanonicalAliasTestCase(unittest.HomeserverTestCase):
 class TestCreateAliasACL(unittest.HomeserverTestCase):
     user_id = "@test:test"
 
-    servlets = [directory.register_servlets, room.register_servlets]
-
     def default_config(self) -> dict[str, Any]:
         config = super().default_config()
 
@@ -459,12 +436,6 @@ class TestCreateAliasACL(unittest.HomeserverTestCase):
 
 
 class TestCreatePublishedRoomACL(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        directory.register_servlets,
-        room.register_servlets,
-    ]
     hijack_auth = False
 
     data = {"room_alias_name": "unofficial_test"}
@@ -572,8 +543,6 @@ class TestCreatePublishedRoomACL(unittest.HomeserverTestCase):
 
 class TestRoomListSearchDisabled(unittest.HomeserverTestCase):
     user_id = "@test:test"
-
-    servlets = [directory.register_servlets, room.register_servlets]
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         room_id = self.helper.create_room_as(self.user_id)

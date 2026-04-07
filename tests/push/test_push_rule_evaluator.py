@@ -546,13 +546,6 @@ class PushRuleEvaluatorTestCase(unittest.TestCase):
 class TestBulkPushRuleEvaluator(unittest.HomeserverTestCase):
     """Tests for the bulk push rule evaluator"""
 
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        register.register_servlets,
-        room.register_servlets,
-    ]
-
     def prepare(
         self, reactor: MemoryReactor, clock: Clock, homeserver: HomeServer
     ) -> None:
@@ -621,12 +614,6 @@ class TestBulkPushRuleEvaluator(unittest.HomeserverTestCase):
 
 
 class BulkPushRuleEvaluatorTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-    ]
-
     def prepare(
         self, reactor: MemoryReactor, clock: Clock, homeserver: HomeServer
     ) -> None:

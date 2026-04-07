@@ -37,8 +37,6 @@ from tests.utils import default_config
 
 
 class BaseRemoteKeyResourceTestCase(unittest.HomeserverTestCase):
-    servlets = [key.register_servlets]
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         self.http_client = Mock()
         return self.setup_test_homeserver(federation_http_client=self.http_client)

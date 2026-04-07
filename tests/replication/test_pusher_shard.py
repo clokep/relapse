@@ -30,12 +30,6 @@ logger = logging.getLogger(__name__)
 class PusherShardTestCase(BaseMultiWorkerStreamTestCase):
     """Checks pusher sharding works"""
 
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         # Register a user who sends a message that we'll get notified about
         self.other_user_id = self.register_user("otheruser", "pass")

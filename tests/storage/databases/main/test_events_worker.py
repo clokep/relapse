@@ -39,12 +39,6 @@ from tests.test_utils.event_injection import create_event, inject_event
 
 
 class HaveSeenEventsTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.hs = hs
         self.store: EventsWorkerStore = hs.get_datastores().main
@@ -218,12 +212,6 @@ class HaveSeenEventsTestCase(unittest.HomeserverTestCase):
 
 class EventCacheTestCase(unittest.HomeserverTestCase):
     """Test that the various layers of event cache works."""
-
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ]
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store: EventsWorkerStore = hs.get_datastores().main
@@ -420,12 +408,6 @@ class DatabaseOutageTestCase(unittest.HomeserverTestCase):
 
 class GetEventCancellationTestCase(unittest.HomeserverTestCase):
     """Test cancellation of `get_event` calls."""
-
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ]
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store: EventsWorkerStore = hs.get_datastores().main

@@ -7,12 +7,6 @@ from tests.unittest import override_config
 
 
 class EncryptedByDefaultTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        login.register_servlets,
-        admin.register_servlets,
-        room.register_servlets,
-    ]
-
     @override_config({"encryption_enabled_by_default_for_room_type": "all"})
     def test_encrypted_by_default_config_option_all(self) -> None:
         """Tests that invite-only and non-invite-only rooms have encryption enabled by

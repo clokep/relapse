@@ -32,16 +32,7 @@ VALID_TIMESTAMP = 1609459200000  # 2021-01-01 in milliseconds
 INVALID_TIMESTAMP_IN_S = 1893456000  # 2030-01-01 in seconds
 
 
-class _AdminMediaTests(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        admin.register_servlets_for_media_repo,
-        login.register_servlets,
-        media.register_servlets,
-    ]
-
-
-class DeleteMediaByIDTestCase(_AdminMediaTests):
+class DeleteMediaByIDTestCase(unittest.HomeserverTestCase):
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.server_name = hs.hostname
 
@@ -184,12 +175,7 @@ class DeleteMediaByIDTestCase(_AdminMediaTests):
         self.assertFalse(os.path.exists(local_path))
 
 
-class DeleteMediaByDateSizeTestCase(_AdminMediaTests):
-    servlets = _AdminMediaTests.servlets + [
-        profile.register_servlets,
-        room.register_servlets,
-    ]
-
+class DeleteMediaByDateSizeTestCase(unittest.HomeserverTestCase):
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.server_name = hs.hostname
 
@@ -567,7 +553,7 @@ class DeleteMediaByDateSizeTestCase(_AdminMediaTests):
             self.assertFalse(os.path.exists(local_path))
 
 
-class QuarantineMediaByIDTestCase(_AdminMediaTests):
+class QuarantineMediaByIDTestCase(unittest.HomeserverTestCase):
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = hs.get_datastores().main
         self.server_name = hs.hostname
@@ -685,7 +671,7 @@ class QuarantineMediaByIDTestCase(_AdminMediaTests):
         self.assertFalse(media_info.quarantined_by)
 
 
-class ProtectMediaByIDTestCase(_AdminMediaTests):
+class ProtectMediaByIDTestCase(unittest.HomeserverTestCase):
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = hs.get_datastores().main
 
@@ -770,12 +756,7 @@ class ProtectMediaByIDTestCase(_AdminMediaTests):
         self.assertFalse(media_info.safe_from_quarantine)
 
 
-class PurgeMediaCacheTestCase(_AdminMediaTests):
-    servlets = _AdminMediaTests.servlets + [
-        profile.register_servlets,
-        room.register_servlets,
-    ]
-
+class PurgeMediaCacheTestCase(unittest.HomeserverTestCase):
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.server_name = hs.hostname
 

@@ -49,8 +49,6 @@ logger = logging.getLogger(__name__)
 class BaseStreamTestCase(unittest.HomeserverTestCase):
     """Base class for tests of the replication streams"""
 
-    servlets = [register_servlets]
-
     # hiredis is an optional dependency so we don't want to require it for running
     # the tests.
     if not hiredis:
@@ -233,8 +231,6 @@ class BaseMultiWorkerStreamTestCase(unittest.HomeserverTestCase):
     if not USE_POSTGRES_FOR_TESTS:
         # Redis replication only takes place on Postgres
         skip = "Requires Postgres"
-
-    servlets = [register_servlets]
 
     def default_config(self) -> dict[str, Any]:
         """

@@ -396,14 +396,6 @@ class ApplicationServicesHandlerSendEventsTestCase(unittest.HomeserverTestCase):
     services correctly.
     """
 
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-        sendtodevice.register_servlets,
-        receipts.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.hs = hs
         # Mock the ApplicationServiceScheduler's _TransactionController's send method so that
@@ -1019,12 +1011,6 @@ class ApplicationServicesHandlerDeviceListsTestCase(unittest.HomeserverTestCase)
     services correctly.
     """
 
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         # Allow us to modify cached feature flags mid-test
         self.as_handler = hs.get_application_service_handler()
@@ -1124,15 +1110,6 @@ class ApplicationServicesHandlerOtkCountsTestCase(unittest.HomeserverTestCase):
     # Argument indices for pulling out arguments from a `send_mock`.
     ARG_OTK_COUNTS = 4
     ARG_FALLBACK_KEYS = 5
-
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        register.register_servlets,
-        room.register_servlets,
-        sendtodevice.register_servlets,
-        receipts.register_servlets,
-    ]
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         # Mock the ApplicationServiceScheduler's _TransactionController's send method so that

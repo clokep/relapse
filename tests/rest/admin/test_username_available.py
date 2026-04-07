@@ -24,10 +24,6 @@ from tests import unittest
 
 
 class UsernameAvailableTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-    ]
     url = "/_relapse/admin/v1/username_available"
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:

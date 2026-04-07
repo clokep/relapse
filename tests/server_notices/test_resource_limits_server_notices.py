@@ -240,13 +240,6 @@ class TestResourceLimitsServerNotices(unittest.HomeserverTestCase):
 
 
 class TestResourceLimitsServerNoticesWithRealRooms(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-        sync.register_servlets,
-    ]
-
     def default_config(self) -> JsonDict:
         c = super().default_config()
         c["server_notices"] = {

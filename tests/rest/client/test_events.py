@@ -30,13 +30,6 @@ from tests import unittest
 class EventStreamPermissionsTestCase(unittest.HomeserverTestCase):
     """Tests event streaming (GET /events)."""
 
-    servlets = [
-        events.register_servlets,
-        room.register_servlets,
-        admin.register_servlets,
-        login.register_servlets,
-    ]
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         config = self.default_config()
         config["enable_registration_captcha"] = False
@@ -133,13 +126,6 @@ class EventStreamPermissionsTestCase(unittest.HomeserverTestCase):
 
 
 class GetEventsTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        events.register_servlets,
-        room.register_servlets,
-        admin.register_servlets,
-        login.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         # register an account
         self.user_id = self.register_user("sid1", "pass")

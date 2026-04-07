@@ -31,8 +31,6 @@ from tests.test_utils import SMALL_PNG
 class VersionTestCase(unittest.HomeserverTestCase):
     url = "/_relapse/admin/v1/server_version"
 
-    servlets = [lambda hs, http_server: VersionServlet(hs).register(http_server)]
-
     def test_version_string(self) -> None:
         channel = self.make_request("GET", self.url)
 
@@ -42,14 +40,6 @@ class VersionTestCase(unittest.HomeserverTestCase):
 
 class QuarantineMediaTestCase(unittest.HomeserverTestCase):
     """Test /quarantine_media admin API."""
-
-    servlets = [
-        admin.register_servlets,
-        admin.register_servlets_for_media_repo,
-        login.register_servlets,
-        room.register_servlets,
-        media.register_servlets,
-    ]
 
     def _ensure_quarantined(
         self, admin_user_tok: str, server_and_media_id: str
@@ -277,12 +267,6 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
 
 
 class PurgeHistoryTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.admin_user = self.register_user("admin", "pass", admin=True)
         self.admin_user_tok = self.login("admin", "pass")
@@ -325,11 +309,6 @@ class PurgeHistoryTestCase(unittest.HomeserverTestCase):
 
 
 class ExperimentalFeaturesTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.admin_user = self.register_user("admin", "pass", admin=True)
         self.admin_user_tok = self.login("admin", "pass")

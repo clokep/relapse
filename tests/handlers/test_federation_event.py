@@ -39,12 +39,6 @@ from tests.unittest import FederatingHomeserverTestCase
 
 
 class FederationEventHandlerTests(FederatingHomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-    ] + FederatingHomeserverTestCase.servlets
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         # mock out the federation client
         self.mock_client = mock.Mock(spec=["get_json", "agent"])

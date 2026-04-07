@@ -25,13 +25,6 @@ from tests import unittest
 
 
 class ConsentNoticesTests(unittest.HomeserverTestCase):
-    servlets = [
-        sync.register_servlets,
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-    ]
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         tmpdir = self.mktemp()
         os.mkdir(tmpdir)

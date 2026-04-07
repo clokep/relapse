@@ -34,14 +34,6 @@ if TYPE_CHECKING:
 
 
 class ThirdPartyRulesTestCase(FederatingHomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-        profile.register_servlets,
-        account.register_servlets,
-    ] + FederatingHomeserverTestCase.servlets
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         hs = self.setup_test_homeserver()
 

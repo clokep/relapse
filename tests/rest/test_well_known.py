@@ -19,8 +19,6 @@ from tests.utils import HAS_AUTHLIB
 
 
 class WellKnownTests(unittest.HomeserverTestCase):
-    servlets = [well_known.register_servlets]
-
     @unittest.override_config(
         {
             "public_baseurl": "https://tesths",

@@ -29,13 +29,6 @@ from tests import unittest
 
 
 class ExfiltrateData(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-        knock.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.admin_handler = hs.get_admin_handler()
         self._store = hs.get_datastores().main

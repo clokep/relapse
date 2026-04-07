@@ -17,8 +17,6 @@ from tests import unittest
 
 
 class HealthCheckTests(unittest.HomeserverTestCase):
-    servlets = [lambda _, http_server: HealthServlet().register(http_server)]
-
     def test_health(self) -> None:
         channel = self.make_request("GET", "/health")
 

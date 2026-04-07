@@ -25,12 +25,6 @@ from tests import unittest
 
 
 class IdentityTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ]
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         config = self.default_config()
         config["enable_3pid_lookup"] = False

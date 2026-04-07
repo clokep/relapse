@@ -28,13 +28,6 @@ from tests.unittest import HomeserverTestCase
 class PowerLevelsTestCase(HomeserverTestCase):
     """Tests that power levels are enforced in various situations"""
 
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-        sync.register_servlets,
-    ]
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         config = self.default_config()
 

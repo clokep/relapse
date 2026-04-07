@@ -44,12 +44,6 @@ class _User:
 
 
 class EmailPusherTests(HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-        relapse_client.register_servlets,
-    ]
     hijack_auth = False
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:

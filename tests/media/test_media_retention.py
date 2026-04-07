@@ -34,13 +34,6 @@ class MediaRetentionTestCase(unittest.HomeserverTestCase):
     ONE_DAY_IN_MS = 24 * 60 * 60 * 1000
     THIRTY_DAYS_IN_MS = 30 * ONE_DAY_IN_MS
 
-    servlets = [
-        room.register_servlets,
-        login.register_servlets,
-        register.register_servlets,
-        admin.register_servlets,
-    ]
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         # We need to be able to test advancing time in the homeserver, so we
         # replace the test homeserver's default clock with a MockClock, which

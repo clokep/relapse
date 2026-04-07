@@ -27,11 +27,6 @@ from tests import unittest
 
 
 class AuthTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.auth_handler = hs.get_auth_handler()
         self.macaroon_generator = hs.get_macaroon_generator()

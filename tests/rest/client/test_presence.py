@@ -31,7 +31,6 @@ class PresenceTestCase(unittest.HomeserverTestCase):
     user_id = "@sid:red"
 
     user = UserID.from_string(user_id)
-    servlets = [presence.register_servlets]
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         self.presence_handler = Mock(spec=PresenceHandler)

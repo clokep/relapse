@@ -179,12 +179,6 @@ class _BackfillSetupInfo:
 
 
 class EventFederationWorkerStoreTestCase(tests.unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = hs.get_datastores().main
         persist_events = hs.get_datastores().persist_events

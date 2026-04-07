@@ -29,12 +29,6 @@ from tests.unittest import HomeserverTestCase
 
 
 class ExtremPruneTestCase(HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ]
-
     def prepare(
         self, reactor: MemoryReactor, clock: Clock, homeserver: HomeServer
     ) -> None:
@@ -365,12 +359,6 @@ class ExtremPruneTestCase(HomeserverTestCase):
 
 
 class InvalideUsersInRoomCacheTestCase(HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ]
-
     def prepare(
         self, reactor: MemoryReactor, clock: Clock, homeserver: HomeServer
     ) -> None:

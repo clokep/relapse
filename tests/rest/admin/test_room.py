@@ -43,16 +43,6 @@ ONE_HOUR_IN_S = 3600
 
 
 class DeleteRoomTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        events.register_servlets,
-        room.register_servlets,
-        knock.register_servlets,
-        sync.register_servlets,
-        room.register_deprecated_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.event_creation_handler = hs.get_event_creation_handler()
         self.task_scheduler = hs.get_task_scheduler()
@@ -526,14 +516,6 @@ class DeleteRoomTestCase(unittest.HomeserverTestCase):
 
 
 class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        events.register_servlets,
-        room.register_servlets,
-        room.register_deprecated_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.event_creation_handler = hs.get_event_creation_handler()
         self.task_scheduler = hs.get_task_scheduler()
@@ -1263,13 +1245,6 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
 class RoomTestCase(unittest.HomeserverTestCase):
     """Test /room admin API."""
 
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-        directory.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         # Create user
         self.admin_user = self.register_user("admin", "pass", admin=True)
@@ -1976,12 +1951,6 @@ class RoomTestCase(unittest.HomeserverTestCase):
 
 
 class RoomMessagesTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.admin_user = self.register_user("admin", "pass", admin=True)
         self.admin_user_tok = self.login("admin", "pass")
@@ -2162,12 +2131,6 @@ class RoomMessagesTestCase(unittest.HomeserverTestCase):
 
 
 class JoinAliasRoomTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.admin_user = self.register_user("admin", "pass", admin=True)
         self.admin_user_tok = self.login("admin", "pass")
@@ -2496,12 +2459,6 @@ class JoinAliasRoomTestCase(unittest.HomeserverTestCase):
 
 
 class MakeRoomAdminTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.admin_user = self.register_user("admin", "pass", admin=True)
         self.admin_user_tok = self.login("admin", "pass")
@@ -2629,12 +2586,6 @@ class MakeRoomAdminTestCase(unittest.HomeserverTestCase):
 
 
 class BlockRoomTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self._store = hs.get_datastores().main
 

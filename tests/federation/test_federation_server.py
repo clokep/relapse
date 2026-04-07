@@ -34,12 +34,6 @@ from tests.unittest import FederatingHomeserverTestCase, override_config
 
 
 class FederationServerTests(FederatingHomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ] + FederatingHomeserverTestCase.servlets
-
     @parameterized.expand([(b"",), (b"foo",), (b'{"limit": Infinity}',)])
     def test_bad_request(self, query_content: bytes) -> None:
         """
@@ -110,12 +104,6 @@ class ServerACLsTestCase(unittest.TestCase):
 
 
 class StateQueryTests(FederatingHomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ] + FederatingHomeserverTestCase.servlets
-
     def test_needs_to_be_in_room(self) -> None:
         """/v1/state/<room_id> requires the server to be in the room"""
         u1 = self.register_user("u1", "pass")
@@ -131,12 +119,6 @@ class StateQueryTests(FederatingHomeserverTestCase):
 
 
 class SendJoinFederationTests(FederatingHomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ] + FederatingHomeserverTestCase.servlets
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         super().prepare(reactor, clock, hs)
 

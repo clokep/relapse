@@ -106,15 +106,6 @@ def providers_config(*providers: type[Any]) -> dict:
 
 
 class PasswordAuthProviderTests(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        devices.register_servlets,
-        logout.register_servlets,
-        register.register_servlets,
-        account.register_servlets,
-    ]
-
     CALLBACK_USERNAME = "get_username_for_registration"
     CALLBACK_DISPLAYNAME = "get_displayname_for_registration"
 

@@ -51,10 +51,6 @@ class DummyRecaptchaChecker(UserInteractiveAuthChecker):
 
 
 class FallbackAuthTests(unittest.HomeserverTestCase):
-    servlets = [
-        auth.register_servlets,
-        register.register_servlets,
-    ]
     hijack_auth = False
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
@@ -162,15 +158,6 @@ class FallbackAuthTests(unittest.HomeserverTestCase):
 
 
 class UIAuthTests(unittest.HomeserverTestCase):
-    servlets = [
-        auth.register_servlets,
-        devices.register_servlets,
-        login.register_servlets,
-        admin.register_servlets,
-        register.register_servlets,
-        relapse_client.register_servlets,
-    ]
-
     def default_config(self) -> dict[str, Any]:
         config = super().default_config()
 
@@ -609,14 +596,6 @@ class UIAuthTests(unittest.HomeserverTestCase):
 
 
 class RefreshAuthTests(unittest.HomeserverTestCase):
-    servlets = [
-        auth.register_servlets,
-        account.register_servlets,
-        login.register_servlets,
-        logout.register_servlets,
-        admin.register_servlets,
-        register.register_servlets,
-    ]
     hijack_auth = False
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
@@ -1195,12 +1174,6 @@ def oidc_config(
 
 @skip_unless(HAS_OIDC, "Requires OIDC")
 class OidcBackchannelLogoutTests(unittest.HomeserverTestCase):
-    servlets = [
-        account.register_servlets,
-        login.register_servlets,
-        relapse_client.register_servlets,
-    ]
-
     def default_config(self) -> dict[str, Any]:
         config = super().default_config()
 

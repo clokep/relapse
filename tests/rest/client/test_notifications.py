@@ -24,14 +24,6 @@ from tests.unittest import HomeserverTestCase
 
 
 class HTTPPusherTests(HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-        receipts.register_servlets,
-        notifications.register_servlets,
-    ]
-
     def prepare(
         self, reactor: MemoryReactor, clock: Clock, homeserver: HomeServer
     ) -> None:

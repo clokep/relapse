@@ -33,14 +33,6 @@ from tests.test_utils.event_injection import inject_event
 
 
 class BaseRelationsTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        relations.register_servlets,
-        room.register_servlets,
-        sync.register_servlets,
-        login.register_servlets,
-        register.register_servlets,
-        admin.register_servlets,
-    ]
     hijack_auth = False
 
     def default_config(self) -> dict[str, Any]:

@@ -30,8 +30,6 @@ from tests.utils import default_config
 
 
 class TestMauLimit(unittest.HomeserverTestCase):
-    servlets = [register.register_servlets, sync.register_servlets]
-
     def default_config(self) -> JsonDict:
         config = default_config("test")
 

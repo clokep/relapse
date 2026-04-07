@@ -29,13 +29,6 @@ from tests.unittest import override_config
 
 
 class ServerNoticeTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-        sync.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = hs.get_datastores().main
         self.room_shutdown_handler = hs.get_room_shutdown_handler()

@@ -128,13 +128,6 @@ class UserDirectoryInitialPopulationTestcase(HomeserverTestCase):
     test the incremental updates, rather than the big rebuild.
     """
 
-    servlets = [
-        login.register_servlets,
-        admin.register_servlets,
-        room.register_servlets,
-        register.register_servlets,
-    ]
-
     def make_homeserver(
         self, reactor: ThreadedMemoryReactorClock, clock: Clock
     ) -> HomeServer:

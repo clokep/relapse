@@ -20,13 +20,6 @@ from tests.unittest import HomeserverTestCase, override_config
 
 
 class SendToDeviceTestCase(HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        sendtodevice.register_servlets,
-        sync.register_servlets,
-    ]
-
     def test_user_to_user(self) -> None:
         """A to-device message from one user to another should get delivered"""
 

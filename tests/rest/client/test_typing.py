@@ -32,7 +32,6 @@ class RoomTypingTestCase(unittest.HomeserverTestCase):
     user_id = "@sid:red"
 
     user = UserID.from_string(user_id)
-    servlets = [room.register_servlets]
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         hs = self.setup_test_homeserver("red")

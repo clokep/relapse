@@ -32,13 +32,6 @@ from tests.unittest import HomeserverTestCase, override_config
 class RedactionsTestCase(HomeserverTestCase):
     """Tests that various redaction events are handled correctly"""
 
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-        sync.register_servlets,
-    ]
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         config = self.default_config()
 

@@ -54,13 +54,6 @@ class UserDirectoryTestCase(unittest.HomeserverTestCase):
     tests/storage/test_user_directory.py.
     """
 
-    servlets = [
-        login.register_servlets,
-        admin.register_servlets,
-        register.register_servlets,
-        room.register_servlets,
-    ]
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         config = self.default_config()
         # Re-enables updating the user directory, as that function is needed below.
@@ -1057,13 +1050,6 @@ class UserDirectoryTestCase(unittest.HomeserverTestCase):
 
 
 class TestUserDirSearchDisabled(unittest.HomeserverTestCase):
-    servlets = [
-        user_directory.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-        admin.register_servlets,
-    ]
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         config = self.default_config()
         # Re-enables updating the user directory, as that function is needed below. It
@@ -1110,13 +1096,6 @@ class TestUserDirSearchDisabled(unittest.HomeserverTestCase):
 
 
 class UserDirectoryRemoteProfileTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        login.register_servlets,
-        admin.register_servlets,
-        register.register_servlets,
-        room.register_servlets,
-    ]
-
     def default_config(self) -> JsonDict:
         config = super().default_config()
         # Re-enables updating the user directory, as that functionality is needed below.

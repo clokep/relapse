@@ -26,14 +26,6 @@ from tests import unittest
 
 
 class ReceiptsTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        login.register_servlets,
-        receipts.register_servlets,
-        admin.register_servlets,
-        room.register_servlets,
-        sync.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.url = "/_matrix/client/r0/sync?since=%s"
         self.next_batch = "s0"

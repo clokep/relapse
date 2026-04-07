@@ -100,13 +100,6 @@ class PresenceRouterTestCase(FederatingHomeserverTestCase):
     for the main process by setting `federation_sender_instances` to None.
     """
 
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-        presence.register_servlets,
-    ] + FederatingHomeserverTestCase.servlets
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         # Mock out the calls over federation.
         self.federation_client = Mock(spec=["send_transaction"])

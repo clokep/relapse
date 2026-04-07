@@ -254,11 +254,6 @@ class CleanupExtremBackgroundUpdateStoreTestCase(HomeserverTestCase):
 class CleanupExtremDummyEventsTestCase(HomeserverTestCase):
     CONSENT_VERSION = "1"
     EXTREMITIES_COUNT = 50
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-    ]
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         config = self.default_config()
