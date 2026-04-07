@@ -86,7 +86,7 @@ class ReceiptsShardTestCase(BaseMultiWorkerStreamTestCase):
             reactor=self.reactor,
             site=worker1_site,
             method="POST",
-            path=f"/rooms/{room_id}/receipt/{ReceiptTypes.READ}/{event_id}",
+            path=f"/_matrix/client/v3/rooms/{room_id}/receipt/{ReceiptTypes.READ}/{event_id}",
             access_token=access_token,
             content={},
         )
@@ -100,7 +100,7 @@ class ReceiptsShardTestCase(BaseMultiWorkerStreamTestCase):
             reactor=self.reactor,
             site=worker2_site,
             method="POST",
-            path=f"/rooms/{room_id}/receipt/{ReceiptTypes.READ}/{event_id}",
+            path=f"/_matrix/client/v3/rooms/{room_id}/receipt/{ReceiptTypes.READ}/{event_id}",
             access_token=access_token,
             content={},
         )
@@ -172,7 +172,7 @@ class ReceiptsShardTestCase(BaseMultiWorkerStreamTestCase):
             reactor=self.reactor,
             site=worker1_site,
             method="POST",
-            path=f"/rooms/{room_id}/receipt/{ReceiptTypes.READ}/{first_event}",
+            path=f"/_matrix/client/v3/rooms/{room_id}/receipt/{ReceiptTypes.READ}/{first_event}",
             access_token=access_token,
             content={},
         )
@@ -219,7 +219,7 @@ class ReceiptsShardTestCase(BaseMultiWorkerStreamTestCase):
             reactor=self.reactor,
             site=worker2_site,
             method="POST",
-            path=f"/rooms/{room_id}/receipt/{ReceiptTypes.READ}/{second_event}",
+            path=f"/_matrix/client/v3/rooms/{room_id}/receipt/{ReceiptTypes.READ}/{second_event}",
             access_token=access_token,
             content={},
         )

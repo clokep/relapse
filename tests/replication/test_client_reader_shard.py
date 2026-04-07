@@ -38,7 +38,7 @@ class ClientReaderTestCase(BaseMultiWorkerStreamTestCase):
             self.reactor,
             site,
             "POST",
-            "register",
+            "/_matrix/client/v3/register",
             {"username": "user", "type": "m.login.password", "password": "bar"},
         )
         self.assertEqual(channel_1.code, 401)
@@ -51,7 +51,7 @@ class ClientReaderTestCase(BaseMultiWorkerStreamTestCase):
             self.reactor,
             site,
             "POST",
-            "register",
+            "/_matrix/client/v3/register",
             {"auth": {"session": session, "type": "m.login.dummy"}},
         )
         self.assertEqual(channel_2.code, 200)
@@ -69,7 +69,7 @@ class ClientReaderTestCase(BaseMultiWorkerStreamTestCase):
             self.reactor,
             site_1,
             "POST",
-            "register",
+            "/_matrix/client/v3/register",
             {"username": "user", "type": "m.login.password", "password": "bar"},
         )
         self.assertEqual(channel_1.code, 401)
@@ -83,7 +83,7 @@ class ClientReaderTestCase(BaseMultiWorkerStreamTestCase):
             self.reactor,
             site_2,
             "POST",
-            "register",
+            "/_matrix/client/v3/register",
             {"auth": {"session": session, "type": "m.login.dummy"}},
         )
         self.assertEqual(channel_2.code, 200)

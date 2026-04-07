@@ -59,7 +59,7 @@ class WorkerAuthenticationTestCase(BaseMultiWorkerStreamTestCase):
             self.reactor,
             site,
             "POST",
-            "register",
+            "/_matrix/client/v3/register",
             {"username": "user", "type": "m.login.password", "password": "bar"},
         )
         self.assertEqual(channel_1.code, 401)
@@ -72,7 +72,7 @@ class WorkerAuthenticationTestCase(BaseMultiWorkerStreamTestCase):
             self.reactor,
             site,
             "POST",
-            "register",
+            "/_matrix/client/v3/register",
             {"auth": {"session": session, "type": "m.login.dummy"}},
         )
 
