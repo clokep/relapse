@@ -13,7 +13,6 @@
 # limitations under the License.
 
 
-
 from tests.unittest import HomeserverTestCase, override_config, skip_unless
 from tests.utils import HAS_AUTHLIB
 
