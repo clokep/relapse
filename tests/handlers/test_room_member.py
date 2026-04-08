@@ -2,14 +2,11 @@ from unittest.mock import AsyncMock, patch
 
 from twisted.internet.testing import MemoryReactor
 
-import relapse.rest.client.login
-import relapse.rest.client.room
 from relapse.api.constants import EventTypes, Membership
 from relapse.api.errors import LimitExceededError, RelapseError
 from relapse.crypto.event_signing import add_hashes_and_signatures
 from relapse.events import FrozenEventV3
 from relapse.federation.federation_client import SendJoinResult
-from relapse.rest import admin
 from relapse.server import HomeServer
 from relapse.types import UserID, create_requester
 from relapse.util import Clock
@@ -24,12 +21,6 @@ from tests.unittest import (
 
 
 class TestJoinsLimitedByPerRoomRateLimiter(FederatingHomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        relapse.rest.client.login.register_servlets,
-        relapse.rest.client.room.register_servlets,
-    ] + FederatingHomeserverTestCase.servlets
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.handler = hs.get_room_member_handler()
 
@@ -221,12 +212,6 @@ class TestJoinsLimitedByPerRoomRateLimiter(FederatingHomeserverTestCase):
 
 
 class TestReplicatedJoinsLimitedByPerRoomRateLimiter(BaseMultiWorkerStreamTestCase):
-    servlets = [
-        admin.register_servlets,
-        relapse.rest.client.login.register_servlets,
-        relapse.rest.client.room.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.handler = hs.get_room_member_handler()
 
@@ -294,12 +279,6 @@ class TestReplicatedJoinsLimitedByPerRoomRateLimiter(BaseMultiWorkerStreamTestCa
 
 
 class RoomMemberMasterHandlerTestCase(HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        relapse.rest.client.login.register_servlets,
-        relapse.rest.client.room.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.handler = hs.get_room_member_handler()
         self.store = hs.get_datastores().main

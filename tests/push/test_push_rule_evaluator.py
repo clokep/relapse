@@ -23,8 +23,6 @@ from relapse.events import FrozenEvent, make_event_from_dict
 from relapse.push.bulk_push_rule_evaluator import _flatten_dict
 from relapse.push.httppusher import tweaks_for_actions
 from relapse.relapse_rust.push import PushRuleEvaluator
-from relapse.rest import admin
-from relapse.rest.client import login, register, room
 from relapse.server import HomeServer
 from relapse.storage.databases.main.appservice import _make_exclusive_regex
 from relapse.types import JsonDict, JsonMapping, UserID
@@ -546,13 +544,6 @@ class PushRuleEvaluatorTestCase(unittest.TestCase):
 class TestBulkPushRuleEvaluator(unittest.HomeserverTestCase):
     """Tests for the bulk push rule evaluator"""
 
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        register.register_servlets,
-        room.register_servlets,
-    ]
-
     def prepare(
         self, reactor: MemoryReactor, clock: Clock, homeserver: HomeServer
     ) -> None:
@@ -621,12 +612,6 @@ class TestBulkPushRuleEvaluator(unittest.HomeserverTestCase):
 
 
 class BulkPushRuleEvaluatorTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-    ]
-
     def prepare(
         self, reactor: MemoryReactor, clock: Clock, homeserver: HomeServer
     ) -> None:

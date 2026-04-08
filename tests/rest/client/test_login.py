@@ -26,10 +26,7 @@ from relapse.api.constants import ApprovalNoticeMedium, LoginType
 from relapse.api.errors import Codes
 from relapse.appservice import ApplicationService
 from relapse.module_api import ModuleApi
-from relapse.rest import admin
-from relapse.rest.client import devices, login, logout, register
-from relapse.rest.client.account import WhoamiRestServlet
-from relapse.rest.relapse import client as relapse_client
+from relapse.rest.client import login
 from relapse.server import HomeServer
 from relapse.types import JsonDict, create_requester
 from relapse.util import Clock
@@ -132,15 +129,6 @@ class DenyAllSpamChecker:
 
 
 class LoginRestServletTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        logout.register_servlets,
-        devices.register_servlets,
-        lambda hs, http_server: WhoamiRestServlet(hs).register(http_server),
-        register.register_servlets,
-    ]
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         self.hs = self.setup_test_homeserver()
         self.hs.config.registration.enable_registration = True
@@ -585,11 +573,6 @@ class LoginRestServletTestCase(unittest.HomeserverTestCase):
 class MultiSSOTestCase(unittest.HomeserverTestCase):
     """Tests for homeservers with multiple SSO providers enabled"""
 
-    servlets = [
-        login.register_servlets,
-        relapse_client.register_servlets,
-    ]
-
     def default_config(self) -> dict[str, Any]:
         config = super().default_config()
 
@@ -863,10 +846,6 @@ class MultiSSOTestCase(unittest.HomeserverTestCase):
 
 
 class CASTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        login.register_servlets,
-    ]
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         self.base_url = "https://matrix.goodserver.com/"
         self.redirect_path = "_relapse/client/login/sso/redirect/confirm"
@@ -1007,11 +986,6 @@ class CASTestCase(unittest.HomeserverTestCase):
 
 @skip_unless(HAS_JWT, "requires authlib")
 class JWTTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-    ]
-
     jwt_secret = "secret"
     jwt_algorithm = "HS256"
     base_config = {
@@ -1199,10 +1173,6 @@ class JWTTestCase(unittest.HomeserverTestCase):
 # signed by the private key.
 @skip_unless(HAS_JWT, "requires authlib")
 class JWTPubKeyTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        login.register_servlets,
-    ]
-
     # This key's pubkey is used as the jwt_secret setting of relapse. Valid
     # tokens are signed by this and validated using the pubkey. It is generated
     # with `openssl genrsa 512` (not a secure way to generate real keys, but
@@ -1288,11 +1258,6 @@ AS_USER = "as_user_alice"
 
 
 class AppserviceLoginRestServletTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        login.register_servlets,
-        register.register_servlets,
-    ]
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         self.hs = self.setup_test_homeserver()
 
@@ -1399,8 +1364,6 @@ class AppserviceLoginRestServletTestCase(unittest.HomeserverTestCase):
 @skip_unless(HAS_OIDC, "requires OIDC")
 class UsernamePickerTestCase(HomeserverTestCase):
     """Tests for the username picker flow of SSO login"""
-
-    servlets = [login.register_servlets, relapse_client.register_servlets]
 
     def default_config(self) -> dict[str, Any]:
         config = super().default_config()

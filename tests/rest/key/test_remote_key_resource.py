@@ -24,7 +24,6 @@ from twisted.internet.testing import MemoryReactor
 
 from relapse.crypto.keyring import PerspectivesKeyFetcher
 from relapse.http.site import RelapseRequest
-from relapse.rest import key
 from relapse.server import HomeServer
 from relapse.storage.keys import FetchKeyResult
 from relapse.types import JsonDict
@@ -37,8 +36,6 @@ from tests.utils import default_config
 
 
 class BaseRemoteKeyResourceTestCase(unittest.HomeserverTestCase):
-    servlets = [key.register_servlets]
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         self.http_client = Mock()
         return self.setup_test_homeserver(federation_http_client=self.http_client)

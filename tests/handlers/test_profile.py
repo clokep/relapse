@@ -21,7 +21,6 @@ from twisted.internet.testing import MemoryReactor
 
 import relapse.types
 from relapse.api.errors import AuthError, RelapseError
-from relapse.rest import admin
 from relapse.server import HomeServer
 from relapse.types import JsonDict, UserID
 from relapse.util import Clock
@@ -31,8 +30,6 @@ from tests import unittest
 
 class ProfileTestCase(unittest.HomeserverTestCase):
     """Tests profile management."""
-
-    servlets = [admin.register_servlets]
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         self.mock_federation = AsyncMock()

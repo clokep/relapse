@@ -15,7 +15,6 @@ import logging
 
 from twisted.internet.testing import MemoryReactor
 
-from relapse.rest.client import register
 from relapse.server import HomeServer
 from relapse.util import Clock
 
@@ -28,8 +27,6 @@ logger = logging.getLogger(__name__)
 
 class WorkerAuthenticationTestCase(BaseMultiWorkerStreamTestCase):
     """Test the authentication of HTTP calls between workers."""
-
-    servlets = [register.register_servlets] + BaseMultiWorkerStreamTestCase.servlets
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         config = self.default_config()
@@ -61,7 +58,7 @@ class WorkerAuthenticationTestCase(BaseMultiWorkerStreamTestCase):
             self.reactor,
             site,
             "POST",
-            "register",
+            "/_matrix/client/v3/register",
             {"username": "user", "type": "m.login.password", "password": "bar"},
         )
         self.assertEqual(channel_1.code, 401)
@@ -74,7 +71,7 @@ class WorkerAuthenticationTestCase(BaseMultiWorkerStreamTestCase):
             self.reactor,
             site,
             "POST",
-            "register",
+            "/_matrix/client/v3/register",
             {"auth": {"session": session, "type": "m.login.dummy"}},
         )
 

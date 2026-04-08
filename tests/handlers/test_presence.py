@@ -37,8 +37,6 @@ from relapse.handlers.presence import (
     handle_timeout,
     handle_update,
 )
-from relapse.rest import admin
-from relapse.rest.client import room
 from relapse.server import HomeServer
 from relapse.storage.database import LoggingDatabaseConnection
 from relapse.types import JsonDict, UserID, get_domain_from_id
@@ -49,8 +47,6 @@ from tests.replication._base import BaseMultiWorkerStreamTestCase
 
 
 class PresenceUpdateTestCase(unittest.HomeserverTestCase):
-    servlets = [admin.register_servlets]
-
     def prepare(
         self, reactor: MemoryReactor, clock: Clock, homeserver: HomeServer
     ) -> None:
@@ -686,6 +682,10 @@ class PresenceTimeoutTestCase(unittest.TestCase):
 class PresenceHandlerInitTestCase(unittest.HomeserverTestCase):
     def default_config(self) -> JsonDict:
         config = super().default_config()
+
+        # Don't load any resources to ensure the PresenceHandler isn't loaded.
+        config["listeners"][0]["resources"] = []
+
         # Disable background tasks on this worker so that the PresenceHandler isn't
         # loaded until we request it.
         config["run_background_tasks_on"] = "other"
@@ -1792,8 +1792,6 @@ class PresenceJoinTestCase(unittest.HomeserverTestCase):
     """
 
     user_id = "@test:server"
-
-    servlets = [room.register_servlets]
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         hs = self.setup_test_homeserver(

@@ -13,8 +13,6 @@
 # limitations under the License.
 
 
-from relapse.rest.relapse import client as relapse_client
-
 from tests.unittest import HomeserverTestCase, override_config, skip_unless
 from tests.utils import HAS_AUTHLIB
 
@@ -22,8 +20,6 @@ from tests.utils import HAS_AUTHLIB
 @skip_unless(HAS_AUTHLIB, "requires authlib")
 class JWKSTestCase(HomeserverTestCase):
     """Test /_relapse/jwks JWKS data."""
-
-    servlets = [relapse_client.register_servlets]
 
     def test_empty_jwks(self) -> None:
         """Test that the JWKS endpoint is not present by default."""

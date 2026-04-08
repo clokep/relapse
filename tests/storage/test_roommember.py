@@ -17,8 +17,6 @@ from typing import cast
 from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import Membership
-from relapse.rest import admin
-from relapse.rest.client import login, room
 from relapse.server import HomeServer
 from relapse.types import UserID, create_requester
 from relapse.util import Clock
@@ -29,12 +27,6 @@ from tests.test_utils import event_injection
 
 
 class RoomMemberStoreTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        login.register_servlets,
-        admin.register_servlets,
-        room.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: TestHomeServer) -> None:  # type: ignore[override]
         # We can't test the RoomMemberStore on its own without the other event
         # storage logic

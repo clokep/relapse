@@ -16,8 +16,6 @@ from http import HTTPStatus
 from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EventContentFields, EventTypes
-from relapse.rest import admin
-from relapse.rest.client import room
 from relapse.server import HomeServer
 from relapse.types import JsonDict
 from relapse.util import Clock
@@ -27,11 +25,6 @@ from tests import unittest
 
 class EphemeralMessageTestCase(unittest.HomeserverTestCase):
     user_id = "@user:test"
-
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-    ]
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         config = self.default_config()

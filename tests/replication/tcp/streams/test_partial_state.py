@@ -13,13 +13,10 @@
 # limitations under the License.
 from twisted.internet.defer import ensureDeferred
 
-from relapse.rest.client import room
-
 from tests.replication._base import BaseMultiWorkerStreamTestCase
 
 
 class PartialStateStreamsTestCase(BaseMultiWorkerStreamTestCase):
-    servlets = [room.register_servlets]
     hijack_auth = True
     user_id = "@bob:test"
 

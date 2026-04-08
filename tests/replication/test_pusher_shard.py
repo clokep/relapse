@@ -17,8 +17,6 @@ from unittest.mock import Mock
 from twisted.internet import defer
 from twisted.internet.testing import MemoryReactor
 
-from relapse.rest import admin
-from relapse.rest.client import login, room
 from relapse.server import HomeServer
 from relapse.util import Clock
 
@@ -29,12 +27,6 @@ logger = logging.getLogger(__name__)
 
 class PusherShardTestCase(BaseMultiWorkerStreamTestCase):
     """Checks pusher sharding works"""
-
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ]
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         # Register a user who sends a message that we'll get notified about

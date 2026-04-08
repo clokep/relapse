@@ -15,20 +15,12 @@
 from unittest.mock import AsyncMock
 
 from relapse.api.errors import Codes, RelapseError
-from relapse.rest import admin
-from relapse.rest.client import login, room
 from relapse.types import JsonDict, UserID, create_requester
 
 from tests.unittest import FederatingHomeserverTestCase
 
 
 class RoomComplexityTests(FederatingHomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ] + FederatingHomeserverTestCase.servlets
-
     def default_config(self) -> JsonDict:
         config = super().default_config()
         config["limit_remote_rooms"] = {"enabled": True, "complexity": 0.05}
@@ -175,12 +167,6 @@ class RoomComplexityTests(FederatingHomeserverTestCase):
 class RoomComplexityAdminTests(FederatingHomeserverTestCase):
     # Test the behavior of joining rooms which exceed the complexity if option
     # limit_remote_rooms.admins_can_join is True.
-
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ] + FederatingHomeserverTestCase.servlets
 
     def default_config(self) -> JsonDict:
         config = super().default_config()

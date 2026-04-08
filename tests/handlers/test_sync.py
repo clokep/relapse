@@ -20,8 +20,6 @@ from relapse.api.errors import Codes, ResourceLimitError
 from relapse.api.filtering import Filtering
 from relapse.api.room_versions import RoomVersions
 from relapse.handlers.sync import SyncConfig, SyncResult
-from relapse.rest import admin
-from relapse.rest.client import knock, login, room
 from relapse.server import HomeServer
 from relapse.types import UserID, create_requester
 from relapse.util import Clock
@@ -32,13 +30,6 @@ import tests.utils
 
 class SyncTestCase(tests.unittest.HomeserverTestCase):
     """Tests Sync Handler."""
-
-    servlets = [
-        admin.register_servlets,
-        knock.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-    ]
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.sync_handler = self.hs.get_sync_handler()

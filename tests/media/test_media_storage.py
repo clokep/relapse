@@ -36,8 +36,6 @@ from relapse.media._base import FileInfo, ThumbnailInfo
 from relapse.media.filepath import MediaFilePaths
 from relapse.media.media_storage import MediaStorage, ReadableFileWrapper
 from relapse.media.storage_provider import FileStorageProviderBackend
-from relapse.rest import admin, media
-from relapse.rest.client import login
 from relapse.rest.media.thumbnail import ThumbnailServlet
 from relapse.server import HomeServer
 from relapse.types import JsonDict
@@ -223,7 +221,6 @@ class MediaRepoTests(unittest.HomeserverTestCase):
     test_image: ClassVar[_TestImage]
     hijack_auth = True
     user_id = "@test:user"
-    servlets = [media.register_servlets]
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         self.fetches: list[
@@ -716,12 +713,6 @@ EVIL_DATA_EXPERIMENT = b"Some evil data to trigger the experimental tuple API"
 
 
 class SpamCheckerTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        login.register_servlets,
-        admin.register_servlets,
-        media.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.user = self.register_user("user", "pass")
         self.tok = self.login("user", "pass")

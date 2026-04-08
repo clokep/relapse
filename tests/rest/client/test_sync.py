@@ -17,8 +17,6 @@ import json
 from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EventContentFields, EventTypes
-from relapse.rest import admin
-from relapse.rest.client import devices, knock, login, room, sync
 from relapse.server import HomeServer
 from relapse.types import JsonDict
 from relapse.util import Clock
@@ -32,12 +30,6 @@ from tests.server import TimedOutException
 
 class FilterTestCase(unittest.HomeserverTestCase):
     user_id = "@apple:test"
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-        sync.register_servlets,
-    ]
 
     def test_sync_argless(self) -> None:
         channel = self.make_request("GET", "/_matrix/client/r0/sync")
@@ -47,13 +39,6 @@ class FilterTestCase(unittest.HomeserverTestCase):
 
 
 class SyncFilterTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-        sync.register_servlets,
-    ]
-
     def test_sync_filter_labels(self) -> None:
         """Test that we can filter by a label."""
         sync_filter = json.dumps(
@@ -180,12 +165,6 @@ class SyncFilterTestCase(unittest.HomeserverTestCase):
 
 
 class SyncTypingTests(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-        sync.register_servlets,
-    ]
     user_id = True
     hijack_auth = False
 
@@ -285,14 +264,6 @@ class SyncTypingTests(unittest.HomeserverTestCase):
 
 
 class SyncKnockTestCase(KnockingStrippedStateEventHelperMixin):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-        sync.register_servlets,
-        knock.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = hs.get_datastores().main
         self.url = "/_matrix/client/r0/sync?since=%s"
@@ -369,12 +340,6 @@ class SyncKnockTestCase(KnockingStrippedStateEventHelperMixin):
 
 
 class SyncCacheTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        sync.register_servlets,
-    ]
-
     def test_noop_sync_does_not_tightloop(self) -> None:
         """If the sync times out, we shouldn't cache the result
 
@@ -421,13 +386,6 @@ class SyncCacheTestCase(unittest.HomeserverTestCase):
 
 
 class DeviceListSyncTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        sync.register_servlets,
-        devices.register_servlets,
-    ]
-
     def test_user_with_no_rooms_receives_self_device_list_updates(self) -> None:
         """Tests that a user with no rooms still receives their own device list updates"""
         device_id = "TESTDEVICE"
@@ -478,13 +436,6 @@ class DeviceListSyncTestCase(unittest.HomeserverTestCase):
 
 
 class ExcludeRoomTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        sync.register_servlets,
-        room.register_servlets,
-    ]
-
     def prepare(
         self, reactor: MemoryReactor, clock: Clock, homeserver: HomeServer
     ) -> None:

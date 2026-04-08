@@ -14,8 +14,6 @@
 from twisted.internet.testing import MemoryReactor
 
 from relapse.events import EventBase
-from relapse.rest import admin
-from relapse.rest.client import login, room
 from relapse.server import HomeServer
 from relapse.types import JsonDict
 from relapse.util import Clock
@@ -24,12 +22,6 @@ from tests.unittest import HomeserverTestCase
 
 
 class EventUnsignedAdditionTestCase(HomeserverTestCase):
-    servlets = [
-        room.register_servlets,
-        admin.register_servlets,
-        login.register_servlets,
-    ]
-
     def prepare(
         self, reactor: MemoryReactor, clock: Clock, homeserver: HomeServer
     ) -> None:

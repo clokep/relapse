@@ -21,8 +21,6 @@ from parameterized import parameterized
 from twisted.internet.testing import MemoryReactor
 
 from relapse.http.site import XForwardedForRequest
-from relapse.rest import admin
-from relapse.rest.client import login
 from relapse.server import HomeServer
 from relapse.storage.databases.main.client_ips import (
     LAST_SEEN_GRANULARITY,
@@ -710,11 +708,6 @@ class ClientIpStoreTestCase(unittest.HomeserverTestCase):
 
 
 class ClientIpAuthTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = self.hs.get_datastores().main
         self.user_id = self.register_user("bob", "abc123", True)

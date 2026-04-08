@@ -16,8 +16,6 @@ from http import HTTPStatus
 from twisted.internet.testing import MemoryReactor
 
 from relapse.api.room_versions import KNOWN_ROOM_VERSIONS
-from relapse.rest import admin
-from relapse.rest.client import capabilities, login
 from relapse.server import HomeServer
 from relapse.util import Clock
 
@@ -26,12 +24,6 @@ from tests.unittest import override_config
 
 
 class CapabilitiesTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        capabilities.register_servlets,
-        login.register_servlets,
-    ]
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         self.url = "/_matrix/client/r0/capabilities"
         hs = self.setup_test_homeserver()

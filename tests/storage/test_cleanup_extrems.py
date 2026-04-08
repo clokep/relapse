@@ -18,8 +18,6 @@ from unittest.mock import Mock, patch
 from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EventTypes
-from relapse.rest import admin
-from relapse.rest.client import login, room
 from relapse.server import HomeServer
 from relapse.storage import prepare_database
 from relapse.storage.types import Cursor
@@ -254,11 +252,6 @@ class CleanupExtremBackgroundUpdateStoreTestCase(HomeserverTestCase):
 class CleanupExtremDummyEventsTestCase(HomeserverTestCase):
     CONSENT_VERSION = "1"
     EXTREMITIES_COUNT = 50
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-    ]
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         config = self.default_config()

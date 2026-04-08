@@ -17,8 +17,6 @@ from typing import Any
 
 from twisted.internet.testing import MemoryReactor
 
-from relapse.rest import admin
-from relapse.rest.client import login, room
 from relapse.server import HomeServer
 from relapse.storage.database import LoggingTransaction
 from relapse.util import Clock
@@ -27,12 +25,6 @@ from tests.unittest import HomeserverTestCase
 
 
 class ReceiptsBackgroundUpdateStoreTestCase(HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = hs.get_datastores().main
         self.user_id = self.register_user("foo", "pass")

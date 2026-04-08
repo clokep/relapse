@@ -16,8 +16,6 @@ from unittest.mock import patch
 
 from twisted.internet.testing import MemoryReactor
 
-from relapse.rest import admin
-from relapse.rest.client import login, room, sync
 from relapse.server import HomeServer
 from relapse.storage.util.id_generators import MultiWriterIdGenerator
 from relapse.util import Clock
@@ -30,13 +28,6 @@ logger = logging.getLogger(__name__)
 
 class EventPersisterShardTestCase(BaseMultiWorkerStreamTestCase):
     """Checks event persisting sharding works"""
-
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-        sync.register_servlets,
-    ] + BaseMultiWorkerStreamTestCase.servlets
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         # Register a user who sends a message that we'll get notified about

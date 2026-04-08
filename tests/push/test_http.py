@@ -19,8 +19,6 @@ from twisted.internet.testing import MemoryReactor
 
 from relapse.logging.context import make_deferred_yieldable
 from relapse.push import PusherConfig, PusherConfigException
-from relapse.rest import admin
-from relapse.rest.client import login, push_rule, pusher, receipts, room
 from relapse.server import HomeServer
 from relapse.types import JsonDict
 from relapse.util import Clock
@@ -29,14 +27,6 @@ from tests.unittest import HomeserverTestCase, override_config
 
 
 class HTTPPusherTests(HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-        receipts.register_servlets,
-        push_rule.register_servlets,
-        pusher.register_servlets,
-    ]
     user_id = True
     hijack_auth = False
 

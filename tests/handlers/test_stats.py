@@ -16,8 +16,6 @@ from typing import Any, cast
 
 from twisted.internet.testing import MemoryReactor
 
-from relapse.rest import admin
-from relapse.rest.client import login, room
 from relapse.server import HomeServer
 from relapse.storage.databases.main import stats
 from relapse.util import Clock
@@ -31,12 +29,6 @@ EXPT_NUM_STATE_EVTS_IN_FRESH_PRIVATE_ROOM = 6
 
 
 class StatsRoomTests(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = hs.get_datastores().main
         self.handler = self.hs.get_stats_handler()

@@ -21,8 +21,6 @@ from relapse.api.constants import UserTypes
 from relapse.api.errors import RelapseError
 from relapse.api.room_versions import RoomVersion, RoomVersions
 from relapse.appservice import ApplicationService
-from relapse.rest import admin
-from relapse.rest.client import login, register, room, user_directory
 from relapse.server import HomeServer
 from relapse.storage.roommember import ProfileInfo
 from relapse.types import JsonDict, UserProfile, create_requester
@@ -53,13 +51,6 @@ class UserDirectoryTestCase(unittest.HomeserverTestCase):
     The background process that rebuilds the user directory is tested in
     tests/storage/test_user_directory.py.
     """
-
-    servlets = [
-        login.register_servlets,
-        admin.register_servlets,
-        register.register_servlets,
-        room.register_servlets,
-    ]
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         config = self.default_config()
@@ -1057,13 +1048,6 @@ class UserDirectoryTestCase(unittest.HomeserverTestCase):
 
 
 class TestUserDirSearchDisabled(unittest.HomeserverTestCase):
-    servlets = [
-        user_directory.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-        admin.register_servlets,
-    ]
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         config = self.default_config()
         # Re-enables updating the user directory, as that function is needed below. It
@@ -1110,13 +1094,6 @@ class TestUserDirSearchDisabled(unittest.HomeserverTestCase):
 
 
 class UserDirectoryRemoteProfileTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        login.register_servlets,
-        admin.register_servlets,
-        register.register_servlets,
-        room.register_servlets,
-    ]
-
     def default_config(self) -> JsonDict:
         config = super().default_config()
         # Re-enables updating the user directory, as that functionality is needed below.

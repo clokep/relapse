@@ -16,8 +16,6 @@ from collections.abc import Sequence
 from twisted.internet.testing import MemoryReactor
 
 from relapse.api.errors import Codes
-from relapse.rest import admin
-from relapse.rest.client import login, room, sync
 from relapse.server import HomeServer
 from relapse.storage.roommember import RoomsForUser
 from relapse.types import JsonDict
@@ -29,13 +27,6 @@ from tests.unittest import override_config
 
 
 class ServerNoticeTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-        sync.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = hs.get_datastores().main
         self.room_shutdown_handler = hs.get_room_shutdown_handler()

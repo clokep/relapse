@@ -26,8 +26,6 @@ from relapse.api.constants import (
 )
 from relapse.api.errors import Codes
 from relapse.appservice import ApplicationService
-from relapse.rest import admin
-from relapse.rest.client import account, account_validity, login, logout, register, sync
 from relapse.server import HomeServer
 from relapse.storage._base import db_to_json
 from relapse.types import JsonDict
@@ -38,11 +36,6 @@ from tests.unittest import override_config
 
 
 class RegisterRestServletTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        login.register_servlets,
-        register.register_servlets,
-        admin.register_servlets,
-    ]
     url = "/_matrix/client/r0/register"
 
     def default_config(self) -> dict[str, Any]:
@@ -796,15 +789,6 @@ class RegisterRestServletTestCase(unittest.HomeserverTestCase):
 
 
 class AccountValidityTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        register.register_servlets,
-        admin.register_servlets,
-        login.register_servlets,
-        sync.register_servlets,
-        logout.register_servlets,
-        account_validity.register_servlets,
-    ]
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         config = self.default_config()
         # Test for account expiring after a week.
@@ -915,15 +899,6 @@ class AccountValidityTestCase(unittest.HomeserverTestCase):
 
 
 class AccountValidityRenewalByEmailTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        register.register_servlets,
-        admin.register_servlets,
-        login.register_servlets,
-        sync.register_servlets,
-        account_validity.register_servlets,
-        account.register_servlets,
-    ]
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         config = self.default_config()
 
@@ -1136,8 +1111,6 @@ class AccountValidityRenewalByEmailTestCase(unittest.HomeserverTestCase):
 
 
 class AccountValidityBackgroundJobTestCase(unittest.HomeserverTestCase):
-    servlets = [admin.register_servlets]
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         self.validity_period = 10
         self.max_delta = self.validity_period * 10.0 / 100.0
@@ -1184,7 +1157,6 @@ class AccountValidityBackgroundJobTestCase(unittest.HomeserverTestCase):
 
 
 class RegistrationTokenValidityRestServletTestCase(unittest.HomeserverTestCase):
-    servlets = [register.register_servlets]
     url = "/_matrix/client/v1/register/m.login.registration_token/validity"
 
     def default_config(self) -> dict[str, Any]:

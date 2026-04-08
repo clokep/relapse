@@ -17,8 +17,6 @@ from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import Direction, EventTypes, RelationTypes
 from relapse.api.filtering import Filter
-from relapse.rest import admin
-from relapse.rest.client import login, room
 from relapse.server import HomeServer
 from relapse.types import JsonDict
 from relapse.util import Clock
@@ -33,12 +31,6 @@ class PaginationTestCase(HomeserverTestCase):
     This is similar to some of the tests in tests.rest.client.test_rooms but here
     we ensure that the filtering done in the database is applied successfully.
     """
-
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ]
 
     def default_config(self) -> JsonDict:
         config = super().default_config()

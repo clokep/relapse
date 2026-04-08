@@ -17,8 +17,6 @@ from twisted.internet.testing import MemoryReactor
 
 from relapse.api.errors import Codes
 from relapse.events.utils import CANONICALJSON_MAX_INT, CANONICALJSON_MIN_INT
-from relapse.rest import admin
-from relapse.rest.client import login, room, sync
 from relapse.server import HomeServer
 from relapse.util import Clock
 
@@ -27,13 +25,6 @@ from tests.unittest import HomeserverTestCase
 
 class PowerLevelsTestCase(HomeserverTestCase):
     """Tests that power levels are enforced in various situations"""
-
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-        sync.register_servlets,
-    ]
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         config = self.default_config()

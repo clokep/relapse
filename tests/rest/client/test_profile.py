@@ -21,8 +21,6 @@ from typing import Any
 from twisted.internet.testing import MemoryReactor
 
 from relapse.api.errors import Codes
-from relapse.rest import admin
-from relapse.rest.client import login, profile, room
 from relapse.server import HomeServer
 from relapse.types import UserID
 from relapse.util import Clock
@@ -31,13 +29,6 @@ from tests import unittest
 
 
 class ProfileTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        profile.register_servlets,
-        room.register_servlets,
-    ]
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         self.hs = self.setup_test_homeserver()
         return self.hs
@@ -499,13 +490,6 @@ class ProfileTestCase(unittest.HomeserverTestCase):
 
 
 class ProfilesRestrictedTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        profile.register_servlets,
-        room.register_servlets,
-    ]
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         config = self.default_config()
         config["require_auth_for_profile_requests"] = True
@@ -578,12 +562,6 @@ class ProfilesRestrictedTestCase(unittest.HomeserverTestCase):
 
 
 class OwnProfileUnrestrictedTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        profile.register_servlets,
-    ]
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         config = self.default_config()
         config["require_auth_for_profile_requests"] = True

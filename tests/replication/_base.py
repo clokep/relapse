@@ -23,7 +23,6 @@ from twisted.python.failure import Failure
 from relapse.app.generic_worker import GenericWorkerServer
 from relapse.config.workers import InstanceTcpLocationConfig, InstanceUnixLocationConfig
 from relapse.http.site import RelapseRequest, RelapseSite
-from relapse.replication.http import register_servlets
 from relapse.replication.tcp.client import ReplicationDataHandler
 from relapse.replication.tcp.handler import ReplicationCommandHandler
 from relapse.replication.tcp.protocol import (
@@ -48,8 +47,6 @@ logger = logging.getLogger(__name__)
 
 class BaseStreamTestCase(unittest.HomeserverTestCase):
     """Base class for tests of the replication streams"""
-
-    servlets = [register_servlets]
 
     # hiredis is an optional dependency so we don't want to require it for running
     # the tests.
@@ -234,8 +231,6 @@ class BaseMultiWorkerStreamTestCase(unittest.HomeserverTestCase):
         # Redis replication only takes place on Postgres
         skip = "Requires Postgres"
 
-    servlets = [register_servlets]
-
     def default_config(self) -> dict[str, Any]:
         """
         Overrides the default config to enable Redis.
@@ -349,12 +344,15 @@ class BaseMultiWorkerStreamTestCase(unittest.HomeserverTestCase):
         store.db_pool._db_pool = self.database_pool._db_pool
 
         # Set up a resource for the worker
-        resource = self.create_test_resource(worker_hs)
-
+        listener_config = worker_hs.config.server.listeners[0]
+        assert listener_config.http_options is not None
+        resource = worker_hs.resource_for_listener(
+            listener_config.http_options.resources
+        )
         self._hs_to_site[worker_hs] = RelapseSite(
             logger_name="relapse.access.http.fake",
             site_tag=f"{worker_hs.config.server.server_name}-{worker_hs.get_instance_name()}",
-            config=worker_hs.config.server.listeners[0],
+            config=listener_config,
             resource=resource,
             server_version_string="1",
             max_request_body_size=8192,

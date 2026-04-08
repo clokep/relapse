@@ -12,19 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from relapse.api.errors import Codes
-from relapse.rest import admin
-from relapse.rest.client import login, push_rule, room
 
 from tests.unittest import HomeserverTestCase
 
 
 class PushRuleAttributesTestCase(HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-        push_rule.register_servlets,
-    ]
     hijack_auth = False
 
     def test_enabled_on_creation(self) -> None:

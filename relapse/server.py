@@ -21,6 +21,8 @@
 import abc
 import functools
 import logging
+import os
+import re
 from collections.abc import Callable, Iterable
 from typing import TYPE_CHECKING, Any, TypeAlias, TypeVar, cast
 
@@ -29,15 +31,18 @@ from twisted.internet.tcp import Port
 from twisted.web.iweb import IPolicyForHTTPS
 from twisted.web.resource import Resource
 
+import relapse
 from relapse.api.auth import Auth
 from relapse.api.auth.internal import InternalAuth
 from relapse.api.auth_blocking import AuthBlocking
 from relapse.api.filtering import Filtering
 from relapse.api.ratelimiting import Ratelimiter, RequestRatelimiter
+from relapse.api.urls import STATIC_PREFIX
 from relapse.appservice.api import ApplicationServiceApi
 from relapse.appservice.scheduler import ApplicationServiceScheduler
+from relapse.config import ConfigError
 from relapse.config.homeserver import HomeServerConfig
-from relapse.config.server import ListenerConfig
+from relapse.config.server import HttpResourceConfig, ListenerConfig
 from relapse.crypto import context_factory
 from relapse.crypto.context_factory import RegularPolicyForHTTPS
 from relapse.crypto.keyring import Keyring
@@ -112,18 +117,32 @@ from relapse.http.client import (
     SimpleHttpClient,
 )
 from relapse.http.matrixfederationclient import MatrixFederationHttpClient
+from relapse.http.server import (
+    JsonResource,
+    OptionsResource,
+)
+from relapse.http.servlet import RedirectServlet, StaticServlet
 from relapse.media.media_repository import MediaRepository
+from relapse.metrics import RegistryProxy
 from relapse.metrics.common_usage_metrics import CommonUsageMetricsManager
 from relapse.module_api import ModuleApi
 from relapse.module_api.callbacks import ModuleApiCallbacks
 from relapse.notifier import Notifier, ReplicationNotifier
 from relapse.push.bulk_push_rule_evaluator import BulkPushRuleEvaluator
 from relapse.push.pusherpool import PusherPool
+from relapse.replication.http import (
+    register_servlets as register_replication_servlets,
+)
 from relapse.replication.tcp.client import ReplicationDataHandler
 from relapse.replication.tcp.external_cache import ExternalCache
 from relapse.replication.tcp.handler import ReplicationCommandHandler
 from relapse.replication.tcp.resource import ReplicationStreamer
 from relapse.replication.tcp.streams import STREAMS_MAP, Stream
+from relapse.rest import admin, client, federation, key, media, well_known
+from relapse.rest.admin import register_servlets_for_media_repo
+from relapse.rest.health import HealthServlet
+from relapse.rest.relapse import client as relapse_client
+from relapse.rest.relapse.metrics import MetricsServlet
 from relapse.server_notices.server_notices_manager import ServerNoticesManager
 from relapse.server_notices.server_notices_sender import ServerNoticesSender
 from relapse.server_notices.worker_server_notices_sender import (
@@ -356,6 +375,98 @@ class HomeServer(metaclass=abc.ABCMeta):
     def listen_http(self, listener_config: ListenerConfig) -> Iterable[Port]:  # noqa: B027 (no-op by design)
         """Configure a single HTTP listener."""
         return ()
+
+    def resource_for_listener(
+        self, resources: list[HttpResourceConfig]
+    ) -> JsonResource:
+        matrix_resource = OptionsResource(self)
+
+        # We always include a health resource.
+        HealthServlet().register(matrix_resource)
+
+        is_main_process = self.config.worker.worker_app is None
+
+        has_static_resources = False
+        for res in resources:
+            for name in res.names:
+                if name == "health":
+                    # Skip loading, health resource is always included
+                    continue
+
+                if name in ["static", "client"]:
+                    has_static_resources = True
+
+                    StaticServlet(
+                        re.compile(r"/_relapse/static/"),
+                        os.path.join(os.path.dirname(relapse.__file__), "static"),
+                    ).register(matrix_resource)
+
+                if name == "client":
+                    client.register_servlets(self, matrix_resource)
+                    relapse_client.register_servlets(self, matrix_resource)
+                    well_known.register_servlets(self, matrix_resource)
+                    admin.register_servlets(self, matrix_resource)
+
+                    if is_main_process:
+                        if self.config.email.can_verify_email:
+                            from relapse.rest.relapse.client.password_reset import (
+                                PasswordResetSubmitTokenServlet,
+                            )
+
+                            PasswordResetSubmitTokenServlet(self).register(
+                                matrix_resource
+                            )
+
+                if name == "consent" and is_main_process:
+                    from relapse.rest.consent import ConsentServlet
+
+                    ConsentServlet(self).register(matrix_resource)
+
+                if name == "federation":
+                    federation.register_servlets(self, matrix_resource)
+
+                # Skip loading openid resource if federation is defined
+                # since federation resource will include openid
+                if name == "openid" and "federation" not in res.names:
+                    federation.register_servlets(
+                        self, matrix_resource, servlet_groups=["openid"]
+                    )
+
+                if name in ["media", "federation", "client"]:
+                    if self.config.media.can_load_media_repo:
+                        media.register_servlets(self, matrix_resource)
+
+                        if not is_main_process:
+                            # We need to serve the admin servlets for media on the worker.
+                            register_servlets_for_media_repo(self, matrix_resource)
+                    elif name == "media":
+                        raise ConfigError(
+                            "A 'media' listener is configured but the media"
+                            " repository is disabled. Ignoring."
+                        )
+
+                if name in ["keys", "federation"]:
+                    key.register_servlets(self, matrix_resource)
+
+                if name == "metrics" and self.config.metrics.enable_metrics:
+                    MetricsServlet(RegistryProxy).register(matrix_resource)
+
+                if name == "replication":
+                    register_replication_servlets(self, matrix_resource)
+
+        # Try to find something useful to serve at '/':
+        #
+        # 1. Redirect to the web client if it is an HTTP(S) URL.
+        # 2. Redirect to the static "Relapse is running" page.
+        # 3. Do not redirect and use a blank resource.
+        if self.config.server.web_client_location:
+            RedirectServlet(
+                re.compile(r"^/$"), self.config.server.web_client_location
+            ).register(matrix_resource)
+        elif has_static_resources:
+            RedirectServlet(re.compile(r"^/$"), STATIC_PREFIX).register(matrix_resource)
+
+        return matrix_resource
 
     def setup_background_tasks(self) -> None:
         """

@@ -18,8 +18,6 @@ from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EventTypes
 from relapse.api.errors import StoreError
-from relapse.rest import admin
-from relapse.rest.client import login, room
 from relapse.server import HomeServer
 from relapse.storage.databases.main import DataStore
 from relapse.storage.databases.main.search import Phrase, SearchToken, _tokenize_query
@@ -32,12 +30,6 @@ from tests.utils import USE_POSTGRES_FOR_TESTS
 
 
 class EventSearchInsertionTest(HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-    ]
-
     def test_null_byte(self) -> None:
         """
         Postgres/SQLite don't like null bytes going into the search tables. Internally
@@ -208,12 +200,6 @@ class MessageSearchTest(HomeserverTestCase):
     The result can be compared to the tokenized version for SQLite and Postgres < 11.
 
     """
-
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-    ]
 
     PHRASE = "the quick brown fox jumps over the lazy dog"
 

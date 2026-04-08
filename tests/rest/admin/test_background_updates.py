@@ -18,8 +18,6 @@ from parameterized import parameterized
 from twisted.internet.testing import MemoryReactor
 
 from relapse.api.errors import Codes
-from relapse.rest import admin
-from relapse.rest.client import login
 from relapse.server import HomeServer
 from relapse.storage.background_updates import BackgroundUpdater
 from relapse.types import JsonDict
@@ -29,11 +27,6 @@ from tests import unittest
 
 
 class BackgroundUpdatesTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = hs.get_datastores().main
         self.admin_user = self.register_user("admin", "pass", admin=True)

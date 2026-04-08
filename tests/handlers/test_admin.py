@@ -19,8 +19,6 @@ from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EventTypes, JoinRules
 from relapse.api.room_versions import RoomVersions
-from relapse.rest import admin
-from relapse.rest.client import knock, login, room
 from relapse.server import HomeServer
 from relapse.types import UserID
 from relapse.util import Clock
@@ -29,13 +27,6 @@ from tests import unittest
 
 
 class ExfiltrateData(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-        knock.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.admin_handler = hs.get_admin_handler()
         self._store = hs.get_datastores().main

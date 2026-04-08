@@ -14,8 +14,6 @@
 
 from twisted.internet.testing import MemoryReactor
 
-from relapse.rest import admin
-from relapse.rest.client import devices
 from relapse.server import HomeServer
 from relapse.util import Clock
 
@@ -23,11 +21,6 @@ from tests.unittest import HomeserverTestCase
 
 
 class DeviceInboxBackgroundUpdateStoreTestCase(HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        devices.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = hs.get_datastores().main
         self.user_id = self.register_user("foo", "pass")

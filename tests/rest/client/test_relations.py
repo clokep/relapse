@@ -21,8 +21,6 @@ from unittest.mock import AsyncMock, patch
 from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import AccountDataTypes, EventTypes, RelationTypes
-from relapse.rest import admin
-from relapse.rest.client import login, register, relations, room, sync
 from relapse.server import HomeServer
 from relapse.types import JsonDict
 from relapse.util import Clock
@@ -33,14 +31,6 @@ from tests.test_utils.event_injection import inject_event
 
 
 class BaseRelationsTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        relations.register_servlets,
-        room.register_servlets,
-        sync.register_servlets,
-        login.register_servlets,
-        register.register_servlets,
-        admin.register_servlets,
-    ]
     hijack_auth = False
 
     def default_config(self) -> dict[str, Any]:

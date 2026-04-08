@@ -15,8 +15,6 @@
 from twisted.internet.testing import MemoryReactor
 
 from relapse.api.errors import Codes, RelapseError
-from relapse.rest import admin
-from relapse.rest.client import login
 from relapse.server import HomeServer
 from relapse.util import Clock
 
@@ -24,10 +22,6 @@ from tests import unittest
 
 
 class UsernameAvailableTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-    ]
     url = "/_relapse/admin/v1/username_available"
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:

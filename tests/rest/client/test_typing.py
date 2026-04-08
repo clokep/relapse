@@ -18,7 +18,6 @@
 from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EduTypes
-from relapse.rest.client import room
 from relapse.server import HomeServer
 from relapse.types import UserID
 from relapse.util import Clock
@@ -32,7 +31,6 @@ class RoomTypingTestCase(unittest.HomeserverTestCase):
     user_id = "@sid:red"
 
     user = UserID.from_string(user_id)
-    servlets = [room.register_servlets]
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         hs = self.setup_test_homeserver("red")

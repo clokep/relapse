@@ -20,8 +20,6 @@ from relapse.api.constants import EventTypes, Membership
 from relapse.events.builder import EventBuilderFactory
 from relapse.handlers.typing import TypingWriterHandler
 from relapse.http.federation.matrix_federation_agent import MatrixFederationAgent
-from relapse.rest import admin
-from relapse.rest.client import login, room
 from relapse.types import UserID, create_requester
 
 from tests.replication._base import BaseMultiWorkerStreamTestCase
@@ -37,12 +35,6 @@ class FederationSenderTestCase(BaseMultiWorkerStreamTestCase):
     Federation sending is disabled by default, it will be enabled in each test by
     updating 'federation_sender_instances'.
     """
-
-    servlets = [
-        login.register_servlets,
-        admin.register_servlets,
-        room.register_servlets,
-    ]
 
     def setUp(self) -> None:
         super().setUp()

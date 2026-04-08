@@ -28,8 +28,6 @@ from relapse.api.room_versions import (
     RoomVersion,
 )
 from relapse.events import EventBase, _EventInternalMetadata
-from relapse.rest import admin
-from relapse.rest.client import login, room
 from relapse.server import HomeServer
 from relapse.storage.database import LoggingTransaction
 from relapse.storage.types import Cursor
@@ -179,12 +177,6 @@ class _BackfillSetupInfo:
 
 
 class EventFederationWorkerStoreTestCase(tests.unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = hs.get_datastores().main
         persist_events = hs.get_datastores().persist_events

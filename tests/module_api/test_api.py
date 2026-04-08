@@ -25,8 +25,6 @@ from relapse.handlers.device import DeviceHandler
 from relapse.handlers.presence import UserPresenceState
 from relapse.handlers.push_rules import InvalidRuleException
 from relapse.module_api import ModuleApi
-from relapse.rest import admin
-from relapse.rest.client import login, notifications, presence, profile, room
 from relapse.server import HomeServer
 from relapse.types import JsonDict, UserID, create_requester
 from relapse.util import Clock
@@ -50,15 +48,6 @@ class BaseModuleApiTestCase(HomeserverTestCase):
 
 
 class ModuleApiTestCase(BaseModuleApiTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-        presence.register_servlets,
-        profile.register_servlets,
-        notifications.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = hs.get_datastores().main
         self.module_api = hs.get_module_api()
@@ -824,13 +813,6 @@ class ModuleApiTestCase(BaseModuleApiTestCase):
 
 class ModuleApiWorkerTestCase(BaseModuleApiTestCase, BaseMultiWorkerStreamTestCase):
     """For testing ModuleApi functionality in a multi-worker setup"""
-
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-        presence.register_servlets,
-    ]
 
     def default_config(self) -> dict[str, Any]:
         conf = super().default_config()

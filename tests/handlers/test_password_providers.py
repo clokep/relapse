@@ -23,8 +23,6 @@ from twisted.internet.testing import MemoryReactor
 from relapse.api.constants import LoginType
 from relapse.api.errors import Codes
 from relapse.module_api import ModuleApi
-from relapse.rest import admin
-from relapse.rest.client import account, devices, login, logout, register
 from relapse.server import HomeServer
 from relapse.types import JsonDict, UserID
 from relapse.util import Clock
@@ -106,15 +104,6 @@ def providers_config(*providers: type[Any]) -> dict:
 
 
 class PasswordAuthProviderTests(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        devices.register_servlets,
-        logout.register_servlets,
-        register.register_servlets,
-        account.register_servlets,
-    ]
-
     CALLBACK_USERNAME = "get_username_for_registration"
     CALLBACK_DISPLAYNAME = "get_displayname_for_registration"
 

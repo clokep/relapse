@@ -15,8 +15,6 @@
 from twisted.internet.testing import MemoryReactor
 
 from relapse.api.errors import Codes
-from relapse.rest import admin
-from relapse.rest.client import login, report_event, room
 from relapse.server import HomeServer
 from relapse.types import JsonDict
 from relapse.util import Clock
@@ -25,13 +23,6 @@ from tests import unittest
 
 
 class EventReportsTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-        report_event.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.admin_user = self.register_user("admin", "pass", admin=True)
         self.admin_user_tok = self.login("admin", "pass")
@@ -441,13 +432,6 @@ class EventReportsTestCase(unittest.HomeserverTestCase):
 
 
 class EventReportDetailTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-        report_event.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.admin_user = self.register_user("admin", "pass", admin=True)
         self.admin_user_tok = self.login("admin", "pass")
@@ -601,11 +585,6 @@ class EventReportDetailTestCase(unittest.HomeserverTestCase):
 
 
 class DeleteEventReportTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self._store = hs.get_datastores().main
 

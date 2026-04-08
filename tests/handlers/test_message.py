@@ -18,8 +18,6 @@ from twisted.internet.testing import MemoryReactor
 from relapse.api.constants import EventTypes
 from relapse.events import EventBase
 from relapse.events.snapshot import EventContext, UnpersistedEventContextBase
-from relapse.rest import admin
-from relapse.rest.client import login, room
 from relapse.server import HomeServer
 from relapse.types import create_requester
 from relapse.util import Clock
@@ -32,12 +30,6 @@ logger = logging.getLogger(__name__)
 
 
 class EventCreationTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.handler = self.hs.get_event_creation_handler()
         persistence = self.hs.get_storage_controllers().persistence
@@ -279,12 +271,6 @@ class EventCreationTestCase(unittest.HomeserverTestCase):
 
 
 class ServerAclValidationTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.user_id = self.register_user("tester", "foobar")
         self.access_token = self.login("tester", "foobar")

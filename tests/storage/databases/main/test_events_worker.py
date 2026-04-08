@@ -23,8 +23,6 @@ from twisted.internet.testing import MemoryReactor
 from relapse.api.room_versions import EventFormatVersions, RoomVersions
 from relapse.events import make_event_from_dict
 from relapse.logging.context import LoggingContext
-from relapse.rest import admin
-from relapse.rest.client import login, room
 from relapse.server import HomeServer
 from relapse.storage.databases.main.events_worker import (
     EVENT_QUEUE_THREADS,
@@ -39,12 +37,6 @@ from tests.test_utils.event_injection import create_event, inject_event
 
 
 class HaveSeenEventsTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.hs = hs
         self.store: EventsWorkerStore = hs.get_datastores().main
@@ -218,12 +210,6 @@ class HaveSeenEventsTestCase(unittest.HomeserverTestCase):
 
 class EventCacheTestCase(unittest.HomeserverTestCase):
     """Test that the various layers of event cache works."""
-
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ]
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store: EventsWorkerStore = hs.get_datastores().main
@@ -420,12 +406,6 @@ class DatabaseOutageTestCase(unittest.HomeserverTestCase):
 
 class GetEventCancellationTestCase(unittest.HomeserverTestCase):
     """Test cancellation of `get_event` calls."""
-
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ]
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store: EventsWorkerStore = hs.get_datastores().main

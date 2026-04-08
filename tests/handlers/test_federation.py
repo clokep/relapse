@@ -33,8 +33,6 @@ from relapse.events import EventBase, make_event_from_dict
 from relapse.federation.federation_base import event_from_pdu_json
 from relapse.federation.federation_client import SendJoinResult
 from relapse.logging.context import LoggingContext, run_in_background
-from relapse.rest import admin
-from relapse.rest.client import login, room
 from relapse.server import HomeServer
 from relapse.storage.databases.main.events_worker import EventCacheEntry
 from relapse.util import Clock
@@ -52,12 +50,6 @@ def generate_fake_event_id() -> str:
 
 
 class FederationTestCase(FederatingHomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-    ] + FederatingHomeserverTestCase.servlets
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         hs = self.setup_test_homeserver()
         self.handler = hs.get_federation_handler()

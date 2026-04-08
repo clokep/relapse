@@ -27,8 +27,6 @@ from relapse.appservice import (
     TransactionUnusedFallbackKeys,
 )
 from relapse.handlers.appservice import ApplicationServicesHandler
-from relapse.rest import admin
-from relapse.rest.client import login, receipts, register, room, sendtodevice
 from relapse.server import HomeServer
 from relapse.types import (
     JsonDict,
@@ -395,14 +393,6 @@ class ApplicationServicesHandlerSendEventsTestCase(unittest.HomeserverTestCase):
     Tests that the ApplicationServicesHandler sends events to application
     services correctly.
     """
-
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-        sendtodevice.register_servlets,
-        receipts.register_servlets,
-    ]
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.hs = hs
@@ -1019,12 +1009,6 @@ class ApplicationServicesHandlerDeviceListsTestCase(unittest.HomeserverTestCase)
     services correctly.
     """
 
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         # Allow us to modify cached feature flags mid-test
         self.as_handler = hs.get_application_service_handler()
@@ -1124,15 +1108,6 @@ class ApplicationServicesHandlerOtkCountsTestCase(unittest.HomeserverTestCase):
     # Argument indices for pulling out arguments from a `send_mock`.
     ARG_OTK_COUNTS = 4
     ARG_FALLBACK_KEYS = 5
-
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        register.register_servlets,
-        room.register_servlets,
-        sendtodevice.register_servlets,
-        receipts.register_servlets,
-    ]
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         # Mock the ApplicationServiceScheduler's _TransactionController's send method so that

@@ -12,8 +12,6 @@ from relapse.federation.sender import (
     TransactionManager,
 )
 from relapse.federation.units import Edu, Transaction
-from relapse.rest import admin
-from relapse.rest.client import login, room
 from relapse.server import HomeServer
 from relapse.types import JsonDict
 from relapse.util import Clock
@@ -30,12 +28,6 @@ class FederationCatchUpTestCases(FederatingHomeserverTestCase):
     By default for test cases federation sending is disabled. This Test class has it
     re-enabled for the main process.
     """
-
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ] + FederatingHomeserverTestCase.servlets
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         self.federation_client = Mock(spec=["send_transaction"])

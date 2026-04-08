@@ -19,8 +19,6 @@ from matrix_common.types.mxc_uri import MXCUri
 
 from twisted.internet.testing import MemoryReactor
 
-from relapse.rest import admin
-from relapse.rest.client import login, register, room
 from relapse.server import HomeServer
 from relapse.types import UserID
 from relapse.util import Clock
@@ -33,13 +31,6 @@ from tests.utils import MockClock
 class MediaRetentionTestCase(unittest.HomeserverTestCase):
     ONE_DAY_IN_MS = 24 * 60 * 60 * 1000
     THIRTY_DAYS_IN_MS = 30 * ONE_DAY_IN_MS
-
-    servlets = [
-        room.register_servlets,
-        login.register_servlets,
-        register.register_servlets,
-        admin.register_servlets,
-    ]
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         # We need to be able to test advancing time in the homeserver, so we

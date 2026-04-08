@@ -13,20 +13,10 @@
 # limitations under the License.
 from unittest.mock import AsyncMock
 
-from relapse.rest import admin
-from relapse.rest.client import account_data, login, room
-
 from tests import unittest
 
 
 class AccountDataTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-        account_data.register_servlets,
-    ]
-
     def test_on_account_data_updated_callback(self) -> None:
         """Tests that the on_account_data_updated module callback is called correctly when
         a user's account data changes.

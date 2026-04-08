@@ -14,8 +14,6 @@
 
 from twisted.internet.testing import MemoryReactor
 
-from relapse.rest import admin
-from relapse.rest.client import login, login_token_request, versions
 from relapse.server import HomeServer
 from relapse.util import Clock
 
@@ -26,13 +24,6 @@ GET_TOKEN_ENDPOINT = "/_matrix/client/v1/login/get_token"
 
 
 class LoginTokenRequestServletTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        login.register_servlets,
-        admin.register_servlets,
-        login_token_request.register_servlets,
-        versions.register_servlets,  # TODO: remove once unstable revision 0 support is removed
-    ]
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         self.hs = self.setup_test_homeserver()
         self.hs.config.registration.enable_registration = True

@@ -23,8 +23,6 @@ from signedjson.key import (
 from signedjson.sign import sign_json
 
 from relapse.api.errors import Codes
-from relapse.rest import admin
-from relapse.rest.client import keys, login
 from relapse.types import JsonDict, Requester, create_requester
 
 from tests import unittest
@@ -37,12 +35,6 @@ from tests.utils import HAS_AUTHLIB
 
 
 class KeyQueryTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        keys.register_servlets,
-        admin.register_servlets,
-        login.register_servlets,
-    ]
-
     def test_rejects_device_id_ice_key_outside_of_list(self) -> None:
         self.register_user("alice", "wonderland")
         alice_token = self.login("alice", "wonderland")
@@ -269,11 +261,6 @@ class KeyQueryTestCase(unittest.HomeserverTestCase):
 
 
 class SigningKeyUploadServletTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        keys.register_servlets,
-    ]
-
     OIDC_ADMIN_TOKEN = "_oidc_admin_token"
 
     @unittest.skip_unless(HAS_AUTHLIB, "requires authlib")

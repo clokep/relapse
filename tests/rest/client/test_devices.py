@@ -17,8 +17,6 @@ from twisted.internet.defer import ensureDeferred
 from twisted.internet.testing import MemoryReactor
 
 from relapse.api.errors import NotFoundError
-from relapse.rest import admin
-from relapse.rest.client import account, devices, keys, login, register, room, sync
 from relapse.server import HomeServer
 from relapse.types import JsonDict, UserID, create_requester
 from relapse.util import Clock
@@ -28,16 +26,6 @@ from tests import unittest
 
 class DeviceListsTestCase(unittest.HomeserverTestCase):
     """Tests regarding device list changes."""
-
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        register.register_servlets,
-        account.register_servlets,
-        room.register_servlets,
-        sync.register_servlets,
-        devices.register_servlets,
-    ]
 
     def test_receiving_local_device_list_changes(self) -> None:
         """Tests that a local users that share a room receive each other's device list
@@ -167,12 +155,6 @@ class DeviceListsTestCase(unittest.HomeserverTestCase):
 
 
 class DevicesTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        sync.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.handler = hs.get_device_handler()
 
@@ -205,14 +187,6 @@ class DevicesTestCase(unittest.HomeserverTestCase):
 
 
 class DehydratedDeviceTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        register.register_servlets,
-        devices.register_servlets,
-        keys.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.registration = hs.get_registration_handler()
         self.message_handler = hs.get_device_message_handler()

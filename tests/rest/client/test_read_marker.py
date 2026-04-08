@@ -14,8 +14,6 @@
 from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EventTypes
-from relapse.rest import admin
-from relapse.rest.client import login, read_marker, register, room
 from relapse.server import HomeServer
 from relapse.util import Clock
 
@@ -26,15 +24,6 @@ ONE_DAY_MS = ONE_HOUR_MS * 24
 
 
 class ReadMarkerTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        login.register_servlets,
-        register.register_servlets,
-        read_marker.register_servlets,
-        room.register_servlets,
-        admin.register_servlets,
-        admin.register_servlets,
-    ]
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         config = self.default_config()
 

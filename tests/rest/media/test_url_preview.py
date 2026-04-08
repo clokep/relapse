@@ -28,7 +28,6 @@ from twisted.internet.testing import AccumulatingProtocol, MemoryReactor
 
 from relapse.config.oembed import OEmbedEndpointConfig
 from relapse.media.url_previewer import IMAGE_CACHE_EXPIRY_MS
-from relapse.rest import media
 from relapse.server import HomeServer
 from relapse.types import JsonDict
 from relapse.util import Clock
@@ -50,7 +49,6 @@ class URLPreviewTests(unittest.HomeserverTestCase):
 
     hijack_auth = True
     user_id = "@test:user"
-    servlets = [media.register_servlets]
 
     end_content = (
         b"<html><head>"

@@ -15,7 +15,6 @@
 from twisted.internet.testing import MemoryReactor
 
 from relapse.api.errors import NotFoundError, RelapseError
-from relapse.rest.client import room
 from relapse.server import HomeServer
 from relapse.util import Clock
 
@@ -24,7 +23,6 @@ from tests.unittest import HomeserverTestCase
 
 class PurgeTests(HomeserverTestCase):
     user_id = "@red:server"
-    servlets = [room.register_servlets]
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         hs = self.setup_test_homeserver("server")

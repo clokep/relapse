@@ -16,8 +16,6 @@
 from twisted.internet.testing import MemoryReactor
 
 from relapse.api.errors import Codes
-from relapse.rest import admin, media
-from relapse.rest.client import login
 from relapse.server import HomeServer
 from relapse.types import JsonDict
 from relapse.util import Clock
@@ -27,12 +25,6 @@ from tests.test_utils import SMALL_PNG
 
 
 class UserMediaStatisticsTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        media.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.admin_user = self.register_user("admin", "pass", admin=True)
         self.admin_user_tok = self.login("admin", "pass")

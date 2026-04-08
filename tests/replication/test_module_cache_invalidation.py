@@ -14,7 +14,6 @@
 import logging
 
 from relapse.module_api import cached
-from relapse.rest import admin
 
 from tests.replication._base import BaseMultiWorkerStreamTestCase
 
@@ -35,10 +34,6 @@ class TestCache:
 
 
 class ModuleCacheInvalidationTestCase(BaseMultiWorkerStreamTestCase):
-    servlets = [
-        admin.register_servlets,
-    ]
-
     def test_module_cache_full_invalidation(self) -> None:
         main_cache = TestCache()
         self.hs.get_module_api().register_cached_function(main_cache.cached_function)

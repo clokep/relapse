@@ -31,17 +31,7 @@ from relapse.config._base import ConfigError
 from relapse.config.homeserver import HomeServerConfig
 from relapse.config.logger import setup_logging
 from relapse.config.server import ListenerConfig, TCPListenerConfig
-from relapse.http.server import OptionsResource
 from relapse.logging.context import LoggingContext
-from relapse.metrics import RegistryProxy
-from relapse.replication.http import (
-    register_servlets as register_replication_servlets,
-)
-from relapse.rest import client, federation, key, media, well_known
-from relapse.rest.admin import register_servlets_for_media_repo
-from relapse.rest.health import HealthServlet
-from relapse.rest.relapse import client as relapse_client
-from relapse.rest.relapse.metrics import MetricsServlet
 from relapse.server import HomeServer
 from relapse.storage.databases.main.account_data import AccountDataWorkerStore
 from relapse.storage.databases.main.appservice import (
@@ -152,52 +142,9 @@ class GenericWorkerServer(HomeServer):
     def listen_http(self, listener_config: ListenerConfig) -> Iterable[Port]:
         assert listener_config.http_options is not None
 
-        matrix_resource = OptionsResource(self)
-
-        # We always include a health resource.
-        HealthServlet().register(matrix_resource)
-
-        for res in listener_config.http_options.resources:
-            for name in res.names:
-                if name == "metrics":
-                    MetricsServlet(RegistryProxy).register(matrix_resource)
-                elif name == "client":
-                    client.register_servlets(self, matrix_resource)
-                    relapse_client.register_servlets(self, matrix_resource)
-                    well_known.register_servlets(self, matrix_resource)
-
-                elif name == "federation":
-                    federation.register_servlets(self, matrix_resource)
-                elif name == "media":
-                    if self.config.media.can_load_media_repo:
-                        media.register_servlets(self, matrix_resource)
-
-                        # We need to serve the admin servlets for media on the
-                        # worker.
-                        register_servlets_for_media_repo(self, matrix_resource)
-
-                    else:
-                        logger.warning(
-                            "A 'media' listener is configured but the media"
-                            " repository is disabled. Ignoring."
-                        )
-                elif name == "health":
-                    # Skip loading, health resource is always included
-                    continue
-
-                if name == "openid" and "federation" not in res.names:
-                    # Only load the openid resource separately if federation resource
-                    # is not specified since federation resource includes openid
-                    # resource.
-                    federation.register_servlets(
-                        self, matrix_resource, servlet_groups=["openid"]
-                    )
-
-                if name in ["keys", "federation"]:
-                    key.register_servlets(self, matrix_resource)
-
-                if name == "replication":
-                    register_replication_servlets(self, matrix_resource)
+        matrix_resource = self.resource_for_listener(
+            listener_config.http_options.resources
+        )
 
         return _base.listen_http(
             self,

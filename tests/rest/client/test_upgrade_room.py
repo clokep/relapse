@@ -17,8 +17,6 @@ from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EventContentFields, EventTypes, RoomTypes
 from relapse.config.server import DEFAULT_ROOM_VERSION
-from relapse.rest import admin
-from relapse.rest.client import login, room, room_upgrade_rest_servlet
 from relapse.server import HomeServer
 from relapse.util import Clock
 
@@ -27,13 +25,6 @@ from tests.server import FakeChannel
 
 
 class UpgradeRoomTest(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-        room_upgrade_rest_servlet.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = hs.get_datastores().main
 

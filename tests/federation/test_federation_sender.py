@@ -23,8 +23,6 @@ from twisted.internet.testing import MemoryReactor
 from relapse.api.constants import EduTypes, RoomEncryptionAlgorithms
 from relapse.federation.units import Transaction
 from relapse.handlers.device import DeviceHandler
-from relapse.rest import admin
-from relapse.rest.client import login
 from relapse.server import HomeServer
 from relapse.types import JsonDict, ReadReceipt
 from relapse.util import Clock
@@ -267,11 +265,6 @@ class FederationSenderDevicesTestCases(HomeserverTestCase):
     By default for test cases federation sending is disabled. This Test class has it
     re-enabled for the main process.
     """
-
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-    ]
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         self.federation_client = Mock(spec=["send_transaction", "query_user_devices"])

@@ -23,8 +23,6 @@ from relapse.api.constants import RoomEncryptionAlgorithms
 from relapse.api.errors import NotFoundError, RelapseError
 from relapse.appservice import ApplicationService
 from relapse.handlers.device import MAX_DEVICE_DISPLAY_NAME_LEN, DeviceHandler
-from relapse.rest import admin
-from relapse.rest.client import devices, login, register
 from relapse.server import HomeServer
 from relapse.storage.databases.main.appservice import _make_exclusive_regex
 from relapse.types import JsonDict, create_requester
@@ -445,13 +443,6 @@ class DeviceTestCase(unittest.HomeserverTestCase):
 
 
 class DehydrationTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        register.register_servlets,
-        devices.register_servlets,
-    ]
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         hs = self.setup_test_homeserver("server")
         handler = hs.get_device_handler()

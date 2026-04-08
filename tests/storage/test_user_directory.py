@@ -19,8 +19,6 @@ from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EventTypes, Membership, UserTypes
 from relapse.appservice import ApplicationService
-from relapse.rest import admin
-from relapse.rest.client import login, register, room
 from relapse.server import HomeServer
 from relapse.storage import DataStore
 from relapse.storage.background_updates import _BackgroundUpdateHandler
@@ -127,13 +125,6 @@ class UserDirectoryInitialPopulationTestcase(HomeserverTestCase):
     See also tests/handlers/test_user_directory.py for similar checks. They
     test the incremental updates, rather than the big rebuild.
     """
-
-    servlets = [
-        login.register_servlets,
-        admin.register_servlets,
-        room.register_servlets,
-        register.register_servlets,
-    ]
 
     def make_homeserver(
         self, reactor: ThreadedMemoryReactorClock, clock: Clock

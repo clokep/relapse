@@ -19,8 +19,6 @@ from twisted.internet.testing import MemoryReactor
 
 from relapse.api.errors import Codes
 from relapse.handlers.device import MAX_DEVICE_DISPLAY_NAME_LEN, DeviceHandler
-from relapse.rest import admin
-from relapse.rest.client import login
 from relapse.server import HomeServer
 from relapse.util import Clock
 
@@ -28,11 +26,6 @@ from tests import unittest
 
 
 class DeviceRestTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         handler = hs.get_device_handler()
         assert isinstance(handler, DeviceHandler)
@@ -276,11 +269,6 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
 
 
 class DevicesRestTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.admin_user = self.register_user("admin", "pass", admin=True)
         self.admin_user_tok = self.login("admin", "pass")
@@ -399,11 +387,6 @@ class DevicesRestTestCase(unittest.HomeserverTestCase):
 
 
 class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.handler = hs.get_device_handler()
 

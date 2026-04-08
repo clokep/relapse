@@ -14,8 +14,6 @@
 import logging
 
 from relapse.replication.tcp.streams._base import _STREAM_UPDATE_TARGET_ROW_COUNT
-from relapse.rest import admin
-from relapse.rest.client import login
 from relapse.types import JsonDict
 
 from tests.replication._base import BaseStreamTestCase
@@ -24,11 +22,6 @@ logger = logging.getLogger(__name__)
 
 
 class ToDeviceStreamTestCase(BaseStreamTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-    ]
-
     def test_to_device_stream(self) -> None:
         store = self.hs.get_datastores().main
 

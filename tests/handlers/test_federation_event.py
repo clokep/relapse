@@ -27,8 +27,6 @@ from relapse.events.snapshot import EventContext
 from relapse.federation.federation_client_helpers import StateRequestResponse
 from relapse.http.types import QueryParams
 from relapse.logging.context import LoggingContext
-from relapse.rest import admin
-from relapse.rest.client import login, room
 from relapse.server import HomeServer
 from relapse.state import StateResolutionStore
 from relapse.state.v2 import _mainline_sort, _reverse_topological_power_sort
@@ -39,12 +37,6 @@ from tests.unittest import FederatingHomeserverTestCase
 
 
 class FederationEventHandlerTests(FederatingHomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-    ] + FederatingHomeserverTestCase.servlets
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         # mock out the federation client
         self.mock_client = mock.Mock(spec=["get_json", "agent"])

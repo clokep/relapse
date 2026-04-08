@@ -20,8 +20,6 @@ from relapse.api.constants import EventTypes, JoinRules, Membership
 from relapse.api.room_versions import RoomVersion, RoomVersions
 from relapse.events import EventBase, builder
 from relapse.events.snapshot import EventContext
-from relapse.rest import admin
-from relapse.rest.client import login, room
 from relapse.server import HomeServer
 from relapse.types import RoomAlias
 from relapse.util import Clock
@@ -195,12 +193,6 @@ class KnockingStrippedStateEventHelperMixin(HomeserverTestCase):
 class FederationKnockingTestCase(
     FederatingHomeserverTestCase, KnockingStrippedStateEventHelperMixin
 ):
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ] + FederatingHomeserverTestCase.servlets
-
     def prepare(
         self, reactor: MemoryReactor, clock: Clock, homeserver: HomeServer
     ) -> None:

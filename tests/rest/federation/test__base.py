@@ -61,15 +61,6 @@ class BaseFederationServletCancellationTests(FederatingHomeserverTestCase):
 
     path = f"{CancellableFederationServlet.PREFIX}{CancellableFederationServlet.PATH}"
 
-    servlets = [
-        lambda hs, http_server: CancellableFederationServlet(
-            hs=hs,
-            authenticator=Authenticator(hs),
-            ratelimiter=hs.get_federation_ratelimiter(),
-            server_name=hs.hostname,
-        ).register(http_server)
-    ] + FederatingHomeserverTestCase.servlets
-
     def test_cancellable_disconnect(self) -> None:
         """Test that handlers with the `@cancellable` flag can be cancelled."""
         channel = self.make_signed_federation_request(

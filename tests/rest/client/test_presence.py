@@ -17,7 +17,6 @@ from unittest.mock import AsyncMock, Mock
 from twisted.internet.testing import MemoryReactor
 
 from relapse.handlers.presence import PresenceHandler
-from relapse.rest.client import presence
 from relapse.server import HomeServer
 from relapse.types import UserID
 from relapse.util import Clock
@@ -31,7 +30,6 @@ class PresenceTestCase(unittest.HomeserverTestCase):
     user_id = "@sid:red"
 
     user = UserID.from_string(user_id)
-    servlets = [presence.register_servlets]
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         self.presence_handler = Mock(spec=PresenceHandler)

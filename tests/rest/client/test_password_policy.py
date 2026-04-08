@@ -18,8 +18,6 @@ from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import LoginType
 from relapse.api.errors import Codes
-from relapse.rest import admin
-from relapse.rest.client import account, login, password_policy, register
 from relapse.server import HomeServer
 from relapse.util import Clock
 
@@ -41,14 +39,6 @@ class PasswordPolicyTestCase(unittest.HomeserverTestCase):
     that test provides a password good enough to pass the previous tests, but not the
     one it is currently testing (nor any test that comes afterward).
     """
-
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        register.register_servlets,
-        password_policy.register_servlets,
-        account.register_servlets,
-    ]
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         self.register_url = "/_matrix/client/r0/register"

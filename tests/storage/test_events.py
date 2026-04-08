@@ -19,8 +19,6 @@ from relapse.api.constants import EventTypes, Membership
 from relapse.api.room_versions import RoomVersions
 from relapse.events import EventBase
 from relapse.federation.federation_base import event_from_pdu_json
-from relapse.rest import admin
-from relapse.rest.client import login, room
 from relapse.server import HomeServer
 from relapse.types import StateMap
 from relapse.util import Clock
@@ -29,12 +27,6 @@ from tests.unittest import HomeserverTestCase
 
 
 class ExtremPruneTestCase(HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ]
-
     def prepare(
         self, reactor: MemoryReactor, clock: Clock, homeserver: HomeServer
     ) -> None:
@@ -365,12 +357,6 @@ class ExtremPruneTestCase(HomeserverTestCase):
 
 
 class InvalideUsersInRoomCacheTestCase(HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ]
-
     def prepare(
         self, reactor: MemoryReactor, clock: Clock, homeserver: HomeServer
     ) -> None:

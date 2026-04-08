@@ -1,6 +1,4 @@
 from relapse.app.phone_stats_home import start_phone_stats_home
-from relapse.rest import admin
-from relapse.rest.client import login, room
 from relapse.server import HomeServer
 from relapse.util import Clock
 
@@ -12,12 +10,6 @@ ONE_DAY_IN_SECONDS = 86400
 
 
 class PhoneHomeR30V2TestCase(HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ]
-
     def _advance_to(self, desired_time_secs: float) -> None:
         now = self.hs.get_clock().time()
         assert now < desired_time_secs

@@ -19,7 +19,6 @@ from twisted.internet.testing import MemoryReactor
 from relapse.api.constants import APP_SERVICE_REGISTRATION_TYPE, LoginType
 from relapse.api.errors import Codes, HttpResponseException, RelapseError
 from relapse.appservice import ApplicationService
-from relapse.rest.client import register, sync
 from relapse.server import HomeServer
 from relapse.types import JsonDict
 from relapse.util import Clock
@@ -30,8 +29,6 @@ from tests.utils import default_config
 
 
 class TestMauLimit(unittest.HomeserverTestCase):
-    servlets = [register.register_servlets, sync.register_servlets]
-
     def default_config(self) -> JsonDict:
         config = default_config("test")
 

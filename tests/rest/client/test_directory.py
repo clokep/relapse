@@ -16,8 +16,6 @@ from http import HTTPStatus
 from twisted.internet.testing import MemoryReactor
 
 from relapse.appservice import ApplicationService
-from relapse.rest import admin
-from relapse.rest.client import directory, login, room
 from relapse.server import HomeServer
 from relapse.types import RoomAlias
 from relapse.util import Clock
@@ -28,13 +26,6 @@ from tests.unittest import override_config
 
 
 class DirectoryTestCase(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        directory.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-    ]
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         config = self.default_config()
         config["require_membership_for_aliases"] = True

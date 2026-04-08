@@ -16,8 +16,6 @@ import logging
 from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import ReceiptTypes
-from relapse.rest import admin
-from relapse.rest.client import login, receipts, room, sync
 from relapse.server import HomeServer
 from relapse.storage.util.id_generators import MultiWriterIdGenerator
 from relapse.types import StreamToken
@@ -31,14 +29,6 @@ logger = logging.getLogger(__name__)
 
 class ReceiptsShardTestCase(BaseMultiWorkerStreamTestCase):
     """Checks receipts sharding works"""
-
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-        sync.register_servlets,
-        receipts.register_servlets,
-    ] + BaseMultiWorkerStreamTestCase.servlets
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         # Register a user who sends a message that we'll get notified about
@@ -94,7 +84,7 @@ class ReceiptsShardTestCase(BaseMultiWorkerStreamTestCase):
             reactor=self.reactor,
             site=worker1_site,
             method="POST",
-            path=f"/rooms/{room_id}/receipt/{ReceiptTypes.READ}/{event_id}",
+            path=f"/_matrix/client/v3/rooms/{room_id}/receipt/{ReceiptTypes.READ}/{event_id}",
             access_token=access_token,
             content={},
         )
@@ -108,7 +98,7 @@ class ReceiptsShardTestCase(BaseMultiWorkerStreamTestCase):
             reactor=self.reactor,
             site=worker2_site,
             method="POST",
-            path=f"/rooms/{room_id}/receipt/{ReceiptTypes.READ}/{event_id}",
+            path=f"/_matrix/client/v3/rooms/{room_id}/receipt/{ReceiptTypes.READ}/{event_id}",
             access_token=access_token,
             content={},
         )
@@ -180,7 +170,7 @@ class ReceiptsShardTestCase(BaseMultiWorkerStreamTestCase):
             reactor=self.reactor,
             site=worker1_site,
             method="POST",
-            path=f"/rooms/{room_id}/receipt/{ReceiptTypes.READ}/{first_event}",
+            path=f"/_matrix/client/v3/rooms/{room_id}/receipt/{ReceiptTypes.READ}/{first_event}",
             access_token=access_token,
             content={},
         )
@@ -227,7 +217,7 @@ class ReceiptsShardTestCase(BaseMultiWorkerStreamTestCase):
             reactor=self.reactor,
             site=worker2_site,
             method="POST",
-            path=f"/rooms/{room_id}/receipt/{ReceiptTypes.READ}/{second_event}",
+            path=f"/_matrix/client/v3/rooms/{room_id}/receipt/{ReceiptTypes.READ}/{second_event}",
             access_token=access_token,
             content={},
         )

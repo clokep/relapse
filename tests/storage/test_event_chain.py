@@ -21,8 +21,6 @@ from relapse.api.constants import EventTypes
 from relapse.api.room_versions import RoomVersions
 from relapse.events import EventBase
 from relapse.events.snapshot import EventContext
-from relapse.rest import admin
-from relapse.rest.client import login, room
 from relapse.server import HomeServer
 from relapse.storage.database import LoggingTransaction
 from relapse.storage.databases.main.events import _LinkMap
@@ -506,12 +504,6 @@ class LinkMapTestCase(unittest.TestCase):
 
 
 class EventChainBackgroundUpdateTestCase(HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        room.register_servlets,
-        login.register_servlets,
-    ]
-
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = hs.get_datastores().main
         self.user_id = self.register_user("foo", "pass")

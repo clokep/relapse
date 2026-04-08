@@ -17,8 +17,6 @@ from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EventTypes, LimitBlockingTypes, ServerNoticeMsgType
 from relapse.api.errors import ResourceLimitError
-from relapse.rest import admin
-from relapse.rest.client import login, room, sync
 from relapse.server import HomeServer
 from relapse.server_notices.resource_limits_server_notices import (
     ResourceLimitsServerNotices,
@@ -240,13 +238,6 @@ class TestResourceLimitsServerNotices(unittest.HomeserverTestCase):
 
 
 class TestResourceLimitsServerNoticesWithRealRooms(unittest.HomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-        sync.register_servlets,
-    ]
-
     def default_config(self) -> JsonDict:
         c = super().default_config()
         c["server_notices"] = {

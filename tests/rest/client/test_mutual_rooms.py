@@ -15,8 +15,6 @@ from urllib.parse import quote
 
 from twisted.internet.testing import MemoryReactor
 
-from relapse.rest import admin
-from relapse.rest.client import login, mutual_rooms, room
 from relapse.server import HomeServer
 from relapse.util import Clock
 
@@ -28,13 +26,6 @@ class UserMutualRoomsTest(unittest.HomeserverTestCase):
     """
     Tests the UserMutualRoomsServlet.
     """
-
-    servlets = [
-        login.register_servlets,
-        admin.register_servlets,
-        room.register_servlets,
-        mutual_rooms.register_servlets,
-    ]
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         config = self.default_config()

@@ -17,14 +17,6 @@ from unittest.mock import Mock, patch
 from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EduTypes, EventTypes
-from relapse.rest import admin
-from relapse.rest.client import (
-    directory,
-    login,
-    profile,
-    room,
-    room_upgrade_rest_servlet,
-)
 from relapse.server import HomeServer
 from relapse.types import UserID, create_requester
 from relapse.util import Clock
@@ -51,14 +43,6 @@ class _ShadowBannedBase(unittest.HomeserverTestCase):
 # To avoid the tests timing out don't add a delay to "annoy the requester".
 @patch("random.randint", new=lambda a, b: 0)
 class RoomTestCase(_ShadowBannedBase):
-    servlets = [
-        admin.register_servlets,
-        directory.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-        room_upgrade_rest_servlet.register_servlets,
-    ]
-
     def test_invite(self) -> None:
         """Invites from shadow-banned users don't actually get sent."""
 
@@ -242,13 +226,6 @@ class RoomTestCase(_ShadowBannedBase):
 # To avoid the tests timing out don't add a delay to "annoy the requester".
 @patch("random.randint", new=lambda a, b: 0)
 class ProfileTestCase(_ShadowBannedBase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        profile.register_servlets,
-        room.register_servlets,
-    ]
-
     def test_displayname(self) -> None:
         """Profile changes should succeed, but don't end up in a room."""
         original_display_name = "banned"

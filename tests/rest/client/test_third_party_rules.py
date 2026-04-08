@@ -20,8 +20,6 @@ from relapse.api.constants import EventTypes, LoginType, Membership
 from relapse.api.errors import RelapseError
 from relapse.api.room_versions import RoomVersion
 from relapse.events import EventBase
-from relapse.rest import admin
-from relapse.rest.client import account, login, profile, room
 from relapse.server import HomeServer
 from relapse.types import JsonDict, Requester, StateMap
 from relapse.util import Clock
@@ -34,14 +32,6 @@ if TYPE_CHECKING:
 
 
 class ThirdPartyRulesTestCase(FederatingHomeserverTestCase):
-    servlets = [
-        admin.register_servlets,
-        login.register_servlets,
-        room.register_servlets,
-        profile.register_servlets,
-        account.register_servlets,
-    ] + FederatingHomeserverTestCase.servlets
-
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         hs = self.setup_test_homeserver()
 
