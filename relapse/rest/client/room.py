@@ -984,7 +984,7 @@ class RoomMembershipRestServlet(RestServlet):
         return 200, return_value
 
 
-class RoomRedactEventRestServlet(RestServlet):
+class RoomRedactEventRestServlet(TransactionRestServlet):
     CATEGORY = "Event sending requests"
     PATTERNS = client_patterns(
         "/rooms/(?P<room_id>[^/]*)/redact/(?P<event_id>[^/]*)/(?P<txn_id>[^/]*)$"
