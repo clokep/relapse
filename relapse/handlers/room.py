@@ -988,7 +988,6 @@ class RoomCreationHandler:
                 address,
                 id_server,
                 requester,
-                txn_id=None,
                 id_access_token=id_access_token,
                 prev_event_ids=[last_sent_event_id],
                 depth=depth,

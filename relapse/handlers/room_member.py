@@ -1500,7 +1500,6 @@ class RoomMemberHandler(metaclass=abc.ABCMeta):
         address: str,
         id_server: str,
         requester: Requester,
-        txn_id: str | None,
         id_access_token: str,
         prev_event_ids: list[str] | None = None,
         depth: int | None = None,
@@ -1514,8 +1513,6 @@ class RoomMemberHandler(metaclass=abc.ABCMeta):
             address: The 3PID's address.
             id_server: The identity server to use.
             requester: The user making the request.
-            txn_id: The transaction ID this is part of, or None if this is not
-                part of a transaction.
             id_access_token: Identity server access token.
             depth: Override the depth used to order the event in the DAG.
             prev_event_ids: The event IDs to use as the prev events
@@ -1570,7 +1567,7 @@ class RoomMemberHandler(metaclass=abc.ABCMeta):
             # user_may_invite) because we'll do it further down the line anyway (in
             # update_membership_locked).
             event_id, stream_id = await self.update_membership(
-                requester, UserID.from_string(invitee), room_id, "invite", txn_id=txn_id
+                requester, UserID.from_string(invitee), room_id, "invite"
             )
         else:
             # Check if the spamchecker(s) allow this invite to go through.
@@ -1597,7 +1594,6 @@ class RoomMemberHandler(metaclass=abc.ABCMeta):
                 address,
                 room_id,
                 inviter,
-                txn_id=txn_id,
                 id_access_token=id_access_token,
                 prev_event_ids=prev_event_ids,
                 depth=depth,
@@ -1614,7 +1610,6 @@ class RoomMemberHandler(metaclass=abc.ABCMeta):
         address: str,
         room_id: str,
         user: UserID,
-        txn_id: str | None,
         id_access_token: str,
         prev_event_ids: list[str] | None = None,
         depth: int | None = None,
@@ -1710,7 +1705,6 @@ class RoomMemberHandler(metaclass=abc.ABCMeta):
                 "state_key": token,
             },
             ratelimit=False,
-            txn_id=txn_id,
             prev_event_ids=prev_event_ids,
             depth=depth,
         )

@@ -25,8 +25,6 @@ from urllib import parse as urlparse
 
 from prometheus_client.core import Histogram
 
-from twisted.web.server import Request
-
 from relapse import event_auth
 from relapse.api.constants import Direction, EventTypes, Membership
 from relapse.api.errors import (
@@ -141,43 +139,20 @@ class TransactionRestServlet(RestServlet):
         self.txns = HttpTransactionCache(hs)
 
 
-class RoomCreateRestServlet(TransactionRestServlet):
+class RoomCreateRestServlet(RestServlet):
     CATEGORY = "Client API requests"
+    PATTERNS = client_patterns("/createRoom$")
 
     def __init__(self, hs: "HomeServer"):
-        super().__init__(hs)
         self._room_creation_handler = hs.get_room_creation_handler()
         self.auth = hs.get_auth()
 
-    def register(self, http_server: HttpServer) -> None:
-        PATTERNS = "/createRoom"
-        register_txn_path(self, PATTERNS, http_server)
-
-    async def on_PUT(
-        self, request: RelapseRequest, txn_id: str
-    ) -> tuple[int, JsonDict]:
-        requester = await self.auth.get_user_by_req(request)
-        set_tag("txn_id", txn_id)
-        return await self.txns.fetch_or_execute_request(
-            request, requester, self._do, request, requester
-        )
-
     async def on_POST(self, request: RelapseRequest) -> tuple[int, JsonDict]:
         requester = await self.auth.get_user_by_req(request)
-        return await self._do(request, requester)
-
-    async def _do(
-        self, request: RelapseRequest, requester: Requester
-    ) -> tuple[int, JsonDict]:
         room_id, _, _ = await self._room_creation_handler.create_room(
-            requester, self.get_room_config(request)
+            requester, parse_json_object_from_request(request)
         )
-
         return 200, {"room_id": room_id}
-
-    def get_room_config(self, request: Request) -> JsonDict:
-        user_supplied_config = parse_json_object_from_request(request)
-        return user_supplied_config
 
 
 # TODO: Needs unit testing for generic events
@@ -338,16 +313,14 @@ class RoomStateEventRestServlet(RestServlet):
 # TODO: Needs unit testing for generic events + feedback
 class RoomSendEventRestServlet(TransactionRestServlet):
     CATEGORY = "Event sending requests"
+    PATTERNS = client_patterns(
+        "/rooms/(?P<room_id>[^/]*)/send/(?P<event_type>[^/]*)/(?P<txn_id>[^/]*)$"
+    )
 
     def __init__(self, hs: "HomeServer"):
         super().__init__(hs)
         self.event_creation_handler = hs.get_event_creation_handler()
         self.auth = hs.get_auth()
-
-    def register(self, http_server: HttpServer) -> None:
-        # /rooms/$roomid/send/$event_type[/$txn_id]
-        PATTERNS = "/rooms/(?P<room_id>[^/]*)/send/(?P<event_type>[^/]*)"
-        register_txn_path(self, PATTERNS, http_server)
 
     async def _do(
         self,
@@ -355,7 +328,7 @@ class RoomSendEventRestServlet(TransactionRestServlet):
         requester: Requester,
         room_id: str,
         event_type: str,
-        txn_id: str | None,
+        txn_id: str,
     ) -> tuple[int, JsonDict]:
         content = parse_json_object_from_request(request)
 
@@ -385,15 +358,6 @@ class RoomSendEventRestServlet(TransactionRestServlet):
         set_tag("event_id", event_id)
         return 200, {"event_id": event_id}
 
-    async def on_POST(
-        self,
-        request: RelapseRequest,
-        room_id: str,
-        event_type: str,
-    ) -> tuple[int, JsonDict]:
-        requester = await self.auth.get_user_by_req(request, allow_guest=True)
-        return await self._do(request, requester, room_id, event_type, None)
-
     async def on_PUT(
         self, request: RelapseRequest, room_id: str, event_type: str, txn_id: str
     ) -> tuple[int, JsonDict]:
@@ -413,26 +377,20 @@ class RoomSendEventRestServlet(TransactionRestServlet):
 
 
 # TODO: Needs unit testing for room ID + alias joins
-class JoinRoomAliasServlet(ResolveRoomIdMixin, TransactionRestServlet):
+class JoinRoomAliasServlet(ResolveRoomIdMixin, RestServlet):
     CATEGORY = "Event sending requests"
+    PATTERNS = client_patterns("/join/(?P<room_identifier>[^/]*)$")
 
     def __init__(self, hs: "HomeServer"):
         super().__init__(hs)
-        super(ResolveRoomIdMixin, self).__init__(hs)  # ensure the Mixin is set up
         self.auth = hs.get_auth()
 
-    def register(self, http_server: HttpServer) -> None:
-        # /join/$room_identifier[/$txn_id]
-        PATTERNS = "/join/(?P<room_identifier>[^/]*)"
-        register_txn_path(self, PATTERNS, http_server)
-
-    async def _do(
+    async def on_POST(
         self,
         request: RelapseRequest,
-        requester: Requester,
         room_identifier: str,
-        txn_id: str | None,
     ) -> tuple[int, JsonDict]:
+        requester = await self.auth.get_user_by_req(request, allow_guest=True)
         content = parse_json_object_from_request(request, allow_empty_body=True)
 
         # twisted.web.server.Request.args is incorrectly defined as Optional[Any]
@@ -448,31 +406,12 @@ class JoinRoomAliasServlet(ResolveRoomIdMixin, TransactionRestServlet):
             target=requester.user,
             room_id=room_id,
             action="join",
-            txn_id=txn_id,
             remote_room_hosts=remote_room_hosts,
             content=content,
             third_party_signed=content.get("third_party_signed", None),
         )
 
         return 200, {"room_id": room_id}
-
-    async def on_POST(
-        self,
-        request: RelapseRequest,
-        room_identifier: str,
-    ) -> tuple[int, JsonDict]:
-        requester = await self.auth.get_user_by_req(request, allow_guest=True)
-        return await self._do(request, requester, room_identifier, None)
-
-    async def on_PUT(
-        self, request: RelapseRequest, room_identifier: str, txn_id: str
-    ) -> tuple[int, JsonDict]:
-        requester = await self.auth.get_user_by_req(request, allow_guest=True)
-        set_tag("txn_id", txn_id)
-
-        return await self.txns.fetch_or_execute_request(
-            request, requester, self._do, request, requester, room_identifier, txn_id
-        )
 
 
 # TODO: Needs unit testing
@@ -949,63 +888,39 @@ class RoomEventContextServlet(RestServlet):
         return 200, results
 
 
-class RoomForgetRestServlet(TransactionRestServlet):
+class RoomForgetRestServlet(RestServlet):
+    PATTERNS = client_patterns("/rooms/(?P<room_id>[^/]*)/forget$")
+
     def __init__(self, hs: "HomeServer"):
-        super().__init__(hs)
         self.room_member_handler = hs.get_room_member_handler()
         self.auth = hs.get_auth()
-
-    def register(self, http_server: HttpServer) -> None:
-        PATTERNS = "/rooms/(?P<room_id>[^/]*)/forget"
-        register_txn_path(self, PATTERNS, http_server)
-
-    async def _do(self, requester: Requester, room_id: str) -> tuple[int, JsonDict]:
-        await self.room_member_handler.forget(user=requester.user, room_id=room_id)
-
-        return 200, {}
 
     async def on_POST(
         self, request: RelapseRequest, room_id: str
     ) -> tuple[int, JsonDict]:
         requester = await self.auth.get_user_by_req(request, allow_guest=False)
-        return await self._do(requester, room_id)
-
-    async def on_PUT(
-        self, request: RelapseRequest, room_id: str, txn_id: str
-    ) -> tuple[int, JsonDict]:
-        requester = await self.auth.get_user_by_req(request, allow_guest=False)
-        set_tag("txn_id", txn_id)
-
-        return await self.txns.fetch_or_execute_request(
-            request, requester, self._do, requester, room_id
-        )
+        await self.room_member_handler.forget(user=requester.user, room_id=room_id)
+        return 200, {}
 
 
 # TODO: Needs unit testing
-class RoomMembershipRestServlet(TransactionRestServlet):
+class RoomMembershipRestServlet(RestServlet):
     CATEGORY = "Event sending requests"
+    PATTERNS = client_patterns(
+        "/rooms/(?P<room_id>[^/]*)/(?P<membership_action>join|invite|leave|ban|unban|kick)$"
+    )
 
     def __init__(self, hs: "HomeServer"):
-        super().__init__(hs)
         self.room_member_handler = hs.get_room_member_handler()
         self.auth = hs.get_auth()
 
-    def register(self, http_server: HttpServer) -> None:
-        # /rooms/$roomid/[join|invite|leave|ban|unban|kick]
-        PATTERNS = (
-            "/rooms/(?P<room_id>[^/]*)/"
-            "(?P<membership_action>join|invite|leave|ban|unban|kick)"
-        )
-        register_txn_path(self, PATTERNS, http_server)
-
-    async def _do(
+    async def on_POST(
         self,
         request: RelapseRequest,
-        requester: Requester,
         room_id: str,
         membership_action: str,
-        txn_id: str | None,
     ) -> tuple[int, JsonDict]:
+        requester = await self.auth.get_user_by_req(request, allow_guest=True)
         if requester.is_guest and membership_action not in {
             Membership.JOIN,
             Membership.LEAVE,
@@ -1032,7 +947,6 @@ class RoomMembershipRestServlet(TransactionRestServlet):
                     content["address"],
                     content["id_server"],
                     requester,
-                    txn_id,
                     content["id_access_token"],
                 )
             except ShadowBanError:
@@ -1055,7 +969,6 @@ class RoomMembershipRestServlet(TransactionRestServlet):
                 target=target,
                 room_id=room_id,
                 action=membership_action,
-                txn_id=txn_id,
                 third_party_signed=content.get("third_party_signed", None),
                 content=event_content,
             )
@@ -1070,35 +983,12 @@ class RoomMembershipRestServlet(TransactionRestServlet):
 
         return 200, return_value
 
-    async def on_POST(
-        self,
-        request: RelapseRequest,
-        room_id: str,
-        membership_action: str,
-    ) -> tuple[int, JsonDict]:
-        requester = await self.auth.get_user_by_req(request, allow_guest=True)
-        return await self._do(request, requester, room_id, membership_action, None)
-
-    async def on_PUT(
-        self, request: RelapseRequest, room_id: str, membership_action: str, txn_id: str
-    ) -> tuple[int, JsonDict]:
-        requester = await self.auth.get_user_by_req(request, allow_guest=True)
-        set_tag("txn_id", txn_id)
-
-        return await self.txns.fetch_or_execute_request(
-            request,
-            requester,
-            self._do,
-            request,
-            requester,
-            room_id,
-            membership_action,
-            txn_id,
-        )
-
 
 class RoomRedactEventRestServlet(TransactionRestServlet):
     CATEGORY = "Event sending requests"
+    PATTERNS = client_patterns(
+        "/rooms/(?P<room_id>[^/]*)/redact/(?P<event_id>[^/]*)/(?P<txn_id>[^/]*)$"
+    )
 
     def __init__(self, hs: "HomeServer"):
         super().__init__(hs)
@@ -1108,17 +998,13 @@ class RoomRedactEventRestServlet(TransactionRestServlet):
         self._relation_handler = hs.get_relations_handler()
         self._msc3912_enabled = hs.config.experimental.msc3912_enabled
 
-    def register(self, http_server: HttpServer) -> None:
-        PATTERNS = "/rooms/(?P<room_id>[^/]*)/redact/(?P<event_id>[^/]*)"
-        register_txn_path(self, PATTERNS, http_server)
-
     async def _do(
         self,
         request: RelapseRequest,
         requester: Requester,
         room_id: str,
         event_id: str,
-        txn_id: str | None,
+        txn_id: str,
     ) -> tuple[int, JsonDict]:
         content = parse_json_object_from_request(request)
 
@@ -1185,15 +1071,6 @@ class RoomRedactEventRestServlet(TransactionRestServlet):
 
         set_tag("event_id", event_id)
         return 200, {"event_id": event_id}
-
-    async def on_POST(
-        self,
-        request: RelapseRequest,
-        room_id: str,
-        event_id: str,
-    ) -> tuple[int, JsonDict]:
-        requester = await self.auth.get_user_by_req(request)
-        return await self._do(request, requester, room_id, event_id, None)
 
     async def on_PUT(
         self, request: RelapseRequest, room_id: str, event_id: str, txn_id: str
