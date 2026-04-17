@@ -16,13 +16,13 @@ import logging
 import re
 from typing import TYPE_CHECKING
 
+from relapse.api.errors import NotFoundError
 from relapse.http.server import set_corp_headers, set_cors_headers
 from relapse.http.servlet import RestServlet, parse_boolean, parse_integer
 from relapse.http.site import RelapseRequest
 from relapse.media._base import (
     DEFAULT_MAX_TIMEOUT_MS,
     MAXIMUM_ALLOWED_MAX_TIMEOUT_MS,
-    respond_404,
 )
 from relapse.util.stringutils import parse_and_validate_server_name
 
@@ -87,8 +87,7 @@ class DownloadServlet(RestServlet):
                     server_name,
                     media_id,
                 )
-                respond_404(request)
-                return
+                raise NotFoundError()
 
             await self.media_repo.get_remote_media(
                 request, server_name, media_id, file_name, max_timeout_ms
