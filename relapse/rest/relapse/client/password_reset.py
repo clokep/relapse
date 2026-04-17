@@ -96,8 +96,7 @@ class PasswordResetSubmitTokenServlet(RestServlet):
                         "Not redirecting to next_link as it is a local file: address"
                     )
                 else:
-                    next_link_bytes = next_link.encode("utf-8")
-                    raise RedirectException(next_link_bytes)
+                    raise RedirectException(next_link)
 
             # Otherwise show the success template
             html = self._email_password_reset_template_success_html

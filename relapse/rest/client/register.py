@@ -30,6 +30,7 @@ from relapse.api.errors import (
     Codes,
     InteractiveAuthIncompleteError,
     NotApprovedError,
+    RedirectException,
     RelapseError,
     ThreepidValidationError,
     UnrecognizedRequestError,
@@ -41,7 +42,7 @@ from relapse.config.ratelimiting import FederationRatelimitSettings
 from relapse.config.server import is_threepid_reserved
 from relapse.handlers.auth import AuthHandler
 from relapse.handlers.ui_auth import UIAuthSessionDataConstants
-from relapse.http.server import HttpServer, finish_request, respond_with_html
+from relapse.http.server import HttpServer, respond_with_html
 from relapse.http.servlet import (
     RestServlet,
     assert_params_in_dict,
@@ -284,10 +285,7 @@ class RegistrationSubmitTokenServlet(RestServlet):
                         "Not redirecting to next_link as it is a local file: address"
                     )
                 else:
-                    request.setResponseCode(302)
-                    request.setHeader("Location", next_link)
-                    finish_request(request)
-                    return None
+                    raise RedirectException(next_link)
 
             # Otherwise show the success template
             html = self.config.email.email_registration_template_success_html_content

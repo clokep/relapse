@@ -37,6 +37,7 @@ from relapse.api.errors import (
     InteractiveAuthIncompleteError,
     LoginError,
     NotFoundError,
+    RedirectException,
     RelapseError,
     StoreError,
 )
@@ -47,7 +48,7 @@ from relapse.handlers.ui_auth import (
 )
 from relapse.handlers.ui_auth.checkers import UserInteractiveAuthChecker
 from relapse.http import get_request_user_agent
-from relapse.http.server import finish_request, respond_with_html
+from relapse.http.server import respond_with_html
 from relapse.http.site import RelapseRequest
 from relapse.logging.context import defer_to_thread
 from relapse.metrics.background_process_metrics import run_as_background_process
@@ -1771,9 +1772,7 @@ class AuthHandler:
 
         # if the client is whitelisted, we can redirect straight to it
         if client_redirect_url.startswith(self._whitelisted_sso_clients):
-            request.redirect(redirect_url)
-            finish_request(request)
-            return
+            raise RedirectException(redirect_url)
 
         # Otherwise, serve the redirect confirmation page.
 

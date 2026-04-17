@@ -25,6 +25,7 @@ from relapse.api.errors import (
     InvalidClientTokenError,
     LoginError,
     NotApprovedError,
+    RedirectException,
     RelapseError,
     UserDeactivatedError,
 )
@@ -33,7 +34,7 @@ from relapse.api.urls import CLIENT_API_PREFIX
 from relapse.appservice import ApplicationService
 from relapse.handlers.sso import SsoIdentityProvider
 from relapse.http import get_request_uri
-from relapse.http.server import HttpServer, finish_request
+from relapse.http.server import HttpServer
 from relapse.http.servlet import (
     RestServlet,
     assert_params_in_dict,
@@ -645,9 +646,7 @@ class SsoRedirectServlet(RestServlet):
                 requested_uri.decode("utf-8", errors="replace"),
                 new_uri.decode("utf-8", errors="replace"),
             )
-            request.redirect(new_uri)
-            finish_request(request)
-            return
+            raise RedirectException(new_uri.decode("utf-8", errors="replace"))
 
         args: dict[bytes, list[bytes]] = request.args  # type: ignore
         client_redirect_url = parse_bytes_from_args(args, "redirectUrl", required=True)
@@ -657,8 +656,7 @@ class SsoRedirectServlet(RestServlet):
             idp_id,
         )
         logger.info("Redirecting to %s", sso_url)
-        request.redirect(sso_url)
-        finish_request(request)
+        raise RedirectException(sso_url)
 
 
 class CasTicketServlet(RestServlet):
