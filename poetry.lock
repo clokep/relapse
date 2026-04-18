@@ -3455,14 +3455,14 @@ files = [
 
 [[package]]
 name = "types-psycopg2"
-version = "2.9.21.20260223"
+version = "2.9.21.20260408"
 description = "Typing stubs for psycopg2"
 optional = false
 python-versions = ">=3.10"
 groups = ["dev"]
 files = [
-    {file = "types_psycopg2-2.9.21.20260223-py3-none-any.whl", hash = "sha256:c6228ade72d813b0624f4c03feeb89471950ac27cd0506b5debed6f053086bc8"},
-    {file = "types_psycopg2-2.9.21.20260223.tar.gz", hash = "sha256:78ed70de2e56bc6b5c26c8c1da8e9af54e49fdc3c94d1504609f3519e2b84f02"},
+    {file = "types_psycopg2-2.9.21.20260408-py3-none-any.whl", hash = "sha256:49b086bfc9e0ce901c6537403ead1c19c75275571040b037af0248a8e48c322f"},
+    {file = "types_psycopg2-2.9.21.20260408.tar.gz", hash = "sha256:bb65cd12f53b6633077fd782607a33065e1f3bf585219c9f786b61ad2b72211c"},
 ]
 
 [[package]]
@@ -3816,4 +3816,4 @@ url-preview = ["beautifulsoup4"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "278ce0ffc456803de01dbf1372bb70de5b127078b49aaff6f981356fd5fd2143"
+content-hash = "a27e80308025a507fa8cde0bd9f84820c7c63bb6b188863953e993f974169b1a"
