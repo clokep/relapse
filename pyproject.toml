@@ -320,7 +320,7 @@ types-psycopg2 = ">=2.9.21.20260408"
 types-pyOpenSSL = ">=20.0.7"
 types-PyYAML = ">=6.0.12.20260408"
 types-requests = ">=2.26.0"
-types-setuptools = ">=57.4.0"
+types-setuptools = ">=82.0.0.20260408"
 
 # Dependencies which are exclusively required by unit test code. This is
 # NOT a list of all modules that are necessary to run the unit tests.
