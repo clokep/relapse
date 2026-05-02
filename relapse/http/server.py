@@ -21,7 +21,6 @@ import urllib
 import urllib.parse
 from collections.abc import Awaitable, Callable, Iterable, Iterator
 from http import HTTPStatus
-from http.client import FOUND
 from inspect import isawaitable
 from re import Pattern
 from typing import TYPE_CHECKING, Any, cast
@@ -98,7 +97,10 @@ def return_json_error(f: failure.Failure, request: "RelapseRequest") -> None:
         if isinstance(exc, RedirectException):
             logger.info("%s redirect to %s", request, exc.location)
             request.setHeader(b"location", exc.location)
-            request.cookies.extend(exc.cookies)
+            request.cookies.extend(
+                f"{name}={value}; path=/".encode("ascii")
+                for name, value in exc.cookies.items()
+            )
         elif isinstance(exc, RelapseError):
             error_dict = exc.error_dict()
             error_ctx = exc.debug_context
@@ -185,7 +187,10 @@ def return_html_error(
         if isinstance(cme, RedirectException):
             logger.info("%s redirect to %s", request, cme.location)
             request.setHeader(b"location", cme.location)
-            request.cookies.extend(cme.cookies)
+            request.cookies.extend(
+                f"{name}={value}; path=/".encode("ascii")
+                for name, value in cme.cookies.items()
+            )
         elif isinstance(cme, RelapseError):
             logger.info("%s RelapseError: %s - %s", request, code, msg)
         else:
@@ -869,28 +874,6 @@ def set_clickjacking_protection_headers(request: Request) -> None:
     """
     request.setHeader(b"X-Frame-Options", b"DENY")
     request.setHeader(b"Content-Security-Policy", b"frame-ancestors 'none';")
-
-
-def respond_with_redirect(
-    request: "RelapseRequest", url: bytes, statusCode: int = FOUND, cors: bool = False
-) -> None:
-    """
-    Write a 302 (or other specified status code) response to the request, if it is still alive.
-
-    Args:
-        request: The http request to respond to.
-        url: The URL to redirect to.
-        statusCode: The HTTP status code to use for the redirect (defaults to 302).
-        cors: Whether to set CORS headers on the response.
-    """
-    logger.debug("Redirect to %s", url.decode("utf-8"))
-
-    if cors:
-        set_cors_headers(request)
-
-    request.setResponseCode(statusCode)
-    request.setHeader(b"location", url)
-    finish_request(request)
 
 
 def finish_request(request: Request) -> None:

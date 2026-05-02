@@ -586,11 +586,7 @@ class MediaRepoTests(unittest.HomeserverTestCase):
             # A 404 with a JSON body.
             self.assertEqual(channel.code, 404)
             self.assertEqual(
-                channel.json_body,
-                {
-                    "errcode": "M_NOT_FOUND",
-                    "error": "Not found '/_matrix/media/r0/thumbnail/example.com/12345'",
-                },
+                channel.json_body, {"errcode": "M_NOT_FOUND", "error": "Not found"}
             )
 
     @parameterized.expand([("crop", 16), ("crop", 64), ("scale", 16), ("scale", 64)])

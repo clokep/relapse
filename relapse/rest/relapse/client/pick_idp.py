@@ -15,7 +15,8 @@ import logging
 import re
 from typing import TYPE_CHECKING
 
-from relapse.http.server import finish_request, respond_with_html
+from relapse.api.errors import RedirectException
+from relapse.http.server import respond_with_html
 from relapse.http.servlet import RestServlet, parse_string
 from relapse.http.site import RelapseRequest
 
@@ -65,8 +66,7 @@ class PickIdpServlet(RestServlet):
             request, client_redirect_url.encode("utf8")
         )
         logger.info("Redirecting to %s", sso_url)
-        request.redirect(sso_url)
-        finish_request(request)
+        raise RedirectException(sso_url)
 
     async def _serve_id_picker(
         self, request: RelapseRequest, client_redirect_url: str

@@ -32,7 +32,7 @@ from relapse.handlers.device import DeviceHandler
 from relapse.handlers.register import init_counters_for_auth_provider
 from relapse.handlers.ui_auth import UIAuthSessionDataConstants
 from relapse.http import get_request_user_agent
-from relapse.http.server import respond_with_html, respond_with_redirect
+from relapse.http.server import respond_with_html
 from relapse.http.site import RelapseRequest
 from relapse.types import (
     JsonDict,
@@ -170,7 +170,7 @@ class UsernameMappingSession:
 
 
 # the HTTP cookie used to track the mapping session id
-USERNAME_MAPPING_SESSION_COOKIE_NAME = b"username_mapping_session"
+USERNAME_MAPPING_SESSION_COOKIE_NAME = "username_mapping_session"
 
 
 class SsoHandler:
@@ -566,7 +566,7 @@ class SsoHandler:
         self,
         attributes: UserAttributes | None = None,
         session: UsernameMappingSession | None = None,
-    ) -> bytes:
+    ) -> str:
         """Returns the URL to redirect to for the next step of new user registration
 
         Given attributes from the user mapping provider or a UsernameMappingSession,
@@ -589,13 +589,13 @@ class SsoHandler:
             attributes
             and (attributes.localpart is None or attributes.confirm_localpart is True)
         ) or (session and session.chosen_localpart is None):
-            return b"/_relapse/client/pick_username/account_details"
+            return "/_relapse/client/pick_username/account_details"
         elif self._consent_at_registration and not (
             session and session.terms_accepted_version
         ):
-            return b"/_relapse/client/new_user_consent"
+            return "/_relapse/client/new_user_consent"
         else:
-            return b"/_relapse/client/sso_register" if session else b""
+            return "/_relapse/client/sso_register" if session else ""
 
     async def _redirect_to_next_new_user_step(
         self,
@@ -603,7 +603,7 @@ class SsoHandler:
         remote_user_id: str,
         attributes: UserAttributes,
         client_redirect_url: str,
-        next_step_url: bytes,
+        next_step_url: str,
         extra_login_attributes: JsonDict | None,
         auth_provider_session_id: str | None,
     ) -> NoReturn:
@@ -657,10 +657,7 @@ class SsoHandler:
 
         # Set the cookie and redirect to the next step
         e = RedirectException(next_step_url)
-        e.cookies.append(
-            b"%s=%s; path=/"
-            % (USERNAME_MAPPING_SESSION_COOKIE_NAME, session_id.encode("ascii"))
-        )
+        e.cookies[USERNAME_MAPPING_SESSION_COOKIE_NAME] = session_id
         raise e
 
     async def _register_mapped_user(
@@ -987,9 +984,7 @@ class SsoHandler:
                 )
         session.emails_to_use = filtered_emails
 
-        respond_with_redirect(
-            request, self._get_url_for_next_new_user_step(session=session)
-        )
+        raise RedirectException(self._get_url_for_next_new_user_step(session=session))
 
     async def handle_terms_accepted(
         self, request: RelapseRequest, session_id: str, terms_version: str
@@ -1017,9 +1012,7 @@ class SsoHandler:
 
         session.terms_accepted_version = terms_version
 
-        respond_with_redirect(
-            request, self._get_url_for_next_new_user_step(session=session)
-        )
+        raise RedirectException(self._get_url_for_next_new_user_step(session=session))
 
     async def register_sso_user(self, request: Request, session_id: str) -> None:
         """Called once we have all the info we need to register a new user.
@@ -1225,7 +1218,7 @@ def get_username_mapping_session_cookie_from_request(request: IRequest) -> str:
 
     Raises a RelapseError if the cookie isn't found
     """
-    session_id = request.getCookie(USERNAME_MAPPING_SESSION_COOKIE_NAME)
+    session_id = request.getCookie(USERNAME_MAPPING_SESSION_COOKIE_NAME.encode("ascii"))
     if not session_id:
         raise RelapseError(code=400, msg="missing session_id")
     return session_id.decode("ascii", errors="replace")

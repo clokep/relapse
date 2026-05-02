@@ -17,7 +17,7 @@ import logging
 import re
 from typing import TYPE_CHECKING
 
-from relapse.api.errors import Codes, RelapseError, cs_error
+from relapse.api.errors import Codes, NotFoundError, RelapseError, cs_error
 from relapse.config.repository import THUMBNAIL_SUPPORTED_MEDIA_FORMAT_MAP
 from relapse.http.server import respond_with_json, set_corp_headers, set_cors_headers
 from relapse.http.servlet import RestServlet, parse_integer, parse_string
@@ -27,7 +27,6 @@ from relapse.media._base import (
     MAXIMUM_ALLOWED_MAX_TIMEOUT_MS,
     FileInfo,
     ThumbnailInfo,
-    respond_404,
     respond_with_file,
     respond_with_responder,
 )
@@ -98,8 +97,7 @@ class ThumbnailServlet(RestServlet):
             # media inaccessible to local users.
             # See `prevent_media_downloads_from` config docs for more info.
             if server_name in self.prevent_media_downloads_from:
-                respond_404(request)
-                return
+                raise NotFoundError()
 
             remote_resp_function = (
                 self._select_or_generate_remote_thumbnail
@@ -220,8 +218,7 @@ class ThumbnailServlet(RestServlet):
             server_name, media_id, max_timeout_ms
         )
         if not media_info:
-            respond_404(request)
-            return
+            raise NotFoundError()
 
         thumbnail_infos = await self.store.get_remote_media_thumbnails(
             server_name, media_id
@@ -357,8 +354,7 @@ class ThumbnailServlet(RestServlet):
             )
             if not file_info:
                 logger.info("Couldn't find a thumbnail matching the desired inputs")
-                respond_404(request)
-                return
+                raise NotFoundError()
 
             # The thumbnail property must exist.
             assert file_info.thumbnail is not None
