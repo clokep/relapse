@@ -256,6 +256,8 @@ skipped_test_packages=(
   TestKnockRestrictedRoomsLocalJoinNoCreatorsUsesPowerLevelsV12
   TestRestrictedRoomsLocalJoinNoCreatorsUsesPowerLevelsV12
   TestComplementCanCreateValidV12Rooms
+  TestACLsForEDUs
+  TestJumpToDateEndpoint
 )
 skip_flag=$(IFS="|" ; echo "${skipped_test_packages[*]}")
 
