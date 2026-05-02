@@ -305,7 +305,7 @@ all = [
 # failing on new releases. Keeping lower bounds loose here means that dependabot
 # can bump versions without having to update the content-hash in the lockfile.
 # This helps prevents merge conflicts when running a batch of dependabot updates.
-ruff = "0.15.9"
+ruff = "0.15.12"
 
 # Typechecking
 mypy = "*"
@@ -316,11 +316,11 @@ types-jsonschema = ">=3.2.0"
 types-netaddr = ">=0.8.0.6"
 types-opentracing = ">=2.4.2"
 types-Pillow = ">=8.3.4"
-types-psycopg2 = ">=2.9.21.20260408"
+types-psycopg2 = ">=2.9.21.20260422"
 types-pyOpenSSL = ">=20.0.7"
 types-PyYAML = ">=6.0.12.20260408"
 types-requests = ">=2.26.0"
-types-setuptools = ">=57.4.0"
+types-setuptools = ">=82.0.0.20260408"
 
 # Dependencies which are exclusively required by unit test code. This is
 # NOT a list of all modules that are necessary to run the unit tests.
