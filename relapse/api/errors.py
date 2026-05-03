@@ -153,18 +153,18 @@ class RedirectException(CodeMessageException):
            b"sessionId=a3fWa; Expires=Wed, 21 Oct 2015 07:28:00 GMT"
     """
 
-    def __init__(self, location: bytes, http_code: int = http.FOUND):
+    def __init__(self, location: str, http_code: int = http.FOUND):
         """
 
         Args:
             location: the URI to redirect to
             http_code: the HTTP response code
         """
-        msg = "Redirect to {}".format(location.decode("utf-8"))
+        msg = f"Redirect to {location}"
         super().__init__(code=http_code, msg=msg)
-        self.location = location
+        self.location = location.encode("utf-8")
 
-        self.cookies: list[bytes] = []
+        self.cookies: dict[str, str] = {}
 
 
 class RelapseError(CodeMessageException):

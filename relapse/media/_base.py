@@ -26,8 +26,8 @@ from twisted.internet.interfaces import IConsumer
 from twisted.protocols.basic import FileSender
 from twisted.web.server import Request
 
-from relapse.api.errors import Codes, cs_error
-from relapse.http.server import finish_request, respond_with_json
+from relapse.api.errors import NotFoundError
+from relapse.http.server import finish_request
 from relapse.http.site import RelapseRequest
 from relapse.logging.context import make_deferred_yieldable
 from relapse.util.stringutils import is_ascii
@@ -90,16 +90,6 @@ DEFAULT_MAX_TIMEOUT_MS = 20_000
 MAXIMUM_ALLOWED_MAX_TIMEOUT_MS = 60_000
 
 
-def respond_404(request: RelapseRequest) -> None:
-    assert request.path is not None
-    respond_with_json(
-        request,
-        404,
-        cs_error(f"Not found '{request.path.decode()}'", code=Codes.NOT_FOUND),
-        send_cors=True,
-    )
-
-
 async def respond_with_file(
     request: RelapseRequest,
     media_type: str,
@@ -121,7 +111,7 @@ async def respond_with_file(
 
         finish_request(request)
     else:
-        respond_404(request)
+        raise NotFoundError()
 
 
 def add_file_headers(
@@ -265,8 +255,7 @@ async def respond_with_responder(
         upload_name: The name of the requested file, if any.
     """
     if not responder:
-        respond_404(request)
-        return
+        raise NotFoundError()
 
     # If we have a responder we *must* use it as a context manager.
     with responder:

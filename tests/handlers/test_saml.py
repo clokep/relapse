@@ -91,7 +91,7 @@ class TestRedirectMappingProvider(TestMappingProvider):
         failures: int,
         client_redirect_url: str,
     ) -> dict:
-        raise RedirectException(b"https://custom-saml-redirect/")
+        raise RedirectException("https://custom-saml-redirect/")
 
 
 class SamlHandlerTestCase(HomeserverTestCase):

@@ -28,11 +28,12 @@ from relapse.api.errors import (
     Codes,
     InteractiveAuthIncompleteError,
     NotFoundError,
+    RedirectException,
     RelapseError,
     ThreepidValidationError,
 )
 from relapse.handlers.ui_auth import UIAuthSessionDataConstants
-from relapse.http.server import HttpServer, finish_request, respond_with_html
+from relapse.http.server import HttpServer, respond_with_html
 from relapse.http.servlet import (
     RestServlet,
     assert_params_in_dict,
@@ -511,10 +512,7 @@ class AddThreepidEmailSubmitTokenServlet(RestServlet):
 
             # Perform a 302 redirect if next_link is set
             if next_link:
-                request.setResponseCode(302)
-                request.setHeader("Location", next_link)
-                finish_request(request)
-                return None
+                raise RedirectException(next_link)
 
             # Otherwise show the success template
             html = self.config.email.email_add_threepid_template_success_html_content

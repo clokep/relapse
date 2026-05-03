@@ -45,7 +45,6 @@ from relapse.media._base import (
     Responder,
     ThumbnailInfo,
     get_filename_from_headers,
-    respond_404,
     respond_with_responder,
 )
 from relapse.media.filepath import MediaFilePaths
@@ -380,13 +379,11 @@ class MediaRepository:
             media_info = await self.store.get_local_media(media_id)
             if not media_info:
                 logger.info("Media %s is unknown", media_id)
-                respond_404(request)
-                return None
+                raise NotFoundError()
 
             if media_info.quarantined_by:
                 logger.info("Media %s is quarantined", media_id)
-                respond_404(request)
-                return None
+                raise NotFoundError()
 
             # The file has been uploaded, so stop looping
             if media_info.media_length is not None:
@@ -397,8 +394,7 @@ class MediaRepository:
             expired_time_ms = now - self.unused_expiration_time
             if media_info.created_ts < expired_time_ms:
                 logger.info("Media %s has expired without being uploaded", media_id)
-                respond_404(request)
-                return None
+                raise NotFoundError()
 
             if now >= wait_until:
                 break
@@ -483,8 +479,7 @@ class MediaRepository:
         # block some servers' media from being accessible to local users.
         # See `prevent_media_downloads_from` config docs for more info.
         if server_name in self.prevent_media_downloads_from:
-            respond_404(request)
-            return
+            raise NotFoundError()
 
         self.mark_recently_accessed(server_name, media_id)
 
@@ -507,7 +502,7 @@ class MediaRepository:
                 upload_name,
             )
         else:
-            respond_404(request)
+            raise NotFoundError()
 
     async def get_remote_media_info(
         self, server_name: str, media_id: str, max_timeout_ms: int

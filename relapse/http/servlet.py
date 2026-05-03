@@ -839,7 +839,7 @@ class RedirectServlet(RestServlet):
         self.url = path
 
     async def on_GET(self, request: Request) -> NoReturn:
-        raise RedirectException(self.url.encode("ascii"))
+        raise RedirectException(self.url)
 
 
 class StaticServlet(RestServlet):
