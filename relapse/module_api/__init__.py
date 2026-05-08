@@ -14,7 +14,7 @@
 # limitations under the License.
 import email.utils
 import logging
-from collections.abc import Callable, Collection, Generator, Iterable, Mapping
+from collections.abc import Callable, Collection, Iterable, Mapping
 from typing import TYPE_CHECKING, Any, Concatenate, TypeVar
 
 import attr
@@ -678,13 +678,12 @@ class ModuleApi:
         """
         return defer.ensureDeferred(self._auth_handler.check_user_exists(user_id))
 
-    @defer.inlineCallbacks
-    def register(
+    async def register(
         self,
         localpart: str,
         displayname: str | None = None,
         emails: list[str] | None = None,
-    ) -> Generator["defer.Deferred[Any]", Any, tuple[str, str]]:
+    ) -> tuple[str, str]:
         """Registers a new user with given localpart and optional displayname, emails.
 
         Also returns an access token for the new user.
@@ -706,8 +705,8 @@ class ModuleApi:
         logger.warning(
             "Using deprecated ModuleApi.register which creates a dummy user device."
         )
-        user_id = yield self.register_user(localpart, displayname, emails or [])
-        _, access_token, _, _ = yield self.register_device(user_id)
+        user_id = await self.register_user(localpart, displayname, emails or [])
+        _, access_token, _, _ = await self.register_device(user_id)
         return user_id, access_token
 
     def register_user(
@@ -825,10 +824,7 @@ class ModuleApi:
             auth_provider_session_id,
         )
 
-    @defer.inlineCallbacks
-    def invalidate_access_token(
-        self, access_token: str
-    ) -> Generator["defer.Deferred[Any]", Any, None]:
+    async def invalidate_access_token(self, access_token: str) -> None:
         """Invalidate an access token for a user
 
         Can only be called from the main process.
@@ -850,21 +846,15 @@ class ModuleApi:
         )
 
         # see if the access token corresponds to a device
-        user_info = yield defer.ensureDeferred(
-            self._auth.get_user_by_access_token(access_token)
-        )
-        device_id = user_info.get("device_id")
-        user_id = user_info["user"].to_string()
+        user_info = await self._auth.get_user_by_access_token(access_token)
+        device_id = user_info.device_id
+        user_id = user_info.user.to_string()
         if device_id:
             # delete the device, which will also delete its access tokens
-            yield defer.ensureDeferred(
-                self._device_handler.delete_devices(user_id, [device_id])
-            )
+            await self._device_handler.delete_devices(user_id, [device_id])
         else:
             # no associated device. Just delete the access token.
-            yield defer.ensureDeferred(
-                self._auth_handler.delete_access_token(access_token)
-            )
+            await self._auth_handler.delete_access_token(access_token)
 
     def run_db_interaction(
         self,
@@ -960,10 +950,9 @@ class ModuleApi:
             new_user=new_user,
         )
 
-    @defer.inlineCallbacks
-    def get_state_events_in_room(
+    async def get_state_events_in_room(
         self, room_id: str, types: Iterable[tuple[str, str | None]]
-    ) -> Generator[defer.Deferred, Any, Iterable[EventBase]]:
+    ) -> Iterable[EventBase]:
         """Gets current state events for the given room.
 
         (This is exposed for compatibility with the old SpamCheckerApi. We should
@@ -979,12 +968,10 @@ class ModuleApi:
         Returns:
             The filtered state events in the room.
         """
-        state_ids = yield defer.ensureDeferred(
-            self._storage_controllers.state.get_current_state_ids(
-                room_id=room_id, state_filter=StateFilter.from_types(types)
-            )
+        state_ids = await self._storage_controllers.state.get_current_state_ids(
+            room_id=room_id, state_filter=StateFilter.from_types(types)
         )
-        state = yield defer.ensureDeferred(self._store.get_events(state_ids.values()))
+        state = await self._store.get_events(state_ids.values())
         return state.values()
 
     async def update_room_membership(
