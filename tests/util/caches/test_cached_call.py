@@ -19,12 +19,11 @@ from twisted.internet.defer import Deferred
 
 from relapse.util.caches.cached_call import CachedCall, RetryOnExceptionCachedCall
 
-from tests.test_utils import get_awaitable_result
 from tests.unittest import TestCase
 
 
 class CachedCallTestCase(TestCase):
-    def test_get(self) -> None:
+    async def test_get(self) -> None:
         """
         Happy-path test case: makes a couple of calls and makes sure they behave
         correctly
@@ -61,16 +60,16 @@ class CachedCallTestCase(TestCase):
         # allow the deferred to complete, which should complete both the pending results
         d.callback(123)
         self.assertEqual(completed_results, [123, 123])
-        self.successResultOf(r1)
-        self.successResultOf(r2)
+        await r1
+        await r2
 
         # another call to the getter should complete immediately
         slow_call.reset_mock()
-        r3 = get_awaitable_result(cached_call.get())
+        r3 = await cached_call.get()
         self.assertEqual(r3, 123)
         slow_call.assert_not_called()
 
-    def test_fast_call(self) -> None:
+    async def test_fast_call(self) -> None:
         """
         Test the behaviour when the underlying function completes immediately
         """
@@ -85,15 +84,15 @@ class CachedCallTestCase(TestCase):
         fast_call.assert_not_called()
 
         # run the call a couple of times, which should complete immediately
-        self.assertEqual(get_awaitable_result(cached_call.get()), 12)
-        self.assertEqual(get_awaitable_result(cached_call.get()), 12)
+        self.assertEqual(await cached_call.get(), 12)
+        self.assertEqual(await cached_call.get(), 12)
 
         # the mock should have been called once
         fast_call.assert_called_once_with()
 
 
 class RetryOnExceptionCachedCallTestCase(TestCase):
-    def test_get(self) -> None:
+    async def test_get(self) -> None:
         # set up the RetryOnExceptionCachedCall around a function which will fail
         # (after a while)
         d: Deferred[int] = Deferred()
@@ -152,10 +151,10 @@ class RetryOnExceptionCachedCallTestCase(TestCase):
 
         # let that call complete, and check the results
         d.callback(123)
-        self.assertEqual(self.successResultOf(r3), 123)
-        self.assertEqual(self.successResultOf(r4), 123)
+        self.assertEqual(await r3, 123)
+        self.assertEqual(await r4, 123)
 
         # and now more calls to the getter should complete immediately
         slow_call.reset_mock()
-        self.assertEqual(get_awaitable_result(cached_call.get()), 123)
+        self.assertEqual(await cached_call.get(), 123)
         slow_call.assert_not_called()

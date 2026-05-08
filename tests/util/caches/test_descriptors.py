@@ -33,7 +33,6 @@ from relapse.util.caches import descriptors
 from relapse.util.caches.descriptors import _CacheContext, cached, cachedList
 
 from tests import unittest
-from tests.test_utils import get_awaitable_result
 
 logger = logging.getLogger(__name__)
 
@@ -432,7 +431,7 @@ class DescriptorTestCase(unittest.TestCase):
         d = obj.fn(1)
         self.failureResultOf(d, RelapseError)
 
-    def test_invalidate_cascade(self) -> None:
+    async def test_invalidate_cascade(self) -> None:
         """Invalidations should cascade up through cache contexts"""
 
         class Cls:
@@ -452,7 +451,7 @@ class DescriptorTestCase(unittest.TestCase):
         obj = Cls()
 
         top_invalidate = mock.Mock()
-        r = get_awaitable_result(obj.func1("k1", on_invalidate=top_invalidate))
+        r = await obj.func1("k1", on_invalidate=top_invalidate)
         self.assertEqual(r, 42)
         obj.invalidate()
         top_invalidate.assert_called_once()

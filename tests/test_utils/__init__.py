@@ -20,7 +20,7 @@ import json
 import sys
 import warnings
 from binascii import unhexlify
-from collections.abc import Awaitable, Callable
+from collections.abc import Callable
 from typing import TYPE_CHECKING, TypeVar
 
 import attr
@@ -39,22 +39,6 @@ if TYPE_CHECKING:
     from sys import UnraisableHookArgs
 
 TV = TypeVar("TV")
-
-
-def get_awaitable_result(awaitable: Awaitable[TV]) -> TV:
-    """Get the result from an Awaitable which should have completed
-
-    Asserts that the given awaitable has a result ready, and returns its value
-    """
-    i = awaitable.__await__()
-    try:
-        next(i)
-    except StopIteration as e:
-        # awaitable returned a result
-        return e.value
-
-    # if next didn't raise, the awaitable hasn't completed.
-    raise Exception("awaitable has not yet completed")
 
 
 def setup_awaitable_errors() -> Callable[[], None]:

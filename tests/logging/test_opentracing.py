@@ -147,7 +147,7 @@ class LogContextScopeManagerTestCase(TestCase):
             self._reporter.get_spans(), [scope2.span, scope1.span, root_scope.span]
         )
 
-    def test_overlapping_spans(self) -> None:
+    async def test_overlapping_spans(self) -> None:
         """Overlapping spans which are not neatly nested should work"""
         reactor = MemoryReactorClock()
         clock = Clock(reactor)
@@ -192,7 +192,7 @@ class LogContextScopeManagerTestCase(TestCase):
             # let the tasks complete
             reactor.pump((2,) * 8)
 
-            self.successResultOf(d1)
+            await d1
             self.assertIsNone(self._tracer.active_span)
 
         # the spans should be reported in order of their finishing: task 1, task 2,
@@ -223,7 +223,7 @@ class LogContextScopeManagerTestCase(TestCase):
             ["fixture_sync_func"],
         )
 
-    def test_trace_decorator_deferred(self) -> None:
+    async def test_trace_decorator_deferred(self) -> None:
         """
         Test whether we can use `@trace_with_opname` (`@trace`) and `@tag_args`
         with functions that return deferreds
@@ -239,7 +239,7 @@ class LogContextScopeManagerTestCase(TestCase):
 
             result_d1 = fixture_deferred_func()
 
-            self.assertEqual(self.successResultOf(result_d1), "foo")
+            self.assertEqual(await result_d1, "foo")
 
         # the span should have been reported
         self.assertEqual(
@@ -247,7 +247,7 @@ class LogContextScopeManagerTestCase(TestCase):
             ["fixture_deferred_func"],
         )
 
-    def test_trace_decorator_async(self) -> None:
+    async def test_trace_decorator_async(self) -> None:
         """
         Test whether we can use `@trace_with_opname` (`@trace`) and `@tag_args`
         with async functions
@@ -261,7 +261,7 @@ class LogContextScopeManagerTestCase(TestCase):
 
             d1 = defer.ensureDeferred(fixture_async_func())
 
-            self.assertEqual(self.successResultOf(d1), "foo")
+            self.assertEqual(await d1, "foo")
 
         # the span should have been reported
         self.assertEqual(
@@ -269,7 +269,7 @@ class LogContextScopeManagerTestCase(TestCase):
             ["fixture_async_func"],
         )
 
-    def test_trace_decorator_awaitable_return(self) -> None:
+    async def test_trace_decorator_awaitable_return(self) -> None:
         """
         Test whether we can use `@trace_with_opname` (`@trace`) and `@tag_args`
         with functions that return an awaitable (e.g. a coroutine)
@@ -292,7 +292,7 @@ class LogContextScopeManagerTestCase(TestCase):
 
             d1 = defer.ensureDeferred(runner())
 
-            self.assertEqual(self.successResultOf(d1), "foo")
+            self.assertEqual(await d1, "foo")
 
         # the span should have been reported
         self.assertEqual(

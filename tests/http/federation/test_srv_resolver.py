@@ -28,7 +28,7 @@ from tests.utils import MockClock
 
 
 class SrvResolverTestCase(unittest.TestCase):
-    def test_resolve(self) -> None:
+    async def test_resolve(self) -> None:
         dns_client_mock = Mock()
 
         service_name = b"test_service.example.com"
@@ -62,7 +62,7 @@ class SrvResolverTestCase(unittest.TestCase):
 
         result_deferred.callback(([answer_srv], None, None))
 
-        servers = self.successResultOf(test_d)
+        servers = await test_d
 
         self.assertEqual(len(servers), 1)
         self.assertEqual(servers, cache[service_name])
@@ -173,7 +173,7 @@ class SrvResolverTestCase(unittest.TestCase):
 
         self.failureResultOf(resolve_d, ConnectError)
 
-    def test_non_srv_answer(self) -> None:
+    async def test_non_srv_answer(self) -> None:
         """
         test the behaviour when the dns server gives us a spurious non-SRV response
         """
@@ -199,7 +199,7 @@ class SrvResolverTestCase(unittest.TestCase):
             )
         )
 
-        servers = self.successResultOf(resolve_d)
+        servers = await resolve_d
 
         self.assertEqual(len(servers), 1)
         self.assertEqual(servers, cache[service_name])

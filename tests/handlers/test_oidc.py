@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
-from collections.abc import Awaitable
 from contextlib import AbstractContextManager
 from typing import Any
 from unittest.mock import ANY, AsyncMock, Mock, patch
@@ -30,7 +29,7 @@ from relapse.util import Clock
 from relapse.util.macaroons import get_value_from_macaroon
 from relapse.util.stringutils import random_string
 
-from tests.test_utils import FakeResponse, get_awaitable_result
+from tests.test_utils import FakeResponse
 from tests.test_utils.oidc import FakeAuthorizationGrant, FakeOidcServer
 from tests.unittest import HomeserverTestCase, override_config
 
@@ -286,69 +285,69 @@ class OidcHandlerTestCase(HomeserverTestCase):
             self.get_failure(self.provider.load_jwks(force=True), RuntimeError)
 
     @override_config({"oidc_providers": [DEFAULT_CONFIG]})
-    def test_validate_config(self) -> None:
+    async def test_validate_config(self) -> None:
         """Provider metadatas are extensively validated."""
         h = self.provider
 
-        def force_load_metadata() -> Awaitable[None]:
-            async def force_load() -> "OpenIDProviderMetadata":
-                return await h.load_metadata(force=True)
-
-            return get_awaitable_result(force_load())
+        async def force_load_metadata() -> OpenIDProviderMetadata:
+            return await h.load_metadata(force=True)
 
         # Default test config does not throw
-        force_load_metadata()
+        await force_load_metadata()
 
         with self.metadata_edit({"issuer": None}):
-            self.assertRaisesRegex(ValueError, "issuer", force_load_metadata)
+            with self.assertRaisesRegex(ValueError, "issuer"):
+                await force_load_metadata()
 
         with self.metadata_edit({"issuer": "http://insecure/"}):
-            self.assertRaisesRegex(ValueError, "issuer", force_load_metadata)
+            with self.assertRaisesRegex(ValueError, "issuer"):
+                await force_load_metadata()
 
         with self.metadata_edit({"issuer": "https://invalid/?because=query"}):
-            self.assertRaisesRegex(ValueError, "issuer", force_load_metadata)
+            with self.assertRaisesRegex(ValueError, "issuer"):
+                await force_load_metadata()
 
         with self.metadata_edit({"authorization_endpoint": None}):
-            self.assertRaisesRegex(
-                ValueError, "authorization_endpoint", force_load_metadata
-            )
+            with self.assertRaisesRegex(ValueError, "authorization_endpoint"):
+                await force_load_metadata()
 
         with self.metadata_edit({"authorization_endpoint": "http://insecure/auth"}):
-            self.assertRaisesRegex(
-                ValueError, "authorization_endpoint", force_load_metadata
-            )
+            with self.assertRaisesRegex(ValueError, "authorization_endpoint"):
+                await force_load_metadata()
 
         with self.metadata_edit({"token_endpoint": None}):
-            self.assertRaisesRegex(ValueError, "token_endpoint", force_load_metadata)
+            with self.assertRaisesRegex(ValueError, "token_endpoint"):
+                await force_load_metadata()
 
         with self.metadata_edit({"token_endpoint": "http://insecure/token"}):
-            self.assertRaisesRegex(ValueError, "token_endpoint", force_load_metadata)
+            with self.assertRaisesRegex(ValueError, "token_endpoint"):
+                await force_load_metadata()
 
         with self.metadata_edit({"jwks_uri": None}):
-            self.assertRaisesRegex(ValueError, "jwks_uri", force_load_metadata)
+            with self.assertRaisesRegex(ValueError, "jwks_uri"):
+                await force_load_metadata()
 
         with self.metadata_edit({"jwks_uri": "http://insecure/jwks.json"}):
-            self.assertRaisesRegex(ValueError, "jwks_uri", force_load_metadata)
+            with self.assertRaisesRegex(ValueError, "jwks_uri"):
+                await force_load_metadata()
 
         with self.metadata_edit({"response_types_supported": ["id_token"]}):
-            self.assertRaisesRegex(
-                ValueError, "response_types_supported", force_load_metadata
-            )
+            with self.assertRaisesRegex(ValueError, "response_types_supported"):
+                await force_load_metadata()
 
         with self.metadata_edit(
             {"token_endpoint_auth_methods_supported": ["client_secret_basic"]}
         ):
             # should not throw, as client_secret_basic is the default auth method
-            force_load_metadata()
+            await force_load_metadata()
 
         with self.metadata_edit(
             {"token_endpoint_auth_methods_supported": ["client_secret_post"]}
         ):
-            self.assertRaisesRegex(
-                ValueError,
-                "token_endpoint_auth_methods_supported",
-                force_load_metadata,
-            )
+            with self.assertRaisesRegex(
+                ValueError, "token_endpoint_auth_methods_supported"
+            ):
+                await force_load_metadata()
 
         # Tests for configs that require the userinfo endpoint
         self.assertFalse(h._uses_userinfo)
@@ -362,20 +361,21 @@ class OidcHandlerTestCase(HomeserverTestCase):
         h._scopes = []
         self.assertTrue(h._uses_userinfo)
         with self.metadata_edit({"userinfo_endpoint": None}):
-            self.assertRaisesRegex(ValueError, "userinfo_endpoint", force_load_metadata)
+            with self.assertRaisesRegex(ValueError, "userinfo_endpoint"):
+                await force_load_metadata()
 
         with self.metadata_edit({"jwks_uri": None}):
             # Shouldn't raise with a valid userinfo, even without jwks
-            force_load_metadata()
+            await force_load_metadata()
 
     @override_config(
         {"oidc_providers": [{**DEFAULT_CONFIG, "skip_verification": True}]}
     )
-    def test_skip_verification(self) -> None:
+    async def test_skip_verification(self) -> None:
         """Provider metadata validation can be disabled by config."""
         with self.metadata_edit({"issuer": "http://insecure"}):
             # This should not throw
-            get_awaitable_result(self.provider.load_metadata())
+            await self.provider.load_metadata()
 
     @override_config({"oidc_providers": [DEFAULT_CONFIG]})
     def test_redirect_request(self) -> None:

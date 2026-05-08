@@ -273,19 +273,19 @@ class MatrixFederationAgentTests(unittest.TestCase):
             _well_known_resolver=self.well_known_resolver,
         )
 
-    def test_get(self) -> None:
+    async def test_get(self) -> None:
         """happy-path test of a GET request with an explicit port"""
-        self._do_get()
+        await self._do_get()
 
     @patch.dict(
         os.environ,
         {"https_proxy": "proxy.com", "no_proxy": "testserv"},
     )
-    def test_get_bypass_proxy(self) -> None:
+    async def test_get_bypass_proxy(self) -> None:
         """test of a GET request with an explicit port and bypass proxy"""
-        self._do_get()
+        await self._do_get()
 
-    def _do_get(self) -> None:
+    async def _do_get(self) -> None:
         """test of a GET request with an explicit port"""
         self.agent = self._make_agent()
 
@@ -327,7 +327,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
 
         self.reactor.pump((0.1,))
 
-        response = self.successResultOf(test_d)
+        response = await test_d
 
         # that should give us a Response object
         self.assertEqual(response.code, 200)
@@ -339,44 +339,48 @@ class MatrixFederationAgentTests(unittest.TestCase):
         self.reactor.pump((0.1,))
 
         # check it can be read
-        json = self.successResultOf(treq.json_content(response))
+        json = await treq.json_content(response)
         self.assertEqual(json, {"a": 1})
 
     @patch.dict(
         os.environ, {"https_proxy": "http://proxy.com", "no_proxy": "unused.com"}
     )
-    def test_get_via_http_proxy(self) -> None:
+    async def test_get_via_http_proxy(self) -> None:
         """test for federation request through a http proxy"""
-        self._do_get_via_proxy(expect_proxy_ssl=False, expected_auth_credentials=None)
+        await self._do_get_via_proxy(
+            expect_proxy_ssl=False, expected_auth_credentials=None
+        )
 
     @patch.dict(
         os.environ,
         {"https_proxy": "http://user:pass@proxy.com", "no_proxy": "unused.com"},
     )
-    def test_get_via_http_proxy_with_auth(self) -> None:
+    async def test_get_via_http_proxy_with_auth(self) -> None:
         """test for federation request through a http proxy with authentication"""
-        self._do_get_via_proxy(
+        await self._do_get_via_proxy(
             expect_proxy_ssl=False, expected_auth_credentials=b"user:pass"
         )
 
     @patch.dict(
         os.environ, {"https_proxy": "https://proxy.com", "no_proxy": "unused.com"}
     )
-    def test_get_via_https_proxy(self) -> None:
+    async def test_get_via_https_proxy(self) -> None:
         """test for federation request through a https proxy"""
-        self._do_get_via_proxy(expect_proxy_ssl=True, expected_auth_credentials=None)
+        await self._do_get_via_proxy(
+            expect_proxy_ssl=True, expected_auth_credentials=None
+        )
 
     @patch.dict(
         os.environ,
         {"https_proxy": "https://user:pass@proxy.com", "no_proxy": "unused.com"},
     )
-    def test_get_via_https_proxy_with_auth(self) -> None:
+    async def test_get_via_https_proxy_with_auth(self) -> None:
         """test for federation request through a https proxy with authentication"""
-        self._do_get_via_proxy(
+        await self._do_get_via_proxy(
             expect_proxy_ssl=True, expected_auth_credentials=b"user:pass"
         )
 
-    def _do_get_via_proxy(
+    async def _do_get_via_proxy(
         self,
         expect_proxy_ssl: bool = False,
         expected_auth_credentials: bytes | None = None,
@@ -514,7 +518,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
 
         self.reactor.pump((0.1,))
 
-        response = self.successResultOf(test_d)
+        response = await test_d
 
         # that should give us a Response object
         self.assertEqual(response.code, 200)
@@ -526,10 +530,10 @@ class MatrixFederationAgentTests(unittest.TestCase):
         self.reactor.pump((0.1,))
 
         # check it can be read
-        json = self.successResultOf(treq.json_content(response))
+        json = await treq.json_content(response)
         self.assertEqual(json, {"a": 1})
 
-    def test_get_ip_address(self) -> None:
+    async def test_get_ip_address(self) -> None:
         """
         Test the behaviour when the server name contains an explicit IP (with no port)
         """
@@ -562,9 +566,9 @@ class MatrixFederationAgentTests(unittest.TestCase):
         # finish the request
         request.finish()
         self.reactor.pump((0.1,))
-        self.successResultOf(test_d)
+        await test_d
 
-    def test_get_ipv6_address(self) -> None:
+    async def test_get_ipv6_address(self) -> None:
         """
         Test the behaviour when the server name contains an explicit IPv6 address
         (with no port)
@@ -598,9 +602,9 @@ class MatrixFederationAgentTests(unittest.TestCase):
         # finish the request
         request.finish()
         self.reactor.pump((0.1,))
-        self.successResultOf(test_d)
+        await test_d
 
-    def test_get_ipv6_address_with_port(self) -> None:
+    async def test_get_ipv6_address_with_port(self) -> None:
         """
         Test the behaviour when the server name contains an explicit IPv6 address
         (with explicit port)
@@ -634,9 +638,9 @@ class MatrixFederationAgentTests(unittest.TestCase):
         # finish the request
         request.finish()
         self.reactor.pump((0.1,))
-        self.successResultOf(test_d)
+        await test_d
 
-    def test_get_hostname_bad_cert(self) -> None:
+    async def test_get_hostname_bad_cert(self) -> None:
         """
         Test the behaviour when the certificate on the server doesn't match the hostname
         """
@@ -685,11 +689,12 @@ class MatrixFederationAgentTests(unittest.TestCase):
         self.assertEqual(len(http_server.requests), 0)
 
         # ... and the request should have failed
-        e = self.failureResultOf(test_d, ResponseNeverReceived)
-        failure_reason = e.value.reasons[0]
+        with self.assertRaises(ResponseNeverReceived) as e:
+            await test_d
+        failure_reason = e.exception.reasons[0]
         self.assertIsInstance(failure_reason.value, VerificationError)
 
-    def test_get_ip_address_bad_cert(self) -> None:
+    async def test_get_ip_address_bad_cert(self) -> None:
         """
         Test the behaviour when the server name contains an explicit IP, but
         the server cert doesn't cover it
@@ -718,11 +723,12 @@ class MatrixFederationAgentTests(unittest.TestCase):
         self.assertEqual(len(http_server.requests), 0)
 
         # ... and the request should have failed
-        e = self.failureResultOf(test_d, ResponseNeverReceived)
-        failure_reason = e.value.reasons[0]
+        with self.assertRaises(ResponseNeverReceived) as e:
+            await test_d
+        failure_reason = e.exception.reasons[0]
         self.assertIsInstance(failure_reason.value, VerificationError)
 
-    def test_get_no_srv_no_well_known(self) -> None:
+    async def test_get_no_srv_no_well_known(self) -> None:
         """
         Test the behaviour when the server name has no port, no SRV, and no well-known
         """
@@ -776,9 +782,9 @@ class MatrixFederationAgentTests(unittest.TestCase):
         # finish the request
         request.finish()
         self.reactor.pump((0.1,))
-        self.successResultOf(test_d)
+        await test_d
 
-    def test_get_well_known(self) -> None:
+    async def test_get_well_known(self) -> None:
         """Test the behaviour when the .well-known delegates elsewhere"""
         self.agent = self._make_agent()
 
@@ -834,7 +840,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
         # finish the request
         request.finish()
         self.reactor.pump((0.1,))
-        self.successResultOf(test_d)
+        await test_d
 
         self.assertEqual(self.well_known_cache[b"testserv"], b"target-server")
 
@@ -843,7 +849,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
         self.well_known_cache.expire()
         self.assertNotIn(b"testserv", self.well_known_cache)
 
-    def test_get_well_known_redirect(self) -> None:
+    async def test_get_well_known_redirect(self) -> None:
         """Test the behaviour when the server name has no port and no SRV record, but
         the .well-known has a 300 redirect
         """
@@ -927,7 +933,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
         # finish the request
         request.finish()
         self.reactor.pump((0.1,))
-        self.successResultOf(test_d)
+        await test_d
 
         self.assertEqual(self.well_known_cache[b"testserv"], b"target-server")
 
@@ -936,7 +942,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
         self.well_known_cache.expire()
         self.assertNotIn(b"testserv", self.well_known_cache)
 
-    def test_get_invalid_well_known(self) -> None:
+    async def test_get_invalid_well_known(self) -> None:
         """
         Test the behaviour when the server name has an *invalid* well-known (and no SRV)
         """
@@ -987,7 +993,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
         # finish the request
         request.finish()
         self.reactor.pump((0.1,))
-        self.successResultOf(test_d)
+        await test_d
 
     def test_get_well_known_unsigned_cert(self) -> None:
         """Test the behaviour when the .well-known server presents a cert
@@ -1043,7 +1049,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
             [call(b"_matrix-fed._tcp.testserv"), call(b"_matrix._tcp.testserv")]
         )
 
-    def test_get_hostname_srv(self) -> None:
+    async def test_get_hostname_srv(self) -> None:
         """
         Test the behaviour when there is a single SRV record for _matrix-fed.
         """
@@ -1083,9 +1089,9 @@ class MatrixFederationAgentTests(unittest.TestCase):
         # finish the request
         request.finish()
         self.reactor.pump((0.1,))
-        self.successResultOf(test_d)
+        await test_d
 
-    def test_get_hostname_srv_legacy(self) -> None:
+    async def test_get_hostname_srv_legacy(self) -> None:
         """
         Test the behaviour when there is a single SRV record for _matrix.
         """
@@ -1127,9 +1133,9 @@ class MatrixFederationAgentTests(unittest.TestCase):
         # finish the request
         request.finish()
         self.reactor.pump((0.1,))
-        self.successResultOf(test_d)
+        await test_d
 
-    def test_get_well_known_srv(self) -> None:
+    async def test_get_well_known_srv(self) -> None:
         """Test the behaviour when the .well-known redirects to a place where there
         is a _matrix-fed SRV record.
         """
@@ -1187,9 +1193,9 @@ class MatrixFederationAgentTests(unittest.TestCase):
         # finish the request
         request.finish()
         self.reactor.pump((0.1,))
-        self.successResultOf(test_d)
+        await test_d
 
-    def test_get_well_known_srv_legacy(self) -> None:
+    async def test_get_well_known_srv_legacy(self) -> None:
         """Test the behaviour when the .well-known redirects to a place where there
         is a _matrix SRV record.
         """
@@ -1252,9 +1258,9 @@ class MatrixFederationAgentTests(unittest.TestCase):
         # finish the request
         request.finish()
         self.reactor.pump((0.1,))
-        self.successResultOf(test_d)
+        await test_d
 
-    def test_idna_servername(self) -> None:
+    async def test_idna_servername(self) -> None:
         """test the behaviour when the server name has idna chars in"""
         self.agent = self._make_agent()
 
@@ -1319,9 +1325,9 @@ class MatrixFederationAgentTests(unittest.TestCase):
         # finish the request
         request.finish()
         self.reactor.pump((0.1,))
-        self.successResultOf(test_d)
+        await test_d
 
-    def test_idna_srv_target(self) -> None:
+    async def test_idna_srv_target(self) -> None:
         """test the behaviour when the target of a _matrix-fed SRV record has idna chars"""
         self.agent = self._make_agent()
 
@@ -1364,9 +1370,9 @@ class MatrixFederationAgentTests(unittest.TestCase):
         # finish the request
         request.finish()
         self.reactor.pump((0.1,))
-        self.successResultOf(test_d)
+        await test_d
 
-    def test_idna_srv_target_legacy(self) -> None:
+    async def test_idna_srv_target_legacy(self) -> None:
         """test the behaviour when the target of a _matrix SRV record has idna chars"""
         self.agent = self._make_agent()
 
@@ -1414,9 +1420,9 @@ class MatrixFederationAgentTests(unittest.TestCase):
         # finish the request
         request.finish()
         self.reactor.pump((0.1,))
-        self.successResultOf(test_d)
+        await test_d
 
-    def test_well_known_cache(self) -> None:
+    async def test_well_known_cache(self) -> None:
         self.reactor.lookups["testserv"] = "1.2.3.4"
 
         fetch_d = defer.ensureDeferred(
@@ -1437,7 +1443,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
             content=b'{ "m.server": "target-server" }',
         )
 
-        r = self.successResultOf(fetch_d)
+        r = await fetch_d
         self.assertEqual(r.delegated_server, b"target-server")
 
         # close the tcp connection
@@ -1447,7 +1453,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
         fetch_d = defer.ensureDeferred(
             self.well_known_resolver.get_well_known(b"testserv")
         )
-        r = self.successResultOf(fetch_d)
+        r = await fetch_d
         self.assertEqual(r.delegated_server, b"target-server")
 
         # expire the cache
@@ -1469,10 +1475,10 @@ class MatrixFederationAgentTests(unittest.TestCase):
             content=b'{ "m.server": "other-server" }',
         )
 
-        r = self.successResultOf(fetch_d)
+        r = await fetch_d
         self.assertEqual(r.delegated_server, b"other-server")
 
-    def test_well_known_cache_with_temp_failure(self) -> None:
+    async def test_well_known_cache_with_temp_failure(self) -> None:
         """Test that we refetch well-known before the cache expires, and that
         it ignores transient errors.
         """
@@ -1497,7 +1503,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
             content=b'{ "m.server": "target-server" }',
         )
 
-        r = self.successResultOf(fetch_d)
+        r = await fetch_d
         self.assertEqual(r.delegated_server, b"target-server")
 
         # close the tcp connection
@@ -1532,7 +1538,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
         self.assertGreater(attempts, 1)
 
         # Resolver should return cached value, despite the lookup failing.
-        r = self.successResultOf(fetch_d)
+        r = await fetch_d
         self.assertEqual(r.delegated_server, b"target-server")
 
         # Expire both caches and repeat the request
@@ -1548,10 +1554,10 @@ class MatrixFederationAgentTests(unittest.TestCase):
         client_factory.clientConnectionFailed(None, Exception("nope"))
         self.reactor.pump((0.4,))
 
-        r = self.successResultOf(fetch_d)
+        r = await fetch_d
         self.assertEqual(r.delegated_server, None)
 
-    def test_well_known_too_large(self) -> None:
+    async def test_well_known_too_large(self) -> None:
         """A well-known query that returns a result which is too large should be rejected."""
         self.reactor.lookups["testserv"] = "1.2.3.4"
 
@@ -1574,10 +1580,10 @@ class MatrixFederationAgentTests(unittest.TestCase):
         )
 
         # The result is successful, but disabled delegation.
-        r = self.successResultOf(fetch_d)
+        r = await fetch_d
         self.assertIsNone(r.delegated_server)
 
-    def test_srv_fallbacks(self) -> None:
+    async def test_srv_fallbacks(self) -> None:
         """Test that other SRV results are tried if the first one fails for _matrix-fed SRV."""
         self.agent = self._make_agent()
 
@@ -1631,9 +1637,9 @@ class MatrixFederationAgentTests(unittest.TestCase):
         # finish the request
         request.finish()
         self.reactor.pump((0.1,))
-        self.successResultOf(test_d)
+        await test_d
 
-    def test_srv_fallbacks_legacy(self) -> None:
+    async def test_srv_fallbacks_legacy(self) -> None:
         """Test that other SRV results are tried if the first one fails for _matrix SRV."""
         self.agent = self._make_agent()
 
@@ -1691,7 +1697,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
         # finish the request
         request.finish()
         self.reactor.pump((0.1,))
-        self.successResultOf(test_d)
+        await test_d
 
     def test_srv_no_fallback_to_legacy(self) -> None:
         """Test that _matrix SRV results are not tried if the _matrix-fed one fails."""
