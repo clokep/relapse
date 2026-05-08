@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections.abc import Callable, Generator
+from collections.abc import Callable
 from typing import cast
 
 import twisted.python.failure
@@ -45,20 +45,18 @@ class LoggingContextTestCase(unittest.TestCase):
         with LoggingContext("test"):
             self._check_test_key("test")
 
-    @defer.inlineCallbacks
-    def test_sleep(self) -> Generator["defer.Deferred[object]", object, None]:
+    async def test_sleep(self) -> None:
         clock = Clock(reactor)
 
-        @defer.inlineCallbacks
-        def competing_callback() -> Generator["defer.Deferred[object]", object, None]:
+        async def competing_callback() -> None:
             with LoggingContext("competing"):
-                yield clock.sleep(0)
+                await clock.sleep(0)
                 self._check_test_key("competing")
 
-        reactor.callLater(0, competing_callback)
+        reactor.callLater(0, defer.ensureDeferred, competing_callback())
 
         with LoggingContext("one"):
-            yield clock.sleep(0)
+            await clock.sleep(0)
             self._check_test_key("one")
 
     def _test_run_in_background(self, function: Callable[[], object]) -> defer.Deferred:
@@ -102,17 +100,15 @@ class LoggingContextTestCase(unittest.TestCase):
         return d2
 
     def test_run_in_background_with_blocking_fn(self) -> defer.Deferred:
-        @defer.inlineCallbacks
-        def blocking_function() -> Generator["defer.Deferred[object]", object, None]:
-            yield Clock(reactor).sleep(0)
+        async def blocking_function() -> None:
+            await Clock(reactor).sleep(0)
 
         return self._test_run_in_background(blocking_function)
 
     def test_run_in_background_with_non_blocking_fn(self) -> defer.Deferred:
-        @defer.inlineCallbacks
-        def nonblocking_function() -> Generator["defer.Deferred[object]", object, None]:
+        async def nonblocking_function() -> None:
             with PreserveLoggingContext():
-                yield defer.succeed(None)
+                await defer.succeed(None)
 
         return self._test_run_in_background(nonblocking_function)
 
@@ -140,10 +136,7 @@ class LoggingContextTestCase(unittest.TestCase):
 
         return self._test_run_in_background(testfunc)
 
-    @defer.inlineCallbacks
-    def test_make_deferred_yieldable(
-        self,
-    ) -> Generator["defer.Deferred[object]", object, None]:
+    async def test_make_deferred_yieldable(self) -> None:
         # a function which returns an incomplete deferred, but doesn't follow
         # the relapse rules.
         def blocking_function() -> defer.Deferred:
@@ -158,15 +151,12 @@ class LoggingContextTestCase(unittest.TestCase):
             # make sure that the context was reset by make_deferred_yieldable
             self.assertIs(current_context(), sentinel_context)
 
-            yield d1
+            await d1
 
             # now it should be restored
             self._check_test_key("one")
 
-    @defer.inlineCallbacks
-    def test_make_deferred_yieldable_with_chained_deferreds(
-        self,
-    ) -> Generator["defer.Deferred[object]", object, None]:
+    async def test_make_deferred_yieldable_with_chained_deferreds(self) -> None:
         sentinel_context = current_context()
 
         with LoggingContext("one"):
@@ -174,7 +164,7 @@ class LoggingContextTestCase(unittest.TestCase):
             # make sure that the context was reset by make_deferred_yieldable
             self.assertIs(current_context(), sentinel_context)
 
-            yield d1
+            await d1
 
             # now it should be restored
             self._check_test_key("one")

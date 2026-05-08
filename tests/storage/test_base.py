@@ -13,7 +13,6 @@
 # limitations under the License.
 
 from collections import OrderedDict
-from collections.abc import Generator
 from unittest.mock import Mock, call, patch
 
 from twisted.internet import defer
@@ -108,11 +107,10 @@ class SQLBaseStoreTestCase(unittest.TestCase):
             self.execute_batch_patcher.stop()
             self.execute_values_patcher.stop()
 
-    @defer.inlineCallbacks
-    def test_insert_1col(self) -> Generator["defer.Deferred[object]", object, None]:
+    async def test_insert_1col(self) -> None:
         self.mock_txn.rowcount = 1
 
-        yield defer.ensureDeferred(
+        await defer.ensureDeferred(
             self.datastore.db_pool.simple_insert(
                 table="tablename", values={"columname": "Value"}
             )
@@ -122,11 +120,10 @@ class SQLBaseStoreTestCase(unittest.TestCase):
             "INSERT INTO tablename (columname) VALUES(?)", ("Value",)
         )
 
-    @defer.inlineCallbacks
-    def test_insert_3cols(self) -> Generator["defer.Deferred[object]", object, None]:
+    async def test_insert_3cols(self) -> None:
         self.mock_txn.rowcount = 1
 
-        yield defer.ensureDeferred(
+        await defer.ensureDeferred(
             self.datastore.db_pool.simple_insert(
                 table="tablename",
                 # Use OrderedDict() so we can assert on the SQL generated
@@ -138,9 +135,8 @@ class SQLBaseStoreTestCase(unittest.TestCase):
             "INSERT INTO tablename (colA, colB, colC) VALUES(?, ?, ?)", (1, 2, 3)
         )
 
-    @defer.inlineCallbacks
-    def test_insert_many(self) -> Generator["defer.Deferred[object]", object, None]:
-        yield defer.ensureDeferred(
+    async def test_insert_many(self) -> None:
+        await defer.ensureDeferred(
             self.datastore.db_pool.simple_insert_many(
                 table="tablename",
                 keys=(
@@ -172,11 +168,10 @@ class SQLBaseStoreTestCase(unittest.TestCase):
                 [("val1", "val2"), ("val3", "val4")],
             )
 
-    @defer.inlineCallbacks
-    def test_insert_many_no_iterable(
+    async def test_insert_many_no_iterable(
         self,
-    ) -> Generator["defer.Deferred[object]", object, None]:
-        yield defer.ensureDeferred(
+    ) -> None:
+        await defer.ensureDeferred(
             self.datastore.db_pool.simple_insert_many(
                 table="tablename",
                 keys=(
@@ -193,12 +188,11 @@ class SQLBaseStoreTestCase(unittest.TestCase):
         else:
             self.mock_txn.executemany.assert_not_called()
 
-    @defer.inlineCallbacks
-    def test_select_one_1col(self) -> Generator["defer.Deferred[object]", object, None]:
+    async def test_select_one_1col(self) -> None:
         self.mock_txn.rowcount = 1
         self.mock_txn.__iter__ = Mock(return_value=iter([("Value",)]))
 
-        value = yield defer.ensureDeferred(
+        value = await defer.ensureDeferred(
             self.datastore.db_pool.simple_select_one_onecol(
                 table="tablename", keyvalues={"keycol": "TheKey"}, retcol="retcol"
             )
@@ -209,12 +203,11 @@ class SQLBaseStoreTestCase(unittest.TestCase):
             "SELECT retcol FROM tablename WHERE keycol = ?", ["TheKey"]
         )
 
-    @defer.inlineCallbacks
-    def test_select_one_3col(self) -> Generator["defer.Deferred[object]", object, None]:
+    async def test_select_one_3col(self) -> None:
         self.mock_txn.rowcount = 1
         self.mock_txn.fetchone.return_value = (1, 2, 3)
 
-        ret = yield defer.ensureDeferred(
+        ret = await defer.ensureDeferred(
             self.datastore.db_pool.simple_select_one(
                 table="tablename",
                 keyvalues={"keycol": "TheKey"},
@@ -227,14 +220,13 @@ class SQLBaseStoreTestCase(unittest.TestCase):
             "SELECT colA, colB, colC FROM tablename WHERE keycol = ?", ["TheKey"]
         )
 
-    @defer.inlineCallbacks
-    def test_select_one_missing(
+    async def test_select_one_missing(
         self,
-    ) -> Generator["defer.Deferred[object]", object, None]:
+    ) -> None:
         self.mock_txn.rowcount = 0
         self.mock_txn.fetchone.return_value = None
 
-        ret = yield defer.ensureDeferred(
+        ret = await defer.ensureDeferred(
             self.datastore.db_pool.simple_select_one(
                 table="tablename",
                 keyvalues={"keycol": "Not here"},
@@ -245,13 +237,12 @@ class SQLBaseStoreTestCase(unittest.TestCase):
 
         self.assertIsNone(ret)
 
-    @defer.inlineCallbacks
-    def test_select_list(self) -> Generator["defer.Deferred[object]", object, None]:
+    async def test_select_list(self) -> None:
         self.mock_txn.rowcount = 3
         self.mock_txn.fetchall.return_value = [(1,), (2,), (3,)]
         self.mock_txn.description = (("colA", None, None, None, None, None, None),)
 
-        ret = yield defer.ensureDeferred(
+        ret = await defer.ensureDeferred(
             self.datastore.db_pool.simple_select_list(
                 table="tablename", keyvalues={"keycol": "A set"}, retcols=["colA"]
             )
@@ -262,14 +253,13 @@ class SQLBaseStoreTestCase(unittest.TestCase):
             "SELECT colA FROM tablename WHERE keycol = ?", ["A set"]
         )
 
-    @defer.inlineCallbacks
-    def test_select_many_batch(
+    async def test_select_many_batch(
         self,
-    ) -> Generator["defer.Deferred[object]", object, None]:
+    ) -> None:
         self.mock_txn.rowcount = 3
         self.mock_txn.fetchall.side_effect = [[(1,), (2,)], [(3,)]]
 
-        ret = yield defer.ensureDeferred(
+        ret = await defer.ensureDeferred(
             self.datastore.db_pool.simple_select_many_batch(
                 table="tablename",
                 column="col1",
@@ -310,11 +300,10 @@ class SQLBaseStoreTestCase(unittest.TestCase):
         self.mock_txn.execute.assert_not_called()
         self.assertEqual([], ret)
 
-    @defer.inlineCallbacks
-    def test_update_one_1col(self) -> Generator["defer.Deferred[object]", object, None]:
+    async def test_update_one_1col(self) -> None:
         self.mock_txn.rowcount = 1
 
-        yield defer.ensureDeferred(
+        await defer.ensureDeferred(
             self.datastore.db_pool.simple_update_one(
                 table="tablename",
                 keyvalues={"keycol": "TheKey"},
@@ -327,13 +316,12 @@ class SQLBaseStoreTestCase(unittest.TestCase):
             ["New Value", "TheKey"],
         )
 
-    @defer.inlineCallbacks
-    def test_update_one_4cols(
+    async def test_update_one_4cols(
         self,
-    ) -> Generator["defer.Deferred[object]", object, None]:
+    ) -> None:
         self.mock_txn.rowcount = 1
 
-        yield defer.ensureDeferred(
+        await defer.ensureDeferred(
             self.datastore.db_pool.simple_update_one(
                 table="tablename",
                 keyvalues=OrderedDict([("colA", 1), ("colB", 2)]),
@@ -346,9 +334,8 @@ class SQLBaseStoreTestCase(unittest.TestCase):
             [3, 4, 1, 2],
         )
 
-    @defer.inlineCallbacks
-    def test_update_many(self) -> Generator["defer.Deferred[object]", object, None]:
-        yield defer.ensureDeferred(
+    async def test_update_many(self) -> None:
+        await defer.ensureDeferred(
             self.datastore.db_pool.simple_update_many(
                 table="tablename",
                 key_names=("col1", "col2"),
@@ -373,7 +360,7 @@ class SQLBaseStoreTestCase(unittest.TestCase):
 
         # key_values and value_values must be the same length.
         with self.assertRaises(ValueError):
-            yield defer.ensureDeferred(
+            await defer.ensureDeferred(
                 self.datastore.db_pool.simple_update_many(
                     table="tablename",
                     key_names=("col1", "col2"),
@@ -384,11 +371,10 @@ class SQLBaseStoreTestCase(unittest.TestCase):
                 )
             )
 
-    @defer.inlineCallbacks
-    def test_update_many_no_iterable(
+    async def test_update_many_no_iterable(
         self,
-    ) -> Generator["defer.Deferred[object]", object, None]:
-        yield defer.ensureDeferred(
+    ) -> None:
+        await defer.ensureDeferred(
             self.datastore.db_pool.simple_update_many(
                 table="tablename",
                 key_names=("col1", "col2"),
@@ -404,11 +390,10 @@ class SQLBaseStoreTestCase(unittest.TestCase):
         else:
             self.mock_txn.executemany.assert_not_called()
 
-    @defer.inlineCallbacks
-    def test_delete_one(self) -> Generator["defer.Deferred[object]", object, None]:
+    async def test_delete_one(self) -> None:
         self.mock_txn.rowcount = 1
 
-        yield defer.ensureDeferred(
+        await defer.ensureDeferred(
             self.datastore.db_pool.simple_delete_one(
                 table="tablename", keyvalues={"keycol": "Go away"}
             )
@@ -418,11 +403,10 @@ class SQLBaseStoreTestCase(unittest.TestCase):
             "DELETE FROM tablename WHERE keycol = ?", ["Go away"]
         )
 
-    @defer.inlineCallbacks
-    def test_delete_many(self) -> Generator["defer.Deferred[object]", object, None]:
+    async def test_delete_many(self) -> None:
         self.mock_txn.rowcount = 2
 
-        result = yield defer.ensureDeferred(
+        result = await defer.ensureDeferred(
             self.datastore.db_pool.simple_delete_many(
                 table="tablename",
                 column="col1",
@@ -438,11 +422,10 @@ class SQLBaseStoreTestCase(unittest.TestCase):
         )
         self.assertEqual(result, 2)
 
-    @defer.inlineCallbacks
-    def test_delete_many_no_iterable(
+    async def test_delete_many_no_iterable(
         self,
-    ) -> Generator["defer.Deferred[object]", object, None]:
-        result = yield defer.ensureDeferred(
+    ) -> None:
+        result = await defer.ensureDeferred(
             self.datastore.db_pool.simple_delete_many(
                 table="tablename",
                 column="col1",
@@ -455,13 +438,12 @@ class SQLBaseStoreTestCase(unittest.TestCase):
         self.mock_txn.execute.assert_not_called()
         self.assertEqual(result, 0)
 
-    @defer.inlineCallbacks
-    def test_delete_many_no_keyvalues(
+    async def test_delete_many_no_keyvalues(
         self,
-    ) -> Generator["defer.Deferred[object]", object, None]:
+    ) -> None:
         self.mock_txn.rowcount = 2
 
-        result = yield defer.ensureDeferred(
+        result = await defer.ensureDeferred(
             self.datastore.db_pool.simple_delete_many(
                 table="tablename",
                 column="col1",
@@ -476,11 +458,10 @@ class SQLBaseStoreTestCase(unittest.TestCase):
         )
         self.assertEqual(result, 2)
 
-    @defer.inlineCallbacks
-    def test_upsert(self) -> Generator["defer.Deferred[object]", object, None]:
+    async def test_upsert(self) -> None:
         self.mock_txn.rowcount = 1
 
-        result = yield defer.ensureDeferred(
+        result = await defer.ensureDeferred(
             self.datastore.db_pool.simple_upsert(
                 table="tablename",
                 keyvalues={"columnname": "oldvalue"},
@@ -494,13 +475,12 @@ class SQLBaseStoreTestCase(unittest.TestCase):
         )
         self.assertTrue(result)
 
-    @defer.inlineCallbacks
-    def test_upsert_no_values(
+    async def test_upsert_no_values(
         self,
-    ) -> Generator["defer.Deferred[object]", object, None]:
+    ) -> None:
         self.mock_txn.rowcount = 1
 
-        result = yield defer.ensureDeferred(
+        result = await defer.ensureDeferred(
             self.datastore.db_pool.simple_upsert(
                 table="tablename",
                 keyvalues={"columnname": "value"},
@@ -515,13 +495,12 @@ class SQLBaseStoreTestCase(unittest.TestCase):
         )
         self.assertTrue(result)
 
-    @defer.inlineCallbacks
-    def test_upsert_with_insertion(
+    async def test_upsert_with_insertion(
         self,
-    ) -> Generator["defer.Deferred[object]", object, None]:
+    ) -> None:
         self.mock_txn.rowcount = 1
 
-        result = yield defer.ensureDeferred(
+        result = await defer.ensureDeferred(
             self.datastore.db_pool.simple_upsert(
                 table="tablename",
                 keyvalues={"columnname": "oldvalue"},
@@ -536,13 +515,12 @@ class SQLBaseStoreTestCase(unittest.TestCase):
         )
         self.assertTrue(result)
 
-    @defer.inlineCallbacks
-    def test_upsert_with_where(
+    async def test_upsert_with_where(
         self,
-    ) -> Generator["defer.Deferred[object]", object, None]:
+    ) -> None:
         self.mock_txn.rowcount = 1
 
-        result = yield defer.ensureDeferred(
+        result = await defer.ensureDeferred(
             self.datastore.db_pool.simple_upsert(
                 table="tablename",
                 keyvalues={"columnname": "oldvalue"},
@@ -557,9 +535,8 @@ class SQLBaseStoreTestCase(unittest.TestCase):
         )
         self.assertTrue(result)
 
-    @defer.inlineCallbacks
-    def test_upsert_many(self) -> Generator["defer.Deferred[object]", object, None]:
-        yield defer.ensureDeferred(
+    async def test_upsert_many(self) -> None:
+        await defer.ensureDeferred(
             self.datastore.db_pool.simple_upsert_many(
                 table="tablename",
                 key_names=["keycol1", "keycol2"],
@@ -584,11 +561,10 @@ class SQLBaseStoreTestCase(unittest.TestCase):
                 [("keyval1", "keyval2", "val5"), ("keyval3", "keyval4", "val6")],
             )
 
-    @defer.inlineCallbacks
-    def test_upsert_many_no_values(
+    async def test_upsert_many_no_values(
         self,
-    ) -> Generator["defer.Deferred[object]", object, None]:
-        yield defer.ensureDeferred(
+    ) -> None:
+        await defer.ensureDeferred(
             self.datastore.db_pool.simple_upsert_many(
                 table="tablename",
                 key_names=["columnname"],
@@ -613,15 +589,14 @@ class SQLBaseStoreTestCase(unittest.TestCase):
                 [("oldvalue",)],
             )
 
-    @defer.inlineCallbacks
-    def test_upsert_emulated_no_values_exists(
+    async def test_upsert_emulated_no_values_exists(
         self,
-    ) -> Generator["defer.Deferred[object]", object, None]:
+    ) -> None:
         self.datastore.db_pool._unsafe_to_upsert_tables.add("tablename")
 
         self.mock_txn.fetchall.return_value = [(1,)]
 
-        result = yield defer.ensureDeferred(
+        result = await defer.ensureDeferred(
             self.datastore.db_pool.simple_upsert(
                 table="tablename",
                 keyvalues={"columnname": "value"},
@@ -643,16 +618,15 @@ class SQLBaseStoreTestCase(unittest.TestCase):
             )
         self.assertFalse(result)
 
-    @defer.inlineCallbacks
-    def test_upsert_emulated_no_values_not_exists(
+    async def test_upsert_emulated_no_values_not_exists(
         self,
-    ) -> Generator["defer.Deferred[object]", object, None]:
+    ) -> None:
         self.datastore.db_pool._unsafe_to_upsert_tables.add("tablename")
 
         self.mock_txn.fetchall.return_value = []
         self.mock_txn.rowcount = 1
 
-        result = yield defer.ensureDeferred(
+        result = await defer.ensureDeferred(
             self.datastore.db_pool.simple_upsert(
                 table="tablename",
                 keyvalues={"columnname": "value"},
@@ -672,15 +646,14 @@ class SQLBaseStoreTestCase(unittest.TestCase):
         )
         self.assertTrue(result)
 
-    @defer.inlineCallbacks
-    def test_upsert_emulated_with_insertion_exists(
+    async def test_upsert_emulated_with_insertion_exists(
         self,
-    ) -> Generator["defer.Deferred[object]", object, None]:
+    ) -> None:
         self.datastore.db_pool._unsafe_to_upsert_tables.add("tablename")
 
         self.mock_txn.rowcount = 1
 
-        result = yield defer.ensureDeferred(
+        result = await defer.ensureDeferred(
             self.datastore.db_pool.simple_upsert(
                 table="tablename",
                 keyvalues={"columnname": "oldvalue"},
@@ -706,15 +679,14 @@ class SQLBaseStoreTestCase(unittest.TestCase):
             )
         self.assertTrue(result)
 
-    @defer.inlineCallbacks
-    def test_upsert_emulated_with_insertion_not_exists(
+    async def test_upsert_emulated_with_insertion_not_exists(
         self,
-    ) -> Generator["defer.Deferred[object]", object, None]:
+    ) -> None:
         self.datastore.db_pool._unsafe_to_upsert_tables.add("tablename")
 
         self.mock_txn.rowcount = 0
 
-        result = yield defer.ensureDeferred(
+        result = await defer.ensureDeferred(
             self.datastore.db_pool.simple_upsert(
                 table="tablename",
                 keyvalues={"columnname": "oldvalue"},
@@ -737,15 +709,14 @@ class SQLBaseStoreTestCase(unittest.TestCase):
         )
         self.assertTrue(result)
 
-    @defer.inlineCallbacks
-    def test_upsert_emulated_with_where(
+    async def test_upsert_emulated_with_where(
         self,
-    ) -> Generator["defer.Deferred[object]", object, None]:
+    ) -> None:
         self.datastore.db_pool._unsafe_to_upsert_tables.add("tablename")
 
         self.mock_txn.rowcount = 1
 
-        result = yield defer.ensureDeferred(
+        result = await defer.ensureDeferred(
             self.datastore.db_pool.simple_upsert(
                 table="tablename",
                 keyvalues={"columnname": "oldvalue"},
@@ -771,15 +742,14 @@ class SQLBaseStoreTestCase(unittest.TestCase):
             )
         self.assertTrue(result)
 
-    @defer.inlineCallbacks
-    def test_upsert_emulated_with_where_no_values(
+    async def test_upsert_emulated_with_where_no_values(
         self,
-    ) -> Generator["defer.Deferred[object]", object, None]:
+    ) -> None:
         self.datastore.db_pool._unsafe_to_upsert_tables.add("tablename")
 
         self.mock_txn.rowcount = 1
 
-        result = yield defer.ensureDeferred(
+        result = await defer.ensureDeferred(
             self.datastore.db_pool.simple_upsert(
                 table="tablename",
                 keyvalues={"columnname": "oldvalue"},

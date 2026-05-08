@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import threading
-from collections.abc import Generator
 from io import BytesIO
 from typing import BinaryIO, cast
 from unittest.mock import NonCallableMock
@@ -32,32 +31,30 @@ reactor = cast(IRelapseReactor, _reactor)
 
 
 class FileConsumerTests(unittest.TestCase):
-    @defer.inlineCallbacks
-    def test_pull_consumer(self) -> Generator["defer.Deferred[object]", object, None]:
+    async def test_pull_consumer(self) -> None:
         string_file = BytesIO()
         consumer = BackgroundFileConsumer(string_file, reactor=reactor)
 
         try:
             producer = DummyPullProducer()
 
-            yield producer.register_with_consumer(consumer)
+            await producer.register_with_consumer(consumer)
 
-            yield producer.write_and_wait(b"Foo")
+            await producer.write_and_wait(b"Foo")
 
             self.assertEqual(string_file.getvalue(), b"Foo")
 
-            yield producer.write_and_wait(b"Bar")
+            await producer.write_and_wait(b"Bar")
 
             self.assertEqual(string_file.getvalue(), b"FooBar")
         finally:
             consumer.unregisterProducer()
 
-        yield consumer.wait()  # type: ignore[misc]
+        await consumer.wait()
 
         self.assertTrue(string_file.closed)
 
-    @defer.inlineCallbacks
-    def test_push_consumer(self) -> Generator["defer.Deferred[object]", object, None]:
+    async def test_push_consumer(self) -> None:
         string_file = BlockingBytesWrite()
         consumer = BackgroundFileConsumer(cast(BinaryIO, string_file), reactor=reactor)
 
@@ -67,25 +64,24 @@ class FileConsumerTests(unittest.TestCase):
             consumer.registerProducer(producer, True)
 
             consumer.write(b"Foo")
-            yield string_file.wait_for_n_writes(1)  # type: ignore[misc]
+            await string_file.wait_for_n_writes(1)
 
             self.assertEqual(string_file.buffer, b"Foo")
 
             consumer.write(b"Bar")
-            yield string_file.wait_for_n_writes(2)  # type: ignore[misc]
+            await string_file.wait_for_n_writes(2)
 
             self.assertEqual(string_file.buffer, b"FooBar")
         finally:
             consumer.unregisterProducer()
 
-        yield consumer.wait()  # type: ignore[misc]
+        await consumer.wait()
 
         self.assertTrue(string_file.closed)
 
-    @defer.inlineCallbacks
-    def test_push_producer_feedback(
+    async def test_push_producer_feedback(
         self,
-    ) -> Generator["defer.Deferred[object]", object, None]:
+    ) -> None:
         string_file = BlockingBytesWrite()
         consumer = BackgroundFileConsumer(cast(BinaryIO, string_file), reactor=reactor)
 
@@ -107,14 +103,14 @@ class FileConsumerTests(unittest.TestCase):
 
                 producer.pauseProducing.assert_called_once()
 
-            yield string_file.wait_for_n_writes(number_writes)  # type: ignore[misc]
+            await string_file.wait_for_n_writes(number_writes)
 
-            yield resume_deferred
+            await resume_deferred
             producer.resumeProducing.assert_called_once()
         finally:
             consumer.unregisterProducer()
 
-        yield consumer.wait()  # type: ignore[misc]
+        await consumer.wait()
 
         self.assertTrue(string_file.closed)
 
@@ -176,10 +172,7 @@ class BlockingBytesWrite:
             self._notify_write_deferred = None
         d.callback(None)
 
-    @defer.inlineCallbacks
-    def wait_for_n_writes(
-        self, n: int
-    ) -> Generator["defer.Deferred[object]", object, None]:
+    async def wait_for_n_writes(self, n: int) -> None:
         "Wait for n writes to have happened"
         while True:
             with self.write_lock:
@@ -191,4 +184,4 @@ class BlockingBytesWrite:
 
                 d = self._notify_write_deferred
 
-            yield d
+            await d

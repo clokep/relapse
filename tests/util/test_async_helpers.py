@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import traceback
-from collections.abc import Generator
 from typing import NoReturn
 
 from parameterized import parameterized_class
@@ -182,17 +181,16 @@ class TimeoutDeferredTest(TestCase):
 
         self.failureResultOf(timing_out_d, defer.TimeoutError)
 
-    def test_logcontext_is_preserved_on_cancellation(self) -> None:
+    async def test_logcontext_is_preserved_on_cancellation(self) -> None:
         blocking_was_cancelled = False
 
-        @defer.inlineCallbacks
-        def blocking() -> Generator["Deferred[object]", object, None]:
+        async def blocking() -> None:
             nonlocal blocking_was_cancelled
 
             non_completing_d: Deferred = Deferred()
             with PreserveLoggingContext():
                 try:
-                    yield non_completing_d
+                    await non_completing_d
                 except CancelledError:
                     blocking_was_cancelled = True
                     raise
@@ -207,7 +205,7 @@ class TimeoutDeferredTest(TestCase):
                 )
                 return res
 
-            original_deferred = blocking()
+            original_deferred = defer.ensureDeferred(blocking())
             original_deferred.addErrback(errback, "orig")
             timing_out_d = timeout_deferred(original_deferred, 1.0, self.clock)
             self.assertNoResult(timing_out_d)
@@ -219,7 +217,8 @@ class TimeoutDeferredTest(TestCase):
             self.assertTrue(
                 blocking_was_cancelled, "non-completing deferred was not cancelled"
             )
-            self.failureResultOf(timing_out_d, defer.TimeoutError)
+            with self.assertRaises(defer.TimeoutError):
+                await timing_out_d
             self.assertIs(current_context(), context_one)
 
 

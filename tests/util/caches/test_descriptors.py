@@ -13,8 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-from collections.abc import Generator, Iterable, Mapping
-from typing import Any, NoReturn, cast
+from collections.abc import Iterable, Mapping
+from typing import NoReturn, cast
 from unittest import mock
 
 from twisted.internet import defer, reactor
@@ -38,15 +38,14 @@ from tests.test_utils import get_awaitable_result
 logger = logging.getLogger(__name__)
 
 
-def run_on_reactor() -> "Deferred[int]":
+def run_on_reactor() -> Deferred[int]:
     d: Deferred[int] = Deferred()
     cast(IReactorTime, reactor).callLater(0, d.callback, 0)
     return make_deferred_yieldable(d)
 
 
 class DescriptorTestCase(unittest.TestCase):
-    @defer.inlineCallbacks
-    def test_cache(self) -> Generator["Deferred[Any]", object, None]:
+    async def test_cache(self) -> None:
         class Cls:
             def __init__(self) -> None:
                 self.mock = mock.Mock()
@@ -58,27 +57,26 @@ class DescriptorTestCase(unittest.TestCase):
         obj = Cls()
 
         obj.mock.return_value = "fish"
-        r = yield obj.fn(1, 2)
+        r = await obj.fn(1, 2)
         self.assertEqual(r, "fish")
         obj.mock.assert_called_once_with(1, 2)
         obj.mock.reset_mock()
 
         # a call with different params should call the mock again
         obj.mock.return_value = "chips"
-        r = yield obj.fn(1, 3)
+        r = await obj.fn(1, 3)
         self.assertEqual(r, "chips")
         obj.mock.assert_called_once_with(1, 3)
         obj.mock.reset_mock()
 
         # the two values should now be cached
-        r = yield obj.fn(1, 2)
+        r = await obj.fn(1, 2)
         self.assertEqual(r, "fish")
-        r = yield obj.fn(1, 3)
+        r = await obj.fn(1, 3)
         self.assertEqual(r, "chips")
         obj.mock.assert_not_called()
 
-    @defer.inlineCallbacks
-    def test_cache_num_args(self) -> Generator["Deferred[Any]", object, None]:
+    async def test_cache_num_args(self) -> None:
         """Only the first num_args arguments should matter to the cache"""
 
         class Cls:
@@ -91,28 +89,27 @@ class DescriptorTestCase(unittest.TestCase):
 
         obj = Cls()
         obj.mock.return_value = "fish"
-        r = yield obj.fn(1, 2)
+        r = await obj.fn(1, 2)
         self.assertEqual(r, "fish")
         obj.mock.assert_called_once_with(1, 2)
         obj.mock.reset_mock()
 
         # a call with different params should call the mock again
         obj.mock.return_value = "chips"
-        r = yield obj.fn(2, 3)
+        r = await obj.fn(2, 3)
         self.assertEqual(r, "chips")
         obj.mock.assert_called_once_with(2, 3)
         obj.mock.reset_mock()
 
         # the two values should now be cached; we should be able to vary
         # the second argument and still get the cached result.
-        r = yield obj.fn(1, 4)
+        r = await obj.fn(1, 4)
         self.assertEqual(r, "fish")
-        r = yield obj.fn(2, 5)
+        r = await obj.fn(2, 5)
         self.assertEqual(r, "chips")
         obj.mock.assert_not_called()
 
-    @defer.inlineCallbacks
-    def test_cache_uncached_args(self) -> Generator["Deferred[Any]", object, None]:
+    async def test_cache_uncached_args(self) -> None:
         """
         Only the arguments not named in uncached_args should matter to the cache
 
@@ -132,28 +129,27 @@ class DescriptorTestCase(unittest.TestCase):
 
         obj = Cls()
         obj.mock.return_value = "fish"
-        r = yield obj.fn(1, 2, 3)
+        r = await obj.fn(1, 2, 3)
         self.assertEqual(r, "fish")
         obj.mock.assert_called_once_with(1, 2, 3)
         obj.mock.reset_mock()
 
         # a call with different params should call the mock again
         obj.mock.return_value = "chips"
-        r = yield obj.fn(2, 3, 4)
+        r = await obj.fn(2, 3, 4)
         self.assertEqual(r, "chips")
         obj.mock.assert_called_once_with(2, 3, 4)
         obj.mock.reset_mock()
 
         # the two values should now be cached; we should be able to vary
         # the second argument and still get the cached result.
-        r = yield obj.fn(1, 4, 3)
+        r = await obj.fn(1, 4, 3)
         self.assertEqual(r, "fish")
-        r = yield obj.fn(2, 5, 4)
+        r = await obj.fn(2, 5, 4)
         self.assertEqual(r, "chips")
         obj.mock.assert_not_called()
 
-    @defer.inlineCallbacks
-    def test_cache_kwargs(self) -> Generator["Deferred[Any]", object, None]:
+    async def test_cache_kwargs(self) -> None:
         """Test that keyword arguments are treated properly"""
 
         class Cls:
@@ -166,26 +162,26 @@ class DescriptorTestCase(unittest.TestCase):
 
         obj = Cls()
         obj.mock.return_value = "fish"
-        r = yield obj.fn(1, kwarg1=2)
+        r = await obj.fn(1, kwarg1=2)
         self.assertEqual(r, "fish")
         obj.mock.assert_called_once_with(1, kwarg1=2)
         obj.mock.reset_mock()
 
         # a call with different params should call the mock again
         obj.mock.return_value = "chips"
-        r = yield obj.fn(1, kwarg1=3)
+        r = await obj.fn(1, kwarg1=3)
         self.assertEqual(r, "chips")
         obj.mock.assert_called_once_with(1, kwarg1=3)
         obj.mock.reset_mock()
 
         # the values should now be cached.
-        r = yield obj.fn(1, kwarg1=2)
+        r = await obj.fn(1, kwarg1=2)
         self.assertEqual(r, "fish")
         # We should be able to not provide kwarg1 and get the cached value back.
-        r = yield obj.fn(1)
+        r = await obj.fn(1)
         self.assertEqual(r, "fish")
         # Keyword arguments can be in any order.
-        r = yield obj.fn(kwarg1=2, arg1=1)
+        r = await obj.fn(kwarg1=2, arg1=1)
         self.assertEqual(r, "fish")
         obj.mock.assert_not_called()
 
@@ -210,7 +206,7 @@ class DescriptorTestCase(unittest.TestCase):
         d = obj.fn(1)
         self.failureResultOf(d, RelapseError)
 
-    def test_cache_with_async_exception(self) -> None:
+    async def test_cache_with_async_exception(self) -> None:
         """The wrapped function returns a failure"""
 
         class Cls:
@@ -259,10 +255,10 @@ class DescriptorTestCase(unittest.TestCase):
         # and a second call should work as normal
         obj.result = defer.succeed(100)
         d3 = obj.fn(1)
-        self.assertEqual(self.successResultOf(d3), 100)
+        self.assertEqual(await d3, 100)
         self.assertEqual(obj.call_count, 2)
 
-    def test_cache_logcontexts(self) -> Deferred:
+    async def test_cache_logcontexts(self) -> None:
         """Check that logcontexts are set and restored correctly when
         using the cache."""
 
@@ -270,21 +266,19 @@ class DescriptorTestCase(unittest.TestCase):
 
         class Cls:
             @descriptors.cached()
-            def fn(self, arg1: int) -> "Deferred[int]":
-                @defer.inlineCallbacks
-                def inner_fn() -> Generator["Deferred[object]", object, int]:
+            async def fn(self, arg1: int) -> int:
+                async def inner_fn() -> int:
                     with PreserveLoggingContext():
-                        yield complete_lookup
+                        await complete_lookup
                     return 1
 
-                return inner_fn()
+                return await inner_fn()
 
-        @defer.inlineCallbacks
-        def do_lookup() -> Generator["Deferred[Any]", object, int]:
+        async def do_lookup() -> int:
             with LoggingContext("c1") as c1:
-                r = yield obj.fn(1)
+                r = await obj.fn(1)
                 self.assertEqual(current_context(), c1)
-            return cast(int, r)
+            return r
 
         def check_result(r: int) -> None:
             self.assertEqual(r, 1)
@@ -292,37 +286,36 @@ class DescriptorTestCase(unittest.TestCase):
         obj = Cls()
 
         # set off a deferred which will do a cache lookup
-        d1 = do_lookup()
+        d1 = defer.ensureDeferred(do_lookup())
         self.assertEqual(current_context(), SENTINEL_CONTEXT)
         d1.addCallback(check_result)
 
         # and another
-        d2 = do_lookup()
+        d2 = defer.ensureDeferred(do_lookup())
         self.assertEqual(current_context(), SENTINEL_CONTEXT)
         d2.addCallback(check_result)
 
         # let the lookup complete
         complete_lookup.callback(None)
 
-        return defer.gatherResults([d1, d2])
+        await d1
+        await d2
 
-    def test_cache_logcontexts_with_exception(self) -> "Deferred[None]":
+    async def test_cache_logcontexts_with_exception(self) -> None:
         """Check that the cache sets and restores logcontexts correctly when
         the lookup function throws an exception"""
 
         class Cls:
             @descriptors.cached()
             def fn(self, arg1: int) -> Deferred:
-                @defer.inlineCallbacks
-                def inner_fn() -> Generator["Deferred[Any]", object, NoReturn]:
+                async def inner_fn() -> NoReturn:
                     # we want this to behave like an asynchronous function
-                    yield run_on_reactor()
+                    await run_on_reactor()
                     raise RelapseError(400, "blah")
 
-                return inner_fn()
+                return defer.ensureDeferred(inner_fn())
 
-        @defer.inlineCallbacks
-        def do_lookup() -> Generator["Deferred[object]", object, None]:
+        async def do_lookup() -> None:
             with LoggingContext("c1") as c1:
                 try:
                     d = obj.fn(1)
@@ -330,7 +323,7 @@ class DescriptorTestCase(unittest.TestCase):
                         current_context(),
                         SENTINEL_CONTEXT,
                     )
-                    yield d
+                    await d
                     self.fail("No exception thrown")
                 except RelapseError:
                     pass
@@ -346,10 +339,9 @@ class DescriptorTestCase(unittest.TestCase):
         d1 = do_lookup()
         self.assertEqual(current_context(), SENTINEL_CONTEXT)
 
-        return d1
+        await d1
 
-    @defer.inlineCallbacks
-    def test_cache_default_args(self) -> Generator["Deferred[Any]", object, None]:
+    async def test_cache_default_args(self) -> None:
         class Cls:
             def __init__(self) -> None:
                 self.mock = mock.Mock()
@@ -361,28 +353,28 @@ class DescriptorTestCase(unittest.TestCase):
         obj = Cls()
 
         obj.mock.return_value = "fish"
-        r = yield obj.fn(1, 2, 3)
+        r = await obj.fn(1, 2, 3)
         self.assertEqual(r, "fish")
         obj.mock.assert_called_once_with(1, 2, 3)
         obj.mock.reset_mock()
 
         # a call with same params shouldn't call the mock again
-        r = yield obj.fn(1, 2)
+        r = await obj.fn(1, 2)
         self.assertEqual(r, "fish")
         obj.mock.assert_not_called()
         obj.mock.reset_mock()
 
         # a call with different params should call the mock again
         obj.mock.return_value = "chips"
-        r = yield obj.fn(2, 3)
+        r = await obj.fn(2, 3)
         self.assertEqual(r, "chips")
         obj.mock.assert_called_once_with(2, 3, 3)
         obj.mock.reset_mock()
 
         # the two values should now be cached
-        r = yield obj.fn(1, 2)
+        r = await obj.fn(1, 2)
         self.assertEqual(r, "fish")
-        r = yield obj.fn(2, 3)
+        r = await obj.fn(2, 3)
         self.assertEqual(r, "chips")
         obj.mock.assert_not_called()
 
@@ -490,7 +482,7 @@ class DescriptorTestCase(unittest.TestCase):
         self.failureResultOf(d1, CancelledError)
         self.assertEqual(d2.result, "123")
 
-    def test_cancel_logcontexts(self) -> None:
+    async def test_cancel_logcontexts(self) -> None:
         """Test that cancellation does not break logcontexts.
 
         * The `CancelledError` must be raised with the correct logcontext.
@@ -527,7 +519,7 @@ class DescriptorTestCase(unittest.TestCase):
         d.cancel()
 
         complete_lookup.callback(None)
-        self.successResultOf(d)
+        await d
         self.assertFalse(
             obj.inner_context_was_finished, "Tried to restart a finished logcontext"
         )
@@ -543,8 +535,7 @@ class CacheDecoratorTestCase(unittest.HomeserverTestCase):
     duplicates would be removed and the two sets of classes combined.
     """
 
-    @defer.inlineCallbacks
-    def test_passthrough(self) -> Generator["Deferred[Any]", object, None]:
+    async def test_passthrough(self) -> None:
         class A:
             @cached()
             def func(self, key: str) -> str:
@@ -552,11 +543,10 @@ class CacheDecoratorTestCase(unittest.HomeserverTestCase):
 
         a = A()
 
-        self.assertEqual((yield a.func("foo")), "foo")
-        self.assertEqual((yield a.func("bar")), "bar")
+        self.assertEqual((await a.func("foo")), "foo")
+        self.assertEqual((await a.func("bar")), "bar")
 
-    @defer.inlineCallbacks
-    def test_hit(self) -> Generator["Deferred[Any]", object, None]:
+    async def test_hit(self) -> None:
         callcount = [0]
 
         class A:
@@ -566,15 +556,14 @@ class CacheDecoratorTestCase(unittest.HomeserverTestCase):
                 return key
 
         a = A()
-        yield a.func("foo")
+        await a.func("foo")
 
         self.assertEqual(callcount[0], 1)
 
-        self.assertEqual((yield a.func("foo")), "foo")
+        self.assertEqual((await a.func("foo")), "foo")
         self.assertEqual(callcount[0], 1)
 
-    @defer.inlineCallbacks
-    def test_invalidate(self) -> Generator["Deferred[Any]", object, None]:
+    async def test_invalidate(self) -> None:
         callcount = [0]
 
         class A:
@@ -584,13 +573,13 @@ class CacheDecoratorTestCase(unittest.HomeserverTestCase):
                 return key
 
         a = A()
-        yield a.func("foo")
+        await a.func("foo")
 
         self.assertEqual(callcount[0], 1)
 
         a.func.invalidate(("foo",))
 
-        yield a.func("foo")
+        await a.func("foo")
 
         self.assertEqual(callcount[0], 2)
 
@@ -602,8 +591,7 @@ class CacheDecoratorTestCase(unittest.HomeserverTestCase):
 
         A().func.invalidate(("what",))
 
-    @defer.inlineCallbacks
-    def test_max_entries(self) -> Generator["Deferred[Any]", object, None]:
+    async def test_max_entries(self) -> None:
         callcount = [0]
 
         class A:
@@ -615,14 +603,14 @@ class CacheDecoratorTestCase(unittest.HomeserverTestCase):
         a = A()
 
         for k in range(12):
-            yield a.func(k)
+            await a.func(k)
 
         self.assertEqual(callcount[0], 12)
 
         # There must have been at least 2 evictions, meaning if we calculate
         # all 12 values again, we must get called at least 2 more times
         for k in range(12):
-            yield a.func(k)
+            await a.func(k)
 
         self.assertTrue(
             callcount[0] >= 14, msg=f"Expected callcount >= 14, got {callcount[0]}"
@@ -631,13 +619,11 @@ class CacheDecoratorTestCase(unittest.HomeserverTestCase):
     def test_prefill(self) -> None:
         callcount = [0]
 
-        d = defer.succeed(123)
-
         class A:
             @cached()
-            def func(self, key: str) -> "Deferred[int]":
+            async def func(self, key: str) -> int:
                 callcount[0] += 1
-                return d
+                return 123
 
         a = A()
 
@@ -646,8 +632,7 @@ class CacheDecoratorTestCase(unittest.HomeserverTestCase):
         self.assertEqual(a.func("foo").result, 456)
         self.assertEqual(callcount[0], 0)
 
-    @defer.inlineCallbacks
-    def test_invalidate_context(self) -> Generator["Deferred[Any]", object, None]:
+    async def test_invalidate_context(self) -> None:
         callcount = [0]
         callcount2 = [0]
 
@@ -658,29 +643,28 @@ class CacheDecoratorTestCase(unittest.HomeserverTestCase):
                 return key
 
             @cached(cache_context=True)
-            def func2(self, key: str, cache_context: _CacheContext) -> "Deferred[str]":
+            def func2(self, key: str, cache_context: _CacheContext) -> Deferred[str]:
                 callcount2[0] += 1
                 return self.func(key, on_invalidate=cache_context.invalidate)
 
         a = A()
-        yield a.func2("foo")
+        await a.func2("foo")
 
         self.assertEqual(callcount[0], 1)
         self.assertEqual(callcount2[0], 1)
 
         a.func.invalidate(("foo",))
-        yield a.func("foo")
+        await a.func("foo")
 
         self.assertEqual(callcount[0], 2)
         self.assertEqual(callcount2[0], 1)
 
-        yield a.func2("foo")
+        await a.func2("foo")
 
         self.assertEqual(callcount[0], 2)
         self.assertEqual(callcount2[0], 2)
 
-    @defer.inlineCallbacks
-    def test_eviction_context(self) -> Generator["Deferred[Any]", object, None]:
+    async def test_eviction_context(self) -> None:
         callcount = [0]
         callcount2 = [0]
 
@@ -691,33 +675,32 @@ class CacheDecoratorTestCase(unittest.HomeserverTestCase):
                 return key
 
             @cached(cache_context=True)
-            def func2(self, key: str, cache_context: _CacheContext) -> "Deferred[str]":
+            def func2(self, key: str, cache_context: _CacheContext) -> Deferred[str]:
                 callcount2[0] += 1
                 return self.func(key, on_invalidate=cache_context.invalidate)
 
         a = A()
-        yield a.func2("foo")
-        yield a.func2("foo2")
+        await a.func2("foo")
+        await a.func2("foo2")
 
         self.assertEqual(callcount[0], 2)
         self.assertEqual(callcount2[0], 2)
 
-        yield a.func2("foo")
+        await a.func2("foo")
         self.assertEqual(callcount[0], 2)
         self.assertEqual(callcount2[0], 2)
 
-        yield a.func("foo3")
+        await a.func("foo3")
 
         self.assertEqual(callcount[0], 3)
         self.assertEqual(callcount2[0], 2)
 
-        yield a.func2("foo")
+        await a.func2("foo")
 
         self.assertEqual(callcount[0], 4)
         self.assertEqual(callcount2[0], 3)
 
-    @defer.inlineCallbacks
-    def test_double_get(self) -> Generator["Deferred[Any]", object, None]:
+    async def test_double_get(self) -> None:
         callcount = [0]
         callcount2 = [0]
 
@@ -728,14 +711,14 @@ class CacheDecoratorTestCase(unittest.HomeserverTestCase):
                 return key
 
             @cached(cache_context=True)
-            def func2(self, key: str, cache_context: _CacheContext) -> "Deferred[str]":
+            def func2(self, key: str, cache_context: _CacheContext) -> Deferred[str]:
                 callcount2[0] += 1
                 return self.func(key, on_invalidate=cache_context.invalidate)
 
         a = A()
         a.func2.cache.cache = mock.Mock(wraps=a.func2.cache.cache)
 
-        yield a.func2("foo")
+        await a.func2("foo")
 
         self.assertEqual(callcount[0], 1)
         self.assertEqual(callcount2[0], 1)
@@ -743,7 +726,7 @@ class CacheDecoratorTestCase(unittest.HomeserverTestCase):
         a.func2.invalidate(("foo",))
         self.assertEqual(a.func2.cache.cache.del_multi.call_count, 1)
 
-        yield a.func2("foo")
+        await a.func2("foo")
         a.func2.invalidate(("foo",))
         self.assertEqual(a.func2.cache.cache.del_multi.call_count, 2)
 
@@ -752,27 +735,26 @@ class CacheDecoratorTestCase(unittest.HomeserverTestCase):
 
         a.func.invalidate(("foo",))
         self.assertEqual(a.func2.cache.cache.del_multi.call_count, 3)
-        yield a.func("foo")
+        await a.func("foo")
 
         self.assertEqual(callcount[0], 2)
         self.assertEqual(callcount2[0], 2)
 
-        yield a.func2("foo")
+        await a.func2("foo")
 
         self.assertEqual(callcount[0], 2)
         self.assertEqual(callcount2[0], 3)
 
 
 class CachedListDescriptorTestCase(unittest.TestCase):
-    @defer.inlineCallbacks
-    def test_cache(self) -> Generator["Deferred[Any]", object, None]:
+    async def test_cache(self) -> None:
         class Cls:
             def __init__(self) -> None:
                 self.mock = mock.Mock()
 
             @descriptors.cached()
-            def fn(self, arg1: int, arg2: int) -> None:
-                pass
+            def fn(self, arg1: int, arg2: int) -> str:
+                raise NotImplementedError()
 
             @descriptors.cachedList(cached_method_name="fn", list_name="args1")
             async def list_fn(
@@ -795,40 +777,40 @@ class CachedListDescriptorTestCase(unittest.TestCase):
             # start the lookup off
             d1 = obj.list_fn([10, 20], 2)
             self.assertEqual(current_context(), SENTINEL_CONTEXT)
-            r = yield d1
+            r_list = await d1
             self.assertEqual(current_context(), c1)
             obj.mock.assert_called_once_with({10, 20}, 2)
-            self.assertEqual(r, {10: "fish", 20: "chips"})
+            self.assertEqual(r_list, {10: "fish", 20: "chips"})
             obj.mock.reset_mock()
 
             # a call with different params should call the mock again
             obj.mock.return_value = {30: "peas"}
-            r = yield obj.list_fn([20, 30], 2)
+            r_list = await obj.list_fn([20, 30], 2)
             obj.mock.assert_called_once_with({30}, 2)
-            self.assertEqual(r, {20: "chips", 30: "peas"})
+            self.assertEqual(r_list, {20: "chips", 30: "peas"})
             obj.mock.reset_mock()
 
             # all the values should now be cached
-            r = yield obj.fn(10, 2)
+            r = await obj.fn(10, 2)
             self.assertEqual(r, "fish")
-            r = yield obj.fn(20, 2)
+            r = await obj.fn(20, 2)
             self.assertEqual(r, "chips")
-            r = yield obj.fn(30, 2)
+            r = await obj.fn(30, 2)
             self.assertEqual(r, "peas")
-            r = yield obj.list_fn([10, 20, 30], 2)
+            r_list = await obj.list_fn([10, 20, 30], 2)
             obj.mock.assert_not_called()
-            self.assertEqual(r, {10: "fish", 20: "chips", 30: "peas"})
+            self.assertEqual(r_list, {10: "fish", 20: "chips", 30: "peas"})
 
             # we should also be able to use a (single-use) iterable, and should
             # deduplicate the keys
             obj.mock.reset_mock()
             obj.mock.return_value = {40: "gravy"}
             iterable = (x for x in [10, 40, 40])
-            r = yield obj.list_fn(iterable, 2)
+            r_list = await obj.list_fn(iterable, 2)
             obj.mock.assert_called_once_with({40}, 2)
-            self.assertEqual(r, {10: "fish", 40: "gravy"})
+            self.assertEqual(r_list, {10: "fish", 40: "gravy"})
 
-    def test_concurrent_lookups(self) -> None:
+    async def test_concurrent_lookups(self) -> None:
         """All concurrent lookups should get the same result"""
 
         class Cls:
@@ -840,7 +822,7 @@ class CachedListDescriptorTestCase(unittest.TestCase):
                 pass
 
             @descriptors.cachedList(cached_method_name="fn", list_name="args1")
-            def list_fn(self, args1: list[int]) -> "Deferred[Mapping[int, str]]":
+            def list_fn(self, args1: list[int]) -> Mapping[int, str]:
                 return self.mock(args1)
 
         obj = Cls()
@@ -866,12 +848,11 @@ class CachedListDescriptorTestCase(unittest.TestCase):
         deferred_result.callback({10: "peas"})
 
         # ... which should give the right result to all the callers
-        self.assertEqual(self.successResultOf(d1), {10: "peas"})
-        self.assertEqual(self.successResultOf(d2), {10: "peas"})
-        self.assertEqual(self.successResultOf(d3), {10: "peas"})
+        self.assertEqual(await d1, {10: "peas"})
+        self.assertEqual(await d2, {10: "peas"})
+        self.assertEqual(await d3, {10: "peas"})
 
-    @defer.inlineCallbacks
-    def test_invalidate(self) -> Generator["Deferred[Any]", object, None]:
+    async def test_invalidate(self) -> None:
         """Make sure that invalidation callbacks are called."""
 
         class Cls:
@@ -894,13 +875,13 @@ class CachedListDescriptorTestCase(unittest.TestCase):
 
         # cache miss
         obj.mock.return_value = {10: "fish", 20: "chips"}
-        r1 = yield obj.list_fn([10, 20], 2, on_invalidate=invalidate0)
+        r1 = await obj.list_fn([10, 20], 2, on_invalidate=invalidate0)
         obj.mock.assert_called_once_with({10, 20}, 2)
         self.assertEqual(r1, {10: "fish", 20: "chips"})
         obj.mock.reset_mock()
 
         # cache hit
-        r2 = yield obj.list_fn([10, 20], 2, on_invalidate=invalidate1)
+        r2 = await obj.list_fn([10, 20], 2, on_invalidate=invalidate1)
         obj.mock.assert_not_called()
         self.assertEqual(r2, {10: "fish", 20: "chips"})
 
@@ -940,7 +921,7 @@ class CachedListDescriptorTestCase(unittest.TestCase):
         self.failureResultOf(d1, CancelledError)
         self.assertEqual(d2.result, {123: "123", 456: "456", 789: "789"})
 
-    def test_cancel_logcontexts(self) -> None:
+    async def test_cancel_logcontexts(self) -> None:
         """Test that cancellation does not break logcontexts.
 
         * The `CancelledError` must be raised with the correct logcontext.
@@ -981,7 +962,7 @@ class CachedListDescriptorTestCase(unittest.TestCase):
         d.cancel()
 
         complete_lookup.callback(None)
-        self.successResultOf(d)
+        await d
         self.assertFalse(
             obj.inner_context_was_finished, "Tried to restart a finished logcontext"
         )
