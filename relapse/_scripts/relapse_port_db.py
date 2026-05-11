@@ -22,14 +22,14 @@ import os
 import sys
 import time
 import traceback
-from collections.abc import Awaitable, Callable, Generator, Iterable
+from collections.abc import Awaitable, Callable, Iterable
 from types import TracebackType
 from typing import Any, NoReturn, Optional, TypeVar, cast
 
 import yaml
 from typing_extensions import TypedDict
 
-from twisted.internet import defer, reactor as reactor_
+from twisted.internet import defer, reactor as reactor_, task
 
 from relapse.config.database import DatabaseConnectionConfig
 from relapse.config.homeserver import HomeServerConfig
@@ -1389,14 +1389,11 @@ def main() -> None:
             hs_config=config,
         )
 
-        @defer.inlineCallbacks
-        def run() -> Generator["defer.Deferred[Any]", Any, None]:
+        async def run() -> None:
             with LoggingContext("relapse_port_db_run"):
-                yield defer.ensureDeferred(porter.run())
+                await porter.run()
 
-        reactor.callWhenRunning(run)
-
-        reactor.run()
+        task.react(run)
 
     if args.curses:
         curses.wrapper(start)

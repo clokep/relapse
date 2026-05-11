@@ -34,17 +34,17 @@ class SimpleHttpClientTests(HomeserverTestCase):
 
         self.cl = hs.get_simple_http_client()
 
-    def test_dns_error(self) -> None:
+    async def test_dns_error(self) -> None:
         """
         If the DNS lookup returns an error, it will bubble up.
         """
         d = defer.ensureDeferred(self.cl.get_json("http://testserv2:8008/foo/bar"))
         self.pump()
 
-        f = self.failureResultOf(d)
-        self.assertIsInstance(f.value, DNSLookupError)
+        with self.assertRaises(DNSLookupError):
+            await d
 
-    def test_client_connection_refused(self) -> None:
+    async def test_client_connection_refused(self) -> None:
         d = defer.ensureDeferred(self.cl.get_json("http://testserv:8008/foo/bar"))
 
         self.pump()
@@ -61,11 +61,12 @@ class SimpleHttpClientTests(HomeserverTestCase):
         factory.clientConnectionFailed(None, e)
         self.pump(0.5)
 
-        f = self.failureResultOf(d)
+        with self.assertRaises(Exception) as exc:
+            await d
 
-        self.assertIs(f.value, e)
+        self.assertIs(exc.exception, e)
 
-    def test_client_never_connect(self) -> None:
+    async def test_client_never_connect(self) -> None:
         """
         If the HTTP request is not connected and is timed out, it'll give a
         ConnectingCancelledError or TimeoutError.
@@ -88,11 +89,10 @@ class SimpleHttpClientTests(HomeserverTestCase):
 
         # Push by enough to time it out
         self.reactor.advance(120)
-        f = self.failureResultOf(d)
+        with self.assertRaises(RequestTimedOutError):
+            await d
 
-        self.assertIsInstance(f.value, RequestTimedOutError)
-
-    def test_client_connect_no_response(self) -> None:
+    async def test_client_connect_no_response(self) -> None:
         """
         If the HTTP request is connected, but gets no response before being
         timed out, it'll give a ResponseNeverReceived.
@@ -119,11 +119,10 @@ class SimpleHttpClientTests(HomeserverTestCase):
 
         # Push by enough to time it out
         self.reactor.advance(120)
-        f = self.failureResultOf(d)
+        with self.assertRaises(RequestTimedOutError):
+            await d
 
-        self.assertIsInstance(f.value, RequestTimedOutError)
-
-    def test_client_ip_range_blocklist(self) -> None:
+    async def test_client_ip_range_blocklist(self) -> None:
         """Ensure that Relapse does not try to connect to blocked IPs"""
 
         # Add some DNS entries we'll block
@@ -143,7 +142,8 @@ class SimpleHttpClientTests(HomeserverTestCase):
         clients = self.reactor.tcpClients
         self.assertEqual(len(clients), 0)
 
-        self.failureResultOf(d, DNSLookupError)
+        with self.assertRaises(DNSLookupError):
+            await d
 
         # Try making a POST request to a blocked IPv6 address
         # -------------------------------------------------------
@@ -160,7 +160,8 @@ class SimpleHttpClientTests(HomeserverTestCase):
         self.assertEqual(len(clients), 0)
 
         # Check that it was due to a blocked DNS lookup
-        self.failureResultOf(d, DNSLookupError)
+        with self.assertRaises(DNSLookupError):
+            await d
 
         # Try making a GET request to a non-blocked IPv4 address
         # ----------------------------------------------------------
@@ -178,4 +179,5 @@ class SimpleHttpClientTests(HomeserverTestCase):
         self.assertNotEqual(len(clients), 0)
 
         # Connection will still fail as this IP address does not resolve to anything
-        self.failureResultOf(d, RequestTimedOutError)
+        with self.assertRaises(RequestTimedOutError):
+            await d

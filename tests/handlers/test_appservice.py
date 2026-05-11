@@ -17,7 +17,6 @@ from unittest.mock import AsyncMock, Mock
 
 from parameterized import parameterized
 
-from twisted.internet import defer
 from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EduTypes, EventTypes
@@ -135,7 +134,7 @@ class AppServiceHandlerTestCase(unittest.TestCase):
             "query_user called when it shouldn't have been.",
         )
 
-    def test_query_room_alias_exists(self) -> None:
+    async def test_query_room_alias_exists(self) -> None:
         room_alias_str = "#foo:bar"
         room_alias = Mock()
         room_alias.to_string.return_value = room_alias_str
@@ -155,9 +154,7 @@ class AppServiceHandlerTestCase(unittest.TestCase):
             return_value=Mock(room_id=room_id, servers=servers)
         )
 
-        result = self.successResultOf(
-            defer.ensureDeferred(self.handler.query_room_alias_exists(room_alias))
-        )
+        result = await self.handler.query_room_alias_exists(room_alias)
         assert result is not None
 
         self.mock_as_api.query_alias.assert_called_once_with(
@@ -166,45 +163,37 @@ class AppServiceHandlerTestCase(unittest.TestCase):
         self.assertEqual(result.room_id, room_id)
         self.assertEqual(result.servers, servers)
 
-    def test_get_3pe_protocols_no_appservices(self) -> None:
+    async def test_get_3pe_protocols_no_appservices(self) -> None:
         self.mock_store.get_app_services.return_value = []
-        response = self.successResultOf(
-            defer.ensureDeferred(self.handler.get_3pe_protocols("my-protocol"))
-        )
+        response = await self.handler.get_3pe_protocols("my-protocol")
         self.mock_as_api.get_3pe_protocol.assert_not_called()
         self.assertEqual(response, {})
 
-    def test_get_3pe_protocols_no_protocols(self) -> None:
+    async def test_get_3pe_protocols_no_protocols(self) -> None:
         service = self._mkservice(False, [])
         self.mock_store.get_app_services.return_value = [service]
-        response = self.successResultOf(
-            defer.ensureDeferred(self.handler.get_3pe_protocols())
-        )
+        response = await self.handler.get_3pe_protocols()
         self.mock_as_api.get_3pe_protocol.assert_not_called()
         self.assertEqual(response, {})
 
-    def test_get_3pe_protocols_protocol_no_response(self) -> None:
+    async def test_get_3pe_protocols_protocol_no_response(self) -> None:
         service = self._mkservice(False, ["my-protocol"])
         self.mock_store.get_app_services.return_value = [service]
         self.mock_as_api.get_3pe_protocol.return_value = None
-        response = self.successResultOf(
-            defer.ensureDeferred(self.handler.get_3pe_protocols())
-        )
+        response = await self.handler.get_3pe_protocols()
         self.mock_as_api.get_3pe_protocol.assert_called_once_with(
             service, "my-protocol"
         )
         self.assertEqual(response, {})
 
-    def test_get_3pe_protocols_select_one_protocol(self) -> None:
+    async def test_get_3pe_protocols_select_one_protocol(self) -> None:
         service = self._mkservice(False, ["my-protocol"])
         self.mock_store.get_app_services.return_value = [service]
         self.mock_as_api.get_3pe_protocol.return_value = {
             "x-protocol-data": 42,
             "instances": [],
         }
-        response = self.successResultOf(
-            defer.ensureDeferred(self.handler.get_3pe_protocols("my-protocol"))
-        )
+        response = await self.handler.get_3pe_protocols("my-protocol")
         self.mock_as_api.get_3pe_protocol.assert_called_once_with(
             service, "my-protocol"
         )
@@ -212,16 +201,14 @@ class AppServiceHandlerTestCase(unittest.TestCase):
             response, {"my-protocol": {"x-protocol-data": 42, "instances": []}}
         )
 
-    def test_get_3pe_protocols_one_protocol(self) -> None:
+    async def test_get_3pe_protocols_one_protocol(self) -> None:
         service = self._mkservice(False, ["my-protocol"])
         self.mock_store.get_app_services.return_value = [service]
         self.mock_as_api.get_3pe_protocol.return_value = {
             "x-protocol-data": 42,
             "instances": [],
         }
-        response = self.successResultOf(
-            defer.ensureDeferred(self.handler.get_3pe_protocols())
-        )
+        response = await self.handler.get_3pe_protocols()
         self.mock_as_api.get_3pe_protocol.assert_called_once_with(
             service, "my-protocol"
         )
@@ -229,7 +216,7 @@ class AppServiceHandlerTestCase(unittest.TestCase):
             response, {"my-protocol": {"x-protocol-data": 42, "instances": []}}
         )
 
-    def test_get_3pe_protocols_multiple_protocol(self) -> None:
+    async def test_get_3pe_protocols_multiple_protocol(self) -> None:
         service_one = self._mkservice(False, ["my-protocol"])
         service_two = self._mkservice(False, ["other-protocol"])
         self.mock_store.get_app_services.return_value = [service_one, service_two]
@@ -237,9 +224,7 @@ class AppServiceHandlerTestCase(unittest.TestCase):
             "x-protocol-data": 42,
             "instances": [],
         }
-        response = self.successResultOf(
-            defer.ensureDeferred(self.handler.get_3pe_protocols())
-        )
+        response = await self.handler.get_3pe_protocols()
         self.mock_as_api.get_3pe_protocol.assert_called()
         self.assertEqual(
             response,
@@ -249,7 +234,7 @@ class AppServiceHandlerTestCase(unittest.TestCase):
             },
         )
 
-    def test_get_3pe_protocols_multiple_info(self) -> None:
+    async def test_get_3pe_protocols_multiple_info(self) -> None:
         service_one = self._mkservice(False, ["my-protocol"])
         service_two = self._mkservice(False, ["my-protocol"])
 
@@ -271,9 +256,7 @@ class AppServiceHandlerTestCase(unittest.TestCase):
 
         self.mock_store.get_app_services.return_value = [service_one, service_two]
         self.mock_as_api.get_3pe_protocol = get_3pe_protocol
-        response = self.successResultOf(
-            defer.ensureDeferred(self.handler.get_3pe_protocols())
-        )
+        response = await self.handler.get_3pe_protocols()
         # It's expected that the second service's data doesn't appear in the response
         self.assertEqual(
             response,

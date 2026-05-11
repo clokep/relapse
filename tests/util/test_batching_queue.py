@@ -80,7 +80,7 @@ class BatchingQueueTestCase(TestCase):
             "number_in_flight",
         )
 
-    def test_simple(self) -> None:
+    async def test_simple(self) -> None:
         """Tests the basic case of calling `add_to_queue` once and having
         `_process_queue` return.
         """
@@ -107,11 +107,11 @@ class BatchingQueueTestCase(TestCase):
         # Return value of the `_process_queue` should be propagated back.
         self._pending_calls.pop()[1].callback("bar")
 
-        self.assertEqual(self.successResultOf(queue_d), "bar")
+        self.assertEqual(await queue_d, "bar")
 
         self._assert_metrics(queued=0, keys=0, in_flight=0)
 
-    def test_batching(self) -> None:
+    async def test_batching(self) -> None:
         """Test that multiple calls at the same time get batched up into one
         call to `_process_queue`.
         """
@@ -135,11 +135,11 @@ class BatchingQueueTestCase(TestCase):
         # Return value of the `_process_queue` should be propagated back to both.
         self._pending_calls.pop()[1].callback("bar")
 
-        self.assertEqual(self.successResultOf(queue_d1), "bar")
-        self.assertEqual(self.successResultOf(queue_d2), "bar")
+        self.assertEqual(await queue_d1, "bar")
+        self.assertEqual(await queue_d2, "bar")
         self._assert_metrics(queued=0, keys=0, in_flight=0)
 
-    def test_queuing(self) -> None:
+    async def test_queuing(self) -> None:
         """Test that we queue up requests while a `_process_queue` is being
         called.
         """
@@ -168,7 +168,7 @@ class BatchingQueueTestCase(TestCase):
         # first.
         self._pending_calls.pop()[1].callback("bar1")
 
-        self.assertEqual(self.successResultOf(queue_d1), "bar1")
+        self.assertEqual(await queue_d1, "bar1")
         self.assertFalse(queue_d2.called)
         self.assertFalse(queue_d3.called)
         self._assert_metrics(queued=2, keys=1, in_flight=2)
@@ -185,11 +185,11 @@ class BatchingQueueTestCase(TestCase):
         # second.
         self._pending_calls.pop()[1].callback("bar2")
 
-        self.assertEqual(self.successResultOf(queue_d2), "bar2")
-        self.assertEqual(self.successResultOf(queue_d3), "bar2")
+        self.assertEqual(await queue_d2, "bar2")
+        self.assertEqual(await queue_d3, "bar2")
         self._assert_metrics(queued=0, keys=0, in_flight=0)
 
-    def test_different_keys(self) -> None:
+    async def test_different_keys(self) -> None:
         """Test that calls to different keys get processed in parallel."""
 
         self.assertFalse(self._pending_calls)
@@ -216,7 +216,7 @@ class BatchingQueueTestCase(TestCase):
         # first.
         self._pending_calls.pop(0)[1].callback("bar1")
 
-        self.assertEqual(self.successResultOf(queue_d1), "bar1")
+        self.assertEqual(await queue_d1, "bar1")
         self.assertFalse(queue_d2.called)
         self.assertFalse(queue_d3.called)
         self._assert_metrics(queued=1, keys=1, in_flight=2)
@@ -225,7 +225,7 @@ class BatchingQueueTestCase(TestCase):
         # second.
         self._pending_calls.pop()[1].callback("bar2")
 
-        self.assertEqual(self.successResultOf(queue_d2), "bar2")
+        self.assertEqual(await queue_d2, "bar2")
         self.assertFalse(queue_d3.called)
 
         # We should now see a call `_pending_calls` for `foo3`
@@ -239,5 +239,5 @@ class BatchingQueueTestCase(TestCase):
         # third deferred.
         self._pending_calls.pop()[1].callback("bar4")
 
-        self.assertEqual(self.successResultOf(queue_d3), "bar4")
+        self.assertEqual(await queue_d3, "bar4")
         self._assert_metrics(queued=0, keys=0, in_flight=0)

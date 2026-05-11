@@ -122,7 +122,7 @@ class LinearizerTestCase(unittest.TestCase):
         unblock2()
         self.assertFalse(linearizer.is_queued(key))
 
-    def test_lots_of_queued_things(self) -> None:
+    async def test_lots_of_queued_things(self) -> None:
         """Tests lots of fast things queued up behind a slow thing.
 
         The stack should *not* explode when the slow thing completes.
@@ -143,7 +143,7 @@ class LinearizerTestCase(unittest.TestCase):
 
         d = defer.ensureDeferred(func(1000))
         unblock()
-        self.successResultOf(d)
+        await d
 
     def test_multiple_entries(self) -> None:
         """Tests a `Linearizer` with a concurrency above 1."""
@@ -186,7 +186,7 @@ class LinearizerTestCase(unittest.TestCase):
         self.assertTrue(acquired_d6)
         unblock6()
 
-    def test_cancellation(self) -> None:
+    async def test_cancellation(self) -> None:
         """Tests cancellation while waiting for a `Linearizer`."""
         linearizer = Linearizer()
 
@@ -207,10 +207,11 @@ class LinearizerTestCase(unittest.TestCase):
         d2.cancel()
 
         unblock1()
-        self.successResultOf(d1)
+        await d1
 
         self.assertTrue(d2.called)
-        self.failureResultOf(d2, CancelledError)
+        with self.assertRaises(CancelledError):
+            await d2
 
         # The third task should continue running.
         self.assertTrue(
@@ -218,9 +219,9 @@ class LinearizerTestCase(unittest.TestCase):
             "Third task did not get the lock after the second task was cancelled",
         )
         unblock3()
-        self.successResultOf(d3)
+        await d3
 
-    def test_cancellation_during_sleep(self) -> None:
+    async def test_cancellation_during_sleep(self) -> None:
         """Tests cancellation during the sleep just after waiting for a `Linearizer`."""
         linearizer = Linearizer()
 
@@ -240,12 +241,13 @@ class LinearizerTestCase(unittest.TestCase):
         # Once the first task completes, cancel the waiting second task while it is
         # sleeping just after acquiring the lock.
         unblock1(pump_reactor=False)
-        self.successResultOf(d1)
+        await d1
         d2.cancel()
         self._pump()
 
         self.assertTrue(d2.called)
-        self.failureResultOf(d2, CancelledError)
+        with self.assertRaises(CancelledError):
+            await d2
 
         # The third task should continue running.
         self.assertTrue(
@@ -253,4 +255,4 @@ class LinearizerTestCase(unittest.TestCase):
             "Third task did not get the lock after the second task was cancelled",
         )
         unblock3()
-        self.successResultOf(d3)
+        await d3

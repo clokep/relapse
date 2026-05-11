@@ -183,9 +183,7 @@ class ApplicationServiceTransactionStoreTestCase(unittest.HomeserverTestCase):
             self._set_state(self.as_list[0]["id"], ApplicationServiceState.UP)
         )
         service = Mock(id=self.as_list[0]["id"])
-        state = self.get_success(
-            defer.ensureDeferred(self.store.get_appservice_state(service))
-        )
+        state = self.get_success(self.store.get_appservice_state(service))
         self.assertEqual(ApplicationServiceState.UP, state)
 
     def test_get_appservice_state_down(
@@ -258,10 +256,8 @@ class ApplicationServiceTransactionStoreTestCase(unittest.HomeserverTestCase):
         service = Mock(id=self.as_list[0]["id"])
         events = cast(list[EventBase], [Mock(event_id="e1"), Mock(event_id="e2")])
         txn = self.get_success(
-            defer.ensureDeferred(
-                self.store.create_appservice_txn(
-                    service, events, [], [], {}, {}, DeviceListUpdates()
-                )
+            self.store.create_appservice_txn(
+                service, events, [], [], {}, {}, DeviceListUpdates()
             )
         )
         self.assertEqual(txn.id, 1)

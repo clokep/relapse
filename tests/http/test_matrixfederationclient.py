@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from collections.abc import Generator
 from typing import Any
 from unittest.mock import ANY, Mock, create_autospec
 
@@ -19,7 +18,7 @@ from netaddr import IPSet
 from parameterized import parameterized
 
 from twisted.internet import defer
-from twisted.internet.defer import Deferred, TimeoutError
+from twisted.internet.defer import TimeoutError
 from twisted.internet.error import ConnectingCancelledError, DNSLookupError
 from twisted.internet.testing import MemoryReactor, StringTransport
 from twisted.web.client import Agent, ResponseNeverReceived
@@ -65,13 +64,12 @@ class FederationClientTests(HomeserverTestCase):
         self.cl = MatrixFederationHttpClient(self.hs, None)
         self.reactor.lookups["testserv"] = "1.2.3.4"
 
-    def test_client_get(self) -> None:
+    async def test_client_get(self) -> None:
         """
         happy-path test of a GET request
         """
 
-        @defer.inlineCallbacks
-        def do_request() -> Generator["Deferred[Any]", object, object]:
+        async def do_request() -> object:
             with LoggingContext("one") as context:
                 fetch_d = defer.ensureDeferred(
                     self.cl.get_json("testserv:8008", "foo/bar")
@@ -84,12 +82,11 @@ class FederationClientTests(HomeserverTestCase):
                 check_logcontext(SENTINEL_CONTEXT)
 
                 try:
-                    fetch_res = yield fetch_d
-                    return fetch_res
+                    return await fetch_d
                 finally:
                     check_logcontext(context)
 
-        test_d = do_request()
+        test_d = defer.ensureDeferred(do_request())
 
         self.pump()
 
@@ -128,12 +125,12 @@ class FederationClientTests(HomeserverTestCase):
 
         self.pump()
 
-        res = self.successResultOf(test_d)
+        res = await test_d
 
         # check the response is as expected
         self.assertEqual(res, {"a": 1})
 
-    def test_dns_error(self) -> None:
+    async def test_dns_error(self) -> None:
         """
         If the DNS lookup returns an error, it will bubble up.
         """
@@ -142,11 +139,11 @@ class FederationClientTests(HomeserverTestCase):
         )
         self.pump()
 
-        f = self.failureResultOf(d)
-        self.assertIsInstance(f.value, RequestSendFailed)
-        self.assertIsInstance(f.value.inner_exception, DNSLookupError)
+        with self.assertRaises(RequestSendFailed) as e:
+            await d
+        self.assertIsInstance(e.exception.inner_exception, DNSLookupError)
 
-    def test_client_connection_refused(self) -> None:
+    async def test_client_connection_refused(self) -> None:
         d = defer.ensureDeferred(
             self.cl.get_json("testserv:8008", "foo/bar", timeout=10000)
         )
@@ -165,12 +162,12 @@ class FederationClientTests(HomeserverTestCase):
         factory.clientConnectionFailed(None, e)
         self.pump(0.5)
 
-        f = self.failureResultOf(d)
+        with self.assertRaises(RequestSendFailed) as exc:
+            await d
 
-        self.assertIsInstance(f.value, RequestSendFailed)
-        self.assertIs(f.value.inner_exception, e)
+        self.assertIs(exc.exception.inner_exception, e)
 
-    def test_client_never_connect(self) -> None:
+    async def test_client_never_connect(self) -> None:
         """
         If the HTTP request is not connected and is timed out, it'll give a
         ConnectingCancelledError or TimeoutError.
@@ -195,14 +192,14 @@ class FederationClientTests(HomeserverTestCase):
 
         # Push by enough to time it out
         self.reactor.advance(10.5)
-        f = self.failureResultOf(d)
+        with self.assertRaises(RequestSendFailed) as e:
+            await d
 
-        self.assertIsInstance(f.value, RequestSendFailed)
         self.assertIsInstance(
-            f.value.inner_exception, (ConnectingCancelledError, TimeoutError)
+            e.exception.inner_exception, (ConnectingCancelledError, TimeoutError)
         )
 
-    def test_client_connect_no_response(self) -> None:
+    async def test_client_connect_no_response(self) -> None:
         """
         If the HTTP request is connected, but gets no response before being
         timed out, it'll give a ResponseNeverReceived.
@@ -231,12 +228,12 @@ class FederationClientTests(HomeserverTestCase):
 
         # Push by enough to time it out
         self.reactor.advance(10.5)
-        f = self.failureResultOf(d)
+        with self.assertRaises(RequestSendFailed) as e:
+            await d
 
-        self.assertIsInstance(f.value, RequestSendFailed)
-        self.assertIsInstance(f.value.inner_exception, ResponseNeverReceived)
+        self.assertIsInstance(e.exception.inner_exception, ResponseNeverReceived)
 
-    def test_client_ip_range_blocklist(self) -> None:
+    async def test_client_ip_range_blocklist(self) -> None:
         """Ensure that Relapse does not try to connect to blocked IPs"""
 
         # Set up the ip_range blocklist
@@ -260,9 +257,9 @@ class FederationClientTests(HomeserverTestCase):
         clients = self.reactor.tcpClients
         self.assertEqual(len(clients), 0)
 
-        f = self.failureResultOf(d)
-        self.assertIsInstance(f.value, RequestSendFailed)
-        self.assertIsInstance(f.value.inner_exception, DNSLookupError)
+        with self.assertRaises(RequestSendFailed) as e:
+            await d
+        self.assertIsInstance(e.exception.inner_exception, DNSLookupError)
 
         # Try making a POST request to a blocked IPv6 address
         # -------------------------------------------------------
@@ -282,8 +279,9 @@ class FederationClientTests(HomeserverTestCase):
         self.assertEqual(len(clients), 0)
 
         # Check that it was due to a blocked DNS lookup
-        f = self.failureResultOf(d, RequestSendFailed)
-        self.assertIsInstance(f.value.inner_exception, DNSLookupError)
+        with self.assertRaises(RequestSendFailed) as e:
+            await d
+        self.assertIsInstance(e.exception.inner_exception, DNSLookupError)
 
         # Try making a GET request to an allowed IPv4 address
         # ----------------------------------------------------------
@@ -301,10 +299,11 @@ class FederationClientTests(HomeserverTestCase):
         self.assertNotEqual(len(clients), 0)
 
         # Connection will still fail as this IP address does not resolve to anything
-        f = self.failureResultOf(d, RequestSendFailed)
-        self.assertIsInstance(f.value.inner_exception, ConnectingCancelledError)
+        with self.assertRaises(RequestSendFailed) as e:
+            await d
+        self.assertIsInstance(e.exception.inner_exception, ConnectingCancelledError)
 
-    def test_client_gets_headers(self) -> None:
+    async def test_client_gets_headers(self) -> None:
         """
         Once the client gets the headers, _request returns successfully.
         """
@@ -327,11 +326,11 @@ class FederationClientTests(HomeserverTestCase):
         client.dataReceived(b"HTTP/1.1 200 OK\r\nServer: Fake\r\n\r\n")
 
         # We should get a successful response
-        r = self.successResultOf(d)
+        r = await d
         self.assertEqual(r.code, 200)
 
     @parameterized.expand(["get_json", "post_json", "delete_json", "put_json"])
-    def test_timeout_reading_body(self, method_name: str) -> None:
+    async def test_timeout_reading_body(self, method_name: str) -> None:
         """
         If the HTTP request is connected, but gets no response before being
         timed out, it'll give a RequestSendFailed with can_retry.
@@ -356,13 +355,13 @@ class FederationClientTests(HomeserverTestCase):
 
         # Push by enough to time it out
         self.reactor.advance(10.5)
-        f = self.failureResultOf(d)
+        with self.assertRaises(RequestSendFailed) as e:
+            await d
 
-        self.assertIsInstance(f.value, RequestSendFailed)
-        self.assertTrue(f.value.can_retry)
-        self.assertIsInstance(f.value.inner_exception, defer.TimeoutError)
+        self.assertTrue(e.exception.can_retry)
+        self.assertIsInstance(e.exception.inner_exception, defer.TimeoutError)
 
-    def test_client_requires_trailing_slashes(self) -> None:
+    async def test_client_requires_trailing_slashes(self) -> None:
         """
         If a connection is made to a client but the client rejects it due to
         requiring a trailing slash. We need to retry the request with a
@@ -414,10 +413,10 @@ class FederationClientTests(HomeserverTestCase):
         )
 
         # We should get a successful response
-        r = self.successResultOf(d)
+        r = await d
         self.assertEqual(r, {})
 
-    def test_client_does_not_retry_on_400_plus(self) -> None:
+    async def test_client_does_not_retry_on_400_plus(self) -> None:
         """
         Another test for trailing slashes but now test that we don't retry on
         trailing slashes on a non-400/M_UNRECOGNIZED response.
@@ -460,7 +459,8 @@ class FederationClientTests(HomeserverTestCase):
         self.assertEqual(conn.value(), b"")
 
         # We should get a 404 failure response
-        self.failureResultOf(d)
+        with self.assertRaises(HttpResponseException):
+            await d
 
     def test_client_sends_body(self) -> None:
         defer.ensureDeferred(
@@ -486,7 +486,7 @@ class FederationClientTests(HomeserverTestCase):
         content = request.content.read()
         self.assertEqual(content, b'{"a":"b"}')
 
-    def test_closes_connection(self) -> None:
+    async def test_closes_connection(self) -> None:
         """Check that the client closes unused HTTP connections"""
         d = defer.ensureDeferred(self.cl.get_json("testserv:8008", "foo/bar"))
 
@@ -515,7 +515,7 @@ class FederationClientTests(HomeserverTestCase):
         )
 
         # We should get a successful response
-        r = self.successResultOf(d)
+        r = await d
         self.assertEqual(r, {})
 
         self.assertFalse(conn.disconnecting)
@@ -526,7 +526,7 @@ class FederationClientTests(HomeserverTestCase):
         self.assertTrue(conn.disconnecting)
 
     @parameterized.expand([(b"",), (b"foo",), (b'{"a": Infinity}',)])
-    def test_json_error(self, return_value: bytes) -> None:
+    async def test_json_error(self, return_value: bytes) -> None:
         """
         Test what happens if invalid JSON is returned from the remote endpoint.
         """
@@ -569,10 +569,10 @@ class FederationClientTests(HomeserverTestCase):
 
         self.pump()
 
-        f = self.failureResultOf(test_d)
-        self.assertIsInstance(f.value, RequestSendFailed)
+        with self.assertRaises(RequestSendFailed):
+            await test_d
 
-    def test_too_big(self) -> None:
+    async def test_too_big(self) -> None:
         """
         Test what happens if a huge response is returned from the remote endpoint.
         """
@@ -622,8 +622,8 @@ class FederationClientTests(HomeserverTestCase):
 
         self.assertEqual(sent, ByteParser.MAX_RESPONSE_SIZE)
 
-        f = self.failureResultOf(test_d)
-        self.assertIsInstance(f.value, RequestSendFailed)
+        with self.assertRaises(RequestSendFailed):
+            await test_d
 
         self.assertTrue(transport.disconnecting)
 
@@ -675,7 +675,7 @@ class FederationClientProxyTests(BaseMultiWorkerStreamTestCase):
             "worker_replication_secret": "secret",
         }
     )
-    def test_proxy_requests_through_federation_sender_worker(self) -> None:
+    async def test_proxy_requests_through_federation_sender_worker(self) -> None:
         """
         Test that all outbound federation requests go through the `federation_sender`
         worker
@@ -722,7 +722,7 @@ class FederationClientProxyTests(BaseMultiWorkerStreamTestCase):
         )
 
         # Make sure the response is as expected back on the main worker
-        res = self.successResultOf(test_request_from_main_process_d)
+        res = await test_request_from_main_process_d
         self.assertEqual(res, {"foo": "bar"})
 
     @override_config(
@@ -731,7 +731,7 @@ class FederationClientProxyTests(BaseMultiWorkerStreamTestCase):
             "worker_replication_secret": "secret",
         }
     )
-    def test_proxy_request_with_network_error_through_federation_sender_worker(
+    async def test_proxy_request_with_network_error_through_federation_sender_worker(
         self,
     ) -> None:
         """
@@ -776,10 +776,10 @@ class FederationClientProxyTests(BaseMultiWorkerStreamTestCase):
         )
 
         # Make sure we get some sort of error back on the main worker
-        failure_res = self.failureResultOf(test_request_from_main_process_d)
-        self.assertIsInstance(failure_res.value, RequestSendFailed)
-        self.assertIsInstance(failure_res.value.inner_exception, HttpResponseException)
-        self.assertEqual(failure_res.value.inner_exception.code, 502)
+        with self.assertRaises(RequestSendFailed) as e:
+            await test_request_from_main_process_d
+        self.assertIsInstance(e.exception.inner_exception, HttpResponseException)
+        self.assertEqual(e.exception.inner_exception.code, 502)
 
     @override_config(
         {
@@ -787,7 +787,7 @@ class FederationClientProxyTests(BaseMultiWorkerStreamTestCase):
             "worker_replication_secret": "secret",
         }
     )
-    def test_proxy_requests_and_discards_hop_by_hop_headers(self) -> None:
+    async def test_proxy_requests_and_discards_hop_by_hop_headers(self) -> None:
         """
         Test to make sure hop-by-hop headers and addional headers defined in the
         `Connection` header are discarded when proxying requests
@@ -845,7 +845,7 @@ class FederationClientProxyTests(BaseMultiWorkerStreamTestCase):
             bodyProducer=ANY,
         )
 
-        res, headers = self.successResultOf(test_request_from_main_process_d)
+        res, headers = await test_request_from_main_process_d
         header_names = set(headers.keys())
 
         # Make sure the response does not include the hop-by-hop headers
@@ -888,7 +888,7 @@ class FederationClientProxyTests(BaseMultiWorkerStreamTestCase):
             "worker_replication_secret": "secret",
         }
     )
-    def test_not_able_to_proxy_requests_through_federation_sender_worker_when_wrong_auth_given(
+    async def test_not_able_to_proxy_requests_through_federation_sender_worker_when_wrong_auth_given(
         self,
     ) -> None:
         """
@@ -929,6 +929,6 @@ class FederationClientProxyTests(BaseMultiWorkerStreamTestCase):
         # worker
         mock_agent_on_federation_sender.request.assert_not_called()
 
-        failure_res = self.failureResultOf(test_request_from_main_process_d)
-        self.assertIsInstance(failure_res.value, HttpResponseException)
-        self.assertEqual(failure_res.value.code, 401)
+        with self.assertRaises(HttpResponseException) as e:
+            await test_request_from_main_process_d
+        self.assertEqual(e.exception.code, 401)

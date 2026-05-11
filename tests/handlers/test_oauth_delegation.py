@@ -42,7 +42,7 @@ from relapse.types import JsonDict, UserID
 from relapse.util import Clock
 
 from tests.server import FakeChannel
-from tests.test_utils import FakeResponse, get_awaitable_result
+from tests.test_utils import FakeResponse
 from tests.unittest import HomeserverTestCase, override_config, skip_unless
 from tests.utils import HAS_AUTHLIB, checked_cast, mock_getRawHeaders
 
@@ -238,7 +238,7 @@ class MSC3861OAuthDelegation(HomeserverTestCase):
         )
         self._assertParams()
 
-    def test_active_admin(self) -> None:
+    async def test_active_admin(self) -> None:
         """The handler should return a requester with admin rights."""
 
         self.http_client.request = AsyncMock(
@@ -264,11 +264,9 @@ class MSC3861OAuthDelegation(HomeserverTestCase):
         self.assertEqual(requester.user.to_string(), f"@{USERNAME}:{SERVER_NAME}")
         self.assertEqual(requester.is_guest, False)
         self.assertEqual(requester.device_id, None)
-        self.assertEqual(
-            get_awaitable_result(self.auth.is_server_admin(requester)), True
-        )
+        self.assertEqual(await self.auth.is_server_admin(requester), True)
 
-    def test_active_admin_highest_privilege(self) -> None:
+    async def test_active_admin_highest_privilege(self) -> None:
         """The handler should resolve to the most permissive scope."""
 
         self.http_client.request = AsyncMock(
@@ -296,11 +294,9 @@ class MSC3861OAuthDelegation(HomeserverTestCase):
         self.assertEqual(requester.user.to_string(), f"@{USERNAME}:{SERVER_NAME}")
         self.assertEqual(requester.is_guest, False)
         self.assertEqual(requester.device_id, None)
-        self.assertEqual(
-            get_awaitable_result(self.auth.is_server_admin(requester)), True
-        )
+        self.assertEqual(await self.auth.is_server_admin(requester), True)
 
-    def test_active_user(self) -> None:
+    async def test_active_user(self) -> None:
         """The handler should return a requester with normal user rights."""
 
         self.http_client.request = AsyncMock(
@@ -326,11 +322,9 @@ class MSC3861OAuthDelegation(HomeserverTestCase):
         self.assertEqual(requester.user.to_string(), f"@{USERNAME}:{SERVER_NAME}")
         self.assertEqual(requester.is_guest, False)
         self.assertEqual(requester.device_id, None)
-        self.assertEqual(
-            get_awaitable_result(self.auth.is_server_admin(requester)), False
-        )
+        self.assertEqual(await self.auth.is_server_admin(requester), False)
 
-    def test_active_user_with_device(self) -> None:
+    async def test_active_user_with_device(self) -> None:
         """The handler should return a requester with normal user rights and a device ID."""
 
         self.http_client.request = AsyncMock(
@@ -355,9 +349,7 @@ class MSC3861OAuthDelegation(HomeserverTestCase):
         self._assertParams()
         self.assertEqual(requester.user.to_string(), f"@{USERNAME}:{SERVER_NAME}")
         self.assertEqual(requester.is_guest, False)
-        self.assertEqual(
-            get_awaitable_result(self.auth.is_server_admin(requester)), False
-        )
+        self.assertEqual(await self.auth.is_server_admin(requester), False)
         self.assertEqual(requester.device_id, DEVICE)
 
     def test_multiple_devices(self) -> None:
@@ -415,7 +407,7 @@ class MSC3861OAuthDelegation(HomeserverTestCase):
             'Bearer error="insufficient_scope", scope="urn:matrix:org.matrix.msc2967.client:api:*"',
         )
 
-    def test_active_guest_allowed(self) -> None:
+    async def test_active_guest_allowed(self) -> None:
         """The handler should return a requester with guest user rights and a device ID."""
 
         self.http_client.request = AsyncMock(
@@ -442,9 +434,7 @@ class MSC3861OAuthDelegation(HomeserverTestCase):
         self._assertParams()
         self.assertEqual(requester.user.to_string(), f"@{USERNAME}:{SERVER_NAME}")
         self.assertEqual(requester.is_guest, True)
-        self.assertEqual(
-            get_awaitable_result(self.auth.is_server_admin(requester)), False
-        )
+        self.assertEqual(await self.auth.is_server_admin(requester), False)
         self.assertEqual(requester.device_id, DEVICE)
 
     def test_unavailable_introspection_endpoint(self) -> None:
@@ -653,7 +643,7 @@ class MSC3861OAuthDelegation(HomeserverTestCase):
         self.expect_unrecognized("PUT", "/_relapse/admin/v1/users/foo/admin")
         self.expect_unrecognized("POST", "/_relapse/admin/v1/account_validity/validity")
 
-    def test_admin_token(self) -> None:
+    async def test_admin_token(self) -> None:
         """The handler should return a requester with admin rights when admin_token is used."""
         self.http_client.request = AsyncMock(
             return_value=FakeResponse.json(code=200, payload={"active": False}),
@@ -669,9 +659,7 @@ class MSC3861OAuthDelegation(HomeserverTestCase):
         )
         self.assertEqual(requester.is_guest, False)
         self.assertEqual(requester.device_id, None)
-        self.assertEqual(
-            get_awaitable_result(self.auth.is_server_admin(requester)), True
-        )
+        self.assertEqual(await self.auth.is_server_admin(requester), True)
 
         # There should be no call to the introspection endpoint
         self.http_client.request.assert_not_called()

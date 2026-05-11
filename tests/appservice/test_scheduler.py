@@ -52,7 +52,7 @@ class ApplicationServiceSchedulerTransactionCtrlTestCase(unittest.TestCase):
         )
         self.txnctrl.RECOVERER_CLASS = self.recoverer_fn
 
-    def test_single_service_up_txn_sent(self) -> None:
+    async def test_single_service_up_txn_sent(self) -> None:
         # Test: The AS is up and the txn is successfully sent.
         service = Mock()
         events = [Mock(), Mock()]
@@ -68,7 +68,7 @@ class ApplicationServiceSchedulerTransactionCtrlTestCase(unittest.TestCase):
         self.store.create_appservice_txn = AsyncMock(return_value=txn)
 
         # actual call
-        self.successResultOf(defer.ensureDeferred(self.txnctrl.send(service, events)))
+        await defer.ensureDeferred(self.txnctrl.send(service, events))
 
         self.store.create_appservice_txn.assert_called_once_with(
             service=service,
@@ -82,7 +82,7 @@ class ApplicationServiceSchedulerTransactionCtrlTestCase(unittest.TestCase):
         self.assertEqual(0, len(self.txnctrl.recoverers))  # no recoverer made
         txn.complete.assert_called_once_with(self.store)  # txn completed
 
-    def test_single_service_down(self) -> None:
+    async def test_single_service_down(self) -> None:
         # Test: The AS is down so it shouldn't push; Recoverers will do it.
         # It should still make a transaction though.
         service = Mock()
@@ -95,7 +95,7 @@ class ApplicationServiceSchedulerTransactionCtrlTestCase(unittest.TestCase):
         self.store.create_appservice_txn = AsyncMock(return_value=txn)
 
         # actual call
-        self.successResultOf(defer.ensureDeferred(self.txnctrl.send(service, events)))
+        await defer.ensureDeferred(self.txnctrl.send(service, events))
 
         self.store.create_appservice_txn.assert_called_once_with(
             service=service,
@@ -109,7 +109,7 @@ class ApplicationServiceSchedulerTransactionCtrlTestCase(unittest.TestCase):
         self.assertEqual(0, txn.send.call_count)  # txn not sent though
         self.assertEqual(0, txn.complete.call_count)  # or completed
 
-    def test_single_service_up_txn_not_sent(self) -> None:
+    async def test_single_service_up_txn_not_sent(self) -> None:
         # Test: The AS is up and the txn is not sent. A Recoverer is made and
         # started.
         service = Mock()
@@ -126,7 +126,7 @@ class ApplicationServiceSchedulerTransactionCtrlTestCase(unittest.TestCase):
         self.store.create_appservice_txn = AsyncMock(return_value=txn)
 
         # actual call
-        self.successResultOf(defer.ensureDeferred(self.txnctrl.send(service, events)))
+        await defer.ensureDeferred(self.txnctrl.send(service, events))
 
         self.store.create_appservice_txn.assert_called_once_with(
             service=service,

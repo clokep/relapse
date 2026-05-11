@@ -12,9 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections.abc import Generator
 from http import HTTPStatus
-from typing import Any, cast
+from typing import cast
 from unittest.mock import AsyncMock, Mock, call
 
 from twisted.internet import defer, reactor as _reactor
@@ -49,24 +48,22 @@ class HttpTransactionCacheTestCase(unittest.TestCase):
         self.mock_requester.is_guest = False
         self.mock_requester.access_token_id = 1234
 
-    @defer.inlineCallbacks
-    def test_executes_given_function(
+    async def test_executes_given_function(
         self,
-    ) -> Generator["defer.Deferred[Any]", object, None]:
+    ) -> None:
         cb = AsyncMock(return_value=self.mock_http_response)
-        res = yield self.cache.fetch_or_execute_request(
+        res = await self.cache.fetch_or_execute_request(
             self.mock_request, self.mock_requester, cb, "some_arg", keyword="arg"
         )
         cb.assert_called_once_with("some_arg", keyword="arg")
         self.assertEqual(res, self.mock_http_response)
 
-    @defer.inlineCallbacks
-    def test_deduplicates_based_on_key(
+    async def test_deduplicates_based_on_key(
         self,
-    ) -> Generator["defer.Deferred[Any]", object, None]:
+    ) -> None:
         cb = AsyncMock(return_value=self.mock_http_response)
         for i in range(3):  # invoke multiple times
-            res = yield self.cache.fetch_or_execute_request(
+            res = await self.cache.fetch_or_execute_request(
                 self.mock_request,
                 self.mock_requester,
                 cb,
@@ -78,34 +75,32 @@ class HttpTransactionCacheTestCase(unittest.TestCase):
         # expect only a single call to do the work
         cb.assert_called_once_with("some_arg", keyword="arg", changing_args=0)
 
-    @defer.inlineCallbacks
-    def test_logcontexts_with_async_result(
+    async def test_logcontexts_with_async_result(
         self,
-    ) -> Generator["defer.Deferred[Any]", object, None]:
-        @defer.inlineCallbacks
-        def cb() -> Generator["defer.Deferred[object]", object, tuple[int, JsonDict]]:
-            yield Clock(reactor).sleep(0)
+    ) -> None:
+        async def cb() -> tuple[int, JsonDict]:
+            await Clock(reactor).sleep(0)
             return 1, {}
 
-        @defer.inlineCallbacks
-        def test() -> Generator["defer.Deferred[Any]", object, None]:
+        async def test() -> None:
             with LoggingContext("c") as c1:
-                res = yield self.cache.fetch_or_execute_request(
+                res = await self.cache.fetch_or_execute_request(
                     self.mock_request, self.mock_requester, cb
                 )
                 self.assertIs(current_context(), c1)
                 self.assertEqual(res, (1, {}))
 
         # run the test twice in parallel
-        d = defer.gatherResults([test(), test()])
+        d = defer.gatherResults(
+            [defer.ensureDeferred(test()), defer.ensureDeferred(test())]
+        )
         self.assertIs(current_context(), SENTINEL_CONTEXT)
-        yield d
+        await d
         self.assertIs(current_context(), SENTINEL_CONTEXT)
 
-    @defer.inlineCallbacks
-    def test_does_not_cache_exceptions(
+    async def test_does_not_cache_exceptions(
         self,
-    ) -> Generator["defer.Deferred[Any]", object, None]:
+    ) -> None:
         """Checks that, if the callback throws an exception, it is called again
         for the next request.
         """
@@ -121,23 +116,22 @@ class HttpTransactionCacheTestCase(unittest.TestCase):
 
         with LoggingContext("test") as test_context:
             try:
-                yield self.cache.fetch_or_execute_request(
+                await self.cache.fetch_or_execute_request(
                     self.mock_request, self.mock_requester, cb
                 )
             except Exception as e:
                 self.assertEqual(e.args[0], "boo")
             self.assertIs(current_context(), test_context)
 
-            res = yield self.cache.fetch_or_execute_request(
+            res = await self.cache.fetch_or_execute_request(
                 self.mock_request, self.mock_requester, cb
             )
             self.assertEqual(res, self.mock_http_response)
             self.assertIs(current_context(), test_context)
 
-    @defer.inlineCallbacks
-    def test_does_not_cache_failures(
+    async def test_does_not_cache_failures(
         self,
-    ) -> Generator["defer.Deferred[Any]", object, None]:
+    ) -> None:
         """Checks that, if the callback returns a failure, it is called again
         for the next request.
         """
@@ -153,29 +147,28 @@ class HttpTransactionCacheTestCase(unittest.TestCase):
 
         with LoggingContext("test") as test_context:
             try:
-                yield self.cache.fetch_or_execute_request(
+                await self.cache.fetch_or_execute_request(
                     self.mock_request, self.mock_requester, cb
                 )
             except Exception as e:
                 self.assertEqual(e.args[0], "boo")
             self.assertIs(current_context(), test_context)
 
-            res = yield self.cache.fetch_or_execute_request(
+            res = await self.cache.fetch_or_execute_request(
                 self.mock_request, self.mock_requester, cb
             )
             self.assertEqual(res, self.mock_http_response)
             self.assertIs(current_context(), test_context)
 
-    @defer.inlineCallbacks
-    def test_cleans_up(self) -> Generator["defer.Deferred[Any]", object, None]:
+    async def test_cleans_up(self) -> None:
         cb = AsyncMock(return_value=self.mock_http_response)
-        yield self.cache.fetch_or_execute_request(
+        await self.cache.fetch_or_execute_request(
             self.mock_request, self.mock_requester, cb, "an arg"
         )
         # should NOT have cleaned up yet
         self.clock.advance_time_msec(CLEANUP_PERIOD_MS / 2)
 
-        yield self.cache.fetch_or_execute_request(
+        await self.cache.fetch_or_execute_request(
             self.mock_request, self.mock_requester, cb, "an arg"
         )
         # still using cache
@@ -183,7 +176,7 @@ class HttpTransactionCacheTestCase(unittest.TestCase):
 
         self.clock.advance_time_msec(CLEANUP_PERIOD_MS)
 
-        yield self.cache.fetch_or_execute_request(
+        await self.cache.fetch_or_execute_request(
             self.mock_request, self.mock_requester, cb, "an arg"
         )
         # no longer using cache

@@ -25,7 +25,7 @@ from tests.utils import default_config
 
 
 class FederationRateLimiterTestCase(TestCase):
-    def test_ratelimit(self) -> None:
+    async def test_ratelimit(self) -> None:
         """A simple test with the default values"""
         reactor, clock = get_clock()
         rc_config = build_rc_config()
@@ -33,9 +33,9 @@ class FederationRateLimiterTestCase(TestCase):
 
         with ratelimiter.ratelimit("testhost") as d1:
             # shouldn't block
-            self.successResultOf(d1)
+            await d1
 
-    def test_concurrent_limit(self) -> None:
+    async def test_concurrent_limit(self) -> None:
         """Test what happens when we hit the concurrent limit"""
         reactor, clock = get_clock()
         rc_config = build_rc_config({"rc_federation": {"concurrent": 2}})
@@ -43,12 +43,12 @@ class FederationRateLimiterTestCase(TestCase):
 
         with ratelimiter.ratelimit("testhost") as d1:
             # shouldn't block
-            self.successResultOf(d1)
+            await d1
 
             cm2 = ratelimiter.ratelimit("testhost")
             d2 = cm2.__enter__()
             # also shouldn't block
-            self.successResultOf(d2)
+            await d2
 
             cm3 = ratelimiter.ratelimit("testhost")
             d3 = cm3.__enter__()
@@ -58,9 +58,9 @@ class FederationRateLimiterTestCase(TestCase):
             # ... until we complete an earlier request
             cm2.__exit__(None, None, None)
             reactor.advance(0.0)
-            self.successResultOf(d3)
+            await d3
 
-    def test_sleep_limit(self) -> None:
+    async def test_sleep_limit(self) -> None:
         """Test what happens when we hit the sleep limit"""
         reactor, clock = get_clock()
         rc_config = build_rc_config(
@@ -70,11 +70,11 @@ class FederationRateLimiterTestCase(TestCase):
 
         with ratelimiter.ratelimit("testhost") as d1:
             # shouldn't block
-            self.successResultOf(d1)
+            await d1
 
         with ratelimiter.ratelimit("testhost") as d2:
             # nor this
-            self.successResultOf(d2)
+            await d2
 
         with ratelimiter.ratelimit("testhost") as d3:
             # this one should block, though ...
@@ -82,7 +82,7 @@ class FederationRateLimiterTestCase(TestCase):
             sleep_time = _await_resolution(reactor, d3)
             self.assertAlmostEqual(sleep_time, 500, places=3)
 
-    def test_lots_of_queued_things(self) -> None:
+    async def test_lots_of_queued_things(self) -> None:
         """Tests lots of synchronous things queued up behind a slow thing.
 
         The stack should *not* explode when the slow thing completes.
@@ -101,7 +101,7 @@ class FederationRateLimiterTestCase(TestCase):
 
         with ratelimiter.ratelimit("testhost") as d:
             # shouldn't block
-            self.successResultOf(d)
+            await d
 
             async def task() -> None:
                 with ratelimiter.ratelimit("testhost") as d:
@@ -117,7 +117,7 @@ class FederationRateLimiterTestCase(TestCase):
 
         # Wait for all the things to complete.
         reactor.advance(0.0)
-        self.successResultOf(last_task)
+        await last_task
 
 
 def _await_resolution(reactor: ThreadedMemoryReactorClock, d: Deferred) -> float:

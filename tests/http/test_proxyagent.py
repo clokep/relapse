@@ -312,7 +312,7 @@ class MatrixFederationAgentTests(TestCase):
 
         return http_protocol
 
-    def _test_request_direct_connection(
+    async def _test_request_direct_connection(
         self,
         agent: ProxyAgent,
         scheme: bytes,
@@ -366,65 +366,65 @@ class MatrixFederationAgentTests(TestCase):
 
         self.reactor.advance(0)
 
-        resp = self.successResultOf(d)
-        body = self.successResultOf(treq.content(resp))
+        resp = await d
+        body = await treq.content(resp)
         self.assertEqual(body, b"result")
 
-    def test_http_request(self) -> None:
+    async def test_http_request(self) -> None:
         agent = ProxyAgent(self.reactor)
-        self._test_request_direct_connection(agent, b"http", b"test.com", b"")
+        await self._test_request_direct_connection(agent, b"http", b"test.com", b"")
 
-    def test_https_request(self) -> None:
+    async def test_https_request(self) -> None:
         agent = ProxyAgent(self.reactor, contextFactory=get_test_https_policy())
-        self._test_request_direct_connection(agent, b"https", b"test.com", b"abc")
+        await self._test_request_direct_connection(agent, b"https", b"test.com", b"abc")
 
-    def test_http_request_use_proxy_empty_environment(self) -> None:
+    async def test_http_request_use_proxy_empty_environment(self) -> None:
         agent = ProxyAgent(self.reactor, use_proxy=True)
-        self._test_request_direct_connection(agent, b"http", b"test.com", b"")
+        await self._test_request_direct_connection(agent, b"http", b"test.com", b"")
 
     @patch.dict(os.environ, {"http_proxy": "proxy.com:8888", "NO_PROXY": "test.com"})
-    def test_http_request_via_uppercase_no_proxy(self) -> None:
+    async def test_http_request_via_uppercase_no_proxy(self) -> None:
         agent = ProxyAgent(self.reactor, use_proxy=True)
-        self._test_request_direct_connection(agent, b"http", b"test.com", b"")
+        await self._test_request_direct_connection(agent, b"http", b"test.com", b"")
 
     @patch.dict(
         os.environ, {"http_proxy": "proxy.com:8888", "no_proxy": "test.com,unused.com"}
     )
-    def test_http_request_via_no_proxy(self) -> None:
+    async def test_http_request_via_no_proxy(self) -> None:
         agent = ProxyAgent(self.reactor, use_proxy=True)
-        self._test_request_direct_connection(agent, b"http", b"test.com", b"")
+        await self._test_request_direct_connection(agent, b"http", b"test.com", b"")
 
     @patch.dict(
         os.environ, {"https_proxy": "proxy.com", "no_proxy": "test.com,unused.com"}
     )
-    def test_https_request_via_no_proxy(self) -> None:
+    async def test_https_request_via_no_proxy(self) -> None:
         agent = ProxyAgent(
             self.reactor,
             contextFactory=get_test_https_policy(),
             use_proxy=True,
         )
-        self._test_request_direct_connection(agent, b"https", b"test.com", b"abc")
+        await self._test_request_direct_connection(agent, b"https", b"test.com", b"abc")
 
     @patch.dict(os.environ, {"http_proxy": "proxy.com:8888", "no_proxy": "*"})
-    def test_http_request_via_no_proxy_star(self) -> None:
+    async def test_http_request_via_no_proxy_star(self) -> None:
         agent = ProxyAgent(self.reactor, use_proxy=True)
-        self._test_request_direct_connection(agent, b"http", b"test.com", b"")
+        await self._test_request_direct_connection(agent, b"http", b"test.com", b"")
 
     @patch.dict(os.environ, {"https_proxy": "proxy.com", "no_proxy": "*"})
-    def test_https_request_via_no_proxy_star(self) -> None:
+    async def test_https_request_via_no_proxy_star(self) -> None:
         agent = ProxyAgent(
             self.reactor,
             contextFactory=get_test_https_policy(),
             use_proxy=True,
         )
-        self._test_request_direct_connection(agent, b"https", b"test.com", b"abc")
+        await self._test_request_direct_connection(agent, b"https", b"test.com", b"abc")
 
     @patch.dict(os.environ, {"http_proxy": "proxy.com:8888", "no_proxy": "unused.com"})
-    def test_http_request_via_proxy(self) -> None:
+    async def test_http_request_via_proxy(self) -> None:
         """
         Tests that requests can be made through a proxy.
         """
-        self._do_http_request_via_proxy(
+        await self._do_http_request_via_proxy(
             expect_proxy_ssl=False, expected_auth_credentials=None
         )
 
@@ -432,19 +432,19 @@ class MatrixFederationAgentTests(TestCase):
         os.environ,
         {"http_proxy": "bob:pinkponies@proxy.com:8888", "no_proxy": "unused.com"},
     )
-    def test_http_request_via_proxy_with_auth(self) -> None:
+    async def test_http_request_via_proxy_with_auth(self) -> None:
         """
         Tests that authenticated requests can be made through a proxy.
         """
-        self._do_http_request_via_proxy(
+        await self._do_http_request_via_proxy(
             expect_proxy_ssl=False, expected_auth_credentials=b"bob:pinkponies"
         )
 
     @patch.dict(
         os.environ, {"http_proxy": "https://proxy.com:8888", "no_proxy": "unused.com"}
     )
-    def test_http_request_via_https_proxy(self) -> None:
-        self._do_http_request_via_proxy(
+    async def test_http_request_via_https_proxy(self) -> None:
+        await self._do_http_request_via_proxy(
             expect_proxy_ssl=True, expected_auth_credentials=None
         )
 
@@ -455,15 +455,15 @@ class MatrixFederationAgentTests(TestCase):
             "no_proxy": "unused.com",
         },
     )
-    def test_http_request_via_https_proxy_with_auth(self) -> None:
-        self._do_http_request_via_proxy(
+    async def test_http_request_via_https_proxy_with_auth(self) -> None:
+        await self._do_http_request_via_proxy(
             expect_proxy_ssl=True, expected_auth_credentials=b"bob:pinkponies"
         )
 
     @patch.dict(os.environ, {"https_proxy": "proxy.com", "no_proxy": "unused.com"})
-    def test_https_request_via_proxy(self) -> None:
+    async def test_https_request_via_proxy(self) -> None:
         """Tests that TLS-encrypted requests can be made through a proxy"""
-        self._do_https_request_via_proxy(
+        await self._do_https_request_via_proxy(
             expect_proxy_ssl=False, expected_auth_credentials=None
         )
 
@@ -471,18 +471,18 @@ class MatrixFederationAgentTests(TestCase):
         os.environ,
         {"https_proxy": "bob:pinkponies@proxy.com", "no_proxy": "unused.com"},
     )
-    def test_https_request_via_proxy_with_auth(self) -> None:
+    async def test_https_request_via_proxy_with_auth(self) -> None:
         """Tests that authenticated, TLS-encrypted requests can be made through a proxy"""
-        self._do_https_request_via_proxy(
+        await self._do_https_request_via_proxy(
             expect_proxy_ssl=False, expected_auth_credentials=b"bob:pinkponies"
         )
 
     @patch.dict(
         os.environ, {"https_proxy": "https://proxy.com", "no_proxy": "unused.com"}
     )
-    def test_https_request_via_https_proxy(self) -> None:
+    async def test_https_request_via_https_proxy(self) -> None:
         """Tests that TLS-encrypted requests can be made through a proxy"""
-        self._do_https_request_via_proxy(
+        await self._do_https_request_via_proxy(
             expect_proxy_ssl=True, expected_auth_credentials=None
         )
 
@@ -490,13 +490,13 @@ class MatrixFederationAgentTests(TestCase):
         os.environ,
         {"https_proxy": "https://bob:pinkponies@proxy.com", "no_proxy": "unused.com"},
     )
-    def test_https_request_via_https_proxy_with_auth(self) -> None:
+    async def test_https_request_via_https_proxy_with_auth(self) -> None:
         """Tests that authenticated, TLS-encrypted requests can be made through a proxy"""
-        self._do_https_request_via_proxy(
+        await self._do_https_request_via_proxy(
             expect_proxy_ssl=True, expected_auth_credentials=b"bob:pinkponies"
         )
 
-    def _do_http_request_via_proxy(
+    async def _do_http_request_via_proxy(
         self,
         expect_proxy_ssl: bool = False,
         expected_auth_credentials: bytes | None = None,
@@ -566,11 +566,11 @@ class MatrixFederationAgentTests(TestCase):
 
         self.reactor.advance(0)
 
-        resp = self.successResultOf(d)
-        body = self.successResultOf(treq.content(resp))
+        resp = await d
+        body = await treq.content(resp)
         self.assertEqual(body, b"result")
 
-    def _do_https_request_via_proxy(
+    async def _do_https_request_via_proxy(
         self,
         expect_proxy_ssl: bool = False,
         expected_auth_credentials: bytes | None = None,
@@ -697,12 +697,12 @@ class MatrixFederationAgentTests(TestCase):
 
         self.reactor.advance(0)
 
-        resp = self.successResultOf(d)
-        body = self.successResultOf(treq.content(resp))
+        resp = await d
+        body = await treq.content(resp)
         self.assertEqual(body, b"result")
 
     @patch.dict(os.environ, {"http_proxy": "proxy.com:8888"})
-    def test_http_request_via_proxy_with_blocklist(self) -> None:
+    async def test_http_request_via_proxy_with_blocklist(self) -> None:
         # The blocklist includes the configured proxy IP.
         agent = ProxyAgent(
             BlocklistingReactorWrapper(
@@ -743,12 +743,12 @@ class MatrixFederationAgentTests(TestCase):
 
         self.reactor.advance(0)
 
-        resp = self.successResultOf(d)
-        body = self.successResultOf(treq.content(resp))
+        resp = await d
+        body = await treq.content(resp)
         self.assertEqual(body, b"result")
 
     @patch.dict(os.environ, {"HTTPS_PROXY": "proxy.com"})
-    def test_https_request_via_uppercase_proxy_with_blocklist(self) -> None:
+    async def test_https_request_via_uppercase_proxy_with_blocklist(self) -> None:
         # The blocklist includes the configured proxy IP.
         agent = ProxyAgent(
             BlocklistingReactorWrapper(
@@ -838,8 +838,8 @@ class MatrixFederationAgentTests(TestCase):
 
         self.reactor.advance(0)
 
-        resp = self.successResultOf(d)
-        body = self.successResultOf(treq.content(resp))
+        resp = await d
+        body = await treq.content(resp)
         self.assertEqual(body, b"result")
 
     @patch.dict(os.environ, {"http_proxy": "proxy.com:8888"})

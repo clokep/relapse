@@ -11,11 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from collections.abc import Collection, Generator, Iterable, Iterator
+from collections.abc import Collection, Iterable, Iterator
 from typing import Any, cast
 from unittest.mock import Mock
-
-from twisted.internet import defer
 
 from relapse.api.auth.internal import InternalAuth
 from relapse.api.constants import EventTypes, Membership
@@ -236,8 +234,7 @@ class StateTestCase(unittest.TestCase):
         self.state = StateHandler(hs)
         self.event_id = 0
 
-    @defer.inlineCallbacks
-    def test_branch_no_conflict(self) -> Generator[defer.Deferred, Any, None]:
+    async def test_branch_no_conflict(self) -> None:
         graph = Graph(
             nodes={
                 "START": DictObj(
@@ -256,26 +253,22 @@ class StateTestCase(unittest.TestCase):
         context_store: dict[str, EventContext] = {}
 
         for event in graph.walk():
-            context = yield defer.ensureDeferred(
-                self.state.compute_event_context(event)
-            )
+            context = await self.state.compute_event_context(event)
             self.dummy_store.register_event_context(event, context)
             context_store[event.event_id] = context
 
         ctx_c = context_store["C"]
         ctx_d = context_store["D"]
 
-        prev_state_ids: StateMap[str]
-        prev_state_ids = yield defer.ensureDeferred(ctx_d.get_prev_state_ids())
+        prev_state_ids = await ctx_d.get_prev_state_ids()
         self.assertEqual(2, len(prev_state_ids))
 
         self.assertEqual(ctx_c.state_group, ctx_d.state_group_before_event)
         self.assertEqual(ctx_d.state_group_before_event, ctx_d.state_group)
 
-    @defer.inlineCallbacks
-    def test_branch_basic_conflict(
+    async def test_branch_basic_conflict(
         self,
-    ) -> Generator["defer.Deferred[object]", Any, None]:
+    ) -> None:
         graph = Graph(
             nodes={
                 "START": DictObj(
@@ -303,9 +296,7 @@ class StateTestCase(unittest.TestCase):
         context_store: dict[str, EventContext] = {}
 
         for event in graph.walk():
-            context = yield defer.ensureDeferred(
-                self.state.compute_event_context(event)
-            )
+            context = await self.state.compute_event_context(event)
             self.dummy_store.register_event_context(event, context)
             context_store[event.event_id] = context
 
@@ -314,17 +305,15 @@ class StateTestCase(unittest.TestCase):
         ctx_c = context_store["C"]
         ctx_d = context_store["D"]
 
-        prev_state_ids: StateMap[str]
-        prev_state_ids = yield defer.ensureDeferred(ctx_d.get_prev_state_ids())
+        prev_state_ids = await ctx_d.get_prev_state_ids()
         self.assertSetEqual({"START", "A", "C"}, set(prev_state_ids.values()))
 
         self.assertEqual(ctx_c.state_group, ctx_d.state_group_before_event)
         self.assertEqual(ctx_d.state_group_before_event, ctx_d.state_group)
 
-    @defer.inlineCallbacks
-    def test_branch_have_banned_conflict(
+    async def test_branch_have_banned_conflict(
         self,
-    ) -> Generator["defer.Deferred[object]", Any, None]:
+    ) -> None:
         graph = Graph(
             nodes={
                 "START": DictObj(
@@ -364,9 +353,7 @@ class StateTestCase(unittest.TestCase):
         context_store: dict[str, EventContext] = {}
 
         for event in graph.walk():
-            context = yield defer.ensureDeferred(
-                self.state.compute_event_context(event)
-            )
+            context = await self.state.compute_event_context(event)
             self.dummy_store.register_event_context(event, context)
             context_store[event.event_id] = context
 
@@ -376,16 +363,14 @@ class StateTestCase(unittest.TestCase):
         ctx_c = context_store["C"]
         ctx_e = context_store["E"]
 
-        prev_state_ids: StateMap[str]
-        prev_state_ids = yield defer.ensureDeferred(ctx_e.get_prev_state_ids())
+        prev_state_ids = await ctx_e.get_prev_state_ids()
         self.assertSetEqual({"START", "A", "B", "C"}, set(prev_state_ids.values()))
         self.assertEqual(ctx_c.state_group, ctx_e.state_group_before_event)
         self.assertEqual(ctx_e.state_group_before_event, ctx_e.state_group)
 
-    @defer.inlineCallbacks
-    def test_branch_have_perms_conflict(
+    async def test_branch_have_perms_conflict(
         self,
-    ) -> Generator["defer.Deferred[object]", Any, None]:
+    ) -> None:
         userid1 = "@user_id:example.com"
         userid2 = "@user_id2:example.com"
 
@@ -442,9 +427,7 @@ class StateTestCase(unittest.TestCase):
         context_store: dict[str, EventContext] = {}
 
         for event in graph.walk():
-            context = yield defer.ensureDeferred(
-                self.state.compute_event_context(event)
-            )
+            context = await self.state.compute_event_context(event)
             self.dummy_store.register_event_context(event, context)
             context_store[event.event_id] = context
 
@@ -454,8 +437,7 @@ class StateTestCase(unittest.TestCase):
         ctx_b = context_store["B"]
         ctx_d = context_store["D"]
 
-        prev_state_ids: StateMap[str]
-        prev_state_ids = yield defer.ensureDeferred(ctx_d.get_prev_state_ids())
+        prev_state_ids = await ctx_d.get_prev_state_ids()
         self.assertSetEqual({"A1", "A2", "A3", "A5", "B"}, set(prev_state_ids.values()))
 
         self.assertEqual(ctx_b.state_group, ctx_d.state_group_before_event)
@@ -475,10 +457,9 @@ class StateTestCase(unittest.TestCase):
         for n in nodes:
             _get_depth(n)
 
-    @defer.inlineCallbacks
-    def test_annotate_with_old_message(
+    async def test_annotate_with_old_message(
         self,
-    ) -> Generator["defer.Deferred[object]", Any, None]:
+    ) -> None:
         event = create_event(type="test_message", name="event")
 
         old_state = [
@@ -488,22 +469,19 @@ class StateTestCase(unittest.TestCase):
         ]
 
         context: EventContext
-        context = yield defer.ensureDeferred(
-            self.state.compute_event_context(
-                event,
-                state_ids_before_event={
-                    (e.type, e.state_key): e.event_id for e in old_state
-                },
-                partial_state=False,
-            )
+        context = await self.state.compute_event_context(
+            event,
+            state_ids_before_event={
+                (e.type, e.state_key): e.event_id for e in old_state
+            },
+            partial_state=False,
         )
 
-        prev_state_ids: StateMap[str]
-        prev_state_ids = yield defer.ensureDeferred(context.get_prev_state_ids())
+        prev_state_ids = await context.get_prev_state_ids()
         self.assertCountEqual((e.event_id for e in old_state), prev_state_ids.values())
 
-        current_state_ids: StateMap[str]
-        current_state_ids = yield defer.ensureDeferred(context.get_current_state_ids())
+        current_state_ids = await context.get_current_state_ids()
+        assert current_state_ids is not None
         self.assertCountEqual(
             (e.event_id for e in old_state), current_state_ids.values()
         )
@@ -511,10 +489,9 @@ class StateTestCase(unittest.TestCase):
         self.assertIsNotNone(context.state_group_before_event)
         self.assertEqual(context.state_group_before_event, context.state_group)
 
-    @defer.inlineCallbacks
-    def test_annotate_with_old_state(
+    async def test_annotate_with_old_state(
         self,
-    ) -> Generator["defer.Deferred[object]", Any, None]:
+    ) -> None:
         event = create_event(type="state", state_key="", name="event")
 
         old_state = [
@@ -524,22 +501,19 @@ class StateTestCase(unittest.TestCase):
         ]
 
         context: EventContext
-        context = yield defer.ensureDeferred(
-            self.state.compute_event_context(
-                event,
-                state_ids_before_event={
-                    (e.type, e.state_key): e.event_id for e in old_state
-                },
-                partial_state=False,
-            )
+        context = await self.state.compute_event_context(
+            event,
+            state_ids_before_event={
+                (e.type, e.state_key): e.event_id for e in old_state
+            },
+            partial_state=False,
         )
 
-        prev_state_ids: StateMap[str]
-        prev_state_ids = yield defer.ensureDeferred(context.get_prev_state_ids())
+        prev_state_ids = await context.get_prev_state_ids()
         self.assertCountEqual((e.event_id for e in old_state), prev_state_ids.values())
 
-        current_state_ids: StateMap[str]
-        current_state_ids = yield defer.ensureDeferred(context.get_current_state_ids())
+        current_state_ids = await context.get_current_state_ids()
+        assert current_state_ids is not None
         self.assertCountEqual(
             (e.event_id for e in old_state + [event]), current_state_ids.values()
         )
@@ -554,10 +528,9 @@ class StateTestCase(unittest.TestCase):
         )
         self.assertNotEqual(context.state_group_before_event, context.state_group)
 
-    @defer.inlineCallbacks
-    def test_trivial_annotate_message(
+    async def test_trivial_annotate_message(
         self,
-    ) -> Generator["defer.Deferred[object]", Any, None]:
+    ) -> None:
         prev_event_id = "prev_event_id"
         event = create_event(
             type="test_message", name="event2", prev_events=[(prev_event_id, {})]
@@ -569,33 +542,29 @@ class StateTestCase(unittest.TestCase):
             create_event(type="test2", state_key=""),
         ]
 
-        group_name = yield defer.ensureDeferred(
-            self.dummy_store.store_state_group(
-                prev_event_id,
-                event.room_id,
-                None,
-                None,
-                {(e.type, e.state_key): e.event_id for e in old_state},
-            )
+        group_name = await self.dummy_store.store_state_group(
+            prev_event_id,
+            event.room_id,
+            None,
+            None,
+            {(e.type, e.state_key): e.event_id for e in old_state},
         )
         self.dummy_store.register_event_id_state_group(prev_event_id, group_name)
 
         context: EventContext
-        context = yield defer.ensureDeferred(self.state.compute_event_context(event))
+        context = await self.state.compute_event_context(event)
 
-        current_state_ids: StateMap[str]
-        current_state_ids = yield defer.ensureDeferred(context.get_current_state_ids())
-
+        current_state_ids = await context.get_current_state_ids()
+        assert current_state_ids is not None
         self.assertEqual(
             {e.event_id for e in old_state}, set(current_state_ids.values())
         )
 
         self.assertEqual(group_name, context.state_group)
 
-    @defer.inlineCallbacks
-    def test_trivial_annotate_state(
+    async def test_trivial_annotate_state(
         self,
-    ) -> Generator["defer.Deferred[object]", Any, None]:
+    ) -> None:
         prev_event_id = "prev_event_id"
         event = create_event(
             type="state", state_key="", name="event2", prev_events=[(prev_event_id, {})]
@@ -607,31 +576,25 @@ class StateTestCase(unittest.TestCase):
             create_event(type="test2", state_key=""),
         ]
 
-        group_name = yield defer.ensureDeferred(
-            self.dummy_store.store_state_group(
-                prev_event_id,
-                event.room_id,
-                None,
-                None,
-                {(e.type, e.state_key): e.event_id for e in old_state},
-            )
+        group_name = await self.dummy_store.store_state_group(
+            prev_event_id,
+            event.room_id,
+            None,
+            None,
+            {(e.type, e.state_key): e.event_id for e in old_state},
         )
         self.dummy_store.register_event_id_state_group(prev_event_id, group_name)
 
         context: EventContext
-        context = yield defer.ensureDeferred(self.state.compute_event_context(event))
+        context = await self.state.compute_event_context(event)
 
-        prev_state_ids: StateMap[str]
-        prev_state_ids = yield defer.ensureDeferred(context.get_prev_state_ids())
+        prev_state_ids = await context.get_prev_state_ids()
 
         self.assertEqual({e.event_id for e in old_state}, set(prev_state_ids.values()))
 
         self.assertIsNotNone(context.state_group)
 
-    @defer.inlineCallbacks
-    def test_resolve_message_conflict(
-        self,
-    ) -> Generator["defer.Deferred[Any]", Any, None]:
+    async def test_resolve_message_conflict(self) -> None:
         prev_event_id1 = "event_id1"
         prev_event_id2 = "event_id2"
         event = create_event(
@@ -659,22 +622,17 @@ class StateTestCase(unittest.TestCase):
         self.dummy_store.register_events(old_state_1)
         self.dummy_store.register_events(old_state_2)
 
-        context: EventContext
-        context = yield self._get_context(
+        context = await self._get_context(
             event, prev_event_id1, old_state_1, prev_event_id2, old_state_2
         )
 
-        current_state_ids: StateMap[str]
-        current_state_ids = yield defer.ensureDeferred(context.get_current_state_ids())
-
+        current_state_ids = await context.get_current_state_ids()
+        assert current_state_ids is not None
         self.assertEqual(len(current_state_ids), 6)
 
         self.assertIsNotNone(context.state_group)
 
-    @defer.inlineCallbacks
-    def test_resolve_state_conflict(
-        self,
-    ) -> Generator["defer.Deferred[Any]", Any, None]:
+    async def test_resolve_state_conflict(self) -> None:
         prev_event_id1 = "event_id1"
         prev_event_id2 = "event_id2"
         event = create_event(
@@ -706,21 +664,17 @@ class StateTestCase(unittest.TestCase):
         self.dummy_store.get_events = store.get_events  # type: ignore[method-assign]
 
         context: EventContext
-        context = yield self._get_context(
+        context = await self._get_context(
             event, prev_event_id1, old_state_1, prev_event_id2, old_state_2
         )
 
-        current_state_ids: StateMap[str]
-        current_state_ids = yield defer.ensureDeferred(context.get_current_state_ids())
-
+        current_state_ids = await context.get_current_state_ids()
+        assert current_state_ids is not None
         self.assertEqual(len(current_state_ids), 6)
 
         self.assertIsNotNone(context.state_group)
 
-    @defer.inlineCallbacks
-    def test_standard_depth_conflict(
-        self,
-    ) -> Generator["defer.Deferred[Any]", Any, None]:
+    async def test_standard_depth_conflict(self) -> None:
         prev_event_id1 = "event_id1"
         prev_event_id2 = "event_id2"
         event = create_event(
@@ -765,13 +719,12 @@ class StateTestCase(unittest.TestCase):
         self.dummy_store.get_events = store.get_events  # type: ignore[method-assign]
 
         context: EventContext
-        context = yield self._get_context(
+        context = await self._get_context(
             event, prev_event_id1, old_state_1, prev_event_id2, old_state_2
         )
 
-        current_state_ids: StateMap[str]
-        current_state_ids = yield defer.ensureDeferred(context.get_current_state_ids())
-
+        current_state_ids = await context.get_current_state_ids()
+        assert current_state_ids is not None
         self.assertEqual(old_state_2[3].event_id, current_state_ids[("test1", "1")])
 
         # Reverse the depth to make sure we are actually using the depths
@@ -794,48 +747,43 @@ class StateTestCase(unittest.TestCase):
         store.register_events(old_state_1)
         store.register_events(old_state_2)
 
-        context = yield self._get_context(
+        context = await self._get_context(
             event, prev_event_id1, old_state_1, prev_event_id2, old_state_2
         )
 
-        current_state_ids = yield defer.ensureDeferred(context.get_current_state_ids())
-
+        current_state_ids = await context.get_current_state_ids()
+        assert current_state_ids is not None
         self.assertEqual(old_state_1[3].event_id, current_state_ids[("test1", "1")])
 
-    @defer.inlineCallbacks
-    def _get_context(
+    async def _get_context(
         self,
         event: EventBase,
         prev_event_id_1: str,
         old_state_1: Collection[EventBase],
         prev_event_id_2: str,
         old_state_2: Collection[EventBase],
-    ) -> Generator["defer.Deferred[object]", Any, EventContext]:
+    ) -> EventContext:
         sg1: int
-        sg1 = yield defer.ensureDeferred(
-            self.dummy_store.store_state_group(
-                prev_event_id_1,
-                event.room_id,
-                None,
-                None,
-                {(e.type, e.state_key): e.event_id for e in old_state_1},
-            )
+        sg1 = await self.dummy_store.store_state_group(
+            prev_event_id_1,
+            event.room_id,
+            None,
+            None,
+            {(e.type, e.state_key): e.event_id for e in old_state_1},
         )
         self.dummy_store.register_event_id_state_group(prev_event_id_1, sg1)
 
         sg2: int
-        sg2 = yield defer.ensureDeferred(
-            self.dummy_store.store_state_group(
-                prev_event_id_2,
-                event.room_id,
-                None,
-                None,
-                {(e.type, e.state_key): e.event_id for e in old_state_2},
-            )
+        sg2 = await self.dummy_store.store_state_group(
+            prev_event_id_2,
+            event.room_id,
+            None,
+            None,
+            {(e.type, e.state_key): e.event_id for e in old_state_2},
         )
         self.dummy_store.register_event_id_state_group(prev_event_id_2, sg2)
 
-        result = yield defer.ensureDeferred(self.state.compute_event_context(event))
+        result = await self.state.compute_event_context(event)
         return result
 
     def test_make_state_cache_entry(self) -> None:

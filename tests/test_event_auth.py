@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import unittest
 from collections.abc import Collection, Iterable
 from typing import Any
+from unittest import IsolatedAsyncioTestCase
 
 from parameterized import parameterized
 
@@ -25,8 +25,6 @@ from relapse.api.room_versions import EventFormatVersions, RoomVersion, RoomVers
 from relapse.events import EventBase, make_event_from_dict
 from relapse.storage.databases.main.events_worker import EventRedactBehaviour
 from relapse.types import JsonDict, get_domain_from_id
-
-from tests.test_utils import get_awaitable_result
 
 
 class _StubEventSourceStore:
@@ -59,8 +57,8 @@ class _StubEventSourceStore:
         return results
 
 
-class EventAuthTestCase(unittest.TestCase):
-    def test_rejected_auth_events(self) -> None:
+class EventAuthTestCase(IsolatedAsyncioTestCase):
+    async def test_rejected_auth_events(self) -> None:
         """
         Events that refer to rejected events in their auth events are rejected
         """
@@ -75,9 +73,7 @@ class EventAuthTestCase(unittest.TestCase):
 
         # creator should be able to send state
         event = _random_state_event(RoomVersions.V9, creator, auth_events)
-        get_awaitable_result(
-            event_auth.check_state_independent_auth_rules(event_store, event)
-        )
+        await event_auth.check_state_independent_auth_rules(event_store, event)
         event_auth.check_state_dependent_auth_rules(event, auth_events)
 
         # ... but a rejected join_rules event should cause it to be rejected
@@ -91,11 +87,9 @@ class EventAuthTestCase(unittest.TestCase):
         event_store.add_event(rejected_join_rules)
 
         with self.assertRaises(AuthError):
-            get_awaitable_result(
-                event_auth.check_state_independent_auth_rules(
-                    event_store,
-                    _random_state_event(RoomVersions.V9, creator),
-                )
+            await event_auth.check_state_independent_auth_rules(
+                event_store,
+                _random_state_event(RoomVersions.V9, creator),
             )
 
         # ... even if there is *also* a good join rules
@@ -103,14 +97,12 @@ class EventAuthTestCase(unittest.TestCase):
         event_store.add_event(rejected_join_rules)
 
         with self.assertRaises(AuthError):
-            get_awaitable_result(
-                event_auth.check_state_independent_auth_rules(
-                    event_store,
-                    _random_state_event(RoomVersions.V9, creator),
-                )
+            await event_auth.check_state_independent_auth_rules(
+                event_store,
+                _random_state_event(RoomVersions.V9, creator),
             )
 
-    def test_create_event_with_prev_events(self) -> None:
+    async def test_create_event_with_prev_events(self) -> None:
         """A create event with prev_events should be rejected
 
         https://spec.matrix.org/v1.3/rooms/v9/#authorization-rules
@@ -143,15 +135,11 @@ class EventAuthTestCase(unittest.TestCase):
 
         event_store = _StubEventSourceStore()
 
-        get_awaitable_result(
-            event_auth.check_state_independent_auth_rules(event_store, good_event)
-        )
+        await event_auth.check_state_independent_auth_rules(event_store, good_event)
         with self.assertRaises(AuthError):
-            get_awaitable_result(
-                event_auth.check_state_independent_auth_rules(event_store, bad_event)
-            )
+            await event_auth.check_state_independent_auth_rules(event_store, bad_event)
 
-    def test_duplicate_auth_events(self) -> None:
+    async def test_duplicate_auth_events(self) -> None:
         """Events with duplicate auth_events should be rejected
 
         https://spec.matrix.org/v1.3/rooms/v9/#authorization-rules
@@ -185,19 +173,13 @@ class EventAuthTestCase(unittest.TestCase):
             RoomVersions.V9, creator, [create_event, join_event2, join_event2, pl_event]
         )
 
-        get_awaitable_result(
-            event_auth.check_state_independent_auth_rules(event_store, good_event)
-        )
+        await event_auth.check_state_independent_auth_rules(event_store, good_event)
         with self.assertRaises(AuthError):
-            get_awaitable_result(
-                event_auth.check_state_independent_auth_rules(event_store, bad_event)
-            )
+            await event_auth.check_state_independent_auth_rules(event_store, bad_event)
         with self.assertRaises(AuthError):
-            get_awaitable_result(
-                event_auth.check_state_independent_auth_rules(event_store, bad_event2)
-            )
+            await event_auth.check_state_independent_auth_rules(event_store, bad_event2)
 
-    def test_unexpected_auth_events(self) -> None:
+    async def test_unexpected_auth_events(self) -> None:
         """Events with excess auth_events should be rejected
 
         https://spec.matrix.org/v1.3/rooms/v9/#authorization-rules
@@ -229,13 +211,9 @@ class EventAuthTestCase(unittest.TestCase):
             [create_event, join_event, pl_event, join_rules_event],
         )
 
-        get_awaitable_result(
-            event_auth.check_state_independent_auth_rules(event_store, good_event)
-        )
+        await event_auth.check_state_independent_auth_rules(event_store, good_event)
         with self.assertRaises(AuthError):
-            get_awaitable_result(
-                event_auth.check_state_independent_auth_rules(event_store, bad_event)
-            )
+            await event_auth.check_state_independent_auth_rules(event_store, bad_event)
 
     def test_random_users_cannot_send_state_before_first_pl(self) -> None:
         """

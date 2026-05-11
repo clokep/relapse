@@ -217,7 +217,7 @@ class TestMauLimit(unittest.HomeserverTestCase):
         # max_mau_value should not matter
         {"max_mau_value": 1, "limit_usage_by_mau": False, "mau_stats_only": True}
     )
-    def test_tracked_but_not_limited(self) -> None:
+    async def test_tracked_but_not_limited(self) -> None:
         # Simply being able to create 2 users indicates that the
         # limit was not reached.
         token1 = self.create_user("kermit1")
@@ -229,7 +229,7 @@ class TestMauLimit(unittest.HomeserverTestCase):
         # matches what we want though
         count = self.store.get_monthly_active_count()
         self.reactor.advance(100)
-        self.assertEqual(2, self.successResultOf(count))
+        self.assertEqual(2, await count)
 
     @override_config(
         {
