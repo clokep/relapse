@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     http:/www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -268,7 +268,7 @@ class EventPersisterShardTestCase(BaseMultiWorkerStreamTestCase):
             self.reactor,
             sync_hs_site,
             "GET",
-            f"/rooms/{room_id1}/messages?from={prev_batch1}&to={vector_clock_token}&dir=b",
+            f"/_matrix/client/r0/rooms/{room_id1}/messages?from={prev_batch1}&to={vector_clock_token}&dir=b",
             access_token=access_token,
         )
         self.assertListEqual([], channel.json_body["chunk"])
@@ -279,7 +279,7 @@ class EventPersisterShardTestCase(BaseMultiWorkerStreamTestCase):
             self.reactor,
             sync_hs_site,
             "GET",
-            f"/rooms/{room_id2}/messages?from={prev_batch2}&to={vector_clock_token}&dir=b",
+            f"/_matrix/client/r0/rooms/{room_id2}/messages?from={prev_batch2}&to={vector_clock_token}&dir=b",
             access_token=access_token,
         )
         self.assertEqual(len(channel.json_body["chunk"]), 1)
@@ -292,7 +292,7 @@ class EventPersisterShardTestCase(BaseMultiWorkerStreamTestCase):
             self.reactor,
             sync_hs_site,
             "GET",
-            f"/rooms/{room_id1}/messages?from={vector_clock_token}&to={prev_batch1}&dir=f",
+            f"/_matrix/client/r0/rooms/{room_id1}/messages?from={vector_clock_token}&to={prev_batch1}&dir=f",
             access_token=access_token,
         )
         self.assertListEqual([], channel.json_body["chunk"])
@@ -301,7 +301,7 @@ class EventPersisterShardTestCase(BaseMultiWorkerStreamTestCase):
             self.reactor,
             sync_hs_site,
             "GET",
-            f"/rooms/{room_id2}/messages?from={vector_clock_token}&to={prev_batch2}&dir=f",
+            f"/_matrix/client/r0/rooms/{room_id2}/messages?from={vector_clock_token}&to={prev_batch2}&dir=f",
             access_token=access_token,
         )
         self.assertEqual(len(channel.json_body["chunk"]), 1)
