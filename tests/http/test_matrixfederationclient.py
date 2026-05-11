@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from collections.abc import Generator
 from typing import Any
 from unittest.mock import ANY, Mock, create_autospec
 
@@ -19,7 +18,7 @@ from netaddr import IPSet
 from parameterized import parameterized
 
 from twisted.internet import defer
-from twisted.internet.defer import Deferred, TimeoutError
+from twisted.internet.defer import TimeoutError
 from twisted.internet.error import ConnectingCancelledError, DNSLookupError
 from twisted.internet.testing import MemoryReactor, StringTransport
 from twisted.web.client import Agent, ResponseNeverReceived
@@ -70,8 +69,7 @@ class FederationClientTests(HomeserverTestCase):
         happy-path test of a GET request
         """
 
-        @defer.inlineCallbacks
-        def do_request() -> Generator["Deferred[Any]", object, object]:
+        async def do_request() -> object:
             with LoggingContext("one") as context:
                 fetch_d = defer.ensureDeferred(
                     self.cl.get_json("testserv:8008", "foo/bar")
@@ -84,12 +82,11 @@ class FederationClientTests(HomeserverTestCase):
                 check_logcontext(SENTINEL_CONTEXT)
 
                 try:
-                    fetch_res = yield fetch_d
-                    return fetch_res
+                    return await fetch_d
                 finally:
                     check_logcontext(context)
 
-        test_d = do_request()
+        test_d = defer.ensureDeferred(do_request())
 
         self.pump()
 

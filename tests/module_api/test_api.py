@@ -14,7 +14,6 @@
 from typing import Any
 from unittest.mock import AsyncMock, Mock
 
-from twisted.internet import defer
 from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EduTypes, EventTypes
@@ -473,9 +472,7 @@ class ModuleApiTestCase(BaseModuleApiTestCase):
 
         # Make Peter invite Lesley to the room.
         self.get_success(
-            defer.ensureDeferred(
-                self.module_api.update_room_membership(peter, lesley, room_id, "invite")
-            )
+            self.module_api.update_room_membership(peter, lesley, room_id, "invite")
         )
 
         res = self.helper.get_state(
@@ -495,9 +492,7 @@ class ModuleApiTestCase(BaseModuleApiTestCase):
 
         # Make lesley join it.
         self.get_success(
-            defer.ensureDeferred(
-                self.module_api.update_room_membership(lesley, lesley, room_id, "join")
-            )
+            self.module_api.update_room_membership(lesley, lesley, room_id, "join")
         )
 
         # Check that the membership of lesley in the room is "join".
@@ -516,9 +511,7 @@ class ModuleApiTestCase(BaseModuleApiTestCase):
 
         # Make peter kick lesley from the room.
         self.get_success(
-            defer.ensureDeferred(
-                self.module_api.update_room_membership(peter, lesley, room_id, "leave")
-            )
+            self.module_api.update_room_membership(peter, lesley, room_id, "leave")
         )
 
         # Check that the membership of lesley in the room is "leave".
@@ -532,13 +525,11 @@ class ModuleApiTestCase(BaseModuleApiTestCase):
         self.assertEqual(res["membership"], "leave")
 
         # Try to send a membership update from a non-local user and check that it fails.
-        d = defer.ensureDeferred(
-            self.module_api.update_room_membership(
-                "@nicolas:otherserver.com",
-                lesley,
-                room_id,
-                "invite",
-            )
+        d = self.module_api.update_room_membership(
+            "@nicolas:otherserver.com",
+            lesley,
+            room_id,
+            "invite",
         )
 
         self.get_failure(d, RuntimeError)
@@ -547,9 +538,7 @@ class ModuleApiTestCase(BaseModuleApiTestCase):
         # default (localpart + no avatar) profile.
         simone = "@simone:" + self.hs.config.server.server_name
         self.get_success(
-            defer.ensureDeferred(
-                self.module_api.update_room_membership(peter, simone, room_id, "invite")
-            )
+            self.module_api.update_room_membership(peter, simone, room_id, "invite")
         )
 
         res = self.helper.get_state(
@@ -574,7 +563,7 @@ class ModuleApiTestCase(BaseModuleApiTestCase):
         # Given that the join is to be faked, we expect the relevant join event not to
         # be persisted and the module API method to raise that.
         self.get_failure(
-            defer.ensureDeferred(
+            (
                 self.module_api.update_room_membership(
                     sender=f"@user:{self.module_api.server_name}",
                     target=f"@user:{self.module_api.server_name}",
@@ -599,9 +588,7 @@ class ModuleApiTestCase(BaseModuleApiTestCase):
         self.helper.send_state(room_id, "org.matrix.test", {}, tok=tok)
 
         # Check that the module API can successfully fetch state for the room.
-        state = self.get_success(
-            defer.ensureDeferred(self.module_api.get_room_state(room_id))
-        )
+        state = self.get_success(self.module_api.get_room_state(room_id))
 
         # Check that a few standard events are in the returned state.
         self.assertIn((EventTypes.Create, ""), state)
@@ -653,14 +640,12 @@ class ModuleApiTestCase(BaseModuleApiTestCase):
 
         # Change the .m.rule.message actions to not notify on new messages.
         self.get_success(
-            defer.ensureDeferred(
-                self.module_api.set_push_rule_action(
-                    user_id=user_id,
-                    scope="global",
-                    kind="underride",
-                    rule_id=".m.rule.message",
-                    actions=["dont_notify"],
-                )
+            self.module_api.set_push_rule_action(
+                user_id=user_id,
+                scope="global",
+                kind="underride",
+                rule_id=".m.rule.message",
+                actions=["dont_notify"],
             )
         )
 
@@ -926,10 +911,8 @@ def _test_sending_local_online_presence_to_local_user(
     # Trigger sending local online presence. We expect this information
     # to be saved to the database where all processes can access it.
     # Note that we're syncing via the master.
-    d = defer.ensureDeferred(
-        module_api_to_use.send_local_online_presence_to(
-            [test_case.presence_receiver_id],
-        )
+    d = module_api_to_use.send_local_online_presence_to(
+        [test_case.presence_receiver_id],
     )
 
     if test_with_workers:
@@ -986,12 +969,10 @@ def _test_sending_local_online_presence_to_local_user(
     test_case.assertEqual(len(presence_updates), 1)
 
     # Now trigger sending local online presence.
-    d = defer.ensureDeferred(
-        module_api_to_use.send_local_online_presence_to(
-            [
-                test_case.presence_receiver_id,
-            ]
-        )
+    d = module_api_to_use.send_local_online_presence_to(
+        [
+            test_case.presence_receiver_id,
+        ]
     )
 
     if test_with_workers:
