@@ -14,7 +14,7 @@
 from typing import Any, TypeVar
 
 import jsonschema
-from pydantic import BaseModel, ValidationError, parse_obj_as
+from pydantic import BaseModel, TypeAdapter, ValidationError
 
 from relapse.config._base import ConfigError
 from relapse.types import JsonDict, StrSequence
@@ -84,9 +84,9 @@ def parse_and_validate_mapping(
         ConfigError, if given improper input.
     """
     try:
-        # type-ignore: mypy doesn't like constructing `Dict[str, model_type]` because
+        # type-ignore: mypy doesn't like constructing `dict[str, model_type]` because
         # `model_type` is a runtime variable. Pydantic is fine with this.
-        instances = parse_obj_as(dict[str, model_type], config)  # type: ignore[valid-type]
+        instances = TypeAdapter(dict[str, model_type]).validate_python(config)  # type: ignore[valid-type]
     except ValidationError as e:
         raise ConfigError(str(e)) from e
     return instances
