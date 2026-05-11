@@ -338,6 +338,11 @@ jobs:
       # don't run trial in multi-process mode.
       - run: poetry run trial --reactor=asyncio --jobs=6 tests
         if: ${{ matrix.job.python-version != '3.14' }}
+        env:
+          RELAPSE_POSTGRES: ${{ matrix.job.database == 'postgres' || '' }}
+          RELAPSE_POSTGRES_HOST: /var/run/postgresql
+          RELAPSE_POSTGRES_USER: postgres
+          RELAPSE_POSTGRES_PASSWORD: postgres
       - run: poetry run trial tests
         if: ${{ matrix.job.python-version == '3.14' }}
         env:
