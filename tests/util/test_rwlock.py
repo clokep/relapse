@@ -217,7 +217,7 @@ class ReadWriteLockTestCase(unittest.TestCase):
         d3, _ = self._start_nonblocking_writer(rwlock, key, "write 3 completed")
         self.assertTrue(d3.called)
 
-    def test_cancellation_while_holding_read_lock(self) -> None:
+    async def test_cancellation_while_holding_read_lock(self) -> None:
         """Test cancellation while holding a read lock.
 
         A waiting writer should be given the lock when the reader holding the lock is
@@ -235,15 +235,16 @@ class ReadWriteLockTestCase(unittest.TestCase):
 
         # 3. The reader is cancelled.
         reader_d.cancel()
-        self.failureResultOf(reader_d, CancelledError)
+        with self.assertRaises(CancelledError):
+            await reader_d
 
         # 4. The writer should take the lock and complete.
         self.assertTrue(
             writer_d.called, "Writer is stuck waiting for a cancelled reader"
         )
-        self.assertEqual("write completed", self.successResultOf(writer_d))
+        self.assertEqual("write completed", await writer_d)
 
-    def test_cancellation_while_holding_write_lock(self) -> None:
+    async def test_cancellation_while_holding_write_lock(self) -> None:
         """Test cancellation while holding a write lock.
 
         A waiting reader should be given the lock when the writer holding the lock is
@@ -261,15 +262,16 @@ class ReadWriteLockTestCase(unittest.TestCase):
 
         # 3. The writer is cancelled.
         writer_d.cancel()
-        self.failureResultOf(writer_d, CancelledError)
+        with self.assertRaises(CancelledError):
+            await writer_d
 
         # 4. The reader should take the lock and complete.
         self.assertTrue(
             reader_d.called, "Reader is stuck waiting for a cancelled writer"
         )
-        self.assertEqual("read completed", self.successResultOf(reader_d))
+        self.assertEqual("read completed", await reader_d)
 
-    def test_cancellation_while_waiting_for_read_lock(self) -> None:
+    async def test_cancellation_while_waiting_for_read_lock(self) -> None:
         """Test cancellation while waiting for a read lock.
 
         Tests that cancelling a waiting reader:
@@ -302,7 +304,8 @@ class ReadWriteLockTestCase(unittest.TestCase):
         #    Neither of the writers should be cancelled.
         #    The second writer should still be waiting, but only on the first writer.
         reader_d.cancel()
-        self.failureResultOf(reader_d, CancelledError)
+        with self.assertRaises(CancelledError):
+            await reader_d
         self.assertFalse(writer1_d.called, "First writer was unexpectedly cancelled")
         self.assertFalse(
             writer2_d.called,
@@ -312,15 +315,15 @@ class ReadWriteLockTestCase(unittest.TestCase):
 
         # 5. Unblock the first writer, which should complete.
         unblock_writer1.callback(None)
-        self.assertEqual("write 1 completed", self.successResultOf(writer1_d))
+        self.assertEqual("write 1 completed", await writer1_d)
 
         # 6. The second writer should take the lock and complete.
         self.assertTrue(
             writer2_d.called, "Second writer is stuck waiting for a cancelled reader"
         )
-        self.assertEqual("write 2 completed", self.successResultOf(writer2_d))
+        self.assertEqual("write 2 completed", await writer2_d)
 
-    def test_cancellation_while_waiting_for_write_lock(self) -> None:
+    async def test_cancellation_while_waiting_for_write_lock(self) -> None:
         """Test cancellation while waiting for a write lock.
 
         Tests that cancelling a waiting writer:
@@ -372,7 +375,7 @@ class ReadWriteLockTestCase(unittest.TestCase):
         #    The first writer should be given the lock and block.
         #    The third writer should still be waiting on the second writer.
         unblock_reader.callback(None)
-        self.assertEqual("read completed", self.successResultOf(reader_d))
+        self.assertEqual("read completed", await reader_d)
         self.assertNoResult(writer2_d)
         self.assertFalse(
             writer3_d.called,
@@ -382,14 +385,15 @@ class ReadWriteLockTestCase(unittest.TestCase):
 
         # 7. Unblock the first writer, which should complete.
         unblock_writer1.callback(None)
-        self.assertEqual("write 1 completed", self.successResultOf(writer1_d))
+        self.assertEqual("write 1 completed", await writer1_d)
 
         # 8. The second writer should take the lock and release it immediately, since it
         #    has been cancelled.
-        self.failureResultOf(writer2_d, CancelledError)
+        with self.assertRaises(CancelledError):
+            await writer2_d
 
         # 9. The third writer should take the lock and complete.
         self.assertTrue(
             writer3_d.called, "Third writer is stuck waiting for a cancelled writer"
         )
-        self.assertEqual("write 3 completed", self.successResultOf(writer3_d))
+        self.assertEqual("write 3 completed", await writer3_d)

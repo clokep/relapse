@@ -184,7 +184,7 @@ class DescriptorTestCase(unittest.TestCase):
         self.assertEqual(r, "fish")
         obj.mock.assert_not_called()
 
-    def test_cache_with_sync_exception(self) -> None:
+    async def test_cache_with_sync_exception(self) -> None:
         """If the wrapped function throws synchronously, things should continue to work"""
 
         class Cls:
@@ -196,14 +196,16 @@ class DescriptorTestCase(unittest.TestCase):
 
         # this should fail immediately
         d = obj.fn(1)
-        self.failureResultOf(d, RelapseError)
+        with self.assertRaises(RelapseError):
+            await d
 
         # ... leaving the cache empty
         self.assertEqual(len(obj.fn.cache.cache), 0)
 
         # and a second call should result in a second exception
         d = obj.fn(1)
-        self.failureResultOf(d, RelapseError)
+        with self.assertRaises(RelapseError):
+            await d
 
     async def test_cache_with_async_exception(self) -> None:
         """The wrapped function returns a failure"""
@@ -242,8 +244,13 @@ class DescriptorTestCase(unittest.TestCase):
         origin_d.errback(e)
 
         # ... which should cause the lookups to fail similarly
-        self.assertIs(self.failureResultOf(d1, Exception).value, e)
-        self.assertIs(self.failureResultOf(d2, Exception).value, e)
+        with self.assertRaises(Exception) as exc:
+            await d1
+        self.assertIs(exc.exception, e)
+
+        with self.assertRaises(Exception) as exc:
+            await d2
+        self.assertIs(exc.exception, e)
 
         # ... and the callbacks to have been, uh, called.
         self.assertEqual(callbacks, {"d1", "d2"})
@@ -410,7 +417,7 @@ class DescriptorTestCase(unittest.TestCase):
         self.assertEqual(r.result, ("chips",))
         obj.mock.assert_not_called()
 
-    def test_cache_iterable_with_sync_exception(self) -> None:
+    async def test_cache_iterable_with_sync_exception(self) -> None:
         """If the wrapped function throws synchronously, things should continue to work"""
 
         class Cls:
@@ -422,14 +429,16 @@ class DescriptorTestCase(unittest.TestCase):
 
         # this should fail immediately
         d = obj.fn(1)
-        self.failureResultOf(d, RelapseError)
+        with self.assertRaises(RelapseError):
+            await d
 
         # ... leaving the cache empty
         self.assertEqual(len(obj.fn.cache.cache), 0)
 
         # and a second call should result in a second exception
         d = obj.fn(1)
-        self.failureResultOf(d, RelapseError)
+        with self.assertRaises(RelapseError):
+            await d
 
     async def test_invalidate_cascade(self) -> None:
         """Invalidations should cascade up through cache contexts"""
@@ -456,7 +465,7 @@ class DescriptorTestCase(unittest.TestCase):
         obj.invalidate()
         top_invalidate.assert_called_once()
 
-    def test_cancel(self) -> None:
+    async def test_cancel(self) -> None:
         """Test that cancelling a lookup does not cancel other lookups"""
         complete_lookup: Deferred[None] = Deferred()
 
@@ -478,7 +487,8 @@ class DescriptorTestCase(unittest.TestCase):
 
         # `d2` should complete normally.
         complete_lookup.callback(None)
-        self.failureResultOf(d1, CancelledError)
+        with self.assertRaises(CancelledError):
+            await d1
         self.assertEqual(d2.result, "123")
 
     async def test_cancel_logcontexts(self) -> None:
@@ -892,7 +902,7 @@ class CachedListDescriptorTestCase(unittest.TestCase):
         invalidate0.assert_called_once()
         invalidate1.assert_called_once()
 
-    def test_cancel(self) -> None:
+    async def test_cancel(self) -> None:
         """Test that cancelling a lookup does not cancel other lookups"""
         complete_lookup: Deferred[None] = Deferred()
 
@@ -917,7 +927,8 @@ class CachedListDescriptorTestCase(unittest.TestCase):
 
         # `d2` should complete normally.
         complete_lookup.callback(None)
-        self.failureResultOf(d1, CancelledError)
+        with self.assertRaises(CancelledError):
+            await d1
         self.assertEqual(d2.result, {123: "123", 456: "456", 789: "789"})
 
     async def test_cancel_logcontexts(self) -> None:

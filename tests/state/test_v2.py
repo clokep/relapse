@@ -172,7 +172,7 @@ INITIAL_EDGES = ["START", "IMZ", "IMC", "IMB", "IJR", "IPOWER", "IMA", "CREATE"]
 
 
 class StateTestCase(unittest.TestCase):
-    def test_ban_vs_pl(self) -> None:
+    async def test_ban_vs_pl(self) -> None:
         events = [
             FakeEvent(
                 id="PA",
@@ -208,9 +208,9 @@ class StateTestCase(unittest.TestCase):
 
         expected_state_ids = ["PA", "MA", "MB"]
 
-        self.do_check(events, edges, expected_state_ids)
+        await self.do_check(events, edges, expected_state_ids)
 
-    def test_join_rule_evasion(self) -> None:
+    async def test_join_rule_evasion(self) -> None:
         events = [
             FakeEvent(
                 id="JR",
@@ -232,9 +232,9 @@ class StateTestCase(unittest.TestCase):
 
         expected_state_ids = ["JR"]
 
-        self.do_check(events, edges, expected_state_ids)
+        await self.do_check(events, edges, expected_state_ids)
 
-    def test_offtopic_pl(self) -> None:
+    async def test_offtopic_pl(self) -> None:
         events = [
             FakeEvent(
                 id="PA",
@@ -263,9 +263,9 @@ class StateTestCase(unittest.TestCase):
 
         expected_state_ids = ["PC"]
 
-        self.do_check(events, edges, expected_state_ids)
+        await self.do_check(events, edges, expected_state_ids)
 
-    def test_topic_basic(self) -> None:
+    async def test_topic_basic(self) -> None:
         events = [
             FakeEvent(
                 id="T1", sender=ALICE, type=EventTypes.Topic, state_key="", content={}
@@ -303,9 +303,9 @@ class StateTestCase(unittest.TestCase):
 
         expected_state_ids = ["PA2", "T2"]
 
-        self.do_check(events, edges, expected_state_ids)
+        await self.do_check(events, edges, expected_state_ids)
 
-    def test_topic_reset(self) -> None:
+    async def test_topic_reset(self) -> None:
         events = [
             FakeEvent(
                 id="T1", sender=ALICE, type=EventTypes.Topic, state_key="", content={}
@@ -333,9 +333,9 @@ class StateTestCase(unittest.TestCase):
 
         expected_state_ids = ["T1", "MB", "PA"]
 
-        self.do_check(events, edges, expected_state_ids)
+        await self.do_check(events, edges, expected_state_ids)
 
-    def test_topic(self) -> None:
+    async def test_topic(self) -> None:
         events = [
             FakeEvent(
                 id="T1", sender=ALICE, type=EventTypes.Topic, state_key="", content={}
@@ -386,9 +386,9 @@ class StateTestCase(unittest.TestCase):
 
         expected_state_ids = ["T4", "PA2"]
 
-        self.do_check(events, edges, expected_state_ids)
+        await self.do_check(events, edges, expected_state_ids)
 
-    def test_mainline_sort(self) -> None:
+    async def test_mainline_sort(self) -> None:
         """Tests that the mainline ordering works correctly."""
 
         events = [
@@ -440,9 +440,9 @@ class StateTestCase(unittest.TestCase):
         # it being sent *after* T3.
         expected_state_ids = ["T3", "PA2"]
 
-        self.do_check(events, edges, expected_state_ids)
+        await self.do_check(events, edges, expected_state_ids)
 
-    def do_check(
+    async def do_check(
         self,
         events: list[FakeEvent],
         edges: list[list[str]],
@@ -501,7 +501,7 @@ class StateTestCase(unittest.TestCase):
                     state_res_store=TestStateResolutionStore(event_map),
                 )
 
-                state_before = self.successResultOf(defer.ensureDeferred(state_d))
+                state_before = await defer.ensureDeferred(state_d)
 
             state_after = dict(state_before)
             if fake_event.state_key is not None:
@@ -653,7 +653,7 @@ class SimpleParamStateTestCase(unittest.TestCase):
             ]
         }
 
-    def test_event_map_none(self) -> None:
+    async def test_event_map_none(self) -> None:
         # Test that we correctly handle passing `None` as the event_map
 
         state_d = resolve_events_with_store(
@@ -665,7 +665,7 @@ class SimpleParamStateTestCase(unittest.TestCase):
             state_res_store=TestStateResolutionStore(self.event_map),
         )
 
-        state = self.successResultOf(defer.ensureDeferred(state_d))
+        state = await defer.ensureDeferred(state_d)
 
         self.assert_dict(self.expected_combined_state, state)
 
@@ -675,7 +675,7 @@ class AuthChainDifferenceTestCase(unittest.TestCase):
     events.
     """
 
-    def test_simple(self) -> None:
+    async def test_simple(self) -> None:
         # Test getting the auth difference for a simple chain with a single
         # unpersisted event:
         #
@@ -720,11 +720,11 @@ class AuthChainDifferenceTestCase(unittest.TestCase):
         diff_d = _get_auth_chain_difference(
             ROOM_ID, state_sets, unpersited_events, store
         )
-        difference = self.successResultOf(defer.ensureDeferred(diff_d))
+        difference = await defer.ensureDeferred(diff_d)
 
         self.assertEqual(difference, {c.event_id})
 
-    def test_multiple_unpersisted_chain(self) -> None:
+    async def test_multiple_unpersisted_chain(self) -> None:
         # Test getting the auth difference for a simple chain with multiple
         # unpersisted events:
         #
@@ -777,11 +777,11 @@ class AuthChainDifferenceTestCase(unittest.TestCase):
         diff_d = _get_auth_chain_difference(
             ROOM_ID, state_sets, unpersited_events, store
         )
-        difference = self.successResultOf(defer.ensureDeferred(diff_d))
+        difference = await defer.ensureDeferred(diff_d)
 
         self.assertEqual(difference, {d.event_id, c.event_id})
 
-    def test_unpersisted_events_different_sets(self) -> None:
+    async def test_unpersisted_events_different_sets(self) -> None:
         # Test getting the auth difference for with multiple unpersisted events
         # in different branches:
         #
@@ -844,7 +844,7 @@ class AuthChainDifferenceTestCase(unittest.TestCase):
         diff_d = _get_auth_chain_difference(
             ROOM_ID, state_sets, unpersited_events, store
         )
-        difference = self.successResultOf(defer.ensureDeferred(diff_d))
+        difference = await defer.ensureDeferred(diff_d)
 
         self.assertEqual(difference, {d.event_id, e.event_id})
 

@@ -175,7 +175,7 @@ class FederationSenderReceiptsTestCases(HomeserverTestCase):
             ],
         )
 
-    def test_send_receipts_with_backoff(self) -> None:
+    async def test_send_receipts_with_backoff(self) -> None:
         """Send two receipts in quick succession; the second should be flushed, but
         only after 20ms"""
         mock_send_transaction = self.federation_client.send_transaction
@@ -227,7 +227,7 @@ class FederationSenderReceiptsTestCases(HomeserverTestCase):
             thread_id=None,
             data={"ts": 1234},
         )
-        self.successResultOf(defer.ensureDeferred(sender.send_read_receipt(receipt)))
+        await defer.ensureDeferred(sender.send_read_receipt(receipt))
         self.pump()
         mock_send_transaction.assert_not_called()
 

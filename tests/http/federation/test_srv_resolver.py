@@ -147,7 +147,7 @@ class SrvResolverTestCase(unittest.TestCase):
         self.assertEqual(len(servers), 0)
         self.assertEqual(len(cache), 0)
 
-    def test_disabled_service(self) -> None:
+    async def test_disabled_service(self) -> None:
         """
         test the behaviour when there is a single record which is ".".
         """
@@ -159,7 +159,6 @@ class SrvResolverTestCase(unittest.TestCase):
         cache: dict[bytes, list[Server]] = {}
         resolver = SrvResolver(dns_client=dns_client_mock, cache=cache)
 
-        # Old versions of Twisted don't have an ensureDeferred in failureResultOf.
         resolve_d = resolver.resolve_service(service_name)
 
         # returning a single "." should make the lookup fail with a ConenctError
@@ -171,7 +170,8 @@ class SrvResolverTestCase(unittest.TestCase):
             )
         )
 
-        self.failureResultOf(resolve_d, ConnectError)
+        with self.assertRaises(ConnectError):
+            await resolve_d
 
     async def test_non_srv_answer(self) -> None:
         """
@@ -185,7 +185,6 @@ class SrvResolverTestCase(unittest.TestCase):
         cache: dict[bytes, list[Server]] = {}
         resolver = SrvResolver(dns_client=dns_client_mock, cache=cache)
 
-        # Old versions of Twisted don't have an ensureDeferred in successResultOf.
         resolve_d = resolver.resolve_service(service_name)
 
         lookup_deferred.callback(

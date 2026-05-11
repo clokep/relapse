@@ -38,18 +38,16 @@ class PartialStateEventsTrackerTestCase(TestCase):
 
         self.tracker = PartialStateEventsTracker(self.mock_store)
 
-    def test_does_not_block_for_full_state_events(self) -> None:
+    async def test_does_not_block_for_full_state_events(self) -> None:
         self._events_dict = {"event1": False, "event2": False}
 
-        self.successResultOf(
-            ensureDeferred(self.tracker.await_full_state(["event1", "event2"]))
-        )
+        await ensureDeferred(self.tracker.await_full_state(["event1", "event2"]))
 
         self.mock_store.get_partial_state_events.assert_called_once_with(
             ["event1", "event2"]
         )
 
-    def test_blocks_for_partial_state_events(self) -> None:
+    async def test_blocks_for_partial_state_events(self) -> None:
         self._events_dict = {"event1": True, "event2": False}
 
         d = ensureDeferred(self.tracker.await_full_state(["event1", "event2"]))
@@ -59,9 +57,9 @@ class PartialStateEventsTrackerTestCase(TestCase):
 
         # notifying that the event has been de-partial-stated should unblock
         self.tracker.notify_un_partial_stated("event1")
-        self.successResultOf(d)
+        await d
 
-    def test_un_partial_state_race(self) -> None:
+    async def test_un_partial_state_race(self) -> None:
         # if the event is un-partial-stated between the initial check and the
         # registration of the listener, it should not block.
         self._events_dict = {"event1": True, "event2": False}
@@ -74,11 +72,9 @@ class PartialStateEventsTrackerTestCase(TestCase):
 
         self.mock_store.get_partial_state_events.side_effect = get_partial_state_events
 
-        self.successResultOf(
-            ensureDeferred(self.tracker.await_full_state(["event1", "event2"]))
-        )
+        await ensureDeferred(self.tracker.await_full_state(["event1", "event2"]))
 
-    def test_un_partial_state_during_get_partial_state_events(self) -> None:
+    async def test_un_partial_state_during_get_partial_state_events(self) -> None:
         # we should correctly handle a call to notify_un_partial_stated during the
         # second call to get_partial_state_events.
 
@@ -97,11 +93,9 @@ class PartialStateEventsTrackerTestCase(TestCase):
 
         self.mock_store.get_partial_state_events.side_effect = get_partial_state_events1
 
-        self.successResultOf(
-            ensureDeferred(self.tracker.await_full_state(["event1", "event2"]))
-        )
+        await ensureDeferred(self.tracker.await_full_state(["event1", "event2"]))
 
-    def test_cancellation(self) -> None:
+    async def test_cancellation(self) -> None:
         self._events_dict = {"event1": True, "event2": False}
 
         d1 = ensureDeferred(self.tracker.await_full_state(["event1", "event2"]))
@@ -111,13 +105,14 @@ class PartialStateEventsTrackerTestCase(TestCase):
         self.assertNoResult(d2)
 
         d1.cancel()
-        self.assertFailure(d1, CancelledError)
+        with self.assertRaises(CancelledError):
+            await d1
 
         # d2 should still be waiting!
         self.assertNoResult(d2)
 
         self.tracker.notify_un_partial_stated("event1")
-        self.successResultOf(d2)
+        await d2
 
 
 class PartialCurrentStateTrackerTestCase(TestCase):
@@ -127,12 +122,12 @@ class PartialCurrentStateTrackerTestCase(TestCase):
 
         self.tracker = PartialCurrentStateTracker(self.mock_store)
 
-    def test_does_not_block_for_full_state_rooms(self) -> None:
+    async def test_does_not_block_for_full_state_rooms(self) -> None:
         self.mock_store.is_partial_state_room.return_value = False
 
-        self.successResultOf(ensureDeferred(self.tracker.await_full_state("room_id")))
+        await ensureDeferred(self.tracker.await_full_state("room_id"))
 
-    def test_blocks_for_partial_room_state(self) -> None:
+    async def test_blocks_for_partial_room_state(self) -> None:
         self.mock_store.is_partial_state_room.return_value = True
 
         d = ensureDeferred(self.tracker.await_full_state("room_id"))
@@ -142,9 +137,9 @@ class PartialCurrentStateTrackerTestCase(TestCase):
 
         # notifying that the room has been de-partial-stated should unblock
         self.tracker.notify_un_partial_stated("room_id")
-        self.successResultOf(d)
+        await d
 
-    def test_un_partial_state_race(self) -> None:
+    async def test_un_partial_state_race(self) -> None:
         # We should correctly handle race between awaiting the state and us
         # un-partialling the state
         async def is_partial_state_room(room_id: str) -> bool:
@@ -153,9 +148,9 @@ class PartialCurrentStateTrackerTestCase(TestCase):
 
         self.mock_store.is_partial_state_room.side_effect = is_partial_state_room
 
-        self.successResultOf(ensureDeferred(self.tracker.await_full_state("room_id")))
+        await ensureDeferred(self.tracker.await_full_state("room_id"))
 
-    def test_cancellation(self) -> None:
+    async def test_cancellation(self) -> None:
         self.mock_store.is_partial_state_room.return_value = True
 
         d1 = ensureDeferred(self.tracker.await_full_state("room_id"))
@@ -165,10 +160,11 @@ class PartialCurrentStateTrackerTestCase(TestCase):
         self.assertNoResult(d2)
 
         d1.cancel()
-        self.assertFailure(d1, CancelledError)
+        with self.assertRaises(CancelledError):
+            await d1
 
         # d2 should still be waiting!
         self.assertNoResult(d2)
 
         self.tracker.notify_un_partial_stated("room_id")
-        self.successResultOf(d2)
+        await d2

@@ -111,7 +111,7 @@ class ObservableDeferredTest(TestCase):
         assert results[1] is not None
         self.assertEqual(str(results[1].value), "gah!", "observer 2 errback result")
 
-    def test_cancellation(self) -> None:
+    async def test_cancellation(self) -> None:
         """Test that cancelling an observer does not affect other observers."""
         origin_d: Deferred[int] = Deferred()
         observable = ObservableDeferred(origin_d, consumeErrors=True)
@@ -127,7 +127,8 @@ class ObservableDeferredTest(TestCase):
         # cancel the second observer
         observer2.cancel()
         self.assertFalse(observer1.called)
-        self.failureResultOf(observer2, CancelledError)
+        with self.assertRaises(CancelledError):
+            await observer2
         self.assertFalse(observer3.called)
 
         # other observers resolve as normal
@@ -144,7 +145,7 @@ class TimeoutDeferredTest(TestCase):
     def setUp(self) -> None:
         self.clock = Clock()
 
-    def test_times_out(self) -> None:
+    async def test_times_out(self) -> None:
         """Basic test case that checks that the original deferred is cancelled and that
         the timing-out deferred is errbacked
         """
@@ -163,9 +164,10 @@ class TimeoutDeferredTest(TestCase):
         self.clock.pump((1.0,))
 
         self.assertTrue(cancelled, "deferred was not cancelled by timeout")
-        self.failureResultOf(timing_out_d, defer.TimeoutError)
+        with self.assertRaises(defer.TimeoutError):
+            await timing_out_d
 
-    def test_times_out_when_canceller_throws(self) -> None:
+    async def test_times_out_when_canceller_throws(self) -> None:
         """Test that we have successfully worked around
         https://twistedmatrix.com/trac/ticket/9534"""
 
@@ -179,7 +181,8 @@ class TimeoutDeferredTest(TestCase):
 
         self.clock.pump((1.0,))
 
-        self.failureResultOf(timing_out_d, defer.TimeoutError)
+        with self.assertRaises(defer.TimeoutError):
+            await timing_out_d
 
     async def test_logcontext_is_preserved_on_cancellation(self) -> None:
         blocking_was_cancelled = False
@@ -227,7 +230,7 @@ class _TestException(Exception):
 
 
 class ConcurrentlyExecuteTest(TestCase):
-    def test_limits_runners(self) -> None:
+    async def test_limits_runners(self) -> None:
         """If we have more tasks than runners, we should get the limit of runners"""
         started = 0
         waiters = []
@@ -270,9 +273,9 @@ class ConcurrentlyExecuteTest(TestCase):
         # check everything got done
         self.assertEqual(started, 5)
         self.assertCountEqual(processed, [1, 2, 3, 4, 5])
-        self.successResultOf(d2)
+        await d2
 
-    def test_preserves_stacktraces(self) -> None:
+    async def test_preserves_stacktraces(self) -> None:
         """Test that the stacktrace from an exception thrown in the callback is preserved"""
         d1: Deferred[int] = Deferred()
 
@@ -295,9 +298,9 @@ class ConcurrentlyExecuteTest(TestCase):
 
         d2 = ensureDeferred(caller())
         d1.callback(0)
-        self.successResultOf(d2)
+        await d2
 
-    def test_preserves_stacktraces_on_preformed_failure(self) -> None:
+    async def test_preserves_stacktraces_on_preformed_failure(self) -> None:
         """Test that the stacktrace on a Failure returned by the callback is preserved"""
         d1: Deferred[int] = Deferred()
         f = Failure(_TestException("bah"))
@@ -326,7 +329,7 @@ class ConcurrentlyExecuteTest(TestCase):
 
         d2 = ensureDeferred(caller())
         d1.callback(0)
-        self.successResultOf(d2)
+        await d2
 
 
 @parameterized_class(
@@ -346,7 +349,7 @@ class CancellationWrapperTests(TestCase):
         else:
             raise ValueError(f"Unsupported wrapper type: {self.wrapper}")
 
-    def test_succeed(self) -> None:
+    async def test_succeed(self) -> None:
         """Test that the new `Deferred` receives the result."""
         deferred: Deferred[str] = Deferred()
         wrapper_deferred = self.wrap_deferred(deferred)
@@ -354,9 +357,9 @@ class CancellationWrapperTests(TestCase):
         # Success should propagate through.
         deferred.callback("success")
         self.assertTrue(wrapper_deferred.called)
-        self.assertEqual("success", self.successResultOf(wrapper_deferred))
+        self.assertEqual("success", await wrapper_deferred)
 
-    def test_failure(self) -> None:
+    async def test_failure(self) -> None:
         """Test that the new `Deferred` receives the `Failure`."""
         deferred: Deferred[str] = Deferred()
         wrapper_deferred = self.wrap_deferred(deferred)
@@ -364,14 +367,15 @@ class CancellationWrapperTests(TestCase):
         # Failure should propagate through.
         deferred.errback(ValueError("abc"))
         self.assertTrue(wrapper_deferred.called)
-        self.failureResultOf(wrapper_deferred, ValueError)
+        with self.assertRaises(ValueError):
+            await wrapper_deferred
         self.assertIsNone(deferred.result, "`Failure` was not consumed")
 
 
 class StopCancellationTests(TestCase):
     """Tests for the `stop_cancellation` function."""
 
-    def test_cancellation(self) -> None:
+    async def test_cancellation(self) -> None:
         """Test that cancellation of the new `Deferred` leaves the original running."""
         deferred: Deferred[str] = Deferred()
         wrapper_deferred = stop_cancellation(deferred)
@@ -379,7 +383,8 @@ class StopCancellationTests(TestCase):
         # Cancel the new `Deferred`.
         wrapper_deferred.cancel()
         self.assertTrue(wrapper_deferred.called)
-        self.failureResultOf(wrapper_deferred, CancelledError)
+        with self.assertRaises(CancelledError):
+            await wrapper_deferred
         self.assertFalse(
             deferred.called, "Original `Deferred` was unexpectedly cancelled"
         )
@@ -394,7 +399,7 @@ class StopCancellationTests(TestCase):
 class DelayCancellationTests(TestCase):
     """Tests for the `delay_cancellation` function."""
 
-    def test_deferred_cancellation(self) -> None:
+    async def test_deferred_cancellation(self) -> None:
         """Test that cancellation of the new `Deferred` waits for the original."""
         deferred: Deferred[str] = Deferred()
         wrapper_deferred = delay_cancellation(deferred)
@@ -413,9 +418,10 @@ class DelayCancellationTests(TestCase):
         self.assertIsNone(deferred.result, "`Failure` was not consumed")
 
         # Now that the original `Deferred` has failed, we should get a `CancelledError`.
-        self.failureResultOf(wrapper_deferred, CancelledError)
+        with self.assertRaises(CancelledError):
+            await wrapper_deferred
 
-    def test_coroutine_cancellation(self) -> None:
+    async def test_coroutine_cancellation(self) -> None:
         """Test that cancellation of the new `Deferred` waits for the original."""
         blocking_deferred: Deferred[None] = Deferred()
         completion_deferred: Deferred[None] = Deferred()
@@ -442,9 +448,10 @@ class DelayCancellationTests(TestCase):
         self.assertTrue(completion_deferred.called)
 
         # Now that the original coroutine has failed, we should get a `CancelledError`.
-        self.failureResultOf(wrapper_deferred, CancelledError)
+        with self.assertRaises(CancelledError):
+            await wrapper_deferred
 
-    def test_suppresses_second_cancellation(self) -> None:
+    async def test_suppresses_second_cancellation(self) -> None:
         """Test that a second cancellation is suppressed.
 
         Identical to `test_cancellation` except the new `Deferred` is cancelled twice.
@@ -467,9 +474,10 @@ class DelayCancellationTests(TestCase):
         self.assertIsNone(deferred.result, "`Failure` was not consumed")
 
         # Now that the original `Deferred` has failed, we should get a `CancelledError`.
-        self.failureResultOf(wrapper_deferred, CancelledError)
+        with self.assertRaises(CancelledError):
+            await wrapper_deferred
 
-    def test_propagates_cancelled_error(self) -> None:
+    async def test_propagates_cancelled_error(self) -> None:
         """Test that a `CancelledError` from the original `Deferred` gets propagated."""
         deferred: Deferred[str] = Deferred()
         wrapper_deferred = delay_cancellation(deferred)
@@ -480,9 +488,11 @@ class DelayCancellationTests(TestCase):
 
         # The new `Deferred` should fail with exactly the same `CancelledError`.
         self.assertTrue(wrapper_deferred.called)
-        self.assertIs(cancelled_error, self.failureResultOf(wrapper_deferred).value)
+        with self.assertRaises(CancelledError) as e:
+            await wrapper_deferred
+        self.assertIs(cancelled_error, e.exception)
 
-    def test_preserves_logcontext(self) -> None:
+    async def test_preserves_logcontext(self) -> None:
         """Test that logging contexts are preserved."""
         blocking_d: Deferred[None] = Deferred()
 
@@ -507,7 +517,7 @@ class DelayCancellationTests(TestCase):
         # Now unblock. `outer()` will consume the `CancelledError` and check the
         # logging context.
         blocking_d.callback(None)
-        self.successResultOf(d)
+        await d
 
 
 class AwakenableSleeperTests(TestCase):

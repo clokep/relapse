@@ -159,7 +159,7 @@ class BlocklistingAgentTest(TestCase):
         self.ip_allowlist = IPSet([self.allowed_ip.decode()])
         self.ip_blocklist = IPSet(["5.0.0.0/8"])
 
-    def test_reactor(self) -> None:
+    async def test_reactor(self) -> None:
         """Apply the blocklisting reactor and ensure it properly blocks connections to particular domains and IPs."""
         agent = Agent(
             BlocklistingReactorWrapper(
@@ -171,9 +171,8 @@ class BlocklistingAgentTest(TestCase):
 
         # The unsafe domains and IPs should be rejected.
         for domain in (self.unsafe_domain, self.unsafe_ip):
-            self.failureResultOf(
-                agent.request(b"GET", b"http://" + domain), DNSLookupError
-            )
+            with self.assertRaises(DNSLookupError):
+                await agent.request(b"GET", b"http://" + domain)
 
         # The safe domains IPs should be accepted.
         for domain in (
@@ -202,10 +201,10 @@ class BlocklistingAgentTest(TestCase):
                 b"HTTP/1.0 200 OK\r\nContent-Length: 0\r\nContent-Type: text/html\r\n\r\n"
             )
 
-            response = self.successResultOf(d)
+            response = await d
             self.assertEqual(response.code, 200)
 
-    def test_agent(self) -> None:
+    async def test_agent(self) -> None:
         """Apply the blocklisting agent and ensure it properly blocks connections to particular IPs."""
         agent = BlocklistingAgentWrapper(
             Agent(self.reactor),
@@ -214,9 +213,8 @@ class BlocklistingAgentTest(TestCase):
         )
 
         # The unsafe IPs should be rejected.
-        self.failureResultOf(
-            agent.request(b"GET", b"http://" + self.unsafe_ip), RelapseError
-        )
+        with self.assertRaises(RelapseError):
+            await agent.request(b"GET", b"http://" + self.unsafe_ip)
 
         # The safe and unsafe domains and safe IPs should be accepted.
         for domain in (
@@ -246,5 +244,5 @@ class BlocklistingAgentTest(TestCase):
                 b"HTTP/1.0 200 OK\r\nContent-Length: 0\r\nContent-Type: text/html\r\n\r\n"
             )
 
-            response = self.successResultOf(d)
+            response = await d
             self.assertEqual(response.code, 200)
