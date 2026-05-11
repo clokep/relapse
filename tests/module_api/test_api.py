@@ -14,6 +14,7 @@
 from typing import Any
 from unittest.mock import AsyncMock, Mock
 
+from twisted.internet import defer
 from twisted.internet.testing import MemoryReactor
 
 from relapse.api.constants import EduTypes, EventTypes
@@ -911,8 +912,10 @@ def _test_sending_local_online_presence_to_local_user(
     # Trigger sending local online presence. We expect this information
     # to be saved to the database where all processes can access it.
     # Note that we're syncing via the master.
-    d = module_api_to_use.send_local_online_presence_to(
-        [test_case.presence_receiver_id],
+    d = defer.ensureDeferred(
+        module_api_to_use.send_local_online_presence_to(
+            [test_case.presence_receiver_id]
+        )
     )
 
     if test_with_workers:
@@ -969,10 +972,10 @@ def _test_sending_local_online_presence_to_local_user(
     test_case.assertEqual(len(presence_updates), 1)
 
     # Now trigger sending local online presence.
-    d = module_api_to_use.send_local_online_presence_to(
-        [
-            test_case.presence_receiver_id,
-        ]
+    d = defer.ensureDeferred(
+        module_api_to_use.send_local_online_presence_to(
+            [test_case.presence_receiver_id]
+        )
     )
 
     if test_with_workers:

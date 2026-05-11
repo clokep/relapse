@@ -189,7 +189,7 @@ class DescriptorTestCase(unittest.TestCase):
 
         class Cls:
             @cached()
-            def fn(self, arg1: int) -> NoReturn:
+            def fn(self, arg1: int) -> None:
                 raise RelapseError(100, "mai spoon iz too big!!1")
 
         obj = Cls()
@@ -422,7 +422,7 @@ class DescriptorTestCase(unittest.TestCase):
 
         class Cls:
             @descriptors.cached(iterable=True)
-            def fn(self, arg1: int) -> NoReturn:
+            def fn(self, arg1: int) -> None:
                 raise RelapseError(100, "mai spoon iz too big!!1")
 
         obj = Cls()
