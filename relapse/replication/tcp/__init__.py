@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""This module implements the TCP replication protocol used by relapse to
-communicate between the master process and its workers (when they're enabled).
+"""This module implements replication used by relapse to communicate between
+the master process and its workers (when they're enabled).
 
 Further details can be found in docs/tcp_replication.md
 
@@ -22,7 +22,6 @@ Structure of the module:
  * handler.py  - the classes used to handle sending/receiving commands to
                  replication
  * command.py  - the definitions of all the valid commands
- * protocol.py - the TCP protocol classes
  * resource.py - handles streaming stream updates to replications
  * streams/    - the definitions of all the valid streams
 

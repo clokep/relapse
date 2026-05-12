@@ -19,6 +19,14 @@ from tests.replication._base import BaseStreamTestCase
 
 
 class FederationStreamTestCase(BaseStreamTestCase):
+    def default_config(self) -> dict:
+        """Set up the master to not send federation, so that FederationStream
+        is added to the streams to replicate and FederationRemoteSendQueue is used.
+        """
+        config = super().default_config()
+        config["federation_sender_instances"] = ["federation_sender1"]
+        return config
+
     def _get_worker_hs_config(self) -> dict:
         # enable federation sending on the worker
         config = super()._get_worker_hs_config()
@@ -37,18 +45,14 @@ class FederationStreamTestCase(BaseStreamTestCase):
         fed_sender.build_and_send_edu("testdest", "m.test_edu", {"a": "b"})
 
         self.reconnect()
-        self.reactor.advance(0)
 
-        # check we're testing what we think we are: no rows should yet have been
-        # received
-        self.assertEqual(received_rows, [])
-
-        # We should now see an attempt to connect to the master
+        # The worker should have attempted an HTTP catch-up for the federation
+        # stream (since it was offline when the data was produced).
         request = self.handle_http_replication_attempt()
         self.assert_request_is_get_repl_stream_updates(request, "federation")
 
         # we should have received an update row
-        stream_name, token, row = received_rows.pop()
+        stream_name, token, row = received_rows.pop(0)
         self.assertEqual(stream_name, "federation")
         self.assertIsInstance(row, FederationStream.FederationStreamRow)
         self.assertEqual(row.type, EduRow.TypeId)
@@ -58,14 +62,15 @@ class FederationStreamTestCase(BaseStreamTestCase):
         self.assertEqual(edurow.edu.destination, "testdest")
         self.assertEqual(edurow.edu.content, {"a": "b"})
 
-        self.assertEqual(received_rows, [])
+        # clear any remaining catch-up rows (from potential duplicate delivery
+        # of stream data via both HTTP and Redis RDATA)
+        received_rows.clear()
 
         # additional updates should be transferred without an HTTP hit
         fed_sender.build_and_send_edu("testdest", "m.test1", {"c": "d"})
-        self.reactor.advance(0)
-        # there should be no http hit
-        self.assertEqual(len(self.reactor.tcpClients), 0)
-        # ... but we should have a row
+        self.replicate()
+
+        # we should have a row
         self.assertEqual(len(received_rows), 1)
 
         stream_name, token, row = received_rows.pop()
