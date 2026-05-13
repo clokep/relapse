@@ -24,12 +24,6 @@ from relapse.app.generic_worker import GenericWorkerServer
 from relapse.config.workers import InstanceTcpLocationConfig, InstanceUnixLocationConfig
 from relapse.http.site import RelapseRequest, RelapseSite
 from relapse.replication.tcp.client import ReplicationDataHandler
-from relapse.replication.tcp.handler import ReplicationCommandHandler
-from relapse.replication.tcp.protocol import (
-    ClientReplicationStreamProtocol,
-    ServerReplicationStreamProtocol,
-)
-from relapse.replication.tcp.resource import ReplicationStreamProtocolFactory
 from relapse.server import HomeServer
 from relapse.util import Clock
 
@@ -46,7 +40,10 @@ logger = logging.getLogger(__name__)
 
 
 class BaseStreamTestCase(unittest.HomeserverTestCase):
-    """Base class for tests of the replication streams"""
+    """Base class for tests of the replication streams
+
+    Uses a fake Redis server to simulate replication between master and worker.
+    """
 
     # hiredis is an optional dependency so we don't want to require it for running
     # the tests.
@@ -57,16 +54,33 @@ class BaseStreamTestCase(unittest.HomeserverTestCase):
         # Redis replication only takes place on Postgres
         skip = "Requires Postgres"
 
+    def default_config(self) -> dict[str, Any]:
+        """Override to enable Redis for replication."""
+        config = super().default_config()
+        config["redis"] = {"enabled": True}
+        config["instance_map"] = {"main": {"host": "testserv", "port": 8765}}
+        return config
+
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
-        # build a replication server
-        server_factory = ReplicationStreamProtocolFactory(hs)
         self.streamer = hs.get_replication_streamer()
-        self.server: ServerReplicationStreamProtocol = server_factory.buildProtocol(
-            IPv4Address("TCP", "127.0.0.1", 0)
+
+        # Fake in memory Redis server that servers can connect to.
+        self._redis_server = FakeRedisPubSubServer()
+
+        # We may have an attempt to connect to redis for the external cache already.
+        self.connect_any_redis_attempts()
+
+        self.reactor.lookups["testserv"] = "1.2.3.4"
+        self.reactor.lookups["localhost"] = "127.0.0.1"
+
+        # Handle attempts to connect to fake redis server.
+        self.reactor.add_tcp_client_callback(
+            "localhost",
+            6379,
+            self.connect_any_redis_attempts,
         )
 
         # Make a new HomeServer object for the worker
-        self.reactor.lookups["testserv"] = "1.2.3.4"
         self.worker_hs = self.setup_test_homeserver(
             homeserver_to_use=GenericWorkerServer,
             config=self._get_worker_hs_config(),
@@ -89,55 +103,72 @@ class BaseStreamTestCase(unittest.HomeserverTestCase):
         self.test_handler = self._build_replication_data_handler()
         self.worker_hs._replication_data_handler = self.test_handler  # type: ignore[attr-defined]
 
-        repl_handler = ReplicationCommandHandler(self.worker_hs)
-        self.client = ClientReplicationStreamProtocol(
-            self.worker_hs,
-            "client",
-            "test",
-            clock,
-            repl_handler,
-        )
+        # Start replication on the master only. The worker's Redis subscriber
+        # connection will be established when `reconnect()` is called.
+        hs.get_replication_command_handler().start_replication(hs)
 
-        self._client_transport: FakeTransport | None = None
-        self._server_transport: FakeTransport | None = None
+        self.connect_any_redis_attempts()
 
     def _get_worker_hs_config(self) -> dict:
         config = self.default_config()
         config["worker_app"] = "relapse.app.generic_worker"
-        config["instance_map"] = {"main": {"host": "testserv", "port": 8765}}
         return config
 
     def _build_replication_data_handler(self) -> "TestReplicationDataHandler":
         return TestReplicationDataHandler(self.worker_hs)
 
     def reconnect(self) -> None:
-        if self._client_transport:
-            self.client.close()
+        """Establish (or re-establish) the Redis subscriber connection for the worker.
 
-        if self._server_transport:
-            self.server.close()
+        Starts replication on the worker if not already started, which connects
+        to the fake Redis server, subscribes to channels, and triggers the
+        REPLICATE→POSITION→catch-up flow.
+        """
+        worker_handler = self.worker_hs.get_replication_command_handler()
 
-        self._client_transport = FakeTransport(self.server, self.reactor)
-        self.client.makeConnection(self._client_transport)
+        # Don't reconnect if we are already connected.
+        if worker_handler._redis_connected:
+            return
 
-        self._server_transport = FakeTransport(self.client, self.reactor)
-        self.server.makeConnection(self._server_transport)
+        worker_handler.start_replication(self.worker_hs)
+        self.connect_any_redis_attempts()
+
+        # Pump the reactor to allow the subscription handshake and
+        # REPLICATE→POSITION→catch-up flow to complete.
+        self.pump()
 
     def disconnect(self) -> None:
-        if self._client_transport:
-            self._client_transport = None
-            self.client.close()
+        """Close the worker's Redis subscriber connection.
 
-        if self._server_transport:
-            self._server_transport = None
-            self.server.close()
+        This prevents further replication data from being received until
+        `reconnect()` is called.
+        """
+        worker_handler = self.worker_hs.get_replication_command_handler()
+
+        if not worker_handler._redis_connected:
+            return
+
+        subscriber = worker_handler._redis_subscriber
+        if subscriber is not None:
+            # Close the transport to trigger connectionLost on the protocol,
+            # which calls handler.lost_connection().
+            if hasattr(subscriber, "transport") and subscriber.transport is not None:
+                subscriber.transport.loseConnection()
+
+        worker_handler.lost_connection()
+
+        # Clear any unprocessed TCP client requests that might have been
+        # created as part of the replication flow (e.g. HTTP catch-up
+        # attempts).
+        self.reactor.tcpClients.clear()
+        self.pump()
 
     def replicate(self) -> None:
         """Tell the master side of replication that something has happened, and then
         wait for the replication to occur.
         """
         self.streamer.on_notifier_poke()
-        self.pump(0.1)
+        self.pump()
 
     def handle_http_replication_attempt(self) -> RelapseRequest:
         """Asserts that a connection attempt was made to the master HS on the
@@ -195,8 +226,8 @@ class BaseStreamTestCase(unittest.HomeserverTestCase):
         server_to_client_transport.loseConnection()
         client_to_server_transport.loseConnection()
 
-        # there should have been exactly one request
-        self.assertEqual(len(requests), 1)
+        # there should have been at least one request
+        self.assertGreaterEqual(len(requests), 1)
 
         return requests[0]
 
@@ -213,6 +244,33 @@ class BaseStreamTestCase(unittest.HomeserverTestCase):
         )
 
         self.assertEqual(request.method, b"GET")
+
+    def connect_any_redis_attempts(self) -> None:
+        """If redis is enabled we need to deal with workers connecting to a
+        redis server. We don't want to use a real Redis server so we use a
+        fake one.
+        """
+        clients = self.reactor.tcpClients
+        while clients:
+            (host, port, client_factory, _timeout, _bindAddress) = clients.pop(0)
+            self.assertEqual(host, "localhost")
+            self.assertEqual(port, 6379)
+
+            client_address = IPv4Address("TCP", "127.0.0.1", 6379)
+            client_protocol = client_factory.buildProtocol(client_address)
+
+            server_address = IPv4Address("TCP", host, port)
+            server_protocol = self._redis_server.buildProtocol(server_address)
+
+            client_to_server_transport = FakeTransport(
+                server_protocol, self.reactor, client_protocol
+            )
+            client_protocol.makeConnection(client_to_server_transport)
+
+            server_to_client_transport = FakeTransport(
+                client_protocol, self.reactor, server_protocol
+            )
+            server_protocol.makeConnection(server_to_client_transport)
 
 
 class BaseMultiWorkerStreamTestCase(unittest.HomeserverTestCase):

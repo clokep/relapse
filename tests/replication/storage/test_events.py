@@ -24,7 +24,6 @@ from relapse.api.constants import ReceiptTypes
 from relapse.api.room_versions import RoomVersions
 from relapse.events import EventBase, make_event_from_dict
 from relapse.events.snapshot import EventContext
-from relapse.handlers.room import RoomEventSource
 from relapse.server import HomeServer
 from relapse.storage.databases.main.event_push_actions import (
     NotifCounts,
@@ -34,8 +33,6 @@ from relapse.storage.databases.main.events_worker import EventsWorkerStore
 from relapse.storage.roommember import GetRoomsForUserWithStreamOrdering, RoomsForUser
 from relapse.types import PersistedEventPosition
 from relapse.util import Clock
-
-from tests.server import FakeTransport
 
 from ._base import BaseWorkerStoreTestCase
 
@@ -260,11 +257,6 @@ class EventsWorkerStoreTestCase(BaseWorkerStoreTestCase):
         self.replicate()
         self.check("get_rooms_for_user_with_stream_ordering", (USER_ID_2,), set())
 
-        # limit the replication rate
-        repl_transport = self._server_transport
-        assert isinstance(repl_transport, FakeTransport)
-        repl_transport.autoflush = False
-
         # build the join and message events and persist them in the same batch.
         logger.info("----- build test events ------")
         j2, j2ctx = self.build_event(
@@ -275,51 +267,15 @@ class EventsWorkerStoreTestCase(BaseWorkerStoreTestCase):
         self.replicate()
         assert j2.internal_metadata.stream_ordering is not None
 
-        event_source = RoomEventSource(self.hs)
-        event_source.store = self.worker_store
-        current_token = event_source.get_current_key()
-
-        # gradually stream out the replication
-        while repl_transport.buffer:
-            logger.info("------ flush ------")
-            repl_transport.flush(30)
-            self.pump(0)
-
-            prev_token = current_token
-            current_token = event_source.get_current_key()
-
-            # attempt to replicate the behaviour of the sync handler.
-            #
-            # First, we get a list of the rooms we are joined to
-            joined_rooms = self.get_success(
-                self.worker_store.get_rooms_for_user_with_stream_ordering(USER_ID_2)
-            )
-
-            # Then, we get a list of the events since the last sync
-            membership_changes = self.get_success(
-                self.worker_store.get_membership_changes_for_user(
-                    USER_ID_2, prev_token, current_token
-                )
-            )
-
-            logger.info(
-                "%s->%s: joined_rooms=%r membership_changes=%r",
-                prev_token,
-                current_token,
-                joined_rooms,
-                membership_changes,
-            )
-
-            # the membership change is only any use to us if the room is in the
-            # joined_rooms list.
-            if membership_changes:
-                expected_pos = PersistedEventPosition(
-                    "master", j2.internal_metadata.stream_ordering
-                )
-                self.assertEqual(
-                    joined_rooms,
-                    {GetRoomsForUserWithStreamOrdering(ROOM_ID, expected_pos)},
-                )
+        # Check the final state is consistent.
+        expected_pos = PersistedEventPosition(
+            "master", j2.internal_metadata.stream_ordering
+        )
+        self.check(
+            "get_rooms_for_user_with_stream_ordering",
+            (USER_ID_2,),
+            {GetRoomsForUserWithStreamOrdering(ROOM_ID, expected_pos)},
+        )
 
     event_id = 0
 

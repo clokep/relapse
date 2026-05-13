@@ -11,11 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Defines the various valid commands
-
-The VALID_SERVER_COMMANDS and VALID_CLIENT_COMMANDS define which commands are
-allowed to be sent by which side.
-"""
+"""Defines the various valid commands"""
 
 import abc
 import logging
@@ -86,17 +82,6 @@ class _SimpleCommand(Command):
 
     def to_line(self) -> str:
         return self.data
-
-
-class ServerCommand(_SimpleCommand):
-    """Sent by the server on new connection and includes the server_name.
-
-    Format::
-
-        SERVER <server_name>
-    """
-
-    NAME = "SERVER"
 
 
 class RdataCommand(Command):
@@ -224,14 +209,6 @@ class PingCommand(_SimpleCommand):
     """Sent by either side as a keep alive. The data is arbitrary (often timestamp)"""
 
     NAME = "PING"
-
-
-class NameCommand(_SimpleCommand):
-    """Sent by client to inform the server of the client's identity. The data
-    is the name
-    """
-
-    NAME = "NAME"
 
 
 class ReplicateCommand(Command):
@@ -499,12 +476,10 @@ class NewActiveTaskCommand(_SimpleCommand):
 
 
 _COMMANDS: tuple[type[Command], ...] = (
-    ServerCommand,
     RdataCommand,
     PositionCommand,
     ErrorCommand,
     PingCommand,
-    NameCommand,
     ReplicateCommand,
     UserSyncCommand,
     FederationAckCommand,
@@ -517,31 +492,6 @@ _COMMANDS: tuple[type[Command], ...] = (
 
 # Map of command name to command type.
 COMMAND_MAP = {cmd.NAME: cmd for cmd in _COMMANDS}
-
-# The commands the server is allowed to send
-VALID_SERVER_COMMANDS = (
-    ServerCommand.NAME,
-    RdataCommand.NAME,
-    PositionCommand.NAME,
-    ErrorCommand.NAME,
-    PingCommand.NAME,
-    RemoteServerUpCommand.NAME,
-    LockReleasedCommand.NAME,
-)
-
-# The commands the client is allowed to send
-VALID_CLIENT_COMMANDS = (
-    NameCommand.NAME,
-    ReplicateCommand.NAME,
-    PingCommand.NAME,
-    UserSyncCommand.NAME,
-    ClearUserSyncsCommand.NAME,
-    FederationAckCommand.NAME,
-    UserIpCommand.NAME,
-    ErrorCommand.NAME,
-    RemoteServerUpCommand.NAME,
-    LockReleasedCommand.NAME,
-)
 
 
 def parse_command_from_line(line: str) -> Command:

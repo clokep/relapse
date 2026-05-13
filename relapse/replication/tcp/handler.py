@@ -18,8 +18,7 @@ from collections.abc import Awaitable, Iterable, Iterator
 from typing import TYPE_CHECKING, Any, TypeVar
 
 from prometheus_client import Counter
-
-from twisted.internet.protocol import ReconnectingClientFactory
+from zope.interface import Interface
 
 from relapse.metrics import LaterGauge
 from relapse.metrics.background_process_metrics import run_as_background_process
@@ -37,7 +36,6 @@ from relapse.replication.tcp.commands import (
     UserSyncCommand,
 )
 from relapse.replication.tcp.context import ClientContextFactory
-from relapse.replication.tcp.protocol import IReplicationConnection
 from relapse.replication.tcp.streams import (
     STREAMS_MAP,
     AccountDataStream,
@@ -59,10 +57,30 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+class IReplicationConnection(Interface):
+    """An interface for replication connections."""
+
+    def send_command(cmd: Command) -> None:
+        """Send the command down the connection"""
+
+
 # number of updates received for each RDATA stream
 inbound_rdata_count = Counter(
     "relapse_replication_tcp_protocol_inbound_rdata_count", "", ["stream_name"]
 )
+
+tcp_inbound_commands_counter = Counter(
+    "relapse_replication_tcp_protocol_inbound_commands",
+    "Number of commands received from replication, by command and name of process connected to",
+    ["command", "name"],
+)
+
+tcp_outbound_commands_counter = Counter(
+    "relapse_replication_tcp_protocol_outbound_commands",
+    "Number of commands sent to replication, by command and name of process connected to",
+    ["command", "name"],
+)
+
 user_sync_counter = Counter("relapse_replication_tcp_resource_user_sync", "")
 federation_ack_counter = Counter("relapse_replication_tcp_resource_federation_ack", "")
 remove_pusher_counter = Counter("relapse_replication_tcp_resource_remove_pusher", "")
@@ -71,9 +89,7 @@ user_ip_cache_counter = Counter("relapse_replication_tcp_resource_user_ip_cache"
 
 
 # the type of the entries in _command_queues_by_stream
-_StreamCommandQueue = deque[
-    tuple[RdataCommand | PositionCommand, IReplicationConnection]
-]
+_StreamCommandQueue = deque[RdataCommand | PositionCommand]
 
 
 class ReplicationCommandHandler:
@@ -177,18 +193,23 @@ class ReplicationCommandHandler:
         # how batching works.
         self._pending_batches: dict[str, list[Any]] = {}
 
-        # The factory used to create connections.
-        self._factory: ReconnectingClientFactory | None = None
+        # The active Redis subscriber connection (if any).
+        self._redis_subscriber: IReplicationConnection | None = None
 
-        # The currently connected connections. (The list of places we need to send
-        # outgoing replication commands to.)
-        self._connections: list[IReplicationConnection] = []
+        # Whether we have an active Redis subscriber connection.
+        self._redis_connected = False
+
+        # The Redis reconnection client factory, set by `start_replication`.
+        self._factory: Any = None
+
+        # The set of stream names that have received a POSITION.
+        self._connected_streams: set[str] = set()
 
         LaterGauge(
             "relapse_replication_tcp_resource_total_connections",
             "",
             [],
-            lambda: len(self._connections),
+            lambda: 1 if self._redis_connected else 0,
         )
 
         # When POSITION or RDATA commands arrive, we stick them in a queue and process
@@ -197,15 +218,10 @@ class ReplicationCommandHandler:
         # the streams which are currently being processed by _unsafe_process_queue
         self._processing_streams: set[str] = set()
 
-        # for each stream, a queue of commands that are awaiting processing, and the
-        # connection that they arrived on.
+        # for each stream, a queue of commands that are awaiting processing.
         self._command_queues_by_stream = {
             stream_name: _StreamCommandQueue() for stream_name in self._streams
         }
-
-        # For each connection, the incoming stream names that have received a POSITION
-        # from that connection.
-        self._streams_by_connection: dict[IReplicationConnection, set[str]] = {}
 
         LaterGauge(
             "relapse_replication_tcp_command_queue",
@@ -262,7 +278,7 @@ class ReplicationCommandHandler:
             to new channels.
         """
 
-        if self._factory is not None:
+        if self._redis_connected:
             # We don't allow subscribing after the fact to avoid the chance
             # of missing an important message because we didn't subscribe in time.
             raise RuntimeError(
@@ -272,9 +288,7 @@ class ReplicationCommandHandler:
         if channel_name not in self._channels_to_subscribe_to:
             self._channels_to_subscribe_to.append(channel_name)
 
-    def _add_command_to_stream_queue(
-        self, conn: IReplicationConnection, cmd: RdataCommand | PositionCommand
-    ) -> None:
+    def _add_command_to_stream_queue(self, cmd: RdataCommand | PositionCommand) -> None:
         """Queue the given received command for processing
 
         Adds the given command to the per-stream queue, and processes the queue if
@@ -286,7 +300,7 @@ class ReplicationCommandHandler:
             logger.error("Got %s for unknown stream: %s", cmd.NAME, stream_name)
             return
 
-        queue.append((cmd, conn))
+        queue.append(cmd)
 
         # if we're already processing this stream, there's nothing more to do:
         # the new entry on the queue will get picked up in due course
@@ -309,9 +323,9 @@ class ReplicationCommandHandler:
         try:
             queue = self._command_queues_by_stream.get(stream_name)
             while queue:
-                cmd, conn = queue.popleft()
+                cmd = queue.popleft()
                 try:
-                    await self._process_command(cmd, conn, stream_name)
+                    await self._process_command(cmd, stream_name)
                 except Exception:
                     logger.exception("Failed to handle command %s", cmd)
         finally:
@@ -320,13 +334,12 @@ class ReplicationCommandHandler:
     async def _process_command(
         self,
         cmd: PositionCommand | RdataCommand,
-        conn: IReplicationConnection,
         stream_name: str,
     ) -> None:
         if isinstance(cmd, PositionCommand):
-            await self._process_position(stream_name, conn, cmd)
+            await self._process_position(stream_name, cmd)
         elif isinstance(cmd, RdataCommand):
-            await self._process_rdata(stream_name, conn, cmd)
+            await self._process_rdata(stream_name, cmd)
         else:
             # This shouldn't be possible
             raise Exception("Unrecognised command %s in stream queue", cmd.NAME)
@@ -389,7 +402,7 @@ class ReplicationCommandHandler:
         """Get a list of streams that this instances replicates."""
         return self._streams_to_replicate
 
-    def on_REPLICATE(self, conn: IReplicationConnection, cmd: ReplicateCommand) -> None:
+    def on_REPLICATE(self, cmd: ReplicateCommand) -> None:
         self.send_positions_to_connection()
 
     def send_positions_to_connection(self) -> None:
@@ -408,9 +421,7 @@ class ReplicationCommandHandler:
         """Mark that we're about to send POSITIONs out for all streams."""
         self._should_announce_positions = False
 
-    def on_USER_SYNC(
-        self, conn: IReplicationConnection, cmd: UserSyncCommand
-    ) -> Awaitable[None] | None:
+    def on_USER_SYNC(self, cmd: UserSyncCommand) -> Awaitable[None] | None:
         user_sync_counter.inc()
 
         if self._is_presence_writer:
@@ -424,25 +435,19 @@ class ReplicationCommandHandler:
         else:
             return None
 
-    def on_CLEAR_USER_SYNC(
-        self, conn: IReplicationConnection, cmd: ClearUserSyncsCommand
-    ) -> Awaitable[None] | None:
+    def on_CLEAR_USER_SYNC(self, cmd: ClearUserSyncsCommand) -> Awaitable[None] | None:
         if self._is_presence_writer:
             return self._presence_handler.update_external_syncs_clear(cmd.instance_id)
         else:
             return None
 
-    def on_FEDERATION_ACK(
-        self, conn: IReplicationConnection, cmd: FederationAckCommand
-    ) -> None:
+    def on_FEDERATION_ACK(self, cmd: FederationAckCommand) -> None:
         federation_ack_counter.inc()
 
         if self._federation_sender:
             self._federation_sender.federation_ack(cmd.instance_name, cmd.token)
 
-    def on_USER_IP(
-        self, conn: IReplicationConnection, cmd: UserIpCommand
-    ) -> Awaitable[None] | None:
+    def on_USER_IP(self, cmd: UserIpCommand) -> Awaitable[None] | None:
         user_ip_cache_counter.inc()
 
         if self._is_master or self._should_insert_client_ips:
@@ -450,7 +455,7 @@ class ReplicationCommandHandler:
             # something to do; on_USER_IP is not an async function, but
             # _handle_user_ip is.
             # If on_USER_IP returns an awaitable, it gets scheduled as a
-            # background process (see `BaseReplicationStreamProtocol.handle_command`).
+            # background process.
             return self._handle_user_ip(cmd)
         else:
             # Returning None when this process definitely has nothing to do
@@ -477,7 +482,7 @@ class ReplicationCommandHandler:
                 cmd.last_seen,
             )
 
-    def on_RDATA(self, conn: IReplicationConnection, cmd: RdataCommand) -> None:
+    def on_RDATA(self, cmd: RdataCommand) -> None:
         if cmd.instance_name == self._instance_name:
             # Ignore RDATA that are just our own echoes
             return
@@ -491,11 +496,9 @@ class ReplicationCommandHandler:
         #   2. so we don't race with getting a POSITION command and fetching
         #      missing RDATA.
 
-        self._add_command_to_stream_queue(conn, cmd)
+        self._add_command_to_stream_queue(cmd)
 
-    async def _process_rdata(
-        self, stream_name: str, conn: IReplicationConnection, cmd: RdataCommand
-    ) -> None:
+    async def _process_rdata(self, stream_name: str, cmd: RdataCommand) -> None:
         """Process an RDATA command
 
         Called after the command has been popped off the queue of inbound commands
@@ -507,11 +510,9 @@ class ReplicationCommandHandler:
                 f"Failed to parse RDATA: {stream_name!r} {cmd.row!r}"
             ) from e
 
-        # make sure that we've processed a POSITION for this stream *on this
-        # connection*. (A POSITION on another connection is no good, as there
-        # is no guarantee that we have seen all the intermediate updates.)
-        sbc = self._streams_by_connection.get(conn)
-        if not sbc or stream_name not in sbc:
+        # make sure that we've processed a POSITION for this stream.
+        # Until we do, we can't know our current position.
+        if stream_name not in self._connected_streams:
             # Let's drop the row for now, on the assumption we'll receive a
             # `POSITION` soon and we'll catch up correctly then.
             logger.debug(
@@ -568,7 +569,7 @@ class ReplicationCommandHandler:
             stream_name, instance_name, token, rows
         )
 
-    def on_POSITION(self, conn: IReplicationConnection, cmd: PositionCommand) -> None:
+    def on_POSITION(self, cmd: PositionCommand) -> None:
         if cmd.instance_name == self._instance_name:
             # Ignore POSITION that are just our own echoes
             return
@@ -578,9 +579,12 @@ class ReplicationCommandHandler:
         # Check if we can early discard this position. We can only do so for
         # connected streams.
         stream = self._streams[cmd.stream_name]
-        if stream.can_discard_position(
-            cmd.instance_name, cmd.prev_token, cmd.new_token
-        ) and self.is_stream_connected(conn, cmd.stream_name):
+        if (
+            stream.can_discard_position(
+                cmd.instance_name, cmd.prev_token, cmd.new_token
+            )
+            and cmd.stream_name in self._connected_streams
+        ):
             logger.debug(
                 "Discarding redundant POSITION %s/%s %s %s",
                 cmd.instance_name,
@@ -590,20 +594,21 @@ class ReplicationCommandHandler:
             )
             return
 
-        self._add_command_to_stream_queue(conn, cmd)
+        self._add_command_to_stream_queue(cmd)
 
-    async def _process_position(
-        self, stream_name: str, conn: IReplicationConnection, cmd: PositionCommand
-    ) -> None:
+    async def _process_position(self, stream_name: str, cmd: PositionCommand) -> None:
         """Process a POSITION command
 
         Called after the command has been popped off the queue of inbound commands
         """
         stream = self._streams[stream_name]
 
-        if stream.can_discard_position(
-            cmd.instance_name, cmd.prev_token, cmd.new_token
-        ) and self.is_stream_connected(conn, cmd.stream_name):
+        if (
+            stream.can_discard_position(
+                cmd.instance_name, cmd.prev_token, cmd.new_token
+            )
+            and stream_name in self._connected_streams
+        ):
             logger.debug(
                 "Discarding redundant POSITION %s/%s %s %s",
                 cmd.instance_name,
@@ -615,8 +620,7 @@ class ReplicationCommandHandler:
 
         # We're about to go and catch up with the stream, so remove from set
         # of connected streams.
-        for streams in self._streams_by_connection.values():
-            streams.discard(stream_name)
+        self._connected_streams.discard(stream_name)
 
         # We clear the pending batches for the stream as the fetching of the
         # missing updates below will fetch all rows in the batch.
@@ -670,24 +674,13 @@ class ReplicationCommandHandler:
             cmd.stream_name, cmd.instance_name, cmd.new_token
         )
 
-        self._streams_by_connection.setdefault(conn, set()).add(stream_name)
+        self._connected_streams.add(stream_name)
 
-    def is_stream_connected(
-        self, conn: IReplicationConnection, stream_name: str
-    ) -> bool:
-        """Return if stream has been successfully connected and is ready to
-        receive updates"""
-        return stream_name in self._streams_by_connection.get(conn, ())
-
-    def on_REMOTE_SERVER_UP(
-        self, conn: IReplicationConnection, cmd: RemoteServerUpCommand
-    ) -> None:
+    def on_REMOTE_SERVER_UP(self, cmd: RemoteServerUpCommand) -> None:
         """Called when get a new REMOTE_SERVER_UP command."""
         self._notifier.notify_remote_server_up(cmd.data)
 
-    def on_LOCK_RELEASED(
-        self, conn: IReplicationConnection, cmd: LockReleasedCommand
-    ) -> None:
+    def on_LOCK_RELEASED(self, cmd: LockReleasedCommand) -> None:
         """Called when we get a new LOCK_RELEASED command."""
         if cmd.instance_name == self._instance_name:
             return
@@ -696,16 +689,15 @@ class ReplicationCommandHandler:
             cmd.instance_name, cmd.lock_name, cmd.lock_key
         )
 
-    def on_NEW_ACTIVE_TASK(
-        self, conn: IReplicationConnection, cmd: NewActiveTaskCommand
-    ) -> None:
+    def on_NEW_ACTIVE_TASK(self, cmd: NewActiveTaskCommand) -> None:
         """Called when get a new NEW_ACTIVE_TASK command."""
         if self._task_scheduler:
             self._task_scheduler.launch_task_by_id(cmd.data)
 
     def new_connection(self, connection: IReplicationConnection) -> None:
         """Called when we have a new connection."""
-        self._connections.append(connection)
+        self._redis_subscriber = connection
+        self._redis_connected = True
 
         # If we are connected to replication as a client (rather than a server)
         # we need to reset the reconnection delay on the client factory (which
@@ -726,49 +718,41 @@ class ReplicationCommandHandler:
 
         now = self._clock.time_msec()
         for user_id, device_id in currently_syncing:
-            connection.send_command(
+            self.send_command(
                 UserSyncCommand(self._instance_id, user_id, device_id, True, now)
             )
 
-    def lost_connection(self, connection: IReplicationConnection) -> None:
+    def lost_connection(self) -> None:
         """Called when a connection is closed/lost."""
-        # we no longer need _streams_by_connection for this connection.
-        streams = self._streams_by_connection.pop(connection, None)
-        if streams:
-            logger.info(
-                "Lost replication connection; streams now disconnected: %s", streams
-            )
-        try:
-            self._connections.remove(connection)
-        except ValueError:
-            pass
+        logger.info("Lost replication connection")
+        self._redis_subscriber = None
+        self._redis_connected = False
+        self._connected_streams.clear()
 
     def connected(self) -> bool:
         """Do we have any replication connections open?
 
         Is used by e.g. `ReplicationStreamer` to no-op if nothing is connected.
         """
-        return bool(self._connections)
+        return self._redis_connected
 
     def send_command(self, cmd: Command) -> None:
-        """Send a command to all connected connections.
+        """Send a command via the Redis subscriber.
 
         Args:
             cmd
         """
-        if self._connections:
-            for connection in self._connections:
-                try:
-                    connection.send_command(cmd)
-                except Exception:
-                    # We probably want to catch some types of exceptions here
-                    # and log them as warnings (e.g. connection gone), but I
-                    # can't find what those exception types they would be.
-                    logger.exception(
-                        "Failed to write command %s to connection %s",
-                        cmd.NAME,
-                        connection,
-                    )
+        if self._redis_subscriber:
+            try:
+                self._redis_subscriber.send_command(cmd)
+            except Exception:
+                # We probably want to catch some types of exceptions here
+                # and log them as warnings (e.g. connection gone), but I
+                # can't find what those exception types they would be.
+                logger.exception(
+                    "Failed to write command %s to Redis subscriber",
+                    cmd.NAME,
+                )
         else:
             logger.warning("Dropping command as not connected: %r", cmd.NAME)
 

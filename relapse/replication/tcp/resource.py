@@ -19,12 +19,8 @@ from typing import TYPE_CHECKING
 
 from prometheus_client import Counter
 
-from twisted.internet.interfaces import IAddress
-from twisted.internet.protocol import ServerFactory
-
 from relapse.metrics.background_process_metrics import run_as_background_process
 from relapse.replication.tcp.commands import PositionCommand
-from relapse.replication.tcp.protocol import ServerReplicationStreamProtocol
 from relapse.replication.tcp.streams import EventsStream
 from relapse.replication.tcp.streams._base import CachesStream, StreamRow, Token
 from relapse.util.metrics import Measure
@@ -37,30 +33,6 @@ stream_updates_counter = Counter(
 )
 
 logger = logging.getLogger(__name__)
-
-
-class ReplicationStreamProtocolFactory(ServerFactory):
-    """Factory for new replication connections."""
-
-    def __init__(self, hs: "HomeServer"):
-        self.command_handler = hs.get_replication_command_handler()
-        self.clock = hs.get_clock()
-        self.server_name = hs.config.server.server_name
-
-        # If we've created a `ReplicationStreamProtocolFactory` then we're
-        # almost certainly registering a replication listener, so let's ensure
-        # that we've started a `ReplicationStreamer` instance to actually push
-        # data.
-        #
-        # (This is a bit of a weird place to do this, but the alternatives such
-        # as putting this in `HomeServer.setup()`, requires either passing the
-        # listener config again or always starting a `ReplicationStreamer`.)
-        hs.get_replication_streamer()
-
-    def buildProtocol(self, addr: IAddress) -> ServerReplicationStreamProtocol:
-        return ServerReplicationStreamProtocol(
-            self.server_name, self.clock, self.command_handler
-        )
 
 
 class ReplicationStreamer:

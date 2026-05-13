@@ -41,7 +41,7 @@ from relapse.replication.tcp.commands import (
     parse_command_from_line,
 )
 from relapse.replication.tcp.context import ClientContextFactory
-from relapse.replication.tcp.protocol import (
+from relapse.replication.tcp.handler import (
     IReplicationConnection,
     tcp_inbound_commands_counter,
     tcp_outbound_commands_counter,
@@ -183,7 +183,7 @@ class RedisSubscriber(SubscriberProtocol):
             logger.warning("Unhandled command: %r", cmd)
             return
 
-        res = cmd_func(self, cmd)
+        res = cmd_func(cmd)
 
         # the handler might be a coroutine: fire it off as a background process
         # if so.
@@ -196,7 +196,7 @@ class RedisSubscriber(SubscriberProtocol):
     def connectionLost(self, reason: Failure) -> None:  # type: ignore[override]
         logger.info("Lost connection to redis")
         super().connectionLost(reason)
-        self.relapse_handler.lost_connection(self)
+        self.relapse_handler.lost_connection()
 
         # mark the logging context as finished by triggering `__exit__()`
         with PreserveLoggingContext():
