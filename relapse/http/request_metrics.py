@@ -198,12 +198,6 @@ class RequestMetrics:
 
         resource_usage = context.get_resource_usage()
 
-        response_ru_utime.labels(self.method, self.name, tag).inc(
-            resource_usage.ru_utime
-        )
-        response_ru_stime.labels(self.method, self.name, tag).inc(
-            resource_usage.ru_stime
-        )
         response_db_txn_count.labels(self.method, self.name, tag).inc(
             resource_usage.db_txn_count
         )
@@ -233,16 +227,6 @@ class RequestMetrics:
 
         diff = new_stats - self._request_stats
         self._request_stats = new_stats
-
-        # max() is used since rapid use of ru_stime/ru_utime can end up with the
-        # count going backwards due to NTP, time smearing, fine-grained
-        # correction, or floating points. Who knows, really?
-        in_flight_requests_ru_utime.labels(self.method, self.name).inc(
-            max(diff.ru_utime, 0)
-        )
-        in_flight_requests_ru_stime.labels(self.method, self.name).inc(
-            max(diff.ru_stime, 0)
-        )
 
         in_flight_requests_db_txn_count.labels(self.method, self.name).inc(
             diff.db_txn_count

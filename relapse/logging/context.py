@@ -28,13 +28,7 @@ import threading
 import typing
 from collections.abc import Awaitable, Callable
 from types import TracebackType
-from typing import (
-    TYPE_CHECKING,
-    Literal,
-    TypeVar,
-    Union,
-    overload,
-)
+from typing import TYPE_CHECKING, Literal, TypeVar, Union, overload
 
 import attr
 from typing_extensions import ParamSpec
@@ -47,30 +41,6 @@ if TYPE_CHECKING:
     from relapse.types import IRelapseReactor
 
 logger = logging.getLogger(__name__)
-
-try:
-    import resource
-
-    # Python doesn't ship with a definition of RUSAGE_THREAD but it's defined
-    # to be 1 on linux so we hard code it.
-    RUSAGE_THREAD = 1
-
-    # If the system doesn't support RUSAGE_THREAD then this should throw an
-    # exception.
-    resource.getrusage(RUSAGE_THREAD)
-
-    is_thread_resource_usage_supported = True
-
-    def get_thread_resource_usage() -> "resource.struct_rusage | None":
-        return resource.getrusage(RUSAGE_THREAD)
-
-except Exception:
-    # If the system doesn't support resource.getrusage(RUSAGE_THREAD) then we
-    # won't track resource usage.
-    is_thread_resource_usage_supported = False
-
-    def get_thread_resource_usage() -> "resource.struct_rusage | None":
-        return None
 
 
 # a hook which can be set during testing to assert that we aren't abusing logcontexts.
@@ -91,8 +61,6 @@ class ContextResourceUsage:
     """Object for tracking the resources used by a log context
 
     Attributes:
-        ru_utime (float): user CPU time (in seconds)
-        ru_stime (float): system CPU time (in seconds)
         db_txn_count (int): number of database transactions done
         db_sched_duration_sec (float): amount of time spent waiting for a
             database connection
@@ -102,8 +70,6 @@ class ContextResourceUsage:
     """
 
     __slots__ = [
-        "ru_stime",
-        "ru_utime",
         "db_txn_count",
         "db_txn_duration_sec",
         "db_sched_duration_sec",
@@ -119,9 +85,6 @@ class ContextResourceUsage:
         if copy_from is None:
             self.reset()
         else:
-            # FIXME: mypy can't infer the types set via reset() above, so specify explicitly for now
-            self.ru_utime: float = copy_from.ru_utime
-            self.ru_stime: float = copy_from.ru_stime
             self.db_txn_count: int = copy_from.db_txn_count
 
             self.db_txn_duration_sec: float = copy_from.db_txn_duration_sec
@@ -132,8 +95,6 @@ class ContextResourceUsage:
         return ContextResourceUsage(copy_from=self)
 
     def reset(self) -> None:
-        self.ru_stime = 0.0
-        self.ru_utime = 0.0
         self.db_txn_count = 0
 
         self.db_txn_duration_sec = 0.0
@@ -142,8 +103,7 @@ class ContextResourceUsage:
 
     def __repr__(self) -> str:
         return (
-            f"<ContextResourceUsage ru_stime='{self.ru_stime!r}', ru_utime='{self.ru_utime!r}', "
-            f"db_txn_count='{self.db_txn_count!r}', db_txn_duration_sec='{self.db_txn_duration_sec!r}', "
+            f"<ContextResourceUsage db_txn_count='{self.db_txn_count!r}', db_txn_duration_sec='{self.db_txn_duration_sec!r}', "
             f"db_sched_duration_sec='{self.db_sched_duration_sec!r}', evt_db_fetch_count='{self.evt_db_fetch_count!r}'>"
         )
 
@@ -153,8 +113,6 @@ class ContextResourceUsage:
         Args:
             other: the other resource usage object
         """
-        self.ru_utime += other.ru_utime
-        self.ru_stime += other.ru_stime
         self.db_txn_count += other.db_txn_count
         self.db_txn_duration_sec += other.db_txn_duration_sec
         self.db_sched_duration_sec += other.db_sched_duration_sec
@@ -162,8 +120,6 @@ class ContextResourceUsage:
         return self
 
     def __isub__(self, other: "ContextResourceUsage") -> "ContextResourceUsage":
-        self.ru_utime -= other.ru_utime
-        self.ru_stime -= other.ru_stime
         self.db_txn_count -= other.db_txn_count
         self.db_txn_duration_sec -= other.db_txn_duration_sec
         self.db_sched_duration_sec -= other.db_sched_duration_sec
@@ -223,10 +179,10 @@ class _Sentinel:
     def __str__(self) -> str:
         return "sentinel"
 
-    def start(self, rusage: "resource.struct_rusage | None") -> None:
+    def start(self) -> None:
         pass
 
-    def stop(self, rusage: "resource.struct_rusage | None") -> None:
+    def stop(self) -> None:
         pass
 
     def add_database_transaction(self, duration_sec: float) -> None:
@@ -265,8 +221,8 @@ class LoggingContext:
         "name",
         "parent_context",
         "_resource_usage",
-        "usage_start",
         "main_thread",
+        "started",
         "finished",
         "request",
         "tag",
@@ -284,14 +240,15 @@ class LoggingContext:
         # track the resources used by this context so far
         self._resource_usage = ContextResourceUsage()
 
-        # The thread resource usage when the logcontext became active. None
-        # if the context is not currently active.
-        self.usage_start: resource.struct_rusage | None = None
-
         self.main_thread = get_thread_id()
         self.request = None
         self.tag = ""
         self.scope: _LogContextScope | None = None
+
+        # keep track of whether we have hit the start() block for this context
+        # (suggesting that the the thing that created the context thinks it should
+        # have started, and that re-activating it would suggest an error).
+        self.started = False
 
         # keep track of whether we have hit the __exit__ block for this context
         # (suggesting that the the thing that created the context thinks it should
@@ -355,7 +312,7 @@ class LoggingContext:
         # recorded against the correct metrics.
         self.finished = True
 
-    def start(self, rusage: "resource.struct_rusage | None") -> None:
+    def start(self) -> None:
         """
         Record that this logcontext is currently running.
 
@@ -373,14 +330,11 @@ class LoggingContext:
         if self.finished:
             logcontext_error(f"Re-starting finished log context {self}")
 
-        # If we haven't already started record the thread resource usage so
-        # far
-        if self.usage_start:
+        if self.started:
             logcontext_error(f"Re-starting already-active log context {self}")
-        else:
-            self.usage_start = rusage
+        self.started = True
 
-    def stop(self, rusage: "resource.struct_rusage | None") -> None:
+    def stop(self) -> None:
         """
         Record that this logcontext is no longer running.
 
@@ -392,25 +346,11 @@ class LoggingContext:
                 doesn't support getrusuage.
         """
 
-        try:
-            if get_thread_id() != self.main_thread:
-                logcontext_error(f"Stopped logcontext {self} on different thread")
-                return
+        if get_thread_id() != self.main_thread:
+            logcontext_error(f"Stopped logcontext {self} on different thread")
+            return
 
-            if not rusage:
-                return
-
-            # Record the cpu used since we started
-            if not self.usage_start:
-                logcontext_error(
-                    f"Called stop on logcontext {self} without recording a start rusage"
-                )
-                return
-
-            utime_delta, stime_delta = self._get_cputime(rusage)
-            self.add_cputime(utime_delta, stime_delta)
-        finally:
-            self.usage_start = None
+        self.started = False
 
     def get_resource_usage(self) -> ContextResourceUsage:
         """Get resources used by this logcontext so far.
@@ -419,63 +359,7 @@ class LoggingContext:
             A *copy* of the object tracking resource usage so far
         """
         # we always return a copy, for consistency
-        res = self._resource_usage.copy()
-
-        # If we are on the correct thread and we're currently running then we
-        # can include resource usage so far.
-        is_main_thread = get_thread_id() == self.main_thread
-        if self.usage_start and is_main_thread:
-            rusage = get_thread_resource_usage()
-            assert rusage is not None
-            utime_delta, stime_delta = self._get_cputime(rusage)
-            res.ru_utime += utime_delta
-            res.ru_stime += stime_delta
-
-        return res
-
-    def _get_cputime(self, current: "resource.struct_rusage") -> tuple[float, float]:
-        """Get the cpu usage time between start() and the given rusage
-
-        Args:
-            rusage: the current resource usage
-
-        Returns: Tuple[float, float]: seconds in user mode, seconds in system mode
-        """
-        assert self.usage_start is not None
-
-        utime_delta = current.ru_utime - self.usage_start.ru_utime
-        stime_delta = current.ru_stime - self.usage_start.ru_stime
-
-        # sanity check
-        if utime_delta < 0:
-            logger.error(
-                "utime went backwards! %f < %f",
-                current.ru_utime,
-                self.usage_start.ru_utime,
-            )
-            utime_delta = 0
-
-        if stime_delta < 0:
-            logger.error(
-                "stime went backwards! %f < %f",
-                current.ru_stime,
-                self.usage_start.ru_stime,
-            )
-            stime_delta = 0
-
-        return utime_delta, stime_delta
-
-    def add_cputime(self, utime_delta: float, stime_delta: float) -> None:
-        """Update the CPU time usage of this context (and any parents, recursively).
-
-        Args:
-            utime_delta: additional user time, in seconds, spent in this context.
-            stime_delta: additional system time, in seconds, spent in this context.
-        """
-        self._resource_usage.ru_utime += utime_delta
-        self._resource_usage.ru_stime += stime_delta
-        if self.parent_context:
-            self.parent_context.add_cputime(utime_delta, stime_delta)
+        return self._resource_usage.copy()
 
     def add_database_transaction(self, duration_sec: float) -> None:
         """Record the use of a database transaction and the length of time it took.
@@ -613,10 +497,9 @@ def set_current_context(context: LoggingContextOrSentinel) -> LoggingContextOrSe
     current = current_context()
 
     if current is not context:
-        rusage = get_thread_resource_usage()
-        current.stop(rusage)
+        current.stop()
         _thread_local.current_context = context
-        context.start(rusage)
+        context.start()
 
     return current
 

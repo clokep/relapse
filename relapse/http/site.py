@@ -465,15 +465,13 @@ class RelapseRequest(Request):
         self.relapse_site.access_logger.log(
             log_level,
             "%s - %s - {%s}"
-            " Processed request: %.3fsec/%.3fsec (%.3fsec, %.3fsec) (%.3fsec/%.3fsec/%d)"
+            " Processed request: %.3fsec/%.3fsec (%.3fsec/%.3fsec/%d)"
             ' %sB %s "%s %s %s" "%s" [%d dbevts]',
             self.get_client_ip_if_available(),
             self.relapse_site.site_tag,
             requester,
             processing_time,
             response_send_time,
-            usage.ru_utime,
-            usage.ru_stime,
             usage.db_sched_duration_sec,
             usage.db_txn_duration_sec,
             int(usage.db_txn_count),
