@@ -12,13 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from unittest import mock
 
 from twisted.internet.testing import MemoryReactor
 
-from relapse.app.phone_stats_home import phone_stats_home
 from relapse.server import HomeServer
-from relapse.types import JsonDict
 from relapse.util import Clock
 
 from tests.unittest import HomeserverTestCase
