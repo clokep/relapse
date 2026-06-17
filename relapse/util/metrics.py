@@ -35,14 +35,6 @@ block_counter = Counter("relapse_util_metrics_block_count", "", ["block_name"])
 
 block_timer = Counter("relapse_util_metrics_block_time_seconds", "", ["block_name"])
 
-block_ru_utime = Counter(
-    "relapse_util_metrics_block_ru_utime_seconds", "", ["block_name"]
-)
-
-block_ru_stime = Counter(
-    "relapse_util_metrics_block_ru_stime_seconds", "", ["block_name"]
-)
-
 block_db_txn_count = Counter(
     "relapse_util_metrics_block_db_txn_count", "", ["block_name"]
 )
@@ -185,8 +177,6 @@ class Measure:
         try:
             block_counter.labels(self.name).inc()
             block_timer.labels(self.name).inc(duration)
-            block_ru_utime.labels(self.name).inc(usage.ru_utime)
-            block_ru_stime.labels(self.name).inc(usage.ru_stime)
             block_db_txn_count.labels(self.name).inc(usage.db_txn_count)
             block_db_txn_duration.labels(self.name).inc(usage.db_txn_duration_sec)
             block_db_sched_duration.labels(self.name).inc(usage.db_sched_duration_sec)

@@ -561,10 +561,6 @@ _biggest_room_by_db_counter = Counter(
     "expensive room for state resolution",
 )
 
-_cpu_times = Histogram(
-    "relapse_state_res_cpu_for_all_rooms_seconds",
-    "CPU time (utime+stime) spent computing a single state resolution",
-)
 _db_times = Histogram(
     "relapse_state_res_db_for_all_rooms_seconds",
     "Database time spent computing a single state resolution",
@@ -731,11 +727,9 @@ class StateResolutionHandler:
         self, room_id: str, rusage: ContextResourceUsage
     ) -> None:
         room_metrics = self._state_res_metrics[room_id]
-        room_metrics.cpu_time += rusage.ru_utime + rusage.ru_stime
         room_metrics.db_time += rusage.db_txn_duration_sec
         room_metrics.db_events += rusage.evt_db_fetch_count
 
-        _cpu_times.observe(rusage.ru_utime + rusage.ru_stime)
         _db_times.observe(rusage.db_txn_duration_sec)
 
     def _report_metrics(self) -> None:

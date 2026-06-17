@@ -35,8 +35,6 @@ from relapse.logging.opentracing import RelapseTags, start_active_span
 from relapse.metrics._types import Collector
 
 if TYPE_CHECKING:
-    import resource
-
     # Old versions don't have `LiteralString`
     from typing_extensions import LiteralString
 
@@ -60,20 +58,6 @@ _background_process_in_flight_count = Gauge(
 # the default registry. Instead we collect them all via the CustomCollector,
 # which ensures that we can update them before they are collected.
 #
-_background_process_ru_utime = Counter(
-    "relapse_background_process_ru_utime_seconds",
-    "User CPU time used by background processes, in seconds",
-    ["name"],
-    registry=None,
-)
-
-_background_process_ru_stime = Counter(
-    "relapse_background_process_ru_stime_seconds",
-    "System CPU time used by background processes, in seconds",
-    ["name"],
-    registry=None,
-)
-
 _background_process_db_txn_count = Counter(
     "relapse_background_process_db_txn_count",
     "Number of database transactions done by background processes",
@@ -139,8 +123,6 @@ class _Collector(Collector):
         # now we need to run collect() over each of the static Counters, and
         # yield each metric they return.
         for m in (
-            _background_process_ru_utime,
-            _background_process_ru_stime,
             _background_process_db_txn_count,
             _background_process_db_txn_duration,
             _background_process_db_sched_duration,
@@ -168,8 +150,6 @@ class _BackgroundProcess:
 
         # For unknown reasons, the difference in times can be negative. See comment in
         # relapse.http.request_metrics.RequestMetrics.update_metrics.
-        _background_process_ru_utime.labels(self.desc).inc(max(diff.ru_utime, 0))
-        _background_process_ru_stime.labels(self.desc).inc(max(diff.ru_stime, 0))
         _background_process_db_txn_count.labels(self.desc).inc(diff.db_txn_count)
         _background_process_db_txn_duration.labels(self.desc).inc(
             diff.db_txn_duration_sec
@@ -316,10 +296,10 @@ class BackgroundProcessLoggingContext(LoggingContext):
         super().__init__(f"{name}-{instance_id}")
         self._proc: _BackgroundProcess | None = _BackgroundProcess(name, self)
 
-    def start(self, rusage: "resource.struct_rusage | None") -> None:
+    def start(self) -> None:
         """Log context has started running (again)."""
 
-        super().start(rusage)
+        super().start()
 
         if self._proc is None:
             logger.error(
