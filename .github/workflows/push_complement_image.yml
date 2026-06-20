@@ -25,17 +25,17 @@ jobs:
       packages: write
     steps:
       - name: Checkout specific branch (debug build)
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         if: github.event_name == 'workflow_dispatch'
         with:
           ref: main
       - name: Checkout clean copy of main (scheduled build)
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         if: github.event_name == 'schedule'
         with:
           ref: main
       - name: Checkout clean copy of main (on-push)
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         if: github.event_name == 'push'
         with:
           ref: main
