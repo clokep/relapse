@@ -178,7 +178,7 @@ class MatrixFederationAgent:
         delegated_server = None
         if (
             parsed_uri.scheme == b"matrix-federation"
-            and not _is_ip_literal(parsed_uri.hostname)
+            and not _is_ip_literal(parsed_uri.hostname.decode())
             and not parsed_uri.port
         ):
             well_known_result = yield defer.ensureDeferred(
@@ -331,7 +331,7 @@ class MatrixHostnameEndpoint:
             should_skip_proxy = False
             if self.no_proxy is not None:
                 should_skip_proxy = proxy_bypass_environment(
-                    host.decode(),
+                    host,
                     proxies={"no": self.no_proxy},
                 )
 
@@ -340,21 +340,21 @@ class MatrixHostnameEndpoint:
                 if self._https_proxy_endpoint and not should_skip_proxy:
                     logger.debug(
                         "Connecting to %s:%i via %s",
-                        host.decode("ascii"),
+                        host,
                         port,
                         self._https_proxy_endpoint,
                     )
                     endpoint = HTTPConnectProxyEndpoint(
                         self._reactor,
                         self._https_proxy_endpoint,
-                        host,
+                        host.encode(),
                         port,
                         proxy_creds=self._https_proxy_creds,
                     )
                 else:
-                    logger.debug("Connecting to %s:%i", host.decode("ascii"), port)
+                    logger.debug("Connecting to %s:%i", host, port)
                     # not using a proxy
-                    endpoint = HostnameEndpoint(self._reactor, host, port)
+                    endpoint = HostnameEndpoint(self._reactor, host.encode(), port)
                 if self._tls_options:
                     endpoint = wrapClientTLS(self._tls_options, endpoint)
                 result = await make_deferred_yieldable(
@@ -363,9 +363,7 @@ class MatrixHostnameEndpoint:
 
                 return result
             except Exception as e:
-                logger.info(
-                    "Failed to connect to %s:%i: %s", host.decode("ascii"), port, e
-                )
+                logger.info("Failed to connect to %s:%i: %s", host, port, e)
                 if not first_exception:
                     first_exception = e
 
@@ -383,7 +381,9 @@ class MatrixHostnameEndpoint:
         """
 
         if self._parsed_uri.scheme != b"matrix-federation":
-            return [Server(host=self._parsed_uri.host, port=self._parsed_uri.port)]
+            return [
+                Server(host=self._parsed_uri.host.decode(), port=self._parsed_uri.port)
+            ]
 
         # Note: We don't do well-known lookup as that needs to have happened
         # before now, due to needing to rewrite the Host header of the HTTP
@@ -392,7 +392,7 @@ class MatrixHostnameEndpoint:
         # We reparse the URI so that defaultPort is -1 rather than 80
         parsed_uri = urllib.parse.urlparse(self._parsed_uri.toBytes())
 
-        host = parsed_uri.hostname
+        host = parsed_uri.hostname.decode(errors="replace")
         port = parsed_uri.port
 
         # If there is an explicit port or the host is an IP address we bypass
@@ -401,9 +401,9 @@ class MatrixHostnameEndpoint:
             return [Server(host, port or 8448)]
 
         # Check _matrix-fed._tcp SRV record.
-        logger.debug("Looking up SRV record for %s", host.decode(errors="replace"))
+        logger.debug("Looking up SRV record for %s", host)
         server_list = await self._srv_resolver.resolve_service(
-            b"_matrix-fed._tcp." + host
+            "_matrix-fed._tcp." + host
         )
 
         if server_list:
@@ -411,31 +411,29 @@ class MatrixHostnameEndpoint:
                 logger.debug(
                     "Got %s from SRV lookup for %s",
                     ", ".join(map(str, server_list)),
-                    host.decode(errors="replace"),
+                    host,
                 )
             return server_list
 
         # No _matrix-fed._tcp SRV record, fallback to legacy _matrix._tcp SRV record.
-        logger.debug(
-            "Looking up deprecated SRV record for %s", host.decode(errors="replace")
-        )
-        server_list = await self._srv_resolver.resolve_service(b"_matrix._tcp." + host)
+        logger.debug("Looking up deprecated SRV record for %s", host)
+        server_list = await self._srv_resolver.resolve_service("_matrix._tcp." + host)
 
         if server_list:
             if logger.isEnabledFor(logging.DEBUG):
                 logger.debug(
                     "Got %s from deprecated SRV lookup for %s",
                     ", ".join(map(str, server_list)),
-                    host.decode(errors="replace"),
+                    host,
                 )
             return server_list
 
         # No SRV records, so we fallback to host and 8448
-        logger.debug("No SRV records for %s", host.decode(errors="replace"))
+        logger.debug("No SRV records for %s", host)
         return [Server(host, 8448)]
 
 
-def _is_ip_literal(host: bytes) -> bool:
+def _is_ip_literal(host: str) -> bool:
     """Test if the given host name is either an IPv4 or IPv6 literal.
 
     Args:
@@ -445,10 +443,8 @@ def _is_ip_literal(host: bytes) -> bool:
         True if the hostname is an IP address literal.
     """
 
-    host_str = host.decode("ascii")
-
     try:
-        IPAddress(host_str)
+        IPAddress(host)
         return True
     except AddrFormatError:
         return False

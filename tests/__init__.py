@@ -15,9 +15,12 @@
 
 from twisted.trial import util
 
+from relapse.util import async_helpers
 from relapse.util.patch_inline_callbacks import do_patch
 
 # attempt to do the patch before we load any relapse code
 do_patch()
+
+async_helpers._schedule_coro_inner = lambda coro: coro  # type: ignore[assignment,return-value]
 
 util.DEFAULT_TIMEOUT_DURATION = 20

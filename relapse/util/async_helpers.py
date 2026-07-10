@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import abc
+import asyncio
 import collections
 import inspect
 import itertools
@@ -875,3 +876,17 @@ class AwakenableSleeper:
             # Cancel the sleep if we were woken up
             if call.active():
                 call.cancel()
+
+
+def schedule_coro(coro: Coroutine) -> defer.Deferred:
+    """
+    Schedule coroutine so it gets executed in a running asyncio event loop via the Twisted reactor.
+
+    See https://github.com/twisted/twisted/issues/12265
+    """
+    return _schedule_coro_inner(coro)
+
+
+def _schedule_coro_inner(coro: Coroutine) -> defer.Deferred:
+    """This exists to be patched out in tests."""
+    return defer.Deferred.fromFuture(asyncio.ensure_future(coro))
