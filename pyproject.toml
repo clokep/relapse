@@ -242,7 +242,7 @@ txredisapi = { version = ">=1.4.7", optional = true }
 hiredis = { version = "*", optional = true }
 Pympler = { version = "*", optional = true }
 parameterized = { version = ">=0.7.4", optional = true }
-idna = { version = ">=2.5", optional = true }
+idna = { version = ">=3.10", optional = true }
 
 [tool.poetry.extras]
 # NB: Packages that should be part of `pip install matrix-relapse[all]` need to be specified
@@ -329,7 +329,7 @@ types-setuptools = ">=82.0.0.20260408"
 # parameterized<0.7.4 can create classes with names that would normally be invalid
 # identifiers. trial really does not like this when running with multiple workers.
 parameterized = ">=0.7.4"
-idna = ">=2.5"
+idna = ">=3.10"
 
 # The following are used by the release script
 click = ">=8.1.3"
