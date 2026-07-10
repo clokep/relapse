@@ -153,7 +153,7 @@ class HTTPProxiedClientFactory(protocol.ClientFactory):
     def startedConnecting(self, connector: IConnector) -> None:
         return self.wrapped_factory.startedConnecting(connector)
 
-    def buildProtocol(self, addr: IAddress) -> "HTTPConnectProtocol":
+    def buildProtocol(self, addr: IAddress | None) -> "HTTPConnectProtocol":
         wrapped_protocol = self.wrapped_factory.buildProtocol(addr)
         if wrapped_protocol is None:
             raise TypeError("buildProtocol produced None instead of a Protocol")
@@ -161,7 +161,7 @@ class HTTPProxiedClientFactory(protocol.ClientFactory):
         return HTTPConnectProtocol(
             self.dst_host,
             self.dst_port,
-            wrapped_protocol,
+            wrapped_protocol,  # type: ignore[arg-type]
             self.on_connection,
             self.proxy_creds,
         )

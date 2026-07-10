@@ -34,7 +34,7 @@ from twisted.internet.interfaces import (
     IAddress,
     IDelayedCall,
     IHostResolution,
-    IOpenSSLContextFactory,
+    IOpenSSLClientConnectionCreator,
     IReactorCore,
     IReactorPluggableNameResolver,
     IReactorTime,
@@ -1097,8 +1097,10 @@ class InsecureInterceptableContextFactory(ssl.ContextFactory):
     def getContext(self) -> SSL.Context:
         return self._context
 
-    def creatorForNetloc(self, hostname: bytes, port: int) -> IOpenSSLContextFactory:
-        return self
+    def creatorForNetloc(
+        self, hostname: bytes, port: int
+    ) -> IOpenSSLClientConnectionCreator:
+        return self  # type: ignore[return-value]
 
 
 def is_unknown_endpoint(

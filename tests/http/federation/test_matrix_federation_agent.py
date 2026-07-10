@@ -33,6 +33,7 @@ from twisted.internet.interfaces import (
 )
 from twisted.internet.protocol import Factory, Protocol
 from twisted.protocols.tls import TLSMemoryBIOProtocol
+from twisted.python.failure import Failure
 from twisted.web._newclient import ResponseNeverReceived
 from twisted.web.client import Agent
 from twisted.web.http import HTTPChannel, Request
@@ -665,7 +666,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
         self.assertEqual(port, 443)
 
         # fonx the connection
-        client_factory.clientConnectionFailed(None, Exception("nope"))
+        client_factory.clientConnectionFailed(None, Failure(Exception("nope")))  # type: ignore[arg-type]
 
         # attemptdelay on the hostnameendpoint is 0.3, so takes that long before the
         # .well-known request fails.
@@ -753,7 +754,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
         self.assertEqual(port, 443)
 
         # fonx the connection
-        client_factory.clientConnectionFailed(None, Exception("nope"))
+        client_factory.clientConnectionFailed(None, Failure(Exception("nope")))  # type: ignore[arg-type]
 
         # attemptdelay on the hostnameendpoint is 0.3, so  takes that long before the
         # .well-known request fails.
@@ -1288,7 +1289,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
         self.assertEqual(port, 443)
 
         # fonx the connection
-        client_factory.clientConnectionFailed(None, Exception("nope"))
+        client_factory.clientConnectionFailed(None, Failure(Exception("nope")))  # type: ignore[arg-type]
 
         # attemptdelay on the hostnameendpoint is 0.3, so  takes that long before the
         # .well-known request fails.
@@ -1527,7 +1528,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
 
             # fonx the connection attempt, this will be treated as a temporary
             # failure.
-            client_factory.clientConnectionFailed(None, Exception("nope"))
+            client_factory.clientConnectionFailed(None, Failure(Exception("nope")))  # type: ignore[arg-type]
 
             # There's a few sleeps involved, so we have to pump the reactor a
             # bit.
@@ -1551,7 +1552,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
 
         clients = self.reactor.tcpClients
         (host, port, client_factory, _timeout, _bindAddress) = clients.pop(0)
-        client_factory.clientConnectionFailed(None, Exception("nope"))
+        client_factory.clientConnectionFailed(None, Failure(Exception("nope")))  # type: ignore[arg-type]
         self.reactor.pump((0.4,))
 
         r = await fetch_d
@@ -1610,7 +1611,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
         self.assertEqual(port, 8443)
 
         # Fonx the connection
-        client_factory.clientConnectionFailed(None, Exception("nope"))
+        client_factory.clientConnectionFailed(None, Failure(Exception("nope")))  # type: ignore[arg-type]
 
         # There's a 300ms delay in HostnameEndpoint
         self.reactor.pump((0.4,))
@@ -1670,7 +1671,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
         self.assertEqual(port, 8443)
 
         # Fonx the connection
-        client_factory.clientConnectionFailed(None, Exception("nope"))
+        client_factory.clientConnectionFailed(None, Failure(Exception("nope")))  # type: ignore[arg-type]
 
         # There's a 300ms delay in HostnameEndpoint
         self.reactor.pump((0.4,))
@@ -1728,7 +1729,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
         self.assertEqual(port, 8443)
 
         # Fonx the connection
-        client_factory.clientConnectionFailed(None, Exception("nope"))
+        client_factory.clientConnectionFailed(None, Failure(Exception("nope")))  # type: ignore[arg-type]
 
         # There's a 300ms delay in HostnameEndpoint
         self.reactor.pump((0.4,))
@@ -1816,7 +1817,7 @@ def _get_test_protocol_factory() -> IProtocolFactory:
     server_factory = Factory.forProtocol(HTTPChannel)
 
     # Request.finish expects the factory to have a 'log' method.
-    server_factory.log = _log_request
+    server_factory.log = _log_request  # type: ignore[attr-defined]
 
     return server_factory
 
@@ -1835,4 +1836,4 @@ class TrustingTLSPolicyForHTTPS:
         self, hostname: bytes, port: int
     ) -> IOpenSSLClientConnectionCreator:
         certificateOptions = OpenSSLCertificateOptions()
-        return ClientTLSOptions(hostname, certificateOptions.getContext())
+        return ClientTLSOptions(hostname, certificateOptions.getContext())  # type: ignore[arg-type]

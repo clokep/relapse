@@ -37,7 +37,7 @@ from unpaddedbase64 import decode_base64
 from relapse.types import JsonDict
 from relapse.util.stringutils import random_string, random_string_with_symbols
 
-from ._base import Config, ConfigError
+from ._base import Config, ConfigError, read_file
 
 if TYPE_CHECKING:
     from signedjson.key import VerifyKeyWithExpiry
@@ -186,7 +186,7 @@ class KeyConfig(Config):
             The signing keys read from the given path.
         """
 
-        signing_keys = self.read_file(signing_key_path, name)
+        signing_keys = read_file(signing_key_path, (name,))
         try:
             loaded_signing_keys = read_signing_keys(
                 [
@@ -242,7 +242,7 @@ class KeyConfig(Config):
                 key_id = "a_" + random_string(4)
                 write_signing_keys(signing_key_file, (generate_signing_key(key_id),))
         else:
-            signing_keys = self.read_file(signing_key_path, "signing_key")
+            signing_keys = read_file(signing_key_path, "signing_key")
             if len(signing_keys.split("\n")[0].split()) == 1:
                 # handle keys in the old format.
                 key_id = "a_" + random_string(4)

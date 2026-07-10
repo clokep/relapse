@@ -15,6 +15,7 @@
 from parameterized import parameterized
 
 from twisted.internet.testing import MemoryReactor
+from twisted.web.server import Site
 
 from relapse.app.generic_worker import GenericWorkerServer
 from relapse.app.homeserver import RelapseHomeServer
@@ -59,6 +60,7 @@ class RelapseHomeserverOpenIDListenerTests(HomeserverTestCase):
 
         # Grab the resource from the site that was told to listen
         site = self.reactor.tcpServers[0][1]
+        assert isinstance(site, Site)
         channel = make_request(
             self.reactor, site, "GET", "/_matrix/federation/v1/openid/userinfo"
         )

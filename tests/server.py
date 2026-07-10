@@ -524,7 +524,7 @@ class ThreadedMemoryReactorClock(MemoryReactorClock):
         """
         raise Exception("Unix sockets are not implemented for tests, sorry")
 
-    def connectTCP(
+    def connectTCP(  # type: ignore[override]
         self,
         host: str,
         port: int,
@@ -881,6 +881,7 @@ def connect_client(
     """
     factory = reactor.tcpClients.pop(client_id)[2]
     client = factory.buildProtocol(None)
+    assert client is not None
     server = AccumulatingProtocol()
     server.makeConnection(FakeTransport(client, reactor))
     client.makeConnection(FakeTransport(server, reactor))

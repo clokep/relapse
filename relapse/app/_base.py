@@ -389,7 +389,7 @@ def listen_http(
             ports = listen_ssl(
                 listener_config.bind_addresses,
                 listener_config.port,
-                site,
+                site,  # type: ignore[arg-type]
                 context_factory,
                 reactor=reactor,
             )
@@ -400,14 +400,17 @@ def listen_http(
             ports = listen_tcp(
                 listener_config.bind_addresses,
                 listener_config.port,
-                site,
+                site,  # type: ignore[arg-type]
                 reactor=reactor,
             )
             logger.info("Relapse now listening on TCP port %d", listener_config.port)
 
     else:
         ports = listen_unix(
-            listener_config.path, listener_config.mode, site, reactor=reactor
+            listener_config.path,
+            listener_config.mode,
+            site,  # type: ignore[arg-type]
+            reactor=reactor,
         )
         # getHost() returns a UNIXAddress which contains an instance variable of 'name'
         # encoded as a byte string. Decode as utf-8 so pretty.

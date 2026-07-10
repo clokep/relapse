@@ -188,11 +188,12 @@ class BaseStreamTestCase(unittest.HomeserverTestCase):
 
         # Set up client side protocol
         client_address = IPv4Address("TCP", "127.0.0.1", 1234)
-        client_protocol = client_factory.buildProtocol(("127.0.0.1", 1234))
+        client_protocol = client_factory.buildProtocol(client_address)
+        assert client_protocol is not None
 
         # Set up the server side protocol
         server_address = IPv4Address("TCP", host, port)
-        channel = self.site.buildProtocol((host, port))
+        channel = self.site.buildProtocol(server_address)
 
         # hook into the channel's request factory so that we can keep a record
         # of the requests
@@ -258,6 +259,7 @@ class BaseStreamTestCase(unittest.HomeserverTestCase):
 
             client_address = IPv4Address("TCP", "127.0.0.1", 6379)
             client_protocol = client_factory.buildProtocol(client_address)
+            assert client_protocol is not None
 
             server_address = IPv4Address("TCP", host, port)
             server_protocol = self._redis_server.buildProtocol(server_address)
@@ -449,11 +451,12 @@ class BaseMultiWorkerStreamTestCase(unittest.HomeserverTestCase):
 
         # Set up client side protocol
         client_address = IPv4Address("TCP", "127.0.0.1", 1234)
-        client_protocol = client_factory.buildProtocol(("127.0.0.1", 1234))
+        client_protocol = client_factory.buildProtocol(client_address)
+        assert client_protocol is not None
 
         # Set up the server side protocol
         server_address = IPv4Address("TCP", host, port)
-        channel = self._hs_to_site[hs].buildProtocol((host, port))
+        channel = self._hs_to_site[hs].buildProtocol(server_address)
 
         # Connect client to server and vice versa.
         client_to_server_transport = FakeTransport(
@@ -484,6 +487,7 @@ class BaseMultiWorkerStreamTestCase(unittest.HomeserverTestCase):
 
             client_address = IPv4Address("TCP", "127.0.0.1", 6379)
             client_protocol = client_factory.buildProtocol(client_address)
+            assert client_protocol is not None
 
             server_address = IPv4Address("TCP", host, port)
             server_protocol = self._redis_server.buildProtocol(server_address)

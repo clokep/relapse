@@ -144,6 +144,38 @@ class URLPreviewTests(unittest.HomeserverTestCase):
 
         self.reactor.nameResolver = Resolver()  # type: ignore[assignment]
 
+    def _respond_with_content(
+        self,
+        content: bytes | None = None,
+        content_type: bytes = b"text/html",
+        client_num: int = 0,
+    ) -> AccumulatingProtocol:
+        if content is None:
+            content = self.end_content
+
+        # Extract Relapse's tcp client
+        client = self.reactor.tcpClients[client_num][2].buildProtocol(None)
+        assert client is not None
+
+        # Build a fake remote server to reply with
+        server = AccumulatingProtocol()
+
+        # Connect the two together
+        server.makeConnection(FakeTransport(client, self.reactor))
+        client.makeConnection(FakeTransport(server, self.reactor))
+
+        # Tell Relapse that it has received some data from the remote server
+        client.dataReceived(
+            b"HTTP/1.0 200 OK\r\nContent-Length: %d\r\nContent-Type: %s\r\n\r\n"
+            % (len(content), content_type)
+            + content
+        )
+
+        # Move the reactor along until we get a response on our original channel
+        self.pump()
+
+        return server
+
     def _assert_small_png(self, json_body: JsonDict) -> None:
         """Assert properties from the SMALL_PNG test image."""
         self.assertTrue(json_body["og:image"].startswith("mxc://"))
@@ -162,17 +194,8 @@ class URLPreviewTests(unittest.HomeserverTestCase):
         )
         self.pump()
 
-        client = self.reactor.tcpClients[0][2].buildProtocol(None)
-        server = AccumulatingProtocol()
-        server.makeConnection(FakeTransport(client, self.reactor))
-        client.makeConnection(FakeTransport(server, self.reactor))
-        client.dataReceived(
-            b"HTTP/1.0 200 OK\r\nContent-Length: %d\r\nContent-Type: text/html\r\n\r\n"
-            % (len(self.end_content),)
-            + self.end_content
-        )
+        self._respond_with_content()
 
-        self.pump()
         self.assertEqual(channel.code, 200)
         self.assertEqual(
             channel.json_body, {"og:title": "~matrix~", "og:description": "hi"}
@@ -225,20 +248,8 @@ class URLPreviewTests(unittest.HomeserverTestCase):
         )
         self.pump()
 
-        client = self.reactor.tcpClients[0][2].buildProtocol(None)
-        server = AccumulatingProtocol()
-        server.makeConnection(FakeTransport(client, self.reactor))
-        client.makeConnection(FakeTransport(server, self.reactor))
-        client.dataReceived(
-            (
-                b"HTTP/1.0 200 OK\r\nContent-Length: %d\r\n"
-                b'Content-Type: text/html; charset="utf8"\r\n\r\n'
-            )
-            % (len(end_content),)
-            + end_content
-        )
+        self._respond_with_content(end_content, b'text/html; charset="utf8"')
 
-        self.pump()
         self.assertEqual(channel.code, 200)
         self.assertIn("og:title", channel.json_body)
 
@@ -254,20 +265,8 @@ class URLPreviewTests(unittest.HomeserverTestCase):
         )
         self.pump()
 
-        client = self.reactor.tcpClients[0][2].buildProtocol(None)
-        server = AccumulatingProtocol()
-        server.makeConnection(FakeTransport(client, self.reactor))
-        client.makeConnection(FakeTransport(server, self.reactor))
-        client.dataReceived(
-            (
-                b"HTTP/1.0 200 OK\r\nContent-Length: %d\r\n"
-                b"Content-Type: video/mp4\r\n\r\n"
-            )
-            % (len(end_content))
-            + end_content
-        )
+        self._respond_with_content(end_content, b"video/mp4")
 
-        self.pump()
         self.assertEqual(channel.code, 502)
         self.assertEqual(
             channel.json_body,
@@ -289,20 +288,8 @@ class URLPreviewTests(unittest.HomeserverTestCase):
         )
         self.pump()
 
-        client = self.reactor.tcpClients[0][2].buildProtocol(None)
-        server = AccumulatingProtocol()
-        server.makeConnection(FakeTransport(client, self.reactor))
-        client.makeConnection(FakeTransport(server, self.reactor))
-        client.dataReceived(
-            (
-                b"HTTP/1.0 200 OK\r\nContent-Length: %d\r\n"
-                b"Content-Type: audio/aac\r\n\r\n"
-            )
-            % (len(end_content))
-            + end_content
-        )
+        self._respond_with_content(end_content, b"audio/aac")
 
-        self.pump()
         self.assertEqual(channel.code, 502)
         self.assertEqual(
             channel.json_body,
@@ -329,20 +316,8 @@ class URLPreviewTests(unittest.HomeserverTestCase):
         )
         self.pump()
 
-        client = self.reactor.tcpClients[0][2].buildProtocol(None)
-        server = AccumulatingProtocol()
-        server.makeConnection(FakeTransport(client, self.reactor))
-        client.makeConnection(FakeTransport(server, self.reactor))
-        client.dataReceived(
-            (
-                b"HTTP/1.0 200 OK\r\nContent-Length: %d\r\n"
-                b'Content-Type: text/html; charset="windows-1251"\r\n\r\n'
-            )
-            % (len(end_content),)
-            + end_content
-        )
+        self._respond_with_content(end_content, b'text/html; charset="windows-1251"')
 
-        self.pump()
         self.assertEqual(channel.code, 200)
         self.assertIn("og:title", channel.json_body)
 
@@ -363,20 +338,8 @@ class URLPreviewTests(unittest.HomeserverTestCase):
         )
         self.pump()
 
-        client = self.reactor.tcpClients[0][2].buildProtocol(None)
-        server = AccumulatingProtocol()
-        server.makeConnection(FakeTransport(client, self.reactor))
-        client.makeConnection(FakeTransport(server, self.reactor))
-        client.dataReceived(
-            (
-                b"HTTP/1.0 200 OK\r\nContent-Length: %d\r\n"
-                b'Content-Type: text/html; charset="windows-1251"\r\n\r\n'
-            )
-            % (len(end_content),)
-            + end_content
-        )
+        self._respond_with_content(end_content, b'text/html; charset="windows-1251"')
 
-        self.pump()
         self.assertEqual(channel.code, 200)
         res = channel.json_body
         # We should only see the `og:description` field, as `title` is too long and should be stripped out
@@ -395,17 +358,8 @@ class URLPreviewTests(unittest.HomeserverTestCase):
         )
         self.pump()
 
-        client = self.reactor.tcpClients[0][2].buildProtocol(None)
-        server = AccumulatingProtocol()
-        server.makeConnection(FakeTransport(client, self.reactor))
-        client.makeConnection(FakeTransport(server, self.reactor))
-        client.dataReceived(
-            b"HTTP/1.0 200 OK\r\nContent-Length: %d\r\nContent-Type: text/html\r\n\r\n"
-            % (len(self.end_content),)
-            + self.end_content
-        )
+        self._respond_with_content()
 
-        self.pump()
         self.assertEqual(channel.code, 200)
         self.assertEqual(
             channel.json_body, {"og:title": "~matrix~", "og:description": "hi"}
@@ -498,19 +452,8 @@ class URLPreviewTests(unittest.HomeserverTestCase):
         )
         self.pump()
 
-        client = self.reactor.tcpClients[0][2].buildProtocol(None)
+        self._respond_with_content()
 
-        server = AccumulatingProtocol()
-        server.makeConnection(FakeTransport(client, self.reactor))
-        client.makeConnection(FakeTransport(server, self.reactor))
-
-        client.dataReceived(
-            b"HTTP/1.0 200 OK\r\nContent-Length: %d\r\nContent-Type: text/html\r\n\r\n"
-            % (len(self.end_content),)
-            + self.end_content
-        )
-
-        self.pump()
         self.assertEqual(channel.code, 200)
         self.assertEqual(
             channel.json_body, {"og:title": "~matrix~", "og:description": "hi"}
@@ -608,25 +551,8 @@ class URLPreviewTests(unittest.HomeserverTestCase):
         )
         self.pump()
 
-        # Extract Relapse's tcp client
-        client = self.reactor.tcpClients[0][2].buildProtocol(None)
+        server = self._respond_with_content()
 
-        # Build a fake remote server to reply with
-        server = AccumulatingProtocol()
-
-        # Connect the two together
-        server.makeConnection(FakeTransport(client, self.reactor))
-        client.makeConnection(FakeTransport(server, self.reactor))
-
-        # Tell Relapse that it has received some data from the remote server
-        client.dataReceived(
-            b"HTTP/1.0 200 OK\r\nContent-Length: %d\r\nContent-Type: text/html\r\n\r\n"
-            % (len(self.end_content),)
-            + self.end_content
-        )
-
-        # Move the reactor along until we get a response on our original channel
-        self.pump()
         self.assertEqual(channel.code, 200)
         self.assertEqual(
             channel.json_body, {"og:title": "~matrix~", "og:description": "hi"}
@@ -661,34 +587,10 @@ class URLPreviewTests(unittest.HomeserverTestCase):
         self.pump()
 
         # Respond with the HTML.
-        client = self.reactor.tcpClients[0][2].buildProtocol(None)
-        server = AccumulatingProtocol()
-        server.makeConnection(FakeTransport(client, self.reactor))
-        client.makeConnection(FakeTransport(server, self.reactor))
-        client.dataReceived(
-            (
-                b"HTTP/1.0 200 OK\r\nContent-Length: %d\r\n"
-                b'Content-Type: text/html; charset="utf8"\r\n\r\n'
-            )
-            % (len(result),)
-            + result
-        )
-        self.pump()
+        self._respond_with_content(result, b'text/html; charset="utf8"')
 
         # Respond with the photo.
-        client = self.reactor.tcpClients[1][2].buildProtocol(None)
-        server = AccumulatingProtocol()
-        server.makeConnection(FakeTransport(client, self.reactor))
-        client.makeConnection(FakeTransport(server, self.reactor))
-        client.dataReceived(
-            (
-                b"HTTP/1.0 200 OK\r\nContent-Length: %d\r\n"
-                b"Content-Type: image/png\r\n\r\n"
-            )
-            % (len(SMALL_PNG),)
-            + SMALL_PNG
-        )
-        self.pump()
+        self._respond_with_content(SMALL_PNG, b"image/png", client_num=1)
 
         # The image should be in the result.
         self.assertEqual(channel.code, 200)
@@ -709,20 +611,7 @@ class URLPreviewTests(unittest.HomeserverTestCase):
         )
         self.pump()
 
-        client = self.reactor.tcpClients[0][2].buildProtocol(None)
-        server = AccumulatingProtocol()
-        server.makeConnection(FakeTransport(client, self.reactor))
-        client.makeConnection(FakeTransport(server, self.reactor))
-        client.dataReceived(
-            (
-                b"HTTP/1.0 200 OK\r\nContent-Length: %d\r\n"
-                b'Content-Type: text/html; charset="utf8"\r\n\r\n'
-            )
-            % (len(result),)
-            + result
-        )
-
-        self.pump()
+        self._respond_with_content(result, b'text/html; charset="utf8"')
 
         # There should not be a second connection.
         self.assertEqual(len(self.reactor.tcpClients), 1)
@@ -750,19 +639,7 @@ class URLPreviewTests(unittest.HomeserverTestCase):
         )
         self.pump()
 
-        client = self.reactor.tcpClients[0][2].buildProtocol(None)
-        server = AccumulatingProtocol()
-        server.makeConnection(FakeTransport(client, self.reactor))
-        client.makeConnection(FakeTransport(server, self.reactor))
-        client.dataReceived(
-            (
-                b"HTTP/1.0 200 OK\r\nContent-Length: %d\r\n"
-                b'Content-Type: text/html; charset="utf8"\r\n\r\n'
-            )
-            % (len(result),)
-            + result
-        )
-        self.pump()
+        self._respond_with_content(result, b'text/html; charset="utf8"')
 
         # There should not be a second connection.
         self.assertEqual(len(self.reactor.tcpClients), 1)
@@ -789,20 +666,8 @@ class URLPreviewTests(unittest.HomeserverTestCase):
         )
         self.pump()
 
-        client = self.reactor.tcpClients[0][2].buildProtocol(None)
-        server = AccumulatingProtocol()
-        server.makeConnection(FakeTransport(client, self.reactor))
-        client.makeConnection(FakeTransport(server, self.reactor))
-        client.dataReceived(
-            (
-                b"HTTP/1.0 200 OK\r\nContent-Length: %d\r\n"
-                b'Content-Type: text/html; charset="utf8"\r\n\r\n'
-            )
-            % (len(result),)
-            + result
-        )
+        self._respond_with_content(result, b'text/html; charset="utf8"')
 
-        self.pump()
         self.assertEqual(channel.code, 200)
 
         # The image should not be in the result.
@@ -849,20 +714,8 @@ class URLPreviewTests(unittest.HomeserverTestCase):
         )
         self.pump()
 
-        client = self.reactor.tcpClients[0][2].buildProtocol(None)
-        server = AccumulatingProtocol()
-        server.makeConnection(FakeTransport(client, self.reactor))
-        client.makeConnection(FakeTransport(server, self.reactor))
-        client.dataReceived(
-            (
-                b"HTTP/1.0 200 OK\r\nContent-Length: %d\r\n"
-                b'Content-Type: text/html; charset="utf8"\r\n\r\n'
-            )
-            % (len(end_content),)
-            + end_content
-        )
+        self._respond_with_content(end_content, b'text/html; charset="utf8"')
 
-        self.pump()
         self.assertEqual(channel.code, 200)
         self._assert_small_png(channel.json_body)
 
@@ -885,36 +738,10 @@ class URLPreviewTests(unittest.HomeserverTestCase):
         )
         self.pump()
 
-        client = self.reactor.tcpClients[0][2].buildProtocol(None)
-        server = AccumulatingProtocol()
-        server.makeConnection(FakeTransport(client, self.reactor))
-        client.makeConnection(FakeTransport(server, self.reactor))
-        client.dataReceived(
-            (
-                b"HTTP/1.0 200 OK\r\nContent-Length: %d\r\n"
-                b'Content-Type: application/json; charset="utf8"\r\n\r\n'
-            )
-            % (len(oembed_content),)
-            + oembed_content
-        )
-
-        self.pump()
+        self._respond_with_content(oembed_content, b'application/json; charset="utf8"')
 
         # Ensure a second request is made to the photo URL.
-        client = self.reactor.tcpClients[1][2].buildProtocol(None)
-        server = AccumulatingProtocol()
-        server.makeConnection(FakeTransport(client, self.reactor))
-        client.makeConnection(FakeTransport(server, self.reactor))
-        client.dataReceived(
-            (
-                b"HTTP/1.0 200 OK\r\nContent-Length: %d\r\n"
-                b"Content-Type: image/png\r\n\r\n"
-            )
-            % (len(SMALL_PNG),)
-            + SMALL_PNG
-        )
-
-        self.pump()
+        server = self._respond_with_content(SMALL_PNG, b"image/png", client_num=1)
 
         # Ensure the URL is what was requested.
         self.assertIn(b"/matrixdotorg", server.data)
@@ -944,20 +771,9 @@ class URLPreviewTests(unittest.HomeserverTestCase):
         )
         self.pump()
 
-        client = self.reactor.tcpClients[0][2].buildProtocol(None)
-        server = AccumulatingProtocol()
-        server.makeConnection(FakeTransport(client, self.reactor))
-        client.makeConnection(FakeTransport(server, self.reactor))
-        client.dataReceived(
-            (
-                b"HTTP/1.0 200 OK\r\nContent-Length: %d\r\n"
-                b'Content-Type: application/json; charset="utf8"\r\n\r\n'
-            )
-            % (len(end_content),)
-            + end_content
+        server = self._respond_with_content(
+            end_content, b'application/json; charset="utf8"'
         )
-
-        self.pump()
 
         # Double check that the proper host is being connected to. (Note that
         # twitter.com can't be resolved so this is already implicitly checked.)
@@ -992,20 +808,9 @@ class URLPreviewTests(unittest.HomeserverTestCase):
         )
         self.pump()
 
-        client = self.reactor.tcpClients[0][2].buildProtocol(None)
-        server = AccumulatingProtocol()
-        server.makeConnection(FakeTransport(client, self.reactor))
-        client.makeConnection(FakeTransport(server, self.reactor))
-        client.dataReceived(
-            (
-                b"HTTP/1.0 200 OK\r\nContent-Length: %d\r\n"
-                b'Content-Type: application/json; charset="utf8"\r\n\r\n'
-            )
-            % (len(end_content),)
-            + end_content
+        server = self._respond_with_content(
+            end_content, b'application/json; charset="utf8"'
         )
-
-        self.pump()
 
         # The {format} should have been turned into json.
         self.assertIn(b"/api/oembed.json", server.data)
@@ -1064,19 +869,7 @@ class URLPreviewTests(unittest.HomeserverTestCase):
         )
         self.pump()
 
-        client = self.reactor.tcpClients[0][2].buildProtocol(None)
-        server = AccumulatingProtocol()
-        server.makeConnection(FakeTransport(client, self.reactor))
-        client.makeConnection(FakeTransport(server, self.reactor))
-        client.dataReceived(
-            (
-                b"HTTP/1.0 200 OK\r\nContent-Length: %d\r\n"
-                b'Content-Type: text/html; charset="utf8"\r\n\r\n'
-            )
-            % (len(result),)
-            + result
-        )
-        self.pump()
+        self._respond_with_content(result, b'text/html; charset="utf8"')
 
         # The oEmbed response.
         result2 = {
@@ -1087,37 +880,15 @@ class URLPreviewTests(unittest.HomeserverTestCase):
         oembed_content = json.dumps(result2).encode("utf-8")
 
         # Ensure a second request is made to the oEmbed URL.
-        client = self.reactor.tcpClients[1][2].buildProtocol(None)
-        server = AccumulatingProtocol()
-        server.makeConnection(FakeTransport(client, self.reactor))
-        client.makeConnection(FakeTransport(server, self.reactor))
-        client.dataReceived(
-            (
-                b"HTTP/1.0 200 OK\r\nContent-Length: %d\r\n"
-                b'Content-Type: application/json; charset="utf8"\r\n\r\n'
-            )
-            % (len(oembed_content),)
-            + oembed_content
+        server = self._respond_with_content(
+            oembed_content, b'application/json; charset="utf8"', client_num=1
         )
-        self.pump()
 
         # Ensure the URL is what was requested.
         self.assertIn(b"/oembed?", server.data)
 
         # Ensure a third request is made to the photo URL.
-        client = self.reactor.tcpClients[2][2].buildProtocol(None)
-        server = AccumulatingProtocol()
-        server.makeConnection(FakeTransport(client, self.reactor))
-        client.makeConnection(FakeTransport(server, self.reactor))
-        client.dataReceived(
-            (
-                b"HTTP/1.0 200 OK\r\nContent-Length: %d\r\n"
-                b"Content-Type: image/png\r\n\r\n"
-            )
-            % (len(SMALL_PNG),)
-            + SMALL_PNG
-        )
-        self.pump()
+        server = self._respond_with_content(SMALL_PNG, b"image/png", client_num=2)
 
         # Ensure the URL is what was requested.
         self.assertIn(b"/matrixdotorg", server.data)
@@ -1155,20 +926,7 @@ class URLPreviewTests(unittest.HomeserverTestCase):
         )
         self.pump()
 
-        client = self.reactor.tcpClients[0][2].buildProtocol(None)
-        server = AccumulatingProtocol()
-        server.makeConnection(FakeTransport(client, self.reactor))
-        client.makeConnection(FakeTransport(server, self.reactor))
-        client.dataReceived(
-            (
-                b"HTTP/1.0 200 OK\r\nContent-Length: %d\r\n"
-                b'Content-Type: text/html; charset="utf8"\r\n\r\n'
-            )
-            % (len(result),)
-            + result
-        )
-
-        self.pump()
+        server = self._respond_with_content(result, b'text/html; charset="utf8"')
 
         # Ensure there's no additional connections.
         self.assertEqual(len(self.reactor.tcpClients), 1)
@@ -1195,17 +953,8 @@ class URLPreviewTests(unittest.HomeserverTestCase):
         )
         self.pump()
 
-        client = self.reactor.tcpClients[0][2].buildProtocol(None)
-        server = AccumulatingProtocol()
-        server.makeConnection(FakeTransport(client, self.reactor))
-        client.makeConnection(FakeTransport(server, self.reactor))
-        client.dataReceived(
-            b"HTTP/1.0 200 OK\r\nContent-Length: %d\r\nContent-Type: image/png\r\n\r\n"
-            % (len(SMALL_PNG),)
-            + SMALL_PNG
-        )
+        self._respond_with_content(SMALL_PNG, b"image/png")
 
-        self.pump()
         self.assertEqual(channel.code, 200)
         body = channel.json_body
         mxc_uri = body["og:image"]
@@ -1356,17 +1105,8 @@ class URLPreviewTests(unittest.HomeserverTestCase):
         )
         self.pump()
 
-        client = self.reactor.tcpClients[0][2].buildProtocol(None)
-        server = AccumulatingProtocol()
-        server.makeConnection(FakeTransport(client, self.reactor))
-        client.makeConnection(FakeTransport(server, self.reactor))
-        client.dataReceived(
-            b"HTTP/1.0 200 OK\r\nContent-Length: %d\r\nContent-Type: text/html\r\n\r\n"
-            % (len(self.end_content),)
-            + self.end_content
-        )
+        self._respond_with_content()
 
-        self.pump()
         self.assertEqual(channel.code, 200)
 
     @unittest.override_config(

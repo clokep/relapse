@@ -18,6 +18,7 @@ from netaddr import IPSet
 from twisted.internet import defer
 from twisted.internet.error import DNSLookupError
 from twisted.internet.testing import MemoryReactor
+from twisted.python.failure import Failure
 
 from relapse.http import RequestTimedOutError
 from relapse.http.client import SimpleHttpClient
@@ -58,7 +59,7 @@ class SimpleHttpClientTests(HomeserverTestCase):
         self.assertEqual(host, "1.2.3.4")
         self.assertEqual(port, 8008)
         e = Exception("go away")
-        factory.clientConnectionFailed(None, e)
+        factory.clientConnectionFailed(None, Failure(e))  # type: ignore[arg-type]
         self.pump(0.5)
 
         with self.assertRaises(Exception) as exc:
@@ -112,6 +113,7 @@ class SimpleHttpClientTests(HomeserverTestCase):
 
         conn = Mock()
         client = clients[0][2].buildProtocol(None)
+        assert client is not None
         client.makeConnection(conn)
 
         # Deferred is still without a result
