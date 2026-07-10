@@ -128,9 +128,10 @@ try:
         # Twisted uses a module-level _select function.
         wrapper = selectreactor._select = CallWrapper(selectreactor._select)
 
-    elif isinstance(reactor, AsyncioSelectorReactor):
-        # For asyncio look at the underlying asyncio event loop.
-        asyncio_loop = reactor._asyncioEventloop  # A sub-class of BaseEventLoop,
+    elif isinstance(reactor, AsyncioSelectorReactor):  # type: ignore[unreachable]
+        # For asyncio look at the underlying asyncio event loop, which will be a
+        # sub-class of BaseEventLoop.
+        asyncio_loop = reactor._asyncioEventloop  # type: ignore[unreachable]
 
         # A sub-class of BaseSelector.
         selector = asyncio_loop._selector  # type: ignore[attr-defined]

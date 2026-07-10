@@ -21,7 +21,7 @@ from matrix_common.regex import glob_to_regex
 from OpenSSL import SSL, crypto
 from twisted.internet._sslverify import Certificate, trustRootFromCertificates
 
-from relapse.config._base import Config, ConfigError
+from relapse.config._base import Config, ConfigError, read_file
 from relapse.types import JsonDict
 
 logger = logging.getLogger(__name__)
@@ -108,7 +108,7 @@ class TlsConfig(Config):
             certs = []
             for ca_file in custom_ca_list:
                 logger.debug("Reading custom CA certificate file: %s", ca_file)
-                content = self.read_file(ca_file, "federation_custom_ca_list")
+                content = read_file(ca_file, "federation_custom_ca_list", as_bytes=True)
 
                 # Parse the CA certificates
                 try:
@@ -169,7 +169,7 @@ class TlsConfig(Config):
         """
         cert_path = self.tls_certificate_file
         logger.info("Loading TLS certificate from %s", cert_path)
-        cert_pem = self.read_file(cert_path, "tls_certificate_path")
+        cert_pem = read_file(cert_path, "tls_certificate_path")
         cert = crypto.load_certificate(crypto.FILETYPE_PEM, cert_pem.encode())
 
         return cert
@@ -182,5 +182,5 @@ class TlsConfig(Config):
         """
         private_key_path = self.tls_private_key_file
         logger.info("Loading TLS key from %s", private_key_path)
-        private_key_pem = self.read_file(private_key_path, "tls_private_key_path")
+        private_key_pem = read_file(private_key_path, "tls_private_key_path")
         return crypto.load_privatekey(crypto.FILETYPE_PEM, private_key_pem)

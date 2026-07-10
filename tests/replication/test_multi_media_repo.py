@@ -78,8 +78,9 @@ class MediaRepoShardTestCase(BaseMultiWorkerStreamTestCase):
 
         # build the test server
         server_factory = Factory.forProtocol(HTTPChannel)
+        assert server_factory is not None
         # Request.finish expects the factory to have a 'log' method.
-        server_factory.log = _log_request
+        server_factory.log = _log_request  # type: ignore[attr-defined]
 
         server_tls_protocol = wrap_server_factory_for_tls(
             server_factory, self.reactor, sanlist=[b"DNS:example.com"]
@@ -93,6 +94,7 @@ class MediaRepoShardTestCase(BaseMultiWorkerStreamTestCase):
         # Normally this would be done by the TCP socket code in Twisted, but we are
         # stubbing that out here.
         client_protocol = client_factory.buildProtocol(None)
+        assert client_protocol is not None
         client_protocol.makeConnection(
             FakeTransport(server_tls_protocol, self.reactor, client_protocol)
         )
@@ -103,7 +105,7 @@ class MediaRepoShardTestCase(BaseMultiWorkerStreamTestCase):
         )
 
         # fish the test server back out of the server-side TLS protocol.
-        http_server: HTTPChannel = server_tls_protocol.wrappedProtocol
+        http_server: HTTPChannel = server_tls_protocol.wrappedProtocol  # type: ignore[assignment]
 
         # give the reactor a pump to get the TLS juices flowing.
         self.reactor.pump((0.1,))

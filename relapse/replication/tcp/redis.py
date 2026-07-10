@@ -349,8 +349,10 @@ class RedisDirectTcpReplicationClientFactory(RelapseRedisFactory):
 
         self.relapse_outbound_redis_connection = outbound_redis_connection
 
-    def buildProtocol(self, addr: IAddress) -> RedisSubscriber:
+    def buildProtocol(self, addr: IAddress | None) -> RedisSubscriber:
+        assert addr is not None
         p = super().buildProtocol(addr)
+        # mypy thinks this is a RedisProtocol from the parent class.
         p = cast(RedisSubscriber, p)
 
         # We do this here rather than add to the constructor of `RedisSubcriber`

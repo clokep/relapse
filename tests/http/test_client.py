@@ -194,6 +194,7 @@ class BlocklistingAgentTest(TestCase):
 
             # Make the connection and pump data through it.
             client = client_factory.buildProtocol(None)
+            assert client is not None
             server = AccumulatingProtocol()
             server.makeConnection(FakeTransport(client, self.reactor))
             client.makeConnection(FakeTransport(server, self.reactor))
@@ -237,6 +238,7 @@ class BlocklistingAgentTest(TestCase):
 
             # Make the connection and pump data through it.
             client = client_factory.buildProtocol(None)
+            assert client is not None
             server = AccumulatingProtocol()
             server.makeConnection(FakeTransport(client, self.reactor))
             client.makeConnection(FakeTransport(server, self.reactor))

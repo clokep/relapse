@@ -260,11 +260,6 @@ class Config:
             raise ConfigError(f"{dir_path} is not a directory")
         return dir_path
 
-    @classmethod
-    def read_file(cls, file_path: Any, config_name: str) -> str:
-        """Deprecated: call read_file directly"""
-        return read_file(file_path, (config_name,))
-
     def read_template(self, filename: str) -> jinja2.Template:
         """Load a template file from disk.
 
@@ -980,7 +975,9 @@ class RoutableShardedWorkerHandlingConfig(ShardedWorkerHandlingConfig):
         return self._get_instance(key)
 
 
-def read_file(file_path: Any, config_path: Iterable[str]) -> str:
+def read_file(
+    file_path: Any, config_path: Iterable[str], as_bytes: bool = False
+) -> str | bytes:
     """Check the given file exists, and read it into a string
 
     If it does not, emit an error indicating the problem
@@ -989,6 +986,7 @@ def read_file(file_path: Any, config_path: Iterable[str]) -> str:
         file_path: the file to be read
         config_path: where in the configuration file_path came from, so that a useful
            error can be emitted if it does not exist.
+       as_bytes: True to return bytes
     Returns:
         content of the file.
     Raises:
@@ -999,7 +997,7 @@ def read_file(file_path: Any, config_path: Iterable[str]) -> str:
 
     try:
         os.stat(file_path)
-        with open(file_path) as file_stream:
+        with open(file_path, "rb" if as_bytes else "r") as file_stream:
             return file_stream.read()
     except OSError as e:
         raise ConfigError(f"Error accessing file {file_path!r}", config_path) from e

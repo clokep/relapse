@@ -127,6 +127,7 @@ class SendEmailHandlerTestCaseIPv4(HomeserverTestCase):
         server_protocol.callLater = self.reactor.callLater  # type: ignore[assignment]
 
         client_protocol = client_factory.buildProtocol(None)
+        assert client_protocol is not None
         client_protocol.makeConnection(FakeTransport(server_protocol, self.reactor))
         server_protocol.makeConnection(
             FakeTransport(
@@ -180,7 +181,7 @@ class SendEmailHandlerTestCaseIPv4(HomeserverTestCase):
         self.assertEqual(port, 465)
         # We need to make sure that TLS is happenning
         self.assertIsInstance(
-            client_factory._wrappedFactory._testingContextFactory,
+            client_factory._wrappedFactory._testingContextFactory,  # type: ignore[attr-defined]
             ClientTLSOptions,
         )
         # And since we use endpoints, they go through reactor.connectTCP
@@ -194,6 +195,7 @@ class SendEmailHandlerTestCaseIPv4(HomeserverTestCase):
         server_protocol.callLater = self.reactor.callLater  # type: ignore[assignment]
 
         client_protocol = client_factory.buildProtocol(None)
+        assert client_protocol is not None
         client_protocol.makeConnection(FakeTransport(server_protocol, self.reactor))
         server_protocol.makeConnection(
             FakeTransport(

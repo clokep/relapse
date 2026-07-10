@@ -40,6 +40,7 @@ class RelapseRequestTestCase(HomeserverTestCase):
         # complete the connection and wire it up to a fake transport
         client_address = IPv6Address("TCP", "::1", 2345)
         protocol = factory.buildProtocol(client_address)
+        assert protocol is not None
         transport = StringTransport()
         protocol.makeConnection(transport)
 
@@ -60,6 +61,7 @@ class RelapseRequestTestCase(HomeserverTestCase):
 
         # now send an oversized request
         protocol = factory.buildProtocol(client_address)
+        assert protocol is not None
         transport = StringTransport()
         protocol.makeConnection(transport)
 
