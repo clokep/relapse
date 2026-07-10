@@ -319,7 +319,7 @@ types-opentracing = ">=2.4.2"
 types-Pillow = ">=8.3.4"
 types-psycopg2 = ">=2.9.21.20260422"
 types-pyOpenSSL = ">=20.0.7"
-types-PyYAML = ">=6.0.12.20260408"
+types-PyYAML = ">=6.0.12.20260518"
 types-requests = ">=2.26.0"
 types-setuptools = ">=82.0.0.20260408"
 
