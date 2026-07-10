@@ -673,7 +673,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
 
         # now there should be two SRV lookups
         self.mock_resolver.resolve_service.assert_has_calls(
-            [call(b"_matrix-fed._tcp.testserv1"), call(b"_matrix._tcp.testserv1")]
+            [call("_matrix-fed._tcp.testserv1"), call("_matrix._tcp.testserv1")]
         )
 
         # we should fall back to a direct connection
@@ -761,7 +761,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
 
         # now there should be two SRV lookups
         self.mock_resolver.resolve_service.assert_has_calls(
-            [call(b"_matrix-fed._tcp.testserv"), call(b"_matrix._tcp.testserv")]
+            [call("_matrix-fed._tcp.testserv"), call("_matrix._tcp.testserv")]
         )
 
         # we should fall back to a direct connection
@@ -813,8 +813,8 @@ class MatrixFederationAgentTests(unittest.TestCase):
         # there should be two SRV lookups
         self.mock_resolver.resolve_service.assert_has_calls(
             [
-                call(b"_matrix-fed._tcp.target-server"),
-                call(b"_matrix._tcp.target-server"),
+                call("_matrix-fed._tcp.target-server"),
+                call("_matrix._tcp.target-server"),
             ]
         )
 
@@ -906,8 +906,8 @@ class MatrixFederationAgentTests(unittest.TestCase):
         # there should be two SRV lookups
         self.mock_resolver.resolve_service.assert_has_calls(
             [
-                call(b"_matrix-fed._tcp.target-server"),
-                call(b"_matrix._tcp.target-server"),
+                call("_matrix-fed._tcp.target-server"),
+                call("_matrix._tcp.target-server"),
             ]
         )
 
@@ -972,7 +972,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
 
         # now there should be two SRV lookups
         self.mock_resolver.resolve_service.assert_has_calls(
-            [call(b"_matrix-fed._tcp.testserv"), call(b"_matrix._tcp.testserv")]
+            [call("_matrix-fed._tcp.testserv"), call("_matrix._tcp.testserv")]
         )
 
         # we should fall back to a direct connection
@@ -1046,7 +1046,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
 
         # and there should be two SRV lookups instead
         self.mock_resolver.resolve_service.assert_has_calls(
-            [call(b"_matrix-fed._tcp.testserv"), call(b"_matrix._tcp.testserv")]
+            [call("_matrix-fed._tcp.testserv"), call("_matrix._tcp.testserv")]
         )
 
     async def test_get_hostname_srv(self) -> None:
@@ -1067,7 +1067,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
 
         # the request for a .well-known will have failed with a DNS lookup error.
         self.mock_resolver.resolve_service.assert_called_once_with(
-            b"_matrix-fed._tcp.testserv"
+            "_matrix-fed._tcp.testserv"
         )
 
         # Make sure treq is trying to connect
@@ -1111,7 +1111,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
 
         # the request for a .well-known will have failed with a DNS lookup error.
         self.mock_resolver.resolve_service.assert_has_calls(
-            [call(b"_matrix-fed._tcp.testserv"), call(b"_matrix._tcp.testserv")]
+            [call("_matrix-fed._tcp.testserv"), call("_matrix._tcp.testserv")]
         )
 
         # Make sure treq is trying to connect
@@ -1168,7 +1168,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
 
         # there should be a SRV lookup
         self.mock_resolver.resolve_service.assert_called_once_with(
-            b"_matrix-fed._tcp.target-server"
+            "_matrix-fed._tcp.target-server"
         )
 
         # now we should get a connection to the target of the SRV record
@@ -1231,8 +1231,8 @@ class MatrixFederationAgentTests(unittest.TestCase):
         # there should be two SRV lookups
         self.mock_resolver.resolve_service.assert_has_calls(
             [
-                call(b"_matrix-fed._tcp.target-server"),
-                call(b"_matrix._tcp.target-server"),
+                call("_matrix-fed._tcp.target-server"),
+                call("_matrix._tcp.target-server"),
             ]
         )
 
@@ -1297,8 +1297,8 @@ class MatrixFederationAgentTests(unittest.TestCase):
         # now there should have been a SRV lookup
         self.mock_resolver.resolve_service.assert_has_calls(
             [
-                call(b"_matrix-fed._tcp.xn--bcher-kva.com"),
-                call(b"_matrix._tcp.xn--bcher-kva.com"),
+                call("_matrix-fed._tcp.xn--bcher-kva.com"),
+                call("_matrix._tcp.xn--bcher-kva.com"),
             ]
         )
 
@@ -1344,7 +1344,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
         self.assertNoResult(test_d)
 
         self.mock_resolver.resolve_service.assert_called_once_with(
-            b"_matrix-fed._tcp.xn--bcher-kva.com"
+            "_matrix-fed._tcp.xn--bcher-kva.com"
         )
 
         # Make sure treq is trying to connect
@@ -1392,8 +1392,8 @@ class MatrixFederationAgentTests(unittest.TestCase):
 
         self.mock_resolver.resolve_service.assert_has_calls(
             [
-                call(b"_matrix-fed._tcp.xn--bcher-kva.com"),
-                call(b"_matrix._tcp.xn--bcher-kva.com"),
+                call("_matrix-fed._tcp.xn--bcher-kva.com"),
+                call("_matrix._tcp.xn--bcher-kva.com"),
             ]
         )
 
@@ -1599,7 +1599,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
         self.assertNoResult(test_d)
 
         self.mock_resolver.resolve_service.assert_called_once_with(
-            b"_matrix-fed._tcp.testserv"
+            "_matrix-fed._tcp.testserv"
         )
 
         # We should see an attempt to connect to the first server
@@ -1659,7 +1659,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
         self.assertNoResult(test_d)
 
         self.mock_resolver.resolve_service.assert_has_calls(
-            [call(b"_matrix-fed._tcp.testserv"), call(b"_matrix._tcp.testserv")]
+            [call("_matrix-fed._tcp.testserv"), call("_matrix._tcp.testserv")]
         )
 
         # We should see an attempt to connect to the first server
@@ -1717,7 +1717,7 @@ class MatrixFederationAgentTests(unittest.TestCase):
 
         # Only the _matrix-fed is checked, _matrix is ignored.
         self.mock_resolver.resolve_service.assert_called_once_with(
-            b"_matrix-fed._tcp.testserv"
+            "_matrix-fed._tcp.testserv"
         )
 
         # We should see an attempt to connect to the first server
