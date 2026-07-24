@@ -639,7 +639,7 @@ jobs:
       - name: Prepare Complement's Prerequisites
         run: relapse/.ci/scripts/setup_complement_prerequisites.sh
 
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@v7
         with:
           cache-dependency-path: complement/go.sum
           go-version-file: complement/go.mod
