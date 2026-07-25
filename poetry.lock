@@ -3483,14 +3483,14 @@ files = [
 
 [[package]]
 name = "types-opentracing"
-version = "2.4.10.20250622"
+version = "2.4.10.20260408"
 description = "Typing stubs for opentracing"
 optional = false
-python-versions = ">=3.9"
+python-versions = ">=3.10"
 groups = ["dev"]
 files = [
-    {file = "types_opentracing-2.4.10.20250622-py3-none-any.whl", hash = "sha256:26bc21f9e385d54898b47e9bd1fa13f200c2dada50394f6eafd063ed53813062"},
-    {file = "types_opentracing-2.4.10.20250622.tar.gz", hash = "sha256:00db48b7f57136c45ac3250218bd0f18b9792566dfcbd5ad1de9f7e180347e74"},
+    {file = "types_opentracing-2.4.10.20260408-py3-none-any.whl", hash = "sha256:101961ccbd4e6f93e345def33bc39424bd25c1fdfbacd9bfc29792756a6a75ee"},
+    {file = "types_opentracing-2.4.10.20260408.tar.gz", hash = "sha256:325d995c8a8a160350b2a5ff1ddc1a4f6466ff4639318d95de12f9726f4c6384"},
 ]
 
 [[package]]
@@ -3878,4 +3878,4 @@ url-preview = ["beautifulsoup4"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "8681f6cb4ae6cb5328fec683e33d2a9ef675b8bebb4845b90001764be0e5a42a"
+content-hash = "e2a2327a82aeba6f4b38b69baabc92671f86492b071c2e5dcf815c1dfdcd895a"
