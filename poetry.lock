@@ -264,6 +264,7 @@ files = [
     {file = "certifi-2024.7.4-py3-none-any.whl", hash = "sha256:c198e21b1289c2ab85ee4e67bb4b4ef3ead0892059901a8d5b622f24a1101e90"},
     {file = "certifi-2024.7.4.tar.gz", hash = "sha256:5a1e7645bc0ec61a09e26c36f6106dd4cf40c6db3a1fb6352b0244e7fb057c7b"},
 ]
+markers = {main = "extra == \"all\" or extra == \"saml2\" or extra == \"sentry\""}
 
 [[package]]
 name = "cffi"
@@ -447,6 +448,7 @@ files = [
     {file = "charset_normalizer-3.1.0-cp39-cp39-win_amd64.whl", hash = "sha256:830d2948a5ec37c386d3170c483063798d7879037492540f10a475e3fd6f244b"},
     {file = "charset_normalizer-3.1.0-py3-none-any.whl", hash = "sha256:3d9098b479e78c85080c98e1e35ff40b4a31d8953102bb0fd7d1b6f8a2111a3d"},
 ]
+markers = {main = "extra == \"all\" or extra == \"saml2\""}
 
 [[package]]
 name = "click"
@@ -2444,6 +2446,7 @@ files = [
     {file = "requests-2.32.4-py3-none-any.whl", hash = "sha256:27babd3cda2a6d50b30443204ee89830707d396671944c998b5975b031ac2b2c"},
     {file = "requests-2.32.4.tar.gz", hash = "sha256:27d0316682c8a29834d3264820024b62a36942083d52caf2f14c0591336d3422"},
 ]
+markers = {main = "extra == \"all\" or extra == \"saml2\""}
 
 [package.dependencies]
 certifi = ">=2017.4.17"
@@ -3294,14 +3297,14 @@ dev = ["furo (>=2024.5.6)", "nox", "packaging", "sphinx (>=5)", "twisted"]
 
 [[package]]
 name = "treq"
-version = "25.5.0"
+version = "26.7.0"
 description = "High-level Twisted HTTP Client API"
 optional = false
-python-versions = ">=3.8.0"
+python-versions = ">=3.9.0"
 groups = ["main"]
 files = [
-    {file = "treq-25.5.0-py3-none-any.whl", hash = "sha256:e99d4e66cacaa1f0da82bb60b317d104c29dbd8ac0a75d7f657b348178d830f4"},
-    {file = "treq-25.5.0.tar.gz", hash = "sha256:25dde3a55ae85ec2f2c56332c99aef255ab14f997d0d00552ebff13538a9804a"},
+    {file = "treq-26.7.0-py3-none-any.whl", hash = "sha256:0a56ac4d970f7b1e27a4df4057d225efd84524b1847e123a725c531039702f98"},
+    {file = "treq-26.7.0.tar.gz", hash = "sha256:43e728e12aca2d897c626cf07dc7b4392749b73de050a7d66e086cb3a6e15da9"},
 ]
 
 [package.dependencies]
@@ -3309,12 +3312,11 @@ attrs = "*"
 hyperlink = ">=21.0.0"
 incremental = ">=24.7.2"
 multipart = "*"
-requests = ">=2.1.0"
 twisted = {version = ">=22.10.0", extras = ["tls"]}
 typing-extensions = ">=3.10.0"
 
 [package.extras]
-dev = ["httpbin (==0.7.0)", "pep8", "pyflakes", "werkzeug (==2.0.3)"]
+dev = ["httpbin (==0.10.2)", "pep8", "pyflakes", "werkzeug (==3.1.8)"]
 docs = ["sphinx", "sphinx-rtd-theme"]
 
 [[package]]
@@ -3622,6 +3624,7 @@ files = [
     {file = "urllib3-2.6.3-py3-none-any.whl", hash = "sha256:bf272323e553dfb2e87d9bfd225ca7b0f467b919d7bbd355436d3fd37cb0acd4"},
     {file = "urllib3-2.6.3.tar.gz", hash = "sha256:1b62b6884944a57dbe321509ab94fd4d3b307075e0c2eae991ac71ee15ad38ed"},
 ]
+markers = {main = "extra == \"all\" or extra == \"saml2\" or extra == \"sentry\""}
 
 [package.extras]
 brotli = ["brotli (>=1.2.0) ; platform_python_implementation == \"CPython\"", "brotlicffi (>=1.2.0.0) ; platform_python_implementation != \"CPython\""]
