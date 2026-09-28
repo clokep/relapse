@@ -692,8 +692,12 @@ def _make_test_homeserver_synchronous(server: HomeServer) -> None:
         pool.runWithConnection = runWithConnection  # type: ignore[method-assign]
         pool.runInteraction = runInteraction  # type: ignore[assignment]
         # Replace the thread pool with a threadless 'thread' pool
+        old_threadpool = pool.threadpool
         pool.threadpool = ThreadPool(clock._reactor)
         pool.running = True
+        # The real thread pool was started when the connection pool started, so
+        # stop it to avoid leaking a never-ending thread per test.
+        old_threadpool.stop()
 
     # We've just changed the Databases to run DB transactions on the same
     # thread, so we need to disable the dedicated thread behaviour.
