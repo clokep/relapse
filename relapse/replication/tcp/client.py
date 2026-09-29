@@ -399,6 +399,10 @@ class FederationSenderHandler:
 
         self._fed_position_linearizer = Linearizer(name="_fed_position_linearizer")
 
+        # Tracks the Deferred for the background "save and send ack" task, so
+        # that we don't spawn a second one while one is already in flight.
+        self._fed_ack_sender_in_flight: defer.Deferred[None] | None = None
+
     async def process_replication_rows(
         self, stream_name: str, token: int, rows: list
     ) -> None:
@@ -468,12 +472,19 @@ class FederationSenderHandler:
         # processing on persistence. We don't need to do this operation for
         # every single RDATA we receive, we just need to do it periodically.
 
-        if self._fed_position_linearizer.is_queued(None):
-            # There is already a task queued up to save and send the token, so
-            # no need to queue up another task.
+        if self._fed_ack_sender_in_flight is not None and not self._fed_ack_sender_in_flight.called:
+            # There is already a task running to save and send the token, so no
+            # need to queue up another task.
             return
 
-        run_as_background_process("_save_and_send_ack", self._save_and_send_ack)
+        d = run_as_background_process("_save_and_send_ack", self._save_and_send_ack)
+
+        def _clear(result: "defer.Deferred[None]") -> "defer.Deferred[None]":
+            self._fed_ack_sender_in_flight = None
+            return result
+
+        d.addBoth(_clear)
+        self._fed_ack_sender_in_flight = d
 
     async def _save_and_send_ack(self) -> None:
         """Save the current federation position in the database and send an ACK
