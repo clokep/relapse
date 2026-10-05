@@ -1,0 +1,1 @@
+Remove the `outbound_federation_restricted_to` configuration option and the ability to proxy outbound federation traffic via other workers.
