@@ -62,6 +62,7 @@ class RoomBase(unittest.HomeserverTestCase):
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         self.hs = self.setup_test_homeserver(
             "red",
+            federation_client=Mock(),
         )
 
         self.hs.get_federation_handler = Mock()  # type: ignore[method-assign]

@@ -147,7 +147,6 @@ class GenericWorkerServer(HomeServer):
         )
 
         return _base.listen_http(
-            self,
             listener_config,
             matrix_resource,
             self.version_string,

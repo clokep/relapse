@@ -32,7 +32,7 @@ from twisted.protocols.tls import TLSMemoryBIOProtocol
 from twisted.web.http import HTTPChannel
 
 from relapse.http.client import BlocklistingReactorWrapper
-from relapse.http.connectproxyclient import BasicProxyCredentials
+from relapse.http.connectproxyclient import ProxyCredentials
 from relapse.http.proxyagent import ProxyAgent, parse_proxy
 
 from tests.http import dummy_address, get_test_https_policy, wrap_server_factory_for_tls
@@ -200,7 +200,7 @@ class ProxyParserTests(TestCase):
         """
         proxy_cred = None
         if expected_credentials:
-            proxy_cred = BasicProxyCredentials(expected_credentials)
+            proxy_cred = ProxyCredentials(expected_credentials)
         self.assertEqual(
             (
                 expected_scheme,
@@ -212,13 +212,13 @@ class ProxyParserTests(TestCase):
         )
 
 
-class TestBasicProxyCredentials(TestCase):
+class TestProxyCredentials(TestCase):
     def test_long_user_pass_string_encoded_without_newlines(self) -> None:
         """Reproduces https://github.com/matrix-org/synapse/pull/16504."""
         proxy_connection_string = b"looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooonguser:pass@proxy.local:9988"
         _, _, _, creds = parse_proxy(proxy_connection_string)
         assert creds is not None  # for mypy's benefit
-        self.assertIsInstance(creds, BasicProxyCredentials)
+        self.assertIsInstance(creds, ProxyCredentials)
 
         auth_value = creds.as_proxy_authorization_value()
         self.assertNotIn(b"\n", auth_value)
