@@ -251,7 +251,10 @@ skipped_test_packages=(
   TestMSC4291RoomIDAsHashOfCreateEvent
   TestMSC4297StateResolutionV2_1_starts_from_empty_set
   TestMSC4297StateResolutionV2_1_includes_conflicted_subgraph
-  TestMSC4311FullCreateEventOnStrippedState
+  # Requires room version 12, which is not yet supported.
+  TestMSC4311StrippedStateClientAPI
+  TestMSC4311FullEventsOnStrippedStateFederation
+  TestMSC4311RejectInvalidStrippedStateFederation
   TestFederationRoomsInvite/Parallel/Inviter_user_can_rescind_invite_over_federation
   TestKnockRestrictedRoomsLocalJoinNoCreatorsUsesPowerLevelsV12
   TestRestrictedRoomsLocalJoinNoCreatorsUsesPowerLevelsV12
