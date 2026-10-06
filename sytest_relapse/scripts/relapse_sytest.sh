@@ -192,11 +192,24 @@ echo >&2 "+++ Running tests"
 
 export COVERAGE_PROCESS_START="/src/.coveragerc"
 
+# Pin the room version used for tests which don't request one explicitly.
+#
+# Upstream sytest defaults this to the newest room version (12 as of
+# matrix-org/sytest@d87ce84), which Relapse does not support yet -- every such
+# test would fail with M_UNSUPPORTED_ROOM_VERSION. Tests which pin a room
+# version of their own are unaffected, as is $TEST_NEW_VERSION for room
+# upgrades.
+#
+# Remove this once Relapse supports room version 12, otherwise sytest silently
+# stops exercising the newest version.
+RELAPSE_TEST_ROOM_VERSION="${RELAPSE_TEST_ROOM_VERSION:-11}"
+
 # We set the `--bind-host` as 127.0.0.1 as docker sometimes can't find
 # localhost.
 RUN_TESTS=(
     perl -I "$SYTEST_LIB" /sytest/run-tests.pl --python=/venv/bin/python --relapse-directory=/src -B "/src/$BLACKLIST" --coverage -O tap --all
     --work-directory="/work" --bind-host 127.0.0.1
+    --room-version "$RELAPSE_TEST_ROOM_VERSION"
 )
 
 if [ -n "$WORKERS" ]; then
