@@ -35,3 +35,42 @@ Rejects invalid device keys
 # Broken after Synapse 1.98
 Can upload self-signing keys
 uploading signed devices gets propagated over federation
+
+# Blacklisted due to room version 12 not yet being supported
+User can create and send/receive messages in a room with version 12
+local user can join room with version 12
+User can invite local user to room with version 12
+remote user can join room with version 12
+User can invite remote user to room with version 12
+Remote user can backfill in a room with version 12
+Can reject invites over federation for rooms with version 12
+Can receive redactions from regular users over federation in room version 12
+Inbound /v1/send_join rejects incorrectly-signed joins
+Inbound federation can receive events
+Inbound federation can receive redacted events
+outliers whose auth_events are in a different room are correctly rejected
+Backfilled events whose prev_events are in a different room do not allow cross-room back-pagination
+Inbound federation can get state_ids for a room
+/state returns M_NOT_FOUND for an outlier
+/state_ids returns M_NOT_FOUND for an outlier
+/state returns M_NOT_FOUND for a rejected message event
+/state_ids returns M_NOT_FOUND for a rejected message event
+Room state after a rejected message event is the same as before
+/state returns M_NOT_FOUND for a rejected state event
+/state_ids returns M_NOT_FOUND for a rejected state event
+Room state after a rejected state event is the same as before
+Outbound federation sends receipts
+An event which redacts an event in a different room should be ignored
+Server correctly resyncs when server leaves and rejoins a room
+Forward extremities remain so even after the next events are populated as outliers
+Banned servers cannot /send_join
+Banned servers cannot /send_leave
+Inbound federation correctly soft fails events
+Inbound federation accepts a second soft-failed event
+Inbound federation correctly handles soft failed events as extremities
+Don't get pushed for rooms you've muted
+Rejected events are not pushed
+Invites over federation are correctly pushed
+Invites over federation are correctly pushed with name
+Test that rejected pushers are removed.
+Notifications can be viewed with GET /notifications
