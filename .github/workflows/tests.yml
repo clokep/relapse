@@ -66,6 +66,8 @@ jobs:
             - 'docker/**'
             - '.ci/**'
             - 'scripts-dev/complement.sh'
+            - 'sytest_relapse/**'
+            - 'sytest-blacklist'
             - '.github/workflows/tests.yml'
 
           linting:
