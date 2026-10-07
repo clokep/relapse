@@ -1,0 +1,1 @@
+Fix a linearizer bug where a coroutine cancelled while waiting for a lock would leave a stale deferred in the queue, causing the next waiter to never run and the key to never drain.

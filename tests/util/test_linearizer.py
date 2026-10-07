@@ -13,7 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections.abc import Hashable
+from collections.abc import Coroutine, Hashable
+from typing import Any
 
 from typing_extensions import Protocol
 
@@ -66,6 +67,28 @@ class LinearizerTestCase(unittest.TestCase):
                 self._pump()
 
         return d, acquired_d, unblock
+
+    def _start_closable_task(
+        self, linearizer: Linearizer, key: Hashable, acquired_d: Deferred[None]
+    ) -> tuple["Deferred[None]", Coroutine[Any, Any, None]]:
+        """Like `_start_task`, but returns the unstarted coroutine as well so the
+        caller can `close()` it, which throws `GeneratorExit` into it.
+
+        Args:
+            linearizer: The `Linearizer`.
+            key: The `Linearizer` key.
+            acquired_d: A `Deferred` that resolves once the task acquires the lock.
+
+        Returns:
+            A tuple containing the `Deferred` for the task and its coroutine.
+        """
+
+        async def task() -> None:
+            async with linearizer.queue(key):
+                acquired_d.callback(None)
+
+        coro = task()
+        return defer.ensureDeferred(coro), coro
 
     def _pump(self) -> None:
         """Pump the reactor to advance `Linearizer`s."""
@@ -217,6 +240,46 @@ class LinearizerTestCase(unittest.TestCase):
         self.assertTrue(
             acquired_d3.called,
             "Third task did not get the lock after the second task was cancelled",
+        )
+        unblock3()
+        await d3
+
+    async def test_generator_exit_removes_from_queue(self) -> None:
+        """Tests that a queued task which is closed before it acquires the lock
+        removes itself from the queue.
+
+        `GeneratorExit` does not inherit from `Exception`, so the
+        `except Exception` in `_acquire_lock` does not catch it. The stale
+        waiter is left in `entry.deferreds`, so the next release hands the lock
+        to a coroutine that no longer exists and the queue never drains.
+        """
+        linearizer = Linearizer()
+
+        key = object()
+
+        d1, acquired_d1, unblock1 = self._start_task(linearizer, key)
+        self.assertTrue(acquired_d1.called)
+
+        # A second task, waiting for the first.
+        acquired_d2: Deferred[None] = Deferred()
+        d2, coro2 = self._start_closable_task(linearizer, key, acquired_d2)
+        self.assertFalse(acquired_d2.called)
+        self.assertTrue(linearizer.is_queued(key))
+
+        # A third task, waiting behind the second.
+        d3, acquired_d3, unblock3 = self._start_task(linearizer, key)
+        self.assertFalse(acquired_d3.called)
+
+        # Close the waiting second task rather than cancelling it, which throws
+        # `GeneratorExit` into the coroutine at its await point.
+        coro2.close()
+
+        unblock1()
+        await d1
+
+        self.assertTrue(
+            acquired_d3.called,
+            "Third task did not get the lock after the second task was closed",
         )
         unblock3()
         await d3

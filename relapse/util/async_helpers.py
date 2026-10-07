@@ -491,11 +491,21 @@ class Linearizer:
 
         try:
             await new_defer
-        except Exception as e:
+        except BaseException as e:
             logger.info("defer %r got err %r", new_defer, e)
             if isinstance(e, CancelledError):
                 logger.debug(
                     "Cancelling wait for linearizer lock %r for key %r",
+                    self.name,
+                    key,
+                )
+            elif isinstance(e, GeneratorExit):
+                # The coroutine was closed while waiting for the lock. Nothing
+                # will ever release it, so take it out of the queue; otherwise
+                # the next release hands the lock to a dead coroutine and the
+                # queue never drains.
+                logger.debug(
+                    "Closing wait for linearizer lock %r for key %r",
                     self.name,
                     key,
                 )
