@@ -168,13 +168,16 @@ class ReplicationAgent(_AgentBase):
 
         worker_name = parsedURI.netloc.decode("utf-8")
         instance = self._endpointFactory.instance_map[worker_name]
-        key_scheme = instance.scheme().encode()
         # This sets the Pool key to be:
         #  (http(s), host, port) or (unix, <socket_path>, 0)
         if isinstance(instance, InstanceTcpLocationConfig):
-            key = (key_scheme, instance.host.encode(), instance.port)
+            key = (
+                b"https" if instance.tls else b"http",
+                instance.host.encode(),
+                instance.port,
+            )
         elif isinstance(instance, InstanceUnixLocationConfig):
-            key = (key_scheme, instance.path.encode(), 0)
+            key = (b"unix", instance.path.encode(), 0)
         else:
             raise SchemeNotSupported(f"Unsupported config: {type(instance)}")
 
