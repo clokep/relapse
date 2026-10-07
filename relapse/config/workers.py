@@ -84,27 +84,11 @@ class InstanceTcpLocationConfig(ConfigModel):
     port: int
     tls: bool = False
 
-    def scheme(self) -> str:
-        """Hardcode a retrievable scheme based on self.tls"""
-        return "https" if self.tls else "http"
-
-    def netloc(self) -> str:
-        """Nicely format the network location data"""
-        return f"{self.host}:{self.port}"
-
 
 class InstanceUnixLocationConfig(ConfigModel):
     """The socket file to talk to an instance via HTTP replication."""
 
     path: str
-
-    def scheme(self) -> str:
-        """Hardcode a retrievable scheme"""
-        return "unix"
-
-    def netloc(self) -> str:
-        """Nicely format the address location data"""
-        return f"{self.path}"
 
 
 InstanceLocationConfig = InstanceTcpLocationConfig | InstanceUnixLocationConfig

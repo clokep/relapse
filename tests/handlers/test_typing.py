@@ -70,7 +70,7 @@ class TypingNotificationsTestCase(unittest.FederatingHomeserverTestCase):
 
         # we mock out the federation client too
         self.mock_federation_client = Mock(spec=["put_json"])
-        self.mock_federation_client.put_json.return_value = (200, "OK")
+        self.mock_federation_client.put_json = AsyncMock(return_value=(200, "OK"))
 
         # the tests assume that we are starting at unix time 1000
         reactor.pump((1000,))

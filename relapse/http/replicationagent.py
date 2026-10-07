@@ -72,7 +72,6 @@ class ReplicationEndpointFactory:
         # actual connection details are pulled from the instance map.
         worker_name = uri.netloc.decode("utf-8")
         location_config = self.instance_map[worker_name]
-        scheme = location_config.scheme()
 
         if isinstance(location_config, InstanceTcpLocationConfig):
             endpoint: IStreamClientEndpoint = HostnameEndpoint(
@@ -80,7 +79,7 @@ class ReplicationEndpointFactory:
                 location_config.host,
                 location_config.port,
             )
-            if scheme == "https":
+            if location_config.tls:
                 endpoint = wrapClientTLS(
                     # The 'port' argument below isn't actually used by the function
                     self.context_factory.creatorForNetloc(
@@ -93,7 +92,7 @@ class ReplicationEndpointFactory:
         elif isinstance(location_config, InstanceUnixLocationConfig):
             return UNIXClientEndpoint(self.reactor, location_config.path)
         else:
-            raise SchemeNotSupported(f"Unsupported scheme: {scheme}")
+            raise SchemeNotSupported(f"Unsupported scheme: {type(location_config)}")
 
 
 @implementer(IAgent)
@@ -169,13 +168,16 @@ class ReplicationAgent(_AgentBase):
 
         worker_name = parsedURI.netloc.decode("utf-8")
         instance = self._endpointFactory.instance_map[worker_name]
-        key_scheme = instance.scheme().encode()
         # This sets the Pool key to be:
         #  (http(s), host, port) or (unix, <socket_path>, 0)
         if isinstance(instance, InstanceTcpLocationConfig):
-            key = (key_scheme, instance.host.encode(), instance.port)
+            key = (
+                b"https" if instance.tls else b"http",
+                instance.host.encode(),
+                instance.port,
+            )
         elif isinstance(instance, InstanceUnixLocationConfig):
-            key = (key_scheme, instance.path.encode(), 0)
+            key = (b"unix", instance.path.encode(), 0)
         else:
             raise SchemeNotSupported(f"Unsupported config: {type(instance)}")
 
