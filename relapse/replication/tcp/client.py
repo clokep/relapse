@@ -472,7 +472,10 @@ class FederationSenderHandler:
         # processing on persistence. We don't need to do this operation for
         # every single RDATA we receive, we just need to do it periodically.
 
-        if self._fed_ack_sender_in_flight is not None and not self._fed_ack_sender_in_flight.called:
+        if (
+            self._fed_ack_sender_in_flight is not None
+            and not self._fed_ack_sender_in_flight.called
+        ):
             # There is already a task running to save and send the token, so no
             # need to queue up another task.
             return
