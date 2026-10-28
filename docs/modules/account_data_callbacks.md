@@ -97,10 +97,7 @@ class CustomAccountDataModule:
                 "room_id": self.config.audit_room,
                 "sender": self.config.sender,
                 "type": "m.room.message",
-                "content": {
-                    "msgtype": "m.text",
-                    "body": msg_content
-                }
+                "content": {"msgtype": "m.text", "body": msg_content},
             }
         )
 ```

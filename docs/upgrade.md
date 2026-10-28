@@ -506,8 +506,7 @@ def generate_short_term_login_token(
     duration_in_ms: int = (2 * 60 * 1000),
     auth_provider_id: str = "",
     auth_provider_session_id: Optional[str] = None,
-) -> str:
-    ...
+) -> str: ...
 ```
 
 It has been replaced by an asynchronous equivalent:
@@ -519,8 +518,7 @@ async def create_login_token(
     duration_in_ms: int = (2 * 60 * 1000),
     auth_provider_id: Optional[str] = None,
     auth_provider_session_id: Optional[str] = None,
-) -> str:
-    ...
+) -> str: ...
 ```
 
 Relapse will log a warning when a module uses the deprecated method, to help
@@ -1577,6 +1575,7 @@ by Relapse. An example is shown below:
 
 ```python
 from relapse.types import map_username_to_mxid_localpart
+
 
 class MyMappingProvider:
     def map_user_attributes(self, userinfo, token):

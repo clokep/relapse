@@ -264,7 +264,6 @@ Configuration on Django's side:
 
     ```python
     class CustomOAuth2Validator(OAuth2Validator):
-
         def get_additional_claims(self, request):
             return {
                 "sub": request.user.email,

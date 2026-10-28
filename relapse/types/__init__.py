@@ -44,7 +44,7 @@ from relapse.util.cancellation import cancellable
 from relapse.util.stringutils import parse_and_validate_server_name
 
 if TYPE_CHECKING:
-    from typing_extensions import Self
+    from typing import Self
 
     from relapse.appservice.api import ApplicationService
     from relapse.storage.databases.main import DataStore, PurgeEventsStore

@@ -41,6 +41,7 @@ on save as it takes a while and can be very resource intensive.
 
         ```python
         from relapse.types import UserID
+
         ...
         user_id = UserID(local, server)
         ```
@@ -49,6 +50,7 @@ on save as it takes a while and can be very resource intensive.
 
         ```python
         from relapse import types
+
         ...
         user_id = types.UserID(local, server)
         ```
