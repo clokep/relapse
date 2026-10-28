@@ -36,14 +36,15 @@ responsible for handling it using `defer.ensureDeferred`, which returns
 a `Deferred`. For example:
 
 ```python
-def do_something() -> Deferred[None]:
-    ...
+def do_something() -> Deferred[None]: ...
+
 
 @cancellable
 async def on_GET() -> Tuple[int, JsonDict]:
     d = make_deferred_yieldable(do_something())
     await d
     return 200, {}
+
 
 request = defer.ensureDeferred(on_GET())
 ```
@@ -176,9 +177,8 @@ swallowed, so they must be unwrapped.
 **Bad**:
 ```python
 async def do_something() -> None:
-    await make_deferred_yieldable(
-        defer.gatherResults([...], consumeErrors=True)
-    )
+    await make_deferred_yieldable(defer.gatherResults([...], consumeErrors=True))
+
 
 try:
     await do_something()
@@ -198,6 +198,7 @@ async def do_something() -> None:
     await make_deferred_yieldable(
         defer.gatherResults([...], consumeErrors=True)
     ).addErrback(unwrapFirstError)
+
 
 try:
     await do_something()
@@ -221,6 +222,7 @@ If a function creates a `Deferred`, the effect of cancelling it must be consider
 ```python
 cache: Dict[str, Deferred[None]] = {}
 
+
 def wait_for_room(room_id: str) -> Deferred[None]:
     deferred = cache.get(room_id)
     if deferred is None:
@@ -230,6 +232,7 @@ def wait_for_room(room_id: str) -> Deferred[None]:
     # All of them will observe a `CancelledError`
     # if any one of them is cancelled.
     return make_deferred_yieldable(deferred)
+
 
 # Request 1
 await wait_for_room("!aAAaaAaaaAAAaAaAA:matrix.org")
@@ -243,6 +246,7 @@ await wait_for_room("!aAAaaAaaaAAAaAaAA:matrix.org")
 ```python
 cache: Dict[str, Deferred[None]] = {}
 
+
 def wait_for_room(room_id: str) -> Deferred[None]:
     deferred = cache.get(room_id)
     if deferred is None:
@@ -253,6 +257,7 @@ def wait_for_room(room_id: str) -> Deferred[None]:
     # the `await`.
     # `delay_cancellation` may also be used.
     return make_deferred_yieldable(stop_cancellation(deferred))
+
 
 # Request 1
 await wait_for_room("!aAAaaAaaaAAAaAaAA:matrix.org")
@@ -301,12 +306,12 @@ logcontext is not finished before the `async` processing completes.
 ```python
 cache: Optional[ObservableDeferred[None]] = None
 
-async def do_something_else(
-    to_resolve: Deferred[None]
-) -> None:
+
+async def do_something_else(to_resolve: Deferred[None]) -> None:
     await ...
     logger.info("done!")
     to_resolve.callback(None)
+
 
 async def do_something() -> None:
     if not cache:
@@ -318,6 +323,7 @@ async def do_something() -> None:
 
     await make_deferred_yieldable(cache.observe())
 
+
 with LoggingContext("request-1"):
     await do_something()
 ```
@@ -328,12 +334,12 @@ with LoggingContext("request-1"):
 ```python
 cache: Optional[ObservableDeferred[None]] = None
 
-async def do_something_else(
-    to_resolve: Deferred[None]
-) -> None:
+
+async def do_something_else(to_resolve: Deferred[None]) -> None:
     await ...
     logger.info("done!")
     to_resolve.callback(None)
+
 
 async def do_something() -> None:
     if not cache:
@@ -342,11 +348,10 @@ async def do_something() -> None:
         run_in_background(do_something_else, to_resolve)
         # We'll wait until `do_something_else` is
         # done before raising a `CancelledError`.
-        await make_deferred_yieldable(
-            delay_cancellation(cache.observe())
-        )
+        await make_deferred_yieldable(delay_cancellation(cache.observe()))
     else:
         await make_deferred_yieldable(cache.observe())
+
 
 with LoggingContext("request-1"):
     await do_something()
@@ -360,12 +365,12 @@ with LoggingContext("request-1"):
 ```python
 cache: Optional[ObservableDeferred[None]] = None
 
-async def do_something_else(
-    to_resolve: Deferred[None]
-) -> None:
+
+async def do_something_else(to_resolve: Deferred[None]) -> None:
     await ...
     logger.info("done!")
     to_resolve.callback(None)
+
 
 async def do_something() -> None:
     if not cache:
@@ -381,6 +386,7 @@ async def do_something() -> None:
         )
 
     await make_deferred_yieldable(cache.observe())
+
 
 with LoggingContext("request-1"):
     await do_something()

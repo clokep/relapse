@@ -28,7 +28,8 @@ any code of this nature, the rule is that our function should leave
 things as it found them:
 
 ```python
-from relapse.logging import context         # omitted from future snippets
+from relapse.logging import context  # omitted from future snippets
+
 
 def handle_request(request_id):
     request_context = context.LoggingContext()
@@ -40,6 +41,7 @@ def handle_request(request_id):
         logger.debug("finished")
     finally:
         context.set_current_context(calling_context)
+
 
 def do_request_handling():
     logger.debug("phew")  # this will be logged against request_id
@@ -54,6 +56,7 @@ def handle_request(request_id):
         request_context.request = request_id
         do_request_handling()
         logger.debug("finished")
+
 
 def do_request_handling():
     logger.debug("phew")
@@ -131,10 +134,10 @@ call any other functions.
 ```python
 async def fun():
     logger.debug("starting")
-    await do_some_stuff()       # just like this
+    await do_some_stuff()  # just like this
 
     coro = more_stuff()
-    result = await coro         # also fine, of course
+    result = await coro  # also fine, of course
 
     return result
 ```
@@ -194,6 +197,7 @@ async def do_request_handling():
     background_operation()
 
     logger.debug("Request handling complete")
+
 
 async def background_operation():
     await first_background_step()
@@ -318,9 +322,11 @@ Imagine we have some code that looks like this:
 ```python
 listener_queue = []
 
+
 def on_something_interesting():
     for d in listener_queue:
         d.callback("foo")
+
 
 async def await_something_interesting():
     new_awaitable = defer.Deferred()

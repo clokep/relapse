@@ -323,6 +323,7 @@ from relapse.module_api import ModuleApi
 
 _DEFAULT_CENSOR_ENDPOINT = "https://my-internal-service.local/censor-event"
 
+
 class EventCensorer:
     def __init__(self, config: dict, api: ModuleApi):
         self.api = api
@@ -339,7 +340,8 @@ class EventCensorer:
     ) -> Tuple[bool, Optional[dict]]:
         event_dict = event.get_dict()
         new_event_content = await self.api.http_client.post_json_get_json(
-            uri=self._endpoint, post_json=event_dict,
+            uri=self._endpoint,
+            post_json=event_dict,
         )
         event_dict["content"] = new_event_content
         return event_dict
