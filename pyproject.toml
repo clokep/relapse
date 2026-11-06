@@ -151,7 +151,7 @@ relapse_review_recent_signups = "relapse._scripts.review_recent_signups:main"
 update_relapse_database = "relapse._scripts.update_relapse_database:main"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.11"
 
 # Mandatory Dependencies
 # ----------------------

@@ -16,7 +16,7 @@ import abc
 import re
 import string
 from collections.abc import Mapping, MutableMapping, Set
-from enum import Enum
+from enum import Enum, StrEnum
 from re import Match
 from typing import TYPE_CHECKING, Any, ClassVar, Literal, NoReturn, TypeVar, overload
 
@@ -1160,7 +1160,7 @@ class RetentionPolicy:
     max_lifetime: int | None = None
 
 
-class TaskStatus(str, Enum):
+class TaskStatus(StrEnum):
     """Status of a scheduled task"""
 
     # Task is scheduled but not active
