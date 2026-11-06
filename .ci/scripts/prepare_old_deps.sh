@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
-# this script is run by GitHub Actions in a plain `jammy` container; it
-# - installs the minimal system requirements, and poetry;
-# - patches the project definition file to refer to old versions only;
-# - creates a venv with these old versions using poetry; and finally
-# - invokes `trial` to run the tests with old deps.
+# this script is run by GitHub Actions in a plain `jammy` runner; it
+# patches the project definition file to refer to old versions only.
 
 set -ex
 

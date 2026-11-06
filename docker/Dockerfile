@@ -58,7 +58,7 @@ ENV CARGO_NET_GIT_FETCH_WITH_CLI=$CARGO_NET_GIT_FETCH_WITH_CLI
 # We install poetry in its own build stage to avoid its dependencies conflicting with
 # relapse's dependencies.
 RUN --mount=type=cache,target=/root/.cache/pip \
-  pip install --user "poetry==1.3.2"
+  pip install --user "poetry==2.5.1" "poetry-plugin-export==1.10.0"
 
 WORKDIR /relapse
 
