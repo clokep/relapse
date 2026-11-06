@@ -151,7 +151,7 @@ relapse_review_recent_signups = "relapse._scripts.review_recent_signups:main"
 update_relapse_database = "relapse._scripts.update_relapse_database:main"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.11"
 
 # Mandatory Dependencies
 # ----------------------
@@ -306,7 +306,7 @@ all = [
 # failing on new releases. Keeping lower bounds loose here means that dependabot
 # can bump versions without having to update the content-hash in the lockfile.
 # This helps prevents merge conflicts when running a batch of dependabot updates.
-ruff = "0.15.22"
+ruff = "0.17.0"
 
 # Typechecking
 mypy = "*"

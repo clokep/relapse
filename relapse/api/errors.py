@@ -18,7 +18,7 @@
 import logging
 import math
 import typing
-from enum import Enum
+from enum import StrEnum
 from http import HTTPStatus
 from typing import Any
 
@@ -32,7 +32,7 @@ if typing.TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class Codes(str, Enum):
+class Codes(StrEnum):
     """
     All known error codes, as an enum of strings.
     """
