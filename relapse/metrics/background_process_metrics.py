@@ -36,7 +36,7 @@ from relapse.metrics._types import Collector
 
 if TYPE_CHECKING:
     # Old versions don't have `LiteralString`
-    from typing_extensions import LiteralString
+    from typing import LiteralString
 
 
 logger = logging.getLogger(__name__)

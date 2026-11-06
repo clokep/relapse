@@ -4,7 +4,7 @@ name: Build release artifacts
 
 env:
   # The Python version to run commands under. (The max supported version.)
-  PYTHON_VERSION: 3.14.x
+  PYTHON_VERSION: 3.15.x
 
 on:
   # we build on PRs and main to (hopefully) get early warning
@@ -74,7 +74,7 @@ jobs:
 
       - name: Only build a single wheel on PR
         if: startsWith(github.ref, 'refs/pull/')
-        run: echo "CIBW_BUILD="cp310-manylinux_${{ matrix.arch }}"" >> $GITHUB_ENV
+        run: echo "CIBW_BUILD="cp311-manylinux_${{ matrix.arch }}"" >> $GITHUB_ENV
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse

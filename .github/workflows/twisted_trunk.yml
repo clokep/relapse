@@ -2,7 +2,7 @@ name: Twisted Trunk
 
 env:
   # The Python version to run commands under. (The max supported version.)
-  PYTHON_VERSION: 3.14.x
+  PYTHON_VERSION: 3.15.x
 
 on:
   schedule:
@@ -107,11 +107,11 @@ jobs:
     if: needs.check_repo.outputs.should_run_workflow == 'true'
     runs-on: ubuntu-latest
     container:
-      # We're using ubuntu:bullseye because it uses Python 3.9 which is our minimum supported Python version.
+      # We're using ubuntu:bookworm because it uses Python 3.11 which is our minimum supported Python version.
       # This job is a canary to warn us about unreleased twisted changes that would cause problems for us if
       # they were to be released immediately. For simplicity's sake (and to save CI runners) we use the oldest
       # version, assuming that any incompatibilities on newer versions would also be present on the oldest.
-      image: matrixdotorg/sytest-relapse:bullseye
+      image: matrixdotorg/sytest-relapse:bookworm
       volumes:
         - ${{ github.workspace }}:/src
 
