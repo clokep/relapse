@@ -37,7 +37,7 @@ trial_sqlite_tests = [
         "database": "sqlite",
         "extras": "all",
     }
-    for version in ("3.10", "3.14")
+    for version in ("3.11", "3.15")
 ]
 
 if not IS_PR:
@@ -47,12 +47,12 @@ if not IS_PR:
             "database": "sqlite",
             "extras": "all",
         }
-        for version in ("3.11", "3.12", "3.13")
+        for version in ("3.12", "3.13", "3.14")
     )
 
 trial_postgres_tests = [
     {
-        "python-version": "3.10",
+        "python-version": "3.11",
         "database": "postgres",
         "postgres-version": "14",
         "extras": "all",
@@ -62,7 +62,7 @@ trial_postgres_tests = [
 if not IS_PR:
     trial_postgres_tests.append(
         {
-            "python-version": "3.14",
+            "python-version": "3.15",
             "database": "postgres",
             "postgres-version": "18",
             "extras": "all",
@@ -71,7 +71,7 @@ if not IS_PR:
 
 trial_no_extra_tests = [
     {
-        "python-version": "3.10",
+        "python-version": "3.11",
         "database": "sqlite",
         "extras": "",
     }
@@ -133,11 +133,11 @@ set_output("sytest_test_matrix", test_matrix)
 
 portdb_tests = [
     {
-        "python-version": "3.10",
+        "python-version": "3.11",
         "postgres-version": "11",
     },
     {
-        "python-version": "3.14",
+        "python-version": "3.15",
         "postgres-version": "15",
     },
 ]

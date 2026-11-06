@@ -15,7 +15,7 @@ import abc
 import logging
 from collections.abc import Awaitable, Callable, Iterable, Sequence
 from contextlib import AbstractAsyncContextManager
-from enum import Enum, IntEnum
+from enum import IntEnum, StrEnum
 from types import TracebackType
 from typing import TYPE_CHECKING, Any, cast
 
@@ -113,7 +113,7 @@ class ValidateConstraintProgress(BaseModel):
     Used by `register_background_validate_constraint_and_delete_rows`.
     """
 
-    class State(str, Enum):
+    class State(StrEnum):
         check = "check"
         validate = "validate"
 

@@ -173,8 +173,8 @@ Some suggestions:
 ```shell
 # Current env only
 poetry env info
-# All envs: this allows you to have e.g. a poetry managed venv for Python 3.7,
-# and another for Python 3.10.
+# All envs: this allows you to have e.g. a poetry managed venv for Python 3.11,
+# and another for Python 3.15.
 poetry env list --full-path
 poetry run pip list
 ```
@@ -187,7 +187,7 @@ useful.
 ## ...add a new dependency?
 
 Either:
-- manually update `pyproject.toml`; then `poetry lock --no-update`; or else
+- manually update `pyproject.toml`; then `poetry lock`; or else
 - `poetry add packagename`. See `poetry add --help`; note the `--dev`,
   `--extras` and `--optional` flags in particular.
 
@@ -202,12 +202,12 @@ poetry remove packagename
 ```
 
 ought to do the trick. Alternatively, manually update `pyproject.toml` and
-`poetry lock --no-update`. Include the updated `pyproject.toml` and `poetry.lock`
+`poetry lock`. Include the updated `pyproject.toml` and `poetry.lock`
 files in your commit.
 
 ## ...update the version range for an existing dependency?
 
-Best done by manually editing `pyproject.toml`, then `poetry lock --no-update`.
+Best done by manually editing `pyproject.toml`, then `poetry lock`.
 Include the updated `pyproject.toml` and `poetry.lock` in your commit.
 
 ## ...update a dependency in the locked environment?
@@ -233,7 +233,7 @@ poetry add packagename==1.2.3
 
 # Get poetry to recompute the content-hash of pyproject.toml without changing
 # the locked package versions.
-poetry lock --no-update
+poetry lock
 ```
 
 Either way, include the updated `poetry.lock` file in your commit.

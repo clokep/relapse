@@ -151,7 +151,7 @@ relapse_review_recent_signups = "relapse._scripts.review_recent_signups:main"
 update_relapse_database = "relapse._scripts.update_relapse_database:main"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.11"
 
 # Mandatory Dependencies
 # ----------------------
@@ -351,9 +351,9 @@ tomli = ">=2.4.1"
 optional = true
 
 [tool.poetry.group.dev-docs.dependencies]
-sphinx = {version = "^8.1", python = "^3.10"}
-sphinx-autodoc2 = {version = ">=0.4.2,<0.6.0", python = "^3.10"}
-myst-parser = {version = "^4.0.1", python = "^3.10"}
+sphinx = {version = "^8.1", python = "^3.11"}
+sphinx-autodoc2 = {version = ">=0.4.2,<0.6.0", python = "^3.11"}
+myst-parser = {version = "^4.0.1", python = "^3.11"}
 furo = ">=2022.12.7,<2026.0.0"
 
 
@@ -378,7 +378,7 @@ build-backend = "poetry.core.masonry.api"
 #    c.f. https://github.com/matrix-org/synapse/pull/12595#discussion_r963107677
 #  - PyPy on Aarch64 and musllinux on aarch64: too slow to build.
 #    c.f. https://github.com/matrix-org/synapse/pull/14259
-skip = "cp36* cp37* cp38* cp39* pp37* pp38* pp39* *-musllinux_i686 pp*aarch64 *-musllinux_aarch64"
+skip = "cp36* cp37* cp38* cp39* cp310* pp37* pp38* pp39* pp310* *-musllinux_i686 pp*aarch64 *-musllinux_aarch64"
 
 # We need a rust compiler
 before-all =  "curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y --profile minimal"

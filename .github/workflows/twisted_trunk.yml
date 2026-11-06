@@ -2,7 +2,7 @@ name: Twisted Trunk
 
 env:
   # The Python version to run commands under. (The max supported version.)
-  PYTHON_VERSION: 3.14.x
+  PYTHON_VERSION: 3.15.x
 
 on:
   schedule:
@@ -107,11 +107,11 @@ jobs:
     if: needs.check_repo.outputs.should_run_workflow == 'true'
     runs-on: ubuntu-latest
     container:
-      # We're using ubuntu:bullseye because it uses Python 3.9 which is our minimum supported Python version.
+      # We're using debian:bookworm because it uses Python 3.11 which is our minimum supported Python version.
       # This job is a canary to warn us about unreleased twisted changes that would cause problems for us if
       # they were to be released immediately. For simplicity's sake (and to save CI runners) we use the oldest
       # version, assuming that any incompatibilities on newer versions would also be present on the oldest.
-      image: matrixdotorg/sytest-relapse:bullseye
+      image: matrixdotorg/sytest-synapse:bookworm
       volumes:
         - ${{ github.workspace }}:/src
 
@@ -126,7 +126,7 @@ jobs:
 
       - name: Patch dependencies
         # Note: The poetry commands want to create a virtualenv in /src/.venv/,
-        #       but the sytest-relapse container expects it to be in /venv/.
+        #       but the sytest-synapse container expects it to be in /venv/.
         #       We symlink it before running poetry so that poetry actually
         #       ends up installing to `/venv`.
         run: |
@@ -191,11 +191,11 @@ jobs:
         run: |
           set -x
           DEBIAN_FRONTEND=noninteractive sudo apt-get install -yqq python3 pipx
-          pipx install poetry==1.3.2
+          pipx install poetry==2.5.1
 
           poetry remove -n twisted
           poetry add -n --extras tls git+https://github.com/twisted/twisted.git#trunk
-          poetry lock --no-update
+          poetry lock
         working-directory: relapse
 
       - run: |
