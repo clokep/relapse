@@ -3387,20 +3387,19 @@ windows-platform = ["appdirs (>=1.4.0)", "bcrypt (>=3.2.1)", "cryptography (>=38
 
 [[package]]
 name = "txredisapi"
-version = "1.4.11"
+version = "1.6.0"
 description = "non-blocking redis client for python"
 optional = true
-python-versions = "*"
+python-versions = ">=3.5"
 groups = ["main"]
 markers = "extra == \"all\" or extra == \"redis\""
 files = [
-    {file = "txredisapi-1.4.11-py3-none-any.whl", hash = "sha256:ac64d7a9342b58edca13ef267d4fa7637c1aa63f8595e066801c1e8b56b22d0b"},
-    {file = "txredisapi-1.4.11.tar.gz", hash = "sha256:3eb1af99aefdefb59eb877b1dd08861efad60915e30ad5bf3d5bf6c5cedcdbc6"},
+    {file = "txredisapi-1.6.0-py3-none-any.whl", hash = "sha256:89030729440308758c7ea92459925d35672dae6fec66d83a5a7c649dfe6d7d53"},
+    {file = "txredisapi-1.6.0.tar.gz", hash = "sha256:220059815289902c86f764a0b19cc03f1a903efaa4a3568f06297ffa0908a9d9"},
 ]
 
 [package.dependencies]
-six = "*"
-twisted = "*"
+twisted = {version = ">=18.7.0", extras = ["tls"]}
 
 [[package]]
 name = "types-bleach"
