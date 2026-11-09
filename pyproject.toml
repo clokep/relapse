@@ -240,7 +240,7 @@ opentracing = { version = ">=2.2.0", optional = true }
 jaeger-client = { version = ">=4.8.0", optional = true }
 txredisapi = { version = ">=1.4.7", optional = true }
 hiredis = { version = "*", optional = true }
-Pympler = { version = "*", optional = true }
+Pympler = { version = "<1.1", optional = true }
 parameterized = { version = ">=0.7.4", optional = true }
 idna = { version = ">=3.10", optional = true }
 
