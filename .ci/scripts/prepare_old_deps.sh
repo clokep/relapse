@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
-# this script is run by GitHub Actions in a plain `jammy` container; it
-# - installs the minimal system requirements, and poetry;
-# - patches the project definition file to refer to old versions only;
-# - creates a venv with these old versions using poetry; and finally
-# - invokes `trial` to run the tests with old deps.
+# this script is run by GitHub Actions in a plain `jammy` runner; it
+# patches the project definition file to refer to old versions only.
 
 set -ex
 
@@ -22,9 +19,12 @@ export VIRTUALENV_NO_DOWNLOAD=1
 # - Use pyopenssl 17.0, which is the oldest version that works with
 #   a `cryptography` compiled against OpenSSL 1.1.
 # - Omit systemd: we're not logging to journal here.
+#
+# Note: `requires-python` in [project] must not have its `>=` bound pinned to
+# `==`, otherwise pip restricts installation to a single Python version.
 
 sed -i \
-   -e "s/[~>]=/==/g" \
+   -e "/requires-python/!s/[~>]=/==/g" \
    -e '/^python = "^/!s/\^/==/g' \
    -e "/psycopg2/d" \
    -e 's/pyOpenSSL = "==16.0.0"/pyOpenSSL = "==17.0.0"/' \

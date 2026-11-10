@@ -1,1 +1,1 @@
-Support Python 3.13 and 3.14.
+Support Python 3.13, 3.14, and 3.15.

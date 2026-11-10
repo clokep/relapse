@@ -21,20 +21,18 @@ from concurrent.futures import ThreadPoolExecutor
 from types import FrameType
 
 # These are expanded inside the dockerfile to be a fully qualified image name.
-# e.g. docker.io/library/debian:bullseye
+# e.g. docker.io/library/debian:bookworm
 #
 # If an EOL is forced by a Python version and we're dropping support for it, make sure
-# to remove references to the distibution across Relapse (search for "bullseye" for
-# example)
+# to remove references to the distribution across Relapse (search for the distribution
+# name, e.g. "bookworm").
 DISTS = (
-    "debian:bullseye",  # (EOL ~2024-07) (our EOL forced by Python 3.9 is 2025-10-05)
-    "debian:bookworm",  # (EOL not specified yet) (our EOL forced by Python 3.11 is 2027-10-24)
-    "debian:sid",  # (EOL not specified yet) (our EOL forced by Python 3.11 is 2027-10-24)
-    "ubuntu:focal",  # 20.04 LTS (EOL 2025-04) (our EOL forced by Python 3.8 is 2024-10-14)
-    "ubuntu:jammy",  # 22.04 LTS (EOL 2027-04) (our EOL forced by Python 3.10 is 2026-10-04)
-    "ubuntu:lunar",  # 23.04 (EOL 2024-01) (our EOL forced by Python 3.11 is 2027-10-24)
-    "ubuntu:mantic",  # 23.10 (EOL 2024-07) (our EOL forced by Python 3.11 is 2027-10-24)
-    "debian:trixie",  # (EOL not specified yet)
+    "debian:bookworm",  # 12 (oldstable) (our EOL forced by Python 3.11 is 2027-10-24)
+    "debian:trixie",  # 13 (stable)
+    "debian:forky",  # 14 (testing)
+    "debian:sid",  # unstable
+    "ubuntu:noble",  # 24.04 LTS (EOL 2029-04)
+    "ubuntu:resolute",  # 26.04 LTS (EOL 2031-04)
 )
 
 DESC = """\

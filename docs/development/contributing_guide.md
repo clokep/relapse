@@ -66,13 +66,13 @@ Of their installation methods, we recommend
 
 ```shell
 pip install --user pipx
-pipx install poetry==1.5.1  # Problems with Poetry 1.6, see https://github.com/clokep/relapse/issues/16147
+pipx install poetry==2.5.1
 ```
 
 but see poetry's [installation instructions](https://python-poetry.org/docs/#installation)
 for other installation methods.
 
-Developing Relapse requires Poetry version 1.3.2 or later.
+Developing Relapse requires Poetry version 2.1.1 or later.
 
 Next, open a terminal and install dependencies as follows:
 
@@ -322,7 +322,7 @@ The following command will let you run the integration test with the most common
 configuration:
 
 ```sh
-$ docker run --rm -it -v /path/where/you/have/cloned/the/repository\:/src:ro -v /path/to/where/you/want/logs\:/logs matrixdotorg/sytest-relapse:focal
+$ docker run --rm -it -v /path/where/you/have/cloned/the/repository\:/src:ro -v /path/to/where/you/want/logs\:/logs matrixdotorg/sytest-synapse:bookworm
 ```
 (Note that the paths must be full paths! You could also write `$(realpath relative/path)` if needed.)
 

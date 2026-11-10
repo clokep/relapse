@@ -45,7 +45,7 @@ https://github.com/clokep/relapse/blob/release-v1.57/pyproject.toml#L133
 ```toml
 [tool.poetry.dependencies]
 # ...
-phonenumbers = ">=8.2.0"
+phonenumbers = ">=9.0.0"
 ```
 
 In our lockfile this is
@@ -101,7 +101,7 @@ $ cd /tmp
 $ wget https://files.pythonhosted.org/packages/ca/5e/d722d572cc5b3092402b783d6b7185901b444427633bd8a6b00ea0dd41b7/matrix_relapse-1.57.0rc1-py3-none-any.whl
 ...
 $ unzip -c matrix_relapse-1.57.0rc1-py3-none-any.whl matrix_relapse-1.57.0rc1.dist-info/METADATA | grep phonenumbers
-Requires-Dist: phonenumbers (>=8.2.0)
+Requires-Dist: phonenumbers (>=9.0.0)
 ```
 
 # Tooling recommendation: direnv
@@ -173,8 +173,8 @@ Some suggestions:
 ```shell
 # Current env only
 poetry env info
-# All envs: this allows you to have e.g. a poetry managed venv for Python 3.7,
-# and another for Python 3.10.
+# All envs: this allows you to have e.g. a poetry managed venv for Python 3.11,
+# and another for Python 3.15.
 poetry env list --full-path
 poetry run pip list
 ```
@@ -187,7 +187,7 @@ useful.
 ## ...add a new dependency?
 
 Either:
-- manually update `pyproject.toml`; then `poetry lock --no-update`; or else
+- manually update `pyproject.toml`; then `poetry lock`; or else
 - `poetry add packagename`. See `poetry add --help`; note the `--dev`,
   `--extras` and `--optional` flags in particular.
 
@@ -202,12 +202,12 @@ poetry remove packagename
 ```
 
 ought to do the trick. Alternatively, manually update `pyproject.toml` and
-`poetry lock --no-update`. Include the updated `pyproject.toml` and `poetry.lock`
+`poetry lock`. Include the updated `pyproject.toml` and `poetry.lock`
 files in your commit.
 
 ## ...update the version range for an existing dependency?
 
-Best done by manually editing `pyproject.toml`, then `poetry lock --no-update`.
+Best done by manually editing `pyproject.toml`, then `poetry lock`.
 Include the updated `pyproject.toml` and `poetry.lock` in your commit.
 
 ## ...update a dependency in the locked environment?
@@ -233,7 +233,7 @@ poetry add packagename==1.2.3
 
 # Get poetry to recompute the content-hash of pyproject.toml without changing
 # the locked package versions.
-poetry lock --no-update
+poetry lock
 ```
 
 Either way, include the updated `poetry.lock` file in your commit.
