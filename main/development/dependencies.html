@@ -191,7 +191,7 @@ they'll pull in the latest version of each package available at install time.</p
 this snippet from pyproject.toml <a href="https://github.com/clokep/relapse/blob/release-v1.57/pyproject.toml#L133">as of Relapse 1.57</a>:</p>
 <pre><code class="language-toml">[tool.poetry.dependencies]
 # ...
-phonenumbers = &quot;&gt;=8.2.0&quot;
+phonenumbers = &quot;&gt;=9.0.0&quot;
 </code></pre>
 <p>In our lockfile this is
 <a href="https://github.com/clokep/relapse/blob/dfc7646504cef3e4ff396c36089e1c6f1b1634de/poetry.lock#L679-L685">pinned</a>
@@ -235,7 +235,7 @@ Required-by: matrix-relapse
 $ wget https://files.pythonhosted.org/packages/ca/5e/d722d572cc5b3092402b783d6b7185901b444427633bd8a6b00ea0dd41b7/matrix_relapse-1.57.0rc1-py3-none-any.whl
 ...
 $ unzip -c matrix_relapse-1.57.0rc1-py3-none-any.whl matrix_relapse-1.57.0rc1.dist-info/METADATA | grep phonenumbers
-Requires-Dist: phonenumbers (&gt;=8.2.0)
+Requires-Dist: phonenumbers (&gt;=9.0.0)
 </code></pre>
 <h1 id="tooling-recommendation-direnv"><a class="header" href="#tooling-recommendation-direnv">Tooling recommendation: direnv</a></h1>
 <p><a href="https://direnv.net/"><code>direnv</code></a> is a tool for activating environments in your
@@ -290,8 +290,8 @@ and isolated from the rest o the system.</p>
 <p>Some suggestions:</p>
 <pre><code class="language-shell"># Current env only
 poetry env info
-# All envs: this allows you to have e.g. a poetry managed venv for Python 3.7,
-# and another for Python 3.10.
+# All envs: this allows you to have e.g. a poetry managed venv for Python 3.11,
+# and another for Python 3.15.
 poetry env list --full-path
 poetry run pip list
 </code></pre>
@@ -301,7 +301,7 @@ useful.</p>
 <h2 id="add-a-new-dependency"><a class="header" href="#add-a-new-dependency">...add a new dependency?</a></h2>
 <p>Either:</p>
 <ul>
-<li>manually update <code>pyproject.toml</code>; then <code>poetry lock --no-update</code>; or else</li>
+<li>manually update <code>pyproject.toml</code>; then <code>poetry lock</code>; or else</li>
 <li><code>poetry add packagename</code>. See <code>poetry add --help</code>; note the <code>--dev</code>,
 <code>--extras</code> and <code>--optional</code> flags in particular.</li>
 </ul>
@@ -311,10 +311,10 @@ useful.</p>
 <pre><code class="language-shell">poetry remove packagename
 </code></pre>
 <p>ought to do the trick. Alternatively, manually update <code>pyproject.toml</code> and
-<code>poetry lock --no-update</code>. Include the updated <code>pyproject.toml</code> and <code>poetry.lock</code>
+<code>poetry lock</code>. Include the updated <code>pyproject.toml</code> and <code>poetry.lock</code>
 files in your commit.</p>
 <h2 id="update-the-version-range-for-an-existing-dependency"><a class="header" href="#update-the-version-range-for-an-existing-dependency">...update the version range for an existing dependency?</a></h2>
-<p>Best done by manually editing <code>pyproject.toml</code>, then <code>poetry lock --no-update</code>.
+<p>Best done by manually editing <code>pyproject.toml</code>, then <code>poetry lock</code>.
 Include the updated <code>pyproject.toml</code> and <code>poetry.lock</code> in your commit.</p>
 <h2 id="update-a-dependency-in-the-locked-environment"><a class="header" href="#update-a-dependency-in-the-locked-environment">...update a dependency in the locked environment?</a></h2>
 <p>Use</p>
@@ -332,7 +332,7 @@ affecting the broad dependencies listed in the wheel.</p>
 
 # Get poetry to recompute the content-hash of pyproject.toml without changing
 # the locked package versions.
-poetry lock --no-update
+poetry lock
 </code></pre>
 <p>Either way, include the updated <code>poetry.lock</code> file in your commit.</p>
 <h2 id="export-a-requirementstxt-file"><a class="header" href="#export-a-requirementstxt-file">...export a <code>requirements.txt</code> file?</a></h2>
