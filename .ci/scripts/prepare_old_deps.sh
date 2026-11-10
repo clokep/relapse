@@ -19,9 +19,12 @@ export VIRTUALENV_NO_DOWNLOAD=1
 # - Use pyopenssl 17.0, which is the oldest version that works with
 #   a `cryptography` compiled against OpenSSL 1.1.
 # - Omit systemd: we're not logging to journal here.
+#
+# Note: `requires-python` in [project] must not have its `>=` bound pinned to
+# `==`, otherwise pip restricts installation to a single Python version.
 
 sed -i \
-   -e "s/[~>]=/==/g" \
+   -e "/requires-python/!s/[~>]=/==/g" \
    -e '/^python = "^/!s/\^/==/g' \
    -e "/psycopg2/d" \
    -e 's/pyOpenSSL = "==16.0.0"/pyOpenSSL = "==17.0.0"/' \
