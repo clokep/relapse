@@ -19,7 +19,7 @@ import os
 import platform
 import threading
 from collections.abc import Callable, Iterable, Mapping
-from typing import TypeVar, cast
+from typing import Generic, TypeVar, cast
 
 import attr
 from prometheus_client import CollectorRegistry, Counter, Gauge, Histogram, Metric
@@ -108,7 +108,7 @@ class LaterGauge(Collector):
 MetricsEntry = TypeVar("MetricsEntry")
 
 
-class InFlightGauge(Collector):
+class InFlightGauge(Generic[MetricsEntry], Collector):
     """Tracks number of things (e.g. requests, Measure blocks, etc) in flight
     at any given time.
 
