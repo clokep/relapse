@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from twisted.protocols import amp
 from twisted.trial import util
 
 from relapse.util import async_helpers
@@ -24,3 +25,6 @@ do_patch()
 async_helpers._schedule_coro_inner = lambda coro: coro  # type: ignore[assignment,return-value]
 
 util.DEFAULT_TIMEOUT_DURATION = 20
+
+# Work around https://github.com/twisted/twisted/issues/12482, use 512 KiB instead of 65 KiB.
+amp.MAX_VALUE_LENGTH = 512 * 1024
