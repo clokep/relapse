@@ -50,7 +50,7 @@ RUN curl -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path --default-tool
 COPY relapse /editable-src/relapse/
 COPY rust /editable-src/rust/
 # ... and what we need to `pip install`.
-COPY pyproject.toml poetry.lock README.rst build_rust.py Cargo.toml Cargo.lock /editable-src/
+COPY pyproject.toml poetry.lock README.rst LICENSE build_rust.py Cargo.toml Cargo.lock /editable-src/
 
 RUN pip install poetry
 RUN poetry config virtualenvs.create false
