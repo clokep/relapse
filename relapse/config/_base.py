@@ -16,6 +16,7 @@
 
 import argparse
 import errno
+import importlib.resources
 import logging
 import os
 import re
@@ -28,7 +29,6 @@ from typing import Any, ClassVar, TypeVar
 
 import attr
 import jinja2
-import pkg_resources
 import yaml
 
 from relapse.types import StrSequence
@@ -156,8 +156,8 @@ class Config:
         self.root = root_config
 
         # Get the path to the default Relapse template directory
-        self.default_template_dir = pkg_resources.resource_filename(
-            "relapse", "res/templates"
+        self.default_template_dir = str(
+            importlib.resources.files("relapse").joinpath("res").joinpath("templates")
         )
 
     @staticmethod
