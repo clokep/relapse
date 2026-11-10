@@ -27,7 +27,7 @@ ARG PYTHON_VERSION=3.11
 ###
 # We hardcode the use of Debian bookworm here because this could change upstream
 # and other Dockerfiles used for testing are expecting bookworm.
-FROM docker.io/library/python:${PYTHON_VERSION}-slim-bookworm as requirements
+FROM docker.io/library/python:${PYTHON_VERSION}-slim-bookworm AS requirements
 
 # RUN --mount is specific to buildkit and is documented at
 # https://github.com/moby/buildkit/blob/master/frontend/dockerfile/docs/syntax.md#build-mounts-run---mount.
@@ -58,12 +58,12 @@ ENV CARGO_NET_GIT_FETCH_WITH_CLI=$CARGO_NET_GIT_FETCH_WITH_CLI
 # We install poetry in its own build stage to avoid its dependencies conflicting with
 # relapse's dependencies.
 RUN --mount=type=cache,target=/root/.cache/pip \
-  pip install --user "poetry==2.1.1"
+  pip install --user "poetry==2.1.1" poetry-plugin-export
 
 WORKDIR /relapse
 
 # Copy just what we need to run `poetry export`...
-COPY pyproject.toml poetry.lock /relapse/
+COPY pyproject.toml LICENSE poetry.lock /relapse/
 
 
 # If specified, we won't verify the hashes of dependencies.
@@ -87,7 +87,7 @@ RUN if [ -z "$TEST_ONLY_IGNORE_POETRY_LOCKFILE" ]; then \
 ###
 ### Stage 1: builder
 ###
-FROM docker.io/library/python:${PYTHON_VERSION}-slim-bookworm as builder
+FROM docker.io/library/python:${PYTHON_VERSION}-slim-bookworm AS builder
 
 # install the OS build deps
 RUN \
@@ -138,7 +138,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 COPY relapse /relapse/relapse/
 COPY rust /relapse/rust/
 # ... and what we need to `pip install`.
-COPY pyproject.toml README.rst build_rust.py Cargo.toml Cargo.lock /relapse/
+COPY pyproject.toml README.rst LICENSE build_rust.py Cargo.toml Cargo.lock /relapse/
 
 # Repeat of earlier build argument declaration, as this is a new build stage.
 ARG TEST_ONLY_IGNORE_POETRY_LOCKFILE
