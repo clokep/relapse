@@ -45,7 +45,7 @@ https://github.com/clokep/relapse/blob/release-v1.57/pyproject.toml#L133
 ```toml
 [tool.poetry.dependencies]
 # ...
-phonenumbers = ">=8.2.0"
+phonenumbers = ">=9.0.0"
 ```
 
 In our lockfile this is
@@ -101,7 +101,7 @@ $ cd /tmp
 $ wget https://files.pythonhosted.org/packages/ca/5e/d722d572cc5b3092402b783d6b7185901b444427633bd8a6b00ea0dd41b7/matrix_relapse-1.57.0rc1-py3-none-any.whl
 ...
 $ unzip -c matrix_relapse-1.57.0rc1-py3-none-any.whl matrix_relapse-1.57.0rc1.dist-info/METADATA | grep phonenumbers
-Requires-Dist: phonenumbers (>=8.2.0)
+Requires-Dist: phonenumbers (>=9.0.0)
 ```
 
 # Tooling recommendation: direnv
