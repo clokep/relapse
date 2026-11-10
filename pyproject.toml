@@ -99,7 +99,7 @@ authors = [{ name = "Patrick Cloke" }]
 license = "Apache-2.0"
 readme = "README.rst"
 license-files = ["LICENSE"]
-requires-python = ">=3.10,<3.15"
+requires-python = ">=3.11,<3.16"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Topic :: Communications :: Chat",
@@ -143,7 +143,7 @@ dependencies = [
     # First version w/ support for Python >= 3.10
     "sortedcontainers>=2.0.5",
     "pymacaroons>=0.13.0",
-    "phonenumbers>=8.2.0",
+    "phonenumbers>=9.0.0",
     # we use GaugeHistogramMetric, which was added in prom-client 0.4.0.
     "prometheus-client>=0.4.0",
     # attrs 24.3.0 allows the pipe operator for unions.
@@ -220,7 +220,7 @@ jwt = ["authlib>=0.15.1"]
 # (if it is not installed, we fall back to slow code.)
 redis = ["txredisapi>=1.4.7", "hiredis"]
 # Required to use experimental `caches.track_memory_usage` config option.
-cache-memory = ["pympler"]
+cache-memory = ["pympler<1.1"]
 test = ["parameterized>=0.7.4", "idna>=3.10"]
 
 # The duplication here is awful. I hate hate hate hate hate it. However, for now I want
@@ -256,7 +256,7 @@ all = [
     "txredisapi>=1.4.7",
     "hiredis",
     # cache-memory
-    "pympler",
+    "pympler<1.1",
     # omitted:
     #   - test: it's useful to have this separate from dev deps in the olddeps job
     #   - systemd: this is a system-based requirement
@@ -347,9 +347,9 @@ tomli = ">=2.4.1"
 optional = true
 
 [tool.poetry.group.dev-docs.dependencies]
-sphinx = {version = "^8.1", python = "^3.10"}
-sphinx-autodoc2 = {version = ">=0.4.2,<0.6.0", python = "^3.10"}
-myst-parser = {version = "^4.0.1", python = "^3.10"}
+sphinx = {version = "^8.1", python = "^3.11"}
+sphinx-autodoc2 = {version = ">=0.4.2,<0.6.0", python = "^3.11"}
+myst-parser = {version = "^4.0.1", python = "^3.11"}
 furo = ">=2022.12.7,<2026.0.0"
 
 

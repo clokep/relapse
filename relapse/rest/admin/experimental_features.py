@@ -13,7 +13,7 @@
 #  limitations under the License.
 
 
-from enum import Enum
+from enum import StrEnum
 from http import HTTPStatus
 from typing import TYPE_CHECKING
 
@@ -27,7 +27,7 @@ if TYPE_CHECKING:
     from relapse.server import HomeServer
 
 
-class ExperimentalFeature(str, Enum):
+class ExperimentalFeature(StrEnum):
     """
     Currently supported per-user features
     """

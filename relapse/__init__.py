@@ -35,8 +35,8 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 # Note that we use an (unneeded) variable here so that pyupgrade doesn't nuke the
 # if-statement completely.
 py_version = sys.version_info
-if py_version < (3, 10):
-    print("Relapse requires Python 3.10 or above.")
+if py_version < (3, 11):
+    print("Relapse requires Python 3.11 or above.")
     sys.exit(1)
 
 # Use the asyncio reactor, but if this is a forked run then don't crash.

@@ -41,7 +41,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class ThreadsListInclude(str, enum.Enum):
+class ThreadsListInclude(enum.StrEnum):
     """Valid values for the 'include' flag of /threads."""
 
     all = "all"

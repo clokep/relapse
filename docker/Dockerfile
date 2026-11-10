@@ -12,7 +12,7 @@
 # There is an optional PYTHON_VERSION build argument which sets the
 # version of python to build against: for example:
 #
-#    DOCKER_BUILDKIT=1 docker build -f docker/Dockerfile --build-arg PYTHON_VERSION=3.10 .
+#    DOCKER_BUILDKIT=1 docker build -f docker/Dockerfile --build-arg PYTHON_VERSION=3.11 .
 #
 
 # Irritatingly, there is no blessed guide on how to distribute an application with its
@@ -58,7 +58,7 @@ ENV CARGO_NET_GIT_FETCH_WITH_CLI=$CARGO_NET_GIT_FETCH_WITH_CLI
 # We install poetry in its own build stage to avoid its dependencies conflicting with
 # relapse's dependencies.
 RUN --mount=type=cache,target=/root/.cache/pip \
-  pip install --user "poetry==2.1.1" poetry-plugin-export
+  pip install --user "poetry==2.5.1" "poetry-plugin-export==1.10.0"
 
 WORKDIR /relapse
 
