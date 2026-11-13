@@ -141,6 +141,7 @@ def run_create(
     """Called whenever an existing or new database is to be upgraded"""
     ...
 
+
 def run_upgrade(
     cur: relapse.storage.types.Cursor,
     database_engine: relapse.storage.engines.BaseDatabaseEngine,
@@ -284,7 +285,7 @@ ALTER TABLE mytable DROP COLUMN old_column;
 
 ```python
 SCHEMA_VERSION = S
-SCHEMA_COMPAT_VERSION = ... # unimportant at this stage
+SCHEMA_COMPAT_VERSION = ...  # unimportant at this stage
 ```
 
 **Invariants:**
@@ -295,7 +296,7 @@ SCHEMA_COMPAT_VERSION = ... # unimportant at this stage
 
 ```python
 SCHEMA_VERSION = S + 1
-SCHEMA_COMPAT_VERSION = ... # unimportant at this stage
+SCHEMA_COMPAT_VERSION = ...  # unimportant at this stage
 ```
 
 **Changes:**
@@ -316,7 +317,9 @@ SCHEMA_COMPAT_VERSION = ... # unimportant at this stage
 
 ```python
 SCHEMA_VERSION = S + 2
-SCHEMA_COMPAT_VERSION = S + 1 # this signals that we can't roll back to a time before new_column existed
+SCHEMA_COMPAT_VERSION = (
+    S + 1
+)  # this signals that we can't roll back to a time before new_column existed
 ```
 
 **Changes:**
@@ -348,7 +351,7 @@ SCHEMA_COMPAT_VERSION = S + 1 # this signals that we can't roll back to a time b
 
 ```python
 SCHEMA_VERSION = S + 3
-SCHEMA_COMPAT_VERSION = S + 1 # we can't roll back to a time before new_column existed
+SCHEMA_COMPAT_VERSION = S + 1  # we can't roll back to a time before new_column existed
 ```
 
 **Changes:**
@@ -378,7 +381,9 @@ SCHEMA_COMPAT_VERSION = S + 1 # we can't roll back to a time before new_column e
 
 ```python
 SCHEMA_VERSION = S + 4
-SCHEMA_COMPAT_VERSION = S + 3 # we can't roll back to a time before new_column was entirely non-NULL
+SCHEMA_COMPAT_VERSION = (
+    S + 3
+)  # we can't roll back to a time before new_column was entirely non-NULL
 ```
 
 **Invariants:**
@@ -394,7 +399,9 @@ SCHEMA_COMPAT_VERSION = S + 3 # we can't roll back to a time before new_column w
 
 ```python
 SCHEMA_VERSION = S + 5
-SCHEMA_COMPAT_VERSION = S + 4 # we can't roll back to a time before old_column was no longer being touched
+SCHEMA_COMPAT_VERSION = (
+    S + 4
+)  # we can't roll back to a time before old_column was no longer being touched
 ```
 
 **Changes:**
