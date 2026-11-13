@@ -277,6 +277,7 @@ def run_create(
     &quot;&quot;&quot;Called whenever an existing or new database is to be upgraded&quot;&quot;&quot;
     ...
 
+
 def run_upgrade(
     cur: relapse.storage.types.Cursor,
     database_engine: relapse.storage.engines.BaseDatabaseEngine,
@@ -382,7 +383,7 @@ ALTER TABLE mytable DROP COLUMN old_column;
 </code></pre>
 <h4 id="relapse-version-n"><a class="header" href="#relapse-version-n">Relapse version <code>N</code></a></h4>
 <pre><code class="language-python">SCHEMA_VERSION = S
-SCHEMA_COMPAT_VERSION = ... # unimportant at this stage
+SCHEMA_COMPAT_VERSION = ...  # unimportant at this stage
 </code></pre>
 <p><strong>Invariants:</strong></p>
 <ol>
@@ -390,7 +391,7 @@ SCHEMA_COMPAT_VERSION = ... # unimportant at this stage
 </ol>
 <h4 id="relapse-version-n--1"><a class="header" href="#relapse-version-n--1">Relapse version <code>N + 1</code></a></h4>
 <pre><code class="language-python">SCHEMA_VERSION = S + 1
-SCHEMA_COMPAT_VERSION = ... # unimportant at this stage
+SCHEMA_COMPAT_VERSION = ...  # unimportant at this stage
 </code></pre>
 <p><strong>Changes:</strong></p>
 <ol>
@@ -410,7 +411,9 @@ SCHEMA_COMPAT_VERSION = ... # unimportant at this stage
 </ol>
 <h4 id="relapse-version-n--2"><a class="header" href="#relapse-version-n--2">Relapse version <code>N + 2</code></a></h4>
 <pre><code class="language-python">SCHEMA_VERSION = S + 2
-SCHEMA_COMPAT_VERSION = S + 1 # this signals that we can't roll back to a time before new_column existed
+SCHEMA_COMPAT_VERSION = (
+    S + 1
+)  # this signals that we can't roll back to a time before new_column existed
 </code></pre>
 <p><strong>Changes:</strong></p>
 <ol>
@@ -439,7 +442,7 @@ This will take some time but does <strong>NOT</strong> hold an exclusive lock ov
 </ol>
 <h4 id="relapse-version-n--3"><a class="header" href="#relapse-version-n--3">Relapse version <code>N + 3</code></a></h4>
 <pre><code class="language-python">SCHEMA_VERSION = S + 3
-SCHEMA_COMPAT_VERSION = S + 1 # we can't roll back to a time before new_column existed
+SCHEMA_COMPAT_VERSION = S + 1  # we can't roll back to a time before new_column existed
 </code></pre>
 <p><strong>Changes:</strong></p>
 <ol>
@@ -468,7 +471,9 @@ Unfortunately, you can't drop <code>old_column</code> yet because it must be pre
 </ol>
 <h4 id="relapse-version-n--4"><a class="header" href="#relapse-version-n--4">Relapse version <code>N + 4</code></a></h4>
 <pre><code class="language-python">SCHEMA_VERSION = S + 4
-SCHEMA_COMPAT_VERSION = S + 3 # we can't roll back to a time before new_column was entirely non-NULL
+SCHEMA_COMPAT_VERSION = (
+    S + 3
+)  # we can't roll back to a time before new_column was entirely non-NULL
 </code></pre>
 <p><strong>Invariants:</strong></p>
 <ol>
@@ -482,7 +487,9 @@ SCHEMA_COMPAT_VERSION = S + 3 # we can't roll back to a time before new_column w
 </ol>
 <h4 id="relapse-version-n--5"><a class="header" href="#relapse-version-n--5">Relapse version <code>N + 5</code></a></h4>
 <pre><code class="language-python">SCHEMA_VERSION = S + 5
-SCHEMA_COMPAT_VERSION = S + 4 # we can't roll back to a time before old_column was no longer being touched
+SCHEMA_COMPAT_VERSION = (
+    S + 4
+)  # we can't roll back to a time before old_column was no longer being touched
 </code></pre>
 <p><strong>Changes:</strong></p>
 <ol>

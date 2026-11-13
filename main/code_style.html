@@ -201,11 +201,13 @@ in the sphinx documentation.</li>
 modules.</p>
 <p>Example:</p>
 <pre><code class="language-python">from relapse.types import UserID
+
 ...
 user_id = UserID(local, server)
 </code></pre>
 <p>is preferred over:</p>
 <pre><code class="language-python">from relapse import types
+
 ...
 user_id = types.UserID(local, server)
 </code></pre>

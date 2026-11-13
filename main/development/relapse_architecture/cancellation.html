@@ -192,14 +192,15 @@ Both Twisted and asyncio have a cancellation mechanism.</p>
 <p>When Relapse starts handling a request, it runs the async method
 responsible for handling it using <code>defer.ensureDeferred</code>, which returns
 a <code>Deferred</code>. For example:</p>
-<pre><code class="language-python">def do_something() -&gt; Deferred[None]:
-    ...
+<pre><code class="language-python">def do_something() -&gt; Deferred[None]: ...
+
 
 @cancellable
 async def on_GET() -&gt; Tuple[int, JsonDict]:
     d = make_deferred_yieldable(do_something())
     await d
     return 200, {}
+
 
 request = defer.ensureDeferred(on_GET())
 </code></pre>
@@ -311,9 +312,8 @@ swallowed, so they must be unwrapped.</p>
 <td width="50%" valign="top">
 <p><strong>Bad</strong>:</p>
 <pre><code class="language-python">async def do_something() -&gt; None:
-    await make_deferred_yieldable(
-        defer.gatherResults([...], consumeErrors=True)
-    )
+    await make_deferred_yieldable(defer.gatherResults([...], consumeErrors=True))
+
 
 try:
     await do_something()
@@ -330,6 +330,7 @@ except Exception:
     await make_deferred_yieldable(
         defer.gatherResults([...], consumeErrors=True)
     ).addErrback(unwrapFirstError)
+
 
 try:
     await do_something()
@@ -349,6 +350,7 @@ except Exception:
 <p><strong>Bad</strong>:</p>
 <pre><code class="language-python">cache: Dict[str, Deferred[None]] = {}
 
+
 def wait_for_room(room_id: str) -&gt; Deferred[None]:
     deferred = cache.get(room_id)
     if deferred is None:
@@ -358,6 +360,7 @@ def wait_for_room(room_id: str) -&gt; Deferred[None]:
     # All of them will observe a `CancelledError`
     # if any one of them is cancelled.
     return make_deferred_yieldable(deferred)
+
 
 # Request 1
 await wait_for_room(&quot;!aAAaaAaaaAAAaAaAA:matrix.org&quot;)
@@ -369,6 +372,7 @@ await wait_for_room(&quot;!aAAaaAaaaAAAaAaAA:matrix.org&quot;)
 <p><strong>Good</strong>:</p>
 <pre><code class="language-python">cache: Dict[str, Deferred[None]] = {}
 
+
 def wait_for_room(room_id: str) -&gt; Deferred[None]:
     deferred = cache.get(room_id)
     if deferred is None:
@@ -379,6 +383,7 @@ def wait_for_room(room_id: str) -&gt; Deferred[None]:
     # the `await`.
     # `delay_cancellation` may also be used.
     return make_deferred_yieldable(stop_cancellation(deferred))
+
 
 # Request 1
 await wait_for_room(&quot;!aAAaaAaaaAAAaAaAA:matrix.org&quot;)
@@ -421,12 +426,12 @@ logcontext is not finished before the <code>async</code> processing completes.</
 <p><strong>Bad</strong>:</p>
 <pre><code class="language-python">cache: Optional[ObservableDeferred[None]] = None
 
-async def do_something_else(
-    to_resolve: Deferred[None]
-) -&gt; None:
+
+async def do_something_else(to_resolve: Deferred[None]) -&gt; None:
     await ...
     logger.info(&quot;done!&quot;)
     to_resolve.callback(None)
+
 
 async def do_something() -&gt; None:
     if not cache:
@@ -438,6 +443,7 @@ async def do_something() -&gt; None:
 
     await make_deferred_yieldable(cache.observe())
 
+
 with LoggingContext(&quot;request-1&quot;):
     await do_something()
 </code></pre>
@@ -446,12 +452,12 @@ with LoggingContext(&quot;request-1&quot;):
 <p><strong>Good</strong>:</p>
 <pre><code class="language-python">cache: Optional[ObservableDeferred[None]] = None
 
-async def do_something_else(
-    to_resolve: Deferred[None]
-) -&gt; None:
+
+async def do_something_else(to_resolve: Deferred[None]) -&gt; None:
     await ...
     logger.info(&quot;done!&quot;)
     to_resolve.callback(None)
+
 
 async def do_something() -&gt; None:
     if not cache:
@@ -460,11 +466,10 @@ async def do_something() -&gt; None:
         run_in_background(do_something_else, to_resolve)
         # We'll wait until `do_something_else` is
         # done before raising a `CancelledError`.
-        await make_deferred_yieldable(
-            delay_cancellation(cache.observe())
-        )
+        await make_deferred_yieldable(delay_cancellation(cache.observe()))
     else:
         await make_deferred_yieldable(cache.observe())
+
 
 with LoggingContext(&quot;request-1&quot;):
     await do_something()
@@ -476,12 +481,12 @@ with LoggingContext(&quot;request-1&quot;):
 <p><strong>OK</strong>:</p>
 <pre><code class="language-python">cache: Optional[ObservableDeferred[None]] = None
 
-async def do_something_else(
-    to_resolve: Deferred[None]
-) -&gt; None:
+
+async def do_something_else(to_resolve: Deferred[None]) -&gt; None:
     await ...
     logger.info(&quot;done!&quot;)
     to_resolve.callback(None)
+
 
 async def do_something() -&gt; None:
     if not cache:
@@ -497,6 +502,7 @@ async def do_something() -&gt; None:
         )
 
     await make_deferred_yieldable(cache.observe())
+
 
 with LoggingContext(&quot;request-1&quot;):
     await do_something()

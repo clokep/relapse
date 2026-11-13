@@ -536,8 +536,7 @@ be remove in v1.71.0:</p>
     duration_in_ms: int = (2 * 60 * 1000),
     auth_provider_id: str = &quot;&quot;,
     auth_provider_session_id: Optional[str] = None,
-) -&gt; str:
-    ...
+) -&gt; str: ...
 </code></pre>
 <p>It has been replaced by an asynchronous equivalent:</p>
 <pre><code class="language-python">async def create_login_token(
@@ -546,8 +545,7 @@ be remove in v1.71.0:</p>
     duration_in_ms: int = (2 * 60 * 1000),
     auth_provider_id: Optional[str] = None,
     auth_provider_session_id: Optional[str] = None,
-) -&gt; str:
-    ...
+) -&gt; str: ...
 </code></pre>
 <p>Relapse will log a warning when a module uses the deprecated method, to help
 administrators find modules using it.</p>
@@ -1321,6 +1319,7 @@ mapping provider performs some normalisation of the
 use the <code>map_username_to_mxid_localpart</code> function provided
 by Relapse. An example is shown below:</p>
 <pre><code class="language-python">from relapse.types import map_username_to_mxid_localpart
+
 
 class MyMappingProvider:
     def map_user_attributes(self, userinfo, token):

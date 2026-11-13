@@ -532,11 +532,13 @@ class ListSpamChecker:
             resource=IsUserEvilResource(config),
         )
 
-    async def check_event_for_spam(self, event: &quot;relapse.events.EventBase&quot;) -&gt; Union[Literal[&quot;NOT_SPAM&quot;], Codes]:
+    async def check_event_for_spam(
+        self, event: &quot;relapse.events.EventBase&quot;
+    ) -&gt; Union[Literal[&quot;NOT_SPAM&quot;], Codes]:
         if event.sender in self.evil_users:
-          return Codes.FORBIDDEN
+            return Codes.FORBIDDEN
         else:
-          return relapse.module_api.NOT_SPAM
+            return relapse.module_api.NOT_SPAM
 </code></pre>
 
                     </main>

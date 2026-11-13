@@ -391,7 +391,6 @@ needed to add OAuth2 capabilities to your Django projects. It supports
 <details>
  <summary>Code sample</summary>
 <pre><code class="language-python">class CustomOAuth2Validator(OAuth2Validator):
-
     def get_additional_claims(self, request):
         return {
             &quot;sub&quot;: request.user.email,

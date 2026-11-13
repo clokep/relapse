@@ -214,23 +214,24 @@ printf '%s\0%s\0%s\0%s' &quot;$nonce&quot; &quot;$username&quot; &quot;$password
 <p>For an example of generation in Python:</p>
 <pre><code class="language-python">import hmac, hashlib
 
+
 def generate_mac(nonce, user, password, admin=False, user_type=None):
 
     mac = hmac.new(
-      key=shared_secret,
-      digestmod=hashlib.sha1,
+        key=shared_secret,
+        digestmod=hashlib.sha1,
     )
 
-    mac.update(nonce.encode('utf8'))
+    mac.update(nonce.encode(&quot;utf8&quot;))
     mac.update(b&quot;\x00&quot;)
-    mac.update(user.encode('utf8'))
+    mac.update(user.encode(&quot;utf8&quot;))
     mac.update(b&quot;\x00&quot;)
-    mac.update(password.encode('utf8'))
+    mac.update(password.encode(&quot;utf8&quot;))
     mac.update(b&quot;\x00&quot;)
     mac.update(b&quot;admin&quot; if admin else b&quot;notadmin&quot;)
     if user_type:
         mac.update(b&quot;\x00&quot;)
-        mac.update(user_type.encode('utf8'))
+        mac.update(user_type.encode(&quot;utf8&quot;))
 
     return mac.hexdigest()
 </code></pre>

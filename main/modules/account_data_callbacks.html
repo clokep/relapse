@@ -243,10 +243,7 @@ class CustomAccountDataModule:
                 &quot;room_id&quot;: self.config.audit_room,
                 &quot;sender&quot;: self.config.sender,
                 &quot;type&quot;: &quot;m.room.message&quot;,
-                &quot;content&quot;: {
-                    &quot;msgtype&quot;: &quot;m.text&quot;,
-                    &quot;body&quot;: msg_content
-                }
+                &quot;content&quot;: {&quot;msgtype&quot;: &quot;m.text&quot;, &quot;body&quot;: msg_content},
             }
         )
 </code></pre>

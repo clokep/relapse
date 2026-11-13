@@ -1972,8 +1972,7 @@ be remove in v1.71.0:</p>
     duration_in_ms: int = (2 * 60 * 1000),
     auth_provider_id: str = &quot;&quot;,
     auth_provider_session_id: Optional[str] = None,
-) -&gt; str:
-    ...
+) -&gt; str: ...
 </code></pre>
 <p>It has been replaced by an asynchronous equivalent:</p>
 <pre><code class="language-python">async def create_login_token(
@@ -1982,8 +1981,7 @@ be remove in v1.71.0:</p>
     duration_in_ms: int = (2 * 60 * 1000),
     auth_provider_id: Optional[str] = None,
     auth_provider_session_id: Optional[str] = None,
-) -&gt; str:
-    ...
+) -&gt; str: ...
 </code></pre>
 <p>Relapse will log a warning when a module uses the deprecated method, to help
 administrators find modules using it.</p>
@@ -2757,6 +2755,7 @@ mapping provider performs some normalisation of the
 use the <code>map_username_to_mxid_localpart</code> function provided
 by Relapse. An example is shown below:</p>
 <pre><code class="language-python">from relapse.types import map_username_to_mxid_localpart
+
 
 class MyMappingProvider:
     def map_user_attributes(self, userinfo, token):
@@ -8117,7 +8116,6 @@ needed to add OAuth2 capabilities to your Django projects. It supports
 <details>
  <summary>Code sample</summary>
 <pre><code class="language-python">class CustomOAuth2Validator(OAuth2Validator):
-
     def get_additional_claims(self, request):
         return {
             &quot;sub&quot;: request.user.email,
@@ -10083,11 +10081,13 @@ class ListSpamChecker:
             resource=IsUserEvilResource(config),
         )
 
-    async def check_event_for_spam(self, event: &quot;relapse.events.EventBase&quot;) -&gt; Union[Literal[&quot;NOT_SPAM&quot;], Codes]:
+    async def check_event_for_spam(
+        self, event: &quot;relapse.events.EventBase&quot;
+    ) -&gt; Union[Literal[&quot;NOT_SPAM&quot;], Codes]:
         if event.sender in self.evil_users:
-          return Codes.FORBIDDEN
+            return Codes.FORBIDDEN
         else:
-          return relapse.module_api.NOT_SPAM
+            return relapse.module_api.NOT_SPAM
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="third-party-rules-callbacks"><a class="header" href="#third-party-rules-callbacks">Third party rules callbacks</a></h1>
 <p>Third party rules callbacks allow module developers to add extra checks to verify the
@@ -10316,6 +10316,7 @@ from relapse.module_api import ModuleApi
 
 _DEFAULT_CENSOR_ENDPOINT = &quot;https://my-internal-service.local/censor-event&quot;
 
+
 class EventCensorer:
     def __init__(self, config: dict, api: ModuleApi):
         self.api = api
@@ -10332,7 +10333,8 @@ class EventCensorer:
     ) -&gt; Tuple[bool, Optional[dict]]:
         event_dict = event.get_dict()
         new_event_content = await self.api.http_client.post_json_get_json(
-            uri=self._endpoint, post_json=event_dict,
+            uri=self._endpoint,
+            post_json=event_dict,
         )
         event_dict[&quot;content&quot;] = new_event_content
         return event_dict
@@ -10831,10 +10833,7 @@ class CustomAccountDataModule:
                 &quot;room_id&quot;: self.config.audit_room,
                 &quot;sender&quot;: self.config.sender,
                 &quot;type&quot;: &quot;m.room.message&quot;,
-                &quot;content&quot;: {
-                    &quot;msgtype&quot;: &quot;m.text&quot;,
-                    &quot;body&quot;: msg_content
-                }
+                &quot;content&quot;: {&quot;msgtype&quot;: &quot;m.text&quot;, &quot;body&quot;: msg_content},
             }
         )
 </code></pre>
@@ -12291,23 +12290,24 @@ printf '%s\0%s\0%s\0%s' &quot;$nonce&quot; &quot;$username&quot; &quot;$password
 <p>For an example of generation in Python:</p>
 <pre><code class="language-python">import hmac, hashlib
 
+
 def generate_mac(nonce, user, password, admin=False, user_type=None):
 
     mac = hmac.new(
-      key=shared_secret,
-      digestmod=hashlib.sha1,
+        key=shared_secret,
+        digestmod=hashlib.sha1,
     )
 
-    mac.update(nonce.encode('utf8'))
+    mac.update(nonce.encode(&quot;utf8&quot;))
     mac.update(b&quot;\x00&quot;)
-    mac.update(user.encode('utf8'))
+    mac.update(user.encode(&quot;utf8&quot;))
     mac.update(b&quot;\x00&quot;)
-    mac.update(password.encode('utf8'))
+    mac.update(password.encode(&quot;utf8&quot;))
     mac.update(b&quot;\x00&quot;)
     mac.update(b&quot;admin&quot; if admin else b&quot;notadmin&quot;)
     if user_type:
         mac.update(b&quot;\x00&quot;)
-        mac.update(user_type.encode('utf8'))
+        mac.update(user_type.encode(&quot;utf8&quot;))
 
     return mac.hexdigest()
 </code></pre>
@@ -15084,7 +15084,9 @@ parts of the process.</p>
 <p>Note that, prior to Relapse 1.41, any call which returns a coroutine will need to be wrapped in <code>ensureDeferred</code>.</p>
 <p>As a simple example, retrieving an event from the database:</p>
 <pre><code class="language-pycon">&gt;&gt;&gt; from twisted.internet import defer
-&gt;&gt;&gt; defer.ensureDeferred(hs.get_datastores().main.get_event('$1416420717069yeQaw:matrix.org'))
+&gt;&gt;&gt; defer.ensureDeferred(
+...     hs.get_datastores().main.get_event(&quot;$1416420717069yeQaw:matrix.org&quot;)
+... )
 &lt;Deferred at 0x7ff253fc6998 current result: &lt;FrozenEvent event_id='$1416420717069yeQaw:matrix.org', type='m.room.create', state_key=''&gt;&gt;
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="how-to-monitor-relapse-metrics-using-prometheus"><a class="header" href="#how-to-monitor-relapse-metrics-using-prometheus">How to monitor Relapse metrics using Prometheus</a></h1>
@@ -16461,11 +16463,13 @@ in the sphinx documentation.</li>
 modules.</p>
 <p>Example:</p>
 <pre><code class="language-python">from relapse.types import UserID
+
 ...
 user_id = UserID(local, server)
 </code></pre>
 <p>is preferred over:</p>
 <pre><code class="language-python">from relapse import types
+
 ...
 user_id = types.UserID(local, server)
 </code></pre>
@@ -16953,6 +16957,7 @@ def run_create(
     &quot;&quot;&quot;Called whenever an existing or new database is to be upgraded&quot;&quot;&quot;
     ...
 
+
 def run_upgrade(
     cur: relapse.storage.types.Cursor,
     database_engine: relapse.storage.engines.BaseDatabaseEngine,
@@ -17058,7 +17063,7 @@ ALTER TABLE mytable DROP COLUMN old_column;
 </code></pre>
 <h4 id="relapse-version-n"><a class="header" href="#relapse-version-n">Relapse version <code>N</code></a></h4>
 <pre><code class="language-python">SCHEMA_VERSION = S
-SCHEMA_COMPAT_VERSION = ... # unimportant at this stage
+SCHEMA_COMPAT_VERSION = ...  # unimportant at this stage
 </code></pre>
 <p><strong>Invariants:</strong></p>
 <ol>
@@ -17066,7 +17071,7 @@ SCHEMA_COMPAT_VERSION = ... # unimportant at this stage
 </ol>
 <h4 id="relapse-version-n--1"><a class="header" href="#relapse-version-n--1">Relapse version <code>N + 1</code></a></h4>
 <pre><code class="language-python">SCHEMA_VERSION = S + 1
-SCHEMA_COMPAT_VERSION = ... # unimportant at this stage
+SCHEMA_COMPAT_VERSION = ...  # unimportant at this stage
 </code></pre>
 <p><strong>Changes:</strong></p>
 <ol>
@@ -17086,7 +17091,9 @@ SCHEMA_COMPAT_VERSION = ... # unimportant at this stage
 </ol>
 <h4 id="relapse-version-n--2"><a class="header" href="#relapse-version-n--2">Relapse version <code>N + 2</code></a></h4>
 <pre><code class="language-python">SCHEMA_VERSION = S + 2
-SCHEMA_COMPAT_VERSION = S + 1 # this signals that we can't roll back to a time before new_column existed
+SCHEMA_COMPAT_VERSION = (
+    S + 1
+)  # this signals that we can't roll back to a time before new_column existed
 </code></pre>
 <p><strong>Changes:</strong></p>
 <ol>
@@ -17115,7 +17122,7 @@ This will take some time but does <strong>NOT</strong> hold an exclusive lock ov
 </ol>
 <h4 id="relapse-version-n--3"><a class="header" href="#relapse-version-n--3">Relapse version <code>N + 3</code></a></h4>
 <pre><code class="language-python">SCHEMA_VERSION = S + 3
-SCHEMA_COMPAT_VERSION = S + 1 # we can't roll back to a time before new_column existed
+SCHEMA_COMPAT_VERSION = S + 1  # we can't roll back to a time before new_column existed
 </code></pre>
 <p><strong>Changes:</strong></p>
 <ol>
@@ -17144,7 +17151,9 @@ Unfortunately, you can't drop <code>old_column</code> yet because it must be pre
 </ol>
 <h4 id="relapse-version-n--4"><a class="header" href="#relapse-version-n--4">Relapse version <code>N + 4</code></a></h4>
 <pre><code class="language-python">SCHEMA_VERSION = S + 4
-SCHEMA_COMPAT_VERSION = S + 3 # we can't roll back to a time before new_column was entirely non-NULL
+SCHEMA_COMPAT_VERSION = (
+    S + 3
+)  # we can't roll back to a time before new_column was entirely non-NULL
 </code></pre>
 <p><strong>Invariants:</strong></p>
 <ol>
@@ -17158,7 +17167,9 @@ SCHEMA_COMPAT_VERSION = S + 3 # we can't roll back to a time before new_column w
 </ol>
 <h4 id="relapse-version-n--5"><a class="header" href="#relapse-version-n--5">Relapse version <code>N + 5</code></a></h4>
 <pre><code class="language-python">SCHEMA_VERSION = S + 5
-SCHEMA_COMPAT_VERSION = S + 4 # we can't roll back to a time before old_column was no longer being touched
+SCHEMA_COMPAT_VERSION = (
+    S + 4
+)  # we can't roll back to a time before old_column was no longer being touched
 </code></pre>
 <p><strong>Changes:</strong></p>
 <ol>
@@ -17450,14 +17461,15 @@ Both Twisted and asyncio have a cancellation mechanism.</p>
 <p>When Relapse starts handling a request, it runs the async method
 responsible for handling it using <code>defer.ensureDeferred</code>, which returns
 a <code>Deferred</code>. For example:</p>
-<pre><code class="language-python">def do_something() -&gt; Deferred[None]:
-    ...
+<pre><code class="language-python">def do_something() -&gt; Deferred[None]: ...
+
 
 @cancellable
 async def on_GET() -&gt; Tuple[int, JsonDict]:
     d = make_deferred_yieldable(do_something())
     await d
     return 200, {}
+
 
 request = defer.ensureDeferred(on_GET())
 </code></pre>
@@ -17569,9 +17581,8 @@ swallowed, so they must be unwrapped.</p>
 <td width="50%" valign="top">
 <p><strong>Bad</strong>:</p>
 <pre><code class="language-python">async def do_something() -&gt; None:
-    await make_deferred_yieldable(
-        defer.gatherResults([...], consumeErrors=True)
-    )
+    await make_deferred_yieldable(defer.gatherResults([...], consumeErrors=True))
+
 
 try:
     await do_something()
@@ -17588,6 +17599,7 @@ except Exception:
     await make_deferred_yieldable(
         defer.gatherResults([...], consumeErrors=True)
     ).addErrback(unwrapFirstError)
+
 
 try:
     await do_something()
@@ -17607,6 +17619,7 @@ except Exception:
 <p><strong>Bad</strong>:</p>
 <pre><code class="language-python">cache: Dict[str, Deferred[None]] = {}
 
+
 def wait_for_room(room_id: str) -&gt; Deferred[None]:
     deferred = cache.get(room_id)
     if deferred is None:
@@ -17616,6 +17629,7 @@ def wait_for_room(room_id: str) -&gt; Deferred[None]:
     # All of them will observe a `CancelledError`
     # if any one of them is cancelled.
     return make_deferred_yieldable(deferred)
+
 
 # Request 1
 await wait_for_room(&quot;!aAAaaAaaaAAAaAaAA:matrix.org&quot;)
@@ -17627,6 +17641,7 @@ await wait_for_room(&quot;!aAAaaAaaaAAAaAaAA:matrix.org&quot;)
 <p><strong>Good</strong>:</p>
 <pre><code class="language-python">cache: Dict[str, Deferred[None]] = {}
 
+
 def wait_for_room(room_id: str) -&gt; Deferred[None]:
     deferred = cache.get(room_id)
     if deferred is None:
@@ -17637,6 +17652,7 @@ def wait_for_room(room_id: str) -&gt; Deferred[None]:
     # the `await`.
     # `delay_cancellation` may also be used.
     return make_deferred_yieldable(stop_cancellation(deferred))
+
 
 # Request 1
 await wait_for_room(&quot;!aAAaaAaaaAAAaAaAA:matrix.org&quot;)
@@ -17679,12 +17695,12 @@ logcontext is not finished before the <code>async</code> processing completes.</
 <p><strong>Bad</strong>:</p>
 <pre><code class="language-python">cache: Optional[ObservableDeferred[None]] = None
 
-async def do_something_else(
-    to_resolve: Deferred[None]
-) -&gt; None:
+
+async def do_something_else(to_resolve: Deferred[None]) -&gt; None:
     await ...
     logger.info(&quot;done!&quot;)
     to_resolve.callback(None)
+
 
 async def do_something() -&gt; None:
     if not cache:
@@ -17696,6 +17712,7 @@ async def do_something() -&gt; None:
 
     await make_deferred_yieldable(cache.observe())
 
+
 with LoggingContext(&quot;request-1&quot;):
     await do_something()
 </code></pre>
@@ -17704,12 +17721,12 @@ with LoggingContext(&quot;request-1&quot;):
 <p><strong>Good</strong>:</p>
 <pre><code class="language-python">cache: Optional[ObservableDeferred[None]] = None
 
-async def do_something_else(
-    to_resolve: Deferred[None]
-) -&gt; None:
+
+async def do_something_else(to_resolve: Deferred[None]) -&gt; None:
     await ...
     logger.info(&quot;done!&quot;)
     to_resolve.callback(None)
+
 
 async def do_something() -&gt; None:
     if not cache:
@@ -17718,11 +17735,10 @@ async def do_something() -&gt; None:
         run_in_background(do_something_else, to_resolve)
         # We'll wait until `do_something_else` is
         # done before raising a `CancelledError`.
-        await make_deferred_yieldable(
-            delay_cancellation(cache.observe())
-        )
+        await make_deferred_yieldable(delay_cancellation(cache.observe()))
     else:
         await make_deferred_yieldable(cache.observe())
+
 
 with LoggingContext(&quot;request-1&quot;):
     await do_something()
@@ -17734,12 +17750,12 @@ with LoggingContext(&quot;request-1&quot;):
 <p><strong>OK</strong>:</p>
 <pre><code class="language-python">cache: Optional[ObservableDeferred[None]] = None
 
-async def do_something_else(
-    to_resolve: Deferred[None]
-) -&gt; None:
+
+async def do_something_else(to_resolve: Deferred[None]) -&gt; None:
     await ...
     logger.info(&quot;done!&quot;)
     to_resolve.callback(None)
+
 
 async def do_something() -&gt; None:
     if not cache:
@@ -17755,6 +17771,7 @@ async def do_something() -&gt; None:
         )
 
     await make_deferred_yieldable(cache.observe())
+
 
 with LoggingContext(&quot;request-1&quot;):
     await do_something()
@@ -17785,7 +17802,8 @@ Relapse, that normally means either a coroutine or a Twisted
 <p>In the absence of any asynchronous voodoo, things are simple enough. As with
 any code of this nature, the rule is that our function should leave
 things as it found them:</p>
-<pre><code class="language-python">from relapse.logging import context         # omitted from future snippets
+<pre><code class="language-python">from relapse.logging import context  # omitted from future snippets
+
 
 def handle_request(request_id):
     request_context = context.LoggingContext()
@@ -17798,6 +17816,7 @@ def handle_request(request_id):
     finally:
         context.set_current_context(calling_context)
 
+
 def do_request_handling():
     logger.debug(&quot;phew&quot;)  # this will be logged against request_id
 </code></pre>
@@ -17808,6 +17827,7 @@ can be written much more succinctly as:</p>
         request_context.request = request_id
         do_request_handling()
         logger.debug(&quot;finished&quot;)
+
 
 def do_request_handling():
     logger.debug(&quot;phew&quot;)
@@ -17878,10 +17898,10 @@ it as soon as possible. Do not pass go; do not do any logging; do not
 call any other functions.</p>
 <pre><code class="language-python">async def fun():
     logger.debug(&quot;starting&quot;)
-    await do_some_stuff()       # just like this
+    await do_some_stuff()  # just like this
 
     coro = more_stuff()
-    result = await coro         # also fine, of course
+    result = await coro  # also fine, of course
 
     return result
 </code></pre>
@@ -17926,6 +17946,7 @@ its result. That might look a bit like this:</p>
     background_operation()
 
     logger.debug(&quot;Request handling complete&quot;)
+
 
 async def background_operation():
     await first_background_step()
@@ -18023,9 +18044,11 @@ chains which get orphaned and garbage-collected.</p>
 <p>Imagine we have some code that looks like this:</p>
 <pre><code class="language-python">listener_queue = []
 
+
 def on_something_interesting():
     for d in listener_queue:
         d.callback(&quot;foo&quot;)
+
 
 async def await_something_interesting():
     new_awaitable = defer.Deferred()
