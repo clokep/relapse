@@ -218,7 +218,7 @@ opentracing = ["jaeger-client>=4.8.0", "opentracing>=2.2.0"]
 jwt = ["authlib>=0.15.1"]
 # hiredis is not a *strict* dependency, but it makes things much faster.
 # (if it is not installed, we fall back to slow code.)
-redis = ["txredisapi>=1.4.7", "hiredis"]
+redis = ["txredisapi>=1.6.0", "hiredis"]
 # Required to use experimental `caches.track_memory_usage` config option.
 cache-memory = ["pympler<1.1"]
 test = ["parameterized>=0.7.4", "idna>=3.10"]
@@ -253,7 +253,7 @@ all = [
     "jaeger-client>=4.8.0",
     "opentracing>=2.2.0",
     # redis
-    "txredisapi>=1.4.7",
+    "txredisapi>=1.6.0",
     "hiredis",
     # cache-memory
     "pympler<1.1",
