@@ -21,11 +21,12 @@ from immutabledict import immutabledict
 
 from relapse.api.constants import EduTypes
 from relapse.replication.tcp.streams import ReceiptsStream
-from relapse.storage._base import SQLBaseStore, db_to_json, make_in_list_sql_clause
+from relapse.storage._base import SQLBaseStore, db_to_json
 from relapse.storage.database import (
     DatabasePool,
     LoggingDatabaseConnection,
     LoggingTransaction,
+    make_in_list_sql_clause,
 )
 from relapse.storage.engines import PostgresEngine
 from relapse.storage.engines._base import IsolationLevel

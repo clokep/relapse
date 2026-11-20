@@ -43,7 +43,7 @@ from relapse.util.metrics import Measure, measure_func
 
 if TYPE_CHECKING:
     from relapse.server import HomeServer
-    from relapse.storage.controllers import StateStorageController
+    from relapse.storage.controllers.state import StateStorageController
     from relapse.storage.databases.main import DataStore
 
 logger = logging.getLogger(__name__)

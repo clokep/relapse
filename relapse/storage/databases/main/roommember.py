@@ -21,11 +21,12 @@ import attr
 from relapse.api.constants import EventTypes, Membership
 from relapse.metrics import LaterGauge
 from relapse.metrics.background_process_metrics import wrap_as_background_process
-from relapse.storage._base import SQLBaseStore, db_to_json, make_in_list_sql_clause
+from relapse.storage._base import SQLBaseStore, db_to_json
 from relapse.storage.database import (
     DatabasePool,
     LoggingDatabaseConnection,
     LoggingTransaction,
+    make_in_list_sql_clause,
 )
 from relapse.storage.databases.main.cache import CacheInvalidationWorkerStore
 from relapse.storage.databases.main.events_worker import EventsWorkerStore

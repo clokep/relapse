@@ -15,8 +15,11 @@
 from http import HTTPStatus
 
 from relapse.api.errors import Codes
-from relapse.rest.federation import BaseFederationServlet
-from relapse.rest.federation._base import Authenticator, _parse_auth_header
+from relapse.rest.federation._base import (
+    Authenticator,
+    BaseFederationServlet,
+    _parse_auth_header,
+)
 from relapse.server import HomeServer
 from relapse.types import JsonDict
 from relapse.util.cancellation import cancellable

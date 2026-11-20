@@ -18,7 +18,7 @@ import threading
 import traceback
 from collections.abc import Mapping
 
-from prometheus_client.core import Counter, Histogram
+from prometheus_client import Counter, Histogram
 
 from relapse.logging.context import current_context
 from relapse.metrics import LaterGauge

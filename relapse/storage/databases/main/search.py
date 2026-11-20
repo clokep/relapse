@@ -23,11 +23,12 @@ import attr
 
 from relapse.api.errors import RelapseError
 from relapse.events import EventBase
-from relapse.storage._base import SQLBaseStore, db_to_json, make_in_list_sql_clause
+from relapse.storage._base import SQLBaseStore, db_to_json
 from relapse.storage.database import (
     DatabasePool,
     LoggingDatabaseConnection,
     LoggingTransaction,
+    make_in_list_sql_clause,
 )
 from relapse.storage.databases.main.events_worker import EventRedactBehaviour
 from relapse.storage.engines import PostgresEngine, Sqlite3Engine

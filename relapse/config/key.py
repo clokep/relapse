@@ -17,14 +17,15 @@ import hashlib
 import logging
 import os
 from collections.abc import Iterator
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import attr
 import jsonschema
-from signedjson.key import (
+from signedjson.key import (  # type: ignore[attr-defined]
     NACL_ED25519,
     SigningKey,
     VerifyKey,
+    VerifyKeyWithExpiry,
     decode_signing_key_base64,
     decode_verify_key_bytes,
     generate_signing_key,
@@ -38,9 +39,6 @@ from relapse.types import JsonDict
 from relapse.util.stringutils import random_string, random_string_with_symbols
 
 from ._base import Config, ConfigError, read_file
-
-if TYPE_CHECKING:
-    from signedjson.key import VerifyKeyWithExpiry
 
 INSECURE_NOTARY_ERROR = """\
 Your server is configured to accept key server responses without signature

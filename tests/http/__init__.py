@@ -175,7 +175,7 @@ def wrap_server_factory_for_tls(
     """
     connection_creator = TestServerTLSConnectionFactory(sanlist=sanlist)
     # Twisted > 23.8.0 has a different API that accepts a clock.
-    if twisted.version <= Version("Twisted", 23, 8, 0):
+    if twisted.version <= Version("Twisted", 23, 8, 0):  # type: ignore[attr-defined]
         return TLSMemoryBIOFactory(
             connection_creator, isClient=False, wrappedFactory=factory
         )

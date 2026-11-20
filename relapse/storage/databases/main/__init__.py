@@ -21,11 +21,11 @@ import attr
 
 from relapse.api.constants import Direction
 from relapse.config.homeserver import HomeServerConfig
-from relapse.storage._base import make_in_list_sql_clause
 from relapse.storage.database import (
     DatabasePool,
     LoggingDatabaseConnection,
     LoggingTransaction,
+    make_in_list_sql_clause,
 )
 from relapse.storage.databases.main.stats import UserSortOrder
 from relapse.storage.engines import BaseDatabaseEngine

@@ -52,3 +52,11 @@ class MemberSummary:
     members: list[tuple[str, str]]
     # The total number of users of a given membership type.
     count: int
+
+
+__all__ = [
+    "ProfileInfo",
+    "MemberSummary",
+    "GetRoomsForUserWithStreamOrdering",
+    "RoomsForUser",
+]

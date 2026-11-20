@@ -15,10 +15,10 @@
 import logging
 from typing import TYPE_CHECKING
 
-from relapse.api.errors import RelapseError
+from relapse.api.errors import Codes, RelapseError
 from relapse.handlers.device import DeviceHandler
 from relapse.metrics.background_process_metrics import run_as_background_process
-from relapse.types import Codes, Requester, UserID, create_requester
+from relapse.types import Requester, UserID, create_requester
 
 if TYPE_CHECKING:
     from relapse.server import HomeServer

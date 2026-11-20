@@ -76,7 +76,7 @@ class LogContextScopeManagerTestCase(TestCase):
         self._reporter = jaeger_client.reporter.InMemoryReporter()
 
         self._tracer = config.create_tracer(
-            sampler=jaeger_client.ConstSampler(True),
+            sampler=jaeger_client.ConstSampler(True),  # type: ignore[attr-defined]
             reporter=self._reporter,
         )
 
@@ -87,7 +87,7 @@ class LogContextScopeManagerTestCase(TestCase):
 
             # start_active_span should start and activate a span.
             scope = start_active_span("span", tracer=self._tracer)
-            span = cast(jaeger_client.Span, scope.span)
+            span = cast(jaeger_client.Span, scope.span)  # type: ignore[name-defined]
             self.assertEqual(self._tracer.active_span, span)
             self.assertIsNotNone(span.start_time)
 
@@ -109,7 +109,7 @@ class LogContextScopeManagerTestCase(TestCase):
         with LoggingContext("root context"):
             with start_active_span("root span", tracer=self._tracer) as root_scope:
                 self.assertEqual(self._tracer.active_span, root_scope.span)
-                root_context = cast(jaeger_client.SpanContext, root_scope.span.context)
+                root_context = cast(jaeger_client.SpanContext, root_scope.span.context)  # type: ignore[name-defined]
 
                 scope1 = start_active_span(
                     "child1",
@@ -118,7 +118,7 @@ class LogContextScopeManagerTestCase(TestCase):
                 self.assertEqual(
                     self._tracer.active_span, scope1.span, "child1 was not activated"
                 )
-                context1 = cast(jaeger_client.SpanContext, scope1.span.context)
+                context1 = cast(jaeger_client.SpanContext, scope1.span.context)  # type: ignore[name-defined]
                 self.assertEqual(context1.parent_id, root_context.span_id)
 
                 scope2 = start_active_span_follows_from(
@@ -127,7 +127,7 @@ class LogContextScopeManagerTestCase(TestCase):
                     tracer=self._tracer,
                 )
                 self.assertEqual(self._tracer.active_span, scope2.span)
-                context2 = cast(jaeger_client.SpanContext, scope2.span.context)
+                context2 = cast(jaeger_client.SpanContext, scope2.span.context)  # type: ignore[name-defined]
                 self.assertEqual(context2.parent_id, context1.span_id)
 
                 with scope1, scope2:
@@ -135,8 +135,8 @@ class LogContextScopeManagerTestCase(TestCase):
 
                 # the root scope should be restored
                 self.assertEqual(self._tracer.active_span, root_scope.span)
-                span2 = cast(jaeger_client.Span, scope2.span)
-                span1 = cast(jaeger_client.Span, scope1.span)
+                span2 = cast(jaeger_client.Span, scope2.span)  # type: ignore[name-defined]
+                span1 = cast(jaeger_client.Span, scope1.span)  # type: ignore[name-defined]
                 self.assertIsNotNone(span2.end_time)
                 self.assertIsNotNone(span1.end_time)
 

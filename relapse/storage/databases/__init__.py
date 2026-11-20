@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING, Generic, TypeVar
 from relapse.storage._base import SQLBaseStore
 from relapse.storage.database import DatabasePool, make_conn
 from relapse.storage.databases.main.events import PersistEventsStore
-from relapse.storage.databases.state import StateGroupDataStore
+from relapse.storage.databases.state.store import StateGroupDataStore
 from relapse.storage.engines import create_engine
 from relapse.storage.prepare_database import prepare_database
 

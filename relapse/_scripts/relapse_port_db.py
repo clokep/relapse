@@ -40,7 +40,6 @@ from relapse.logging.context import (
 )
 from relapse.notifier import ReplicationNotifier
 from relapse.storage.database import DatabasePool, LoggingTransaction, make_conn
-from relapse.storage.databases.main import FilteringWorkerStore, PushRuleStore
 from relapse.storage.databases.main.account_data import AccountDataWorkerStore
 from relapse.storage.databases.main.client_ips import ClientIpBackgroundUpdateStore
 from relapse.storage.databases.main.deviceinbox import DeviceInboxBackgroundUpdateStore
@@ -52,11 +51,13 @@ from relapse.storage.databases.main.event_push_actions import EventPushActionsSt
 from relapse.storage.databases.main.events_bg_updates import (
     EventsBackgroundUpdatesStore,
 )
+from relapse.storage.databases.main.filtering import FilteringWorkerStore
 from relapse.storage.databases.main.media_repository import (
     MediaRepositoryBackgroundUpdateStore,
 )
 from relapse.storage.databases.main.presence import PresenceBackgroundUpdateStore
 from relapse.storage.databases.main.profile import ProfileWorkerStore
+from relapse.storage.databases.main.push_rule import PushRuleStore
 from relapse.storage.databases.main.pusher import (
     PusherBackgroundUpdatesStore,
     PusherWorkerStore,

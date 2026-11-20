@@ -33,11 +33,12 @@ from relapse.api.room_versions import RoomVersion, RoomVersions
 from relapse.config.homeserver import HomeServerConfig
 from relapse.events import EventBase
 from relapse.replication.tcp.streams.partial_state import UnPartialStatedRoomStream
-from relapse.storage._base import SQLBaseStore, db_to_json, make_in_list_sql_clause
+from relapse.storage._base import SQLBaseStore, db_to_json
 from relapse.storage.database import (
     DatabasePool,
     LoggingDatabaseConnection,
     LoggingTransaction,
+    make_in_list_sql_clause,
 )
 from relapse.storage.databases.main.cache import CacheInvalidationWorkerStore
 from relapse.storage.engines import PostgresEngine

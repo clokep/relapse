@@ -22,7 +22,7 @@ from unittest import mock
 from unittest.mock import Mock
 
 from incremental import Version
-from twisted import version
+from twisted import version  # type: ignore[attr-defined]
 from twisted.internet.defer import Deferred
 from twisted.internet.error import ConnectionDone
 from twisted.internet.testing import MemoryReactorClock

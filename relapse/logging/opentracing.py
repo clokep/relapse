@@ -244,7 +244,7 @@ except ImportError:
     opentracing = None  # type: ignore[assignment]
     tags = _DummyTagNames  # type: ignore[assignment]
 try:
-    from jaeger_client import Config as JaegerConfig
+    from jaeger_client import Config as JaegerConfig  # type: ignore[attr-defined]
 
     from relapse.logging.scopecontextmanager import LogContextScopeManager
 except ImportError:

@@ -20,11 +20,12 @@ import attr
 from relapse.api.constants import EventContentFields, RelationTypes
 from relapse.api.room_versions import KNOWN_ROOM_VERSIONS
 from relapse.events import make_event_from_dict
-from relapse.storage._base import SQLBaseStore, db_to_json, make_in_list_sql_clause
+from relapse.storage._base import SQLBaseStore, db_to_json
 from relapse.storage.database import (
     DatabasePool,
     LoggingDatabaseConnection,
     LoggingTransaction,
+    make_in_list_sql_clause,
     make_tuple_comparison_clause,
 )
 from relapse.storage.databases.main.events import PersistEventsStore

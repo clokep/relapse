@@ -23,7 +23,7 @@ from http import HTTPStatus
 from typing import TYPE_CHECKING
 from urllib import parse as urlparse
 
-from prometheus_client.core import Histogram
+from prometheus_client import Histogram
 
 from relapse import event_auth
 from relapse.api.constants import Direction, EventTypes, Membership

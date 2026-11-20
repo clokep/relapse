@@ -21,8 +21,7 @@ from sys import intern
 from typing import Any, TypeVar
 
 import attr
-from prometheus_client import REGISTRY
-from prometheus_client.core import Gauge
+from prometheus_client import REGISTRY, Gauge
 
 from relapse.config.cache import add_resizable_cache
 from relapse.util.metrics import DynamicCollectorRegistry

@@ -1008,3 +1008,6 @@ class FederationSender(AbstractFederationSender):
                 )
                 self.wake_destination(destination)
                 await self.clock.sleep(WAKEUP_INTERVAL_BETWEEN_DESTINATIONS_SEC)
+
+
+__all__ = ["PerDestinationQueue", "TransactionManager"]

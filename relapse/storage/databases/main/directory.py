@@ -18,7 +18,7 @@ import attr
 
 from relapse.api.errors import RelapseError
 from relapse.storage.database import LoggingTransaction
-from relapse.storage.databases.main import CacheInvalidationWorkerStore
+from relapse.storage.databases.main.cache import CacheInvalidationWorkerStore
 from relapse.types import RoomAlias
 from relapse.util.caches.descriptors import cached
 

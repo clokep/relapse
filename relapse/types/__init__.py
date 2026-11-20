@@ -47,8 +47,9 @@ if TYPE_CHECKING:
     from typing import Self
 
     from relapse.appservice.api import ApplicationService
-    from relapse.storage.databases.main import DataStore, PurgeEventsStore
+    from relapse.storage.databases.main import DataStore
     from relapse.storage.databases.main.appservice import ApplicationServiceWorkerStore
+    from relapse.storage.databases.main.purge_events import PurgeEventsStore
 
 # Define a state map type from type/state_key to T (usually an event ID or
 # event)

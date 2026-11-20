@@ -2533,3 +2533,6 @@ class PresenceFederationQueue:
                 states=states.values(),
                 destinations=[host],
             )
+
+
+__all__ = ["UserPresenceState"]

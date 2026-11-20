@@ -14,15 +14,12 @@
 
 from collections.abc import Generator
 from contextlib import contextmanager
+from importlib import metadata
 from os import PathLike
 from pathlib import Path
 from unittest.mock import patch
 
-from relapse.util.check_dependencies import (
-    DependencyException,
-    check_requirements,
-    metadata,
-)
+from relapse.util.check_dependencies import DependencyException, check_requirements
 
 from tests.unittest import TestCase
 

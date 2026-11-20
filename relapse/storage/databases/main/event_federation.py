@@ -27,12 +27,13 @@ from relapse.api.room_versions import EventFormatVersions, RoomVersion
 from relapse.events import EventBase, make_event_from_dict
 from relapse.logging.opentracing import tag_args, trace
 from relapse.metrics.background_process_metrics import wrap_as_background_process
-from relapse.storage._base import SQLBaseStore, db_to_json, make_in_list_sql_clause
+from relapse.storage._base import SQLBaseStore, db_to_json
 from relapse.storage.background_updates import ForeignKeyConstraint
 from relapse.storage.database import (
     DatabasePool,
     LoggingDatabaseConnection,
     LoggingTransaction,
+    make_in_list_sql_clause,
 )
 from relapse.storage.databases.main.events_worker import EventsWorkerStore
 from relapse.storage.databases.main.signatures import SignatureWorkerStore

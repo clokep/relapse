@@ -19,7 +19,7 @@ from typing import TYPE_CHECKING, Any, cast
 from twisted.internet import defer
 
 from relapse.api.errors import StoreError
-from relapse.config.homeserver import ExperimentalConfig
+from relapse.config.experimental import ExperimentalConfig
 from relapse.logging.context import make_deferred_yieldable, run_in_background
 from relapse.relapse_rust.push import FilteredPushRules, PushRule, PushRules
 from relapse.replication.tcp.streams import PushRulesStream
