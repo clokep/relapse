@@ -22,7 +22,12 @@ import mypy.types
 from mypy.erasetype import remove_instance_last_known_values
 from mypy.errorcodes import ErrorCode
 from mypy.nodes import ARG_NAMED_OPT, TempNode, Var
-from mypy.plugin import FunctionSigContext, MethodSigContext, Plugin
+from mypy.plugin import (
+    AttributeContext,
+    FunctionSigContext,
+    MethodSigContext,
+    Plugin,
+)
 from mypy.typeops import bind_self
 from mypy.types import (
     AnyType,
@@ -31,12 +36,61 @@ from mypy.types import (
     NoneType,
     TupleType,
     TypeAliasType,
+    TypeOfAny,
     UninhabitedType,
     UnionType,
 )
 
 
+def _twisted_request_args_hook(ctx: AttributeContext) -> mypy.types.Type:
+    """Give ``Request.args`` its real runtime type.
+
+    Twisted's inline annotations declare ``args = None`` without a type, so mypy
+    infers ``None``. In practice the attribute is set by the time request
+    handlers run.
+    """
+    bytes_type = ctx.api.named_generic_type("builtins.bytes", [])
+    dict_type = ctx.api.named_generic_type(
+        "builtins.dict",
+        [bytes_type, ctx.api.named_generic_type("builtins.list", [bytes_type])],
+    )
+    return UnionType([dict_type, NoneType()])
+
+
+def _twisted_request_content_hook(ctx: AttributeContext) -> mypy.types.Type:
+    """Give ``Request.content`` its real runtime type.
+
+    See ``_twisted_request_args_hook``.
+    """
+    bytes_type = ctx.api.named_generic_type("builtins.bytes", [])
+    io_type = ctx.api.named_generic_type("typing.IO", [bytes_type])
+    return UnionType([io_type, NoneType()])
+
+
+def _twisted_request_producer_hook(ctx: AttributeContext) -> mypy.types.Type:
+    """Give ``Request.producer`` a usable type.
+
+    See ``_twisted_request_args_hook``. We can't name ``IProducer`` here since
+    the module may not have been imported yet, so fall back to ``Any``.
+    """
+    return AnyType(TypeOfAny.special_form)
+
+
 class RelapsePlugin(Plugin):
+    def get_attribute_hook(
+        self, fullname: str
+    ) -> Callable[[AttributeContext], mypy.types.Type] | None:
+        # Twisted ships inline types which infer these attributes as `None`,
+        # even though they may be set at runtime. Override the inferred types.
+        if fullname == "twisted.web.http.Request.args":
+            return _twisted_request_args_hook
+        if fullname == "twisted.web.http.Request.content":
+            return _twisted_request_content_hook
+        if fullname == "twisted.web.http.Request.producer":
+            return _twisted_request_producer_hook
+
+        return None
+
     def get_method_signature_hook(
         self, fullname: str
     ) -> Callable[[MethodSigContext], CallableType] | None:
@@ -244,7 +298,7 @@ MUTABLE_CONTAINER_TYPES = {
 }
 
 AT_CACHED_MUTABLE_RETURN = ErrorCode(
-    "relapse-@cached-mutable",
+    "relapse-cached-mutable",
     "@cached() should have an immutable return type",
     "General",
 )

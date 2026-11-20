@@ -122,7 +122,7 @@ class SendEmailHandlerTestCaseIPv4(HomeserverTestCase):
         # wire it up to an SMTP server
         message_delivery = _DummyMessageDelivery()
         server_protocol = smtp.ESMTP()
-        server_protocol.delivery = message_delivery
+        server_protocol.delivery = message_delivery  # type: ignore[assignment]
         # make sure that the server uses the test reactor to set timeouts
         server_protocol.callLater = self.reactor.callLater  # type: ignore[assignment]
 
@@ -190,7 +190,7 @@ class SendEmailHandlerTestCaseIPv4(HomeserverTestCase):
         # wire it up to an SMTP server
         message_delivery = _DummyMessageDelivery()
         server_protocol = smtp.ESMTP()
-        server_protocol.delivery = message_delivery
+        server_protocol.delivery = message_delivery  # type: ignore[assignment]
         # make sure that the server uses the test reactor to set timeouts
         server_protocol.callLater = self.reactor.callLater  # type: ignore[assignment]
 

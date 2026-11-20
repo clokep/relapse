@@ -59,7 +59,7 @@ class LogContextScopeManagerTestCase(TestCase):
     """
 
     if LogContextScopeManager is None:
-        skip = "Requires opentracing"  # type: ignore[unreachable]
+        skip = "Requires opentracing"
     if jaeger_client is None:
         skip = "Requires jaeger_client"  # type: ignore[unreachable]
 
