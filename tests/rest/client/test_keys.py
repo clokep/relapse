@@ -125,7 +125,7 @@ class KeyQueryTestCase(unittest.HomeserverTestCase):
         self.assertEqual(200, channel.code, msg=channel.result["body"])
         self.assertIn(bob, channel.json_body["device_keys"])
 
-    test_key_query_cancellation.skip = not SUPPORTS_CANCELLATION_TEST  # type: ignore[attr-defined]
+    test_key_query_cancellation.skip = SUPPORTS_CANCELLATION_TEST  # type: ignore[attr-defined]
 
     def make_device_keys(self, user_id: str, device_id: str) -> JsonDict:
         # We only generate a master key to simplify the test.

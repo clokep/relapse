@@ -125,7 +125,12 @@ def test_disconnect(
             )
 
 
-SUPPORTS_CANCELLATION_TEST = version < Version("Twisted", 24, 10, 0)
+# Cancellation tests are only supported on older Twisted where the patching works.
+SUPPORTS_CANCELLATION_TEST = (
+    None
+    if version < Version("Twisted", 24, 10, 0)
+    else "Does not support cancellation tests"
+)
 
 
 @logcontext_clean

@@ -475,7 +475,7 @@ def refresh_certificate(hs: "HomeServer") -> None:
                 # We want to replace TLS factories with a new one, with the new
                 # TLS configuration. We do this by reaching in and pulling out
                 # the wrappedFactory, and then re-wrapping it.
-                i.factory = TLSMemoryBIOFactory(
+                i.factory = TLSMemoryBIOFactory(  # type: ignore[assignment]
                     hs.tls_server_context_factory, False, i.factory.wrappedFactory
                 )
         logger.info("Context factories updated.")
