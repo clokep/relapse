@@ -43,12 +43,12 @@ if py_version < (3, 11):
 if "twisted.internet.reactor" in sys.modules:
     from twisted.internet import reactor
 
-    if not isinstance(reactor, asyncioreactor.AsyncioSelectorReactor):  # type: ignore[unreachable]
+    if not isinstance(reactor, asyncioreactor.AsyncioSelectorReactor):
         print(reactor)
         print("Relapse requires using the asyncioreactor.")
         sys.exit(1)
 
-    print(f"Reactor already installed: {reactor.__class__.__name__}")  # type: ignore[unreachable]
+    print(f"Reactor already installed: {reactor.__class__.__name__}")
 else:
     event_loop = asyncio.new_event_loop()
 

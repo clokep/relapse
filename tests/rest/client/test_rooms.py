@@ -478,7 +478,7 @@ class RoomPermissionsTestCase(RoomBase):
 class RoomStateTestCase(RoomBase):
     """Tests /rooms/$room_id/state."""
 
-    skip = not SUPPORTS_CANCELLATION_TEST
+    skip = SUPPORTS_CANCELLATION_TEST
 
     user_id = "@sid1:red"
 
@@ -673,7 +673,7 @@ class RoomsMemberListTestCase(RoomBase):
             channel.json_body["chunk"][0].items(),
         )
 
-    test_get_member_list_cancellation.skip = not SUPPORTS_CANCELLATION_TEST  # type: ignore[attr-defined]
+    test_get_member_list_cancellation.skip = SUPPORTS_CANCELLATION_TEST  # type: ignore[attr-defined]
 
     def test_get_member_list_with_at_token_cancellation(self) -> None:
         """Test cancellation of a `/rooms/$room_id/members?at=<sync token>` request."""
@@ -706,9 +706,7 @@ class RoomsMemberListTestCase(RoomBase):
             channel.json_body["chunk"][0].items(),
         )
 
-    test_get_member_list_with_at_token_cancellation.skip = (  # type: ignore[attr-defined]
-        not SUPPORTS_CANCELLATION_TEST
-    )
+    test_get_member_list_with_at_token_cancellation.skip = SUPPORTS_CANCELLATION_TEST  # type: ignore[attr-defined]
 
 
 class RoomsCreateTestCase(RoomBase):
