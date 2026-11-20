@@ -14,13 +14,15 @@
 from collections.abc import Iterable, Mapping
 from typing import TYPE_CHECKING, Any, cast
 
-from relapse.api.presence import PresenceState, UserPresenceState
+from relapse.api.constants import PresenceState
+from relapse.api.presence import UserPresenceState
 from relapse.replication.tcp.streams import PresenceStream
-from relapse.storage._base import SQLBaseStore, make_in_list_sql_clause
+from relapse.storage._base import SQLBaseStore
 from relapse.storage.database import (
     DatabasePool,
     LoggingDatabaseConnection,
     LoggingTransaction,
+    make_in_list_sql_clause,
 )
 from relapse.storage.databases.main.cache import CacheInvalidationWorkerStore
 from relapse.storage.engines import PostgresEngine

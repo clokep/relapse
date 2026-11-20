@@ -82,15 +82,16 @@ import attr
 
 from relapse.api.constants import MAIN_TIMELINE, ReceiptTypes
 from relapse.metrics.background_process_metrics import wrap_as_background_process
-from relapse.storage._base import SQLBaseStore, db_to_json, make_in_list_sql_clause
+from relapse.storage._base import SQLBaseStore, db_to_json
 from relapse.storage.database import (
     DatabasePool,
     LoggingDatabaseConnection,
     LoggingTransaction,
-    PostgresEngine,
+    make_in_list_sql_clause,
 )
 from relapse.storage.databases.main.receipts import ReceiptsWorkerStore
 from relapse.storage.databases.main.stream import StreamWorkerStore
+from relapse.storage.engines import PostgresEngine
 from relapse.types import JsonDict
 from relapse.util import json_encoder
 from relapse.util.caches.descriptors import cached

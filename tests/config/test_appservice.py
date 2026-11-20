@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from relapse.config.appservice import AppServiceConfig, ConfigError
+from relapse.config._base import ConfigError
+from relapse.config.appservice import AppServiceConfig
 
 from tests.unittest import TestCase
 

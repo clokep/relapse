@@ -42,11 +42,11 @@ from relapse.api.errors import (
     StoreError,
 )
 from relapse.api.ratelimiting import Ratelimiter
-from relapse.handlers.ui_auth import (
+from relapse.handlers.ui_auth import UIAuthSessionDataConstants
+from relapse.handlers.ui_auth.checkers import (
     INTERACTIVE_AUTH_CHECKERS,
-    UIAuthSessionDataConstants,
+    UserInteractiveAuthChecker,
 )
-from relapse.handlers.ui_auth.checkers import UserInteractiveAuthChecker
 from relapse.http import get_request_user_agent
 from relapse.http.server import respond_with_html
 from relapse.http.site import RelapseRequest

@@ -21,7 +21,8 @@ from relapse.server import HomeServer
 from relapse.util import Clock
 
 from tests import unittest
-from tests.unittest import default_config, override_config
+from tests.unittest import override_config
+from tests.utils import default_config
 
 FORTY_DAYS = 40 * 24 * 60 * 60
 

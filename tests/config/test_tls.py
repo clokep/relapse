@@ -19,9 +19,9 @@ import idna
 
 from OpenSSL import SSL
 
-from relapse.config._base import Config, RootConfig
+from relapse.config._base import Config, ConfigError, RootConfig
 from relapse.config.homeserver import HomeServerConfig
-from relapse.config.tls import ConfigError, TlsConfig
+from relapse.config.tls import TlsConfig
 from relapse.crypto.context_factory import (
     FederationPolicyForHTTPS,
     SSLClientConnectionCreator,

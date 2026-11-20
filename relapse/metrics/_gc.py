@@ -19,14 +19,8 @@ import platform
 import time
 from collections.abc import Iterable
 
-from prometheus_client.core import (
-    REGISTRY,
-    CounterMetricFamily,
-    Gauge,
-    GaugeMetricFamily,
-    Histogram,
-    Metric,
-)
+from prometheus_client import REGISTRY, Gauge, Histogram, Metric
+from prometheus_client.core import CounterMetricFamily, GaugeMetricFamily
 
 from twisted.internet import task
 

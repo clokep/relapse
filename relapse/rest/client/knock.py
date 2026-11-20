@@ -27,7 +27,7 @@ from relapse.http.site import RelapseRequest
 from relapse.types import JsonDict, RoomAlias, RoomID
 
 if TYPE_CHECKING:
-    from relapse.app.homeserver import HomeServer
+    from relapse.server import HomeServer
 
 from ._base import client_patterns
 

@@ -35,6 +35,7 @@ from unittest.mock import Mock, patch
 import canonicaljson
 import signedjson.key
 import unpaddedbase64
+from signedjson.types import SigningKey
 from typing_extensions import ParamSpec, Protocol
 
 from twisted.internet.defer import Deferred, ensureDeferred
@@ -911,7 +912,7 @@ class FederatingHomeserverTestCase(HomeserverTestCase):
 def _auth_header_for_request(
     origin: str,
     destination: str,
-    signing_key: signedjson.key.SigningKey,
+    signing_key: SigningKey,
     method: str,
     path: str,
     content: JsonDict | None,

@@ -101,7 +101,7 @@ from relapse.storage.background_updates import (
     ON_UPDATE_CALLBACK,
 )
 from relapse.storage.database import DatabasePool, LoggingTransaction
-from relapse.storage.databases.main.roommember import ProfileInfo
+from relapse.storage.roommember import ProfileInfo
 from relapse.types import (
     DomainSpecificString,
     JsonDict,

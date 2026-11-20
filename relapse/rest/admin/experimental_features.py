@@ -20,7 +20,8 @@ from typing import TYPE_CHECKING
 from relapse.api.errors import RelapseError
 from relapse.http.servlet import RestServlet, parse_json_object_from_request
 from relapse.http.site import RelapseRequest
-from relapse.rest.admin import admin_patterns, assert_requester_is_admin
+from relapse.rest.admin import admin_patterns
+from relapse.rest.admin._base import assert_requester_is_admin
 from relapse.types import JsonDict, UserID
 
 if TYPE_CHECKING:

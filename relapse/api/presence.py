@@ -93,3 +93,6 @@ class UserPresenceState:
             status_msg=None,
             currently_active=False,
         )
+
+
+__all__ = ["UserDevicePresenceState", "UserPresenceState"]

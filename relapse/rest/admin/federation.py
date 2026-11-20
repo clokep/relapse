@@ -20,7 +20,7 @@ from relapse.api.errors import Codes, NotFoundError, RelapseError
 from relapse.http.servlet import RestServlet, parse_enum, parse_integer, parse_string
 from relapse.http.site import RelapseRequest
 from relapse.rest.admin._base import admin_patterns, assert_requester_is_admin
-from relapse.rest.federation import Authenticator
+from relapse.rest.federation._base import Authenticator
 from relapse.storage.databases.main.transactions import DestinationSortOrder
 from relapse.types import JsonDict
 

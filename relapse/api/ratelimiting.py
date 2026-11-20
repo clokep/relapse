@@ -403,3 +403,6 @@ class RequestRatelimiter:
                 update=update,
                 n_actions=n_actions,
             )
+
+
+__all__ = ["LimitExceededError"]

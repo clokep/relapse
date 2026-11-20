@@ -15,7 +15,7 @@
 from typing import TYPE_CHECKING, cast
 
 from relapse.storage.database import DatabasePool, LoggingDatabaseConnection
-from relapse.storage.databases.main import CacheInvalidationWorkerStore
+from relapse.storage.databases.main.cache import CacheInvalidationWorkerStore
 from relapse.util.caches.descriptors import cached
 
 if TYPE_CHECKING:

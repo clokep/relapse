@@ -20,8 +20,7 @@ from functools import wraps
 from types import TracebackType
 from typing import TYPE_CHECKING, Any, TypeVar
 
-from prometheus_client import Metric
-from prometheus_client.core import REGISTRY, Counter, Gauge
+from prometheus_client import REGISTRY, Counter, Gauge, Metric
 from typing_extensions import ParamSpec
 
 from twisted.internet import defer

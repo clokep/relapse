@@ -439,7 +439,7 @@ class ThreadedMemoryReactorClock(MemoryReactorClock):
         #
         # This is *super* dirty since it is never undone and relies on the next
         # test to overwrite it.
-        if twisted.version > Version("Twisted", 23, 8, 0):
+        if twisted.version > Version("Twisted", 23, 8, 0):  # type: ignore[attr-defined]
             from twisted.protocols import tls
 
             tls._get_default_clock = lambda: self

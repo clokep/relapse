@@ -320,7 +320,7 @@ class ConcurrentlyExecuteTest(TestCase):
                 # is called.
                 self.assertEqual(tb[0].name, "caller")
                 self.assertEqual(tb[1].name, "concurrently_execute")
-                if twisted.version < Version("Twisted", 24, 10, 0):
+                if twisted.version < Version("Twisted", 24, 10, 0):  # type: ignore[attr-defined]
                     self.assertEqual(tb[-2].name, "callback")
                 else:
                     self.assertEqual(tb[-3].name, "callback")

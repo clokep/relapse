@@ -19,8 +19,8 @@ from relapse.storage.database import (
     LoggingDatabaseConnection,
     LoggingTransaction,
 )
-from relapse.storage.databases.main.roommember import ProfileInfo
 from relapse.storage.engines import PostgresEngine
+from relapse.storage.roommember import ProfileInfo
 from relapse.types import JsonDict, UserID
 
 if TYPE_CHECKING:

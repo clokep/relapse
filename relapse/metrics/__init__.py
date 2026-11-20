@@ -22,12 +22,15 @@ from collections.abc import Callable, Iterable, Mapping
 from typing import Generic, TypeVar, cast
 
 import attr
-from prometheus_client import CollectorRegistry, Counter, Gauge, Histogram, Metric
-from prometheus_client.core import (
+from prometheus_client import (
     REGISTRY,
-    GaugeHistogramMetricFamily,
-    GaugeMetricFamily,
+    CollectorRegistry,
+    Counter,
+    Gauge,
+    Histogram,
+    Metric,
 )
+from prometheus_client.core import GaugeHistogramMetricFamily, GaugeMetricFamily
 
 from twisted.python.threadpool import ThreadPool
 

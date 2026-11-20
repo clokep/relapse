@@ -542,3 +542,6 @@ class ApplicationServiceApi(SimpleHttpClient):
             )
             for e in events
         ]
+
+
+__all__ = ["ApplicationService"]

@@ -33,7 +33,6 @@ from relapse.storage.database import (
     LoggingDatabaseConnection,
     LoggingTransaction,
 )
-from relapse.storage.databases.main.state import StateFilter
 from relapse.storage.databases.main.state_deltas import StateDeltasStore
 from relapse.storage.engines import PostgresEngine, Sqlite3Engine
 from relapse.types import (
@@ -43,6 +42,7 @@ from relapse.types import (
     get_domain_from_id,
     get_localpart_from_id,
 )
+from relapse.types.state import StateFilter
 
 logger = logging.getLogger(__name__)
 

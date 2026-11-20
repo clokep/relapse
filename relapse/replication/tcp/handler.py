@@ -42,7 +42,6 @@ from relapse.replication.tcp.streams import (
     BackfillStream,
     CachesStream,
     EventsStream,
-    FederationStream,
     PresenceFederationStream,
     PresenceStream,
     ReceiptsStream,
@@ -50,6 +49,7 @@ from relapse.replication.tcp.streams import (
     ToDeviceStream,
     TypingStream,
 )
+from relapse.replication.tcp.streams.federation import FederationStream
 
 if TYPE_CHECKING:
     from relapse.server import HomeServer

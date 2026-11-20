@@ -22,7 +22,7 @@ from contextlib import AbstractContextManager
 from typing import Any
 from weakref import WeakSet
 
-from prometheus_client.core import Counter
+from prometheus_client import Counter, Histogram
 
 from twisted.internet import defer
 
@@ -34,7 +34,7 @@ from relapse.logging.context import (
     run_in_background,
 )
 from relapse.logging.opentracing import start_active_span
-from relapse.metrics import Histogram, LaterGauge
+from relapse.metrics import LaterGauge
 from relapse.util import Clock
 
 if typing.TYPE_CHECKING:

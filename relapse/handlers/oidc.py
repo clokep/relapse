@@ -1674,3 +1674,6 @@ class JinjaOidcMappingProvider(OidcMappingProvider[JinjaOidcMappingConfig]):
                 # Log an error and skip this value (don't break login for this).
                 logger.error(f"Failed to render OIDC extra attribute {key}: {e}")
         return extras
+
+
+__all__ = ["OidcSessionData"]

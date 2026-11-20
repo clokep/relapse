@@ -70,6 +70,7 @@ __all__ = [
     "STREAMS_MAP",
     "Stream",
     "BackfillStream",
+    "EventsStream",
     "PresenceStream",
     "PresenceFederationStream",
     "TypingStream",

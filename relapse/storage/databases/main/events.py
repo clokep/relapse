@@ -29,11 +29,12 @@ from relapse.api.room_versions import RoomVersions
 from relapse.events import EventBase, relation_from_event
 from relapse.events.snapshot import EventContext
 from relapse.logging.opentracing import trace
-from relapse.storage._base import db_to_json, make_in_list_sql_clause
+from relapse.storage._base import db_to_json
 from relapse.storage.database import (
     DatabasePool,
     LoggingDatabaseConnection,
     LoggingTransaction,
+    make_in_list_sql_clause,
 )
 from relapse.storage.databases.main.events_worker import EventCacheEntry
 from relapse.storage.databases.main.search import SearchEntry

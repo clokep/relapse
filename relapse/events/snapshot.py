@@ -24,8 +24,8 @@ from relapse.types import JsonDict, StateMap
 
 if TYPE_CHECKING:
     from relapse.storage.controllers import StorageControllers
-    from relapse.storage.databases import StateGroupDataStore
     from relapse.storage.databases.main import DataStore
+    from relapse.storage.databases.state.store import StateGroupDataStore
     from relapse.types.state import StateFilter
 
 

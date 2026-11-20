@@ -17,7 +17,7 @@ from typing import cast
 
 from relapse.api.errors import RelapseError
 from relapse.storage.database import LoggingTransaction
-from relapse.storage.databases.main import CacheInvalidationWorkerStore
+from relapse.storage.databases.main.cache import CacheInvalidationWorkerStore
 from relapse.storage.databases.main.event_federation import EventFederationWorkerStore
 
 logger = logging.getLogger(__name__)

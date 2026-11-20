@@ -319,3 +319,6 @@ def register_servlets_for_client_rest_resource(
     hs: "HomeServer", http_server: HttpServer
 ) -> None:
     pass
+
+
+__all__ = ["register_servlets_for_media_repo", "admin_patterns"]

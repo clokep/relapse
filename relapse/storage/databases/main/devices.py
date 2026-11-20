@@ -29,11 +29,12 @@ from relapse.logging.opentracing import (
 )
 from relapse.metrics.background_process_metrics import wrap_as_background_process
 from relapse.replication.tcp.streams._base import DeviceListsStream
-from relapse.storage._base import SQLBaseStore, db_to_json, make_in_list_sql_clause
+from relapse.storage._base import SQLBaseStore, db_to_json
 from relapse.storage.database import (
     DatabasePool,
     LoggingDatabaseConnection,
     LoggingTransaction,
+    make_in_list_sql_clause,
     make_tuple_comparison_clause,
 )
 from relapse.storage.databases.main.end_to_end_keys import EndToEndKeyWorkerStore

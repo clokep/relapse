@@ -11,9 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from prometheus_client import generate_latest
+from prometheus_client import REGISTRY, generate_latest
 
-from relapse.metrics import REGISTRY
 from relapse.types import UserID, create_requester
 
 from tests.unittest import HomeserverTestCase

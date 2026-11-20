@@ -29,3 +29,5 @@ except ImportError:
             pass
 
     Collector = _Collector  # type: ignore
+
+__all__ = ["Collector"]

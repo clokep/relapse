@@ -16,7 +16,7 @@ from collections.abc import Iterable, Mapping
 from typing import cast
 
 from relapse.storage.database import LoggingTransaction
-from relapse.storage.databases.main import CacheInvalidationWorkerStore
+from relapse.storage.databases.main.cache import CacheInvalidationWorkerStore
 from relapse.util.caches.descriptors import cached, cachedList
 
 

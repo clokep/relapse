@@ -17,7 +17,7 @@ from typing import Any, cast
 
 from relapse.api.errors import RelapseError
 from relapse.storage.database import LoggingTransaction
-from relapse.storage.databases.main import CacheInvalidationWorkerStore
+from relapse.storage.databases.main.cache import CacheInvalidationWorkerStore
 from relapse.storage.databases.main.state import StateGroupWorkerStore
 from relapse.storage.engines import PostgresEngine
 from relapse.storage.engines._base import IsolationLevel

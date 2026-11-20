@@ -580,3 +580,5 @@ _ALL_NON_MEMBER_STATE_FILTER = StateFilter(
     types=immutabledict({EventTypes.Member: frozenset()}), include_others=True
 )
 _NONE_STATE_FILTER = StateFilter(types=immutabledict(), include_others=False)
+
+__all__ = ["StateFilter"]

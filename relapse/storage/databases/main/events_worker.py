@@ -49,11 +49,12 @@ from relapse.metrics.background_process_metrics import (
 from relapse.replication.tcp.streams import BackfillStream, UnPartialStatedEventStream
 from relapse.replication.tcp.streams.events import EventsStream
 from relapse.replication.tcp.streams.partial_state import UnPartialStatedEventStreamRow
-from relapse.storage._base import SQLBaseStore, db_to_json, make_in_list_sql_clause
+from relapse.storage._base import SQLBaseStore, db_to_json
 from relapse.storage.database import (
     DatabasePool,
     LoggingDatabaseConnection,
     LoggingTransaction,
+    make_in_list_sql_clause,
 )
 from relapse.storage.engines import PostgresEngine
 from relapse.storage.types import Cursor

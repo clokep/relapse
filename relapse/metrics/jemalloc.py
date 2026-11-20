@@ -21,8 +21,8 @@ from typing import Literal, overload
 
 import attr
 from prometheus_client import REGISTRY, Metric
+from prometheus_client.core import GaugeMetricFamily
 
-from relapse.metrics import GaugeMetricFamily
 from relapse.metrics._types import Collector
 
 logger = logging.getLogger(__name__)

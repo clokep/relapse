@@ -31,7 +31,8 @@ from relapse.storage.databases.main.lock import Lock, LockStore
 from relapse.util.async_helpers import timeout_deferred
 
 if TYPE_CHECKING:
-    from relapse.logging.opentracing import opentracing
+    import opentracing
+
     from relapse.server import HomeServer
 
 
