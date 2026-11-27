@@ -134,7 +134,7 @@ dependencies = [
     # A version that is compatible with cryptography 44.x.
     "pyOpenSSL>=24.3.0",
     "PyYAML>=6.0",
-    "pyasn1>=0.1.9",
+    "pyasn1>=0.6.5",
     "pyasn1-modules>=0.0.7",
     "bcrypt>=3.1.7",
     # 10.0.1 minimum is mandatory here because of libwebp CVE-2023-4863.
